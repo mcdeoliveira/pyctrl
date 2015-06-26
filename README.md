@@ -1,2 +1,2 @@
 # beaglebone
-Control softwareusing Beaglebone Black
+Control software using Beaglebone Black
