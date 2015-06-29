@@ -61,7 +61,7 @@ class ControllerClient(Controller):
 
             print("> Received type = '{}', value = '{}'".format(type, _value))
 
-        print("> Received Acknowledgment '{}'".format(_value))
+        print("> Received Acknowledgment '{}'\n".format(_value))
 
         return values
 

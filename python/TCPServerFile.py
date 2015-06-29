@@ -23,7 +23,7 @@ class MyTCPHandler(socketserver.StreamRequestHandler):
                           'H': ('', self.controller.help),
                           's': ('', self.controller.get_status),
                           'R': ('', self.controller.read_sensor),
-                          'Z': ('', self.controller.set_encoder),
+                          'Z': ('', self.controller.set_encoder1),
                           'P': ('I', self.controller.set_period),
                           'E': ('I', self.controller.set_echo_divisor),
                           'L': ('I', self.controller.run_loop),
@@ -42,7 +42,7 @@ class MyTCPHandler(socketserver.StreamRequestHandler):
                           'Y': ('I', self.controller.control_mode),
                           'C': ('', self.controller.start_stop_controller),
                           'r': ('', self.controller.read_values),
-                          'X': ('', self.finish)
+                          'X': ('', self.finish),
                           'u': ('S', self.controller.array)}
         super().__init__(request, client_address, server)
         

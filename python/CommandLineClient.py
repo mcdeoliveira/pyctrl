@@ -4,7 +4,7 @@ from ControllerClient import ControllerClient
 
 with ControllerClient() as client:
 
-    print('Hi')
+    print('Hi\n')
 
     for line in sys.stdin:
 
