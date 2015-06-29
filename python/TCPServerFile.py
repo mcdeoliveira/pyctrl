@@ -10,14 +10,14 @@ class MyTCPHandler(socketserver.StreamRequestHandler):
         self.controller = Controller()
 
         # simulate data
-        self.controller.simulate_data(10)
-        print('current = {}'.format(self.controller.current))
-        print('data = {}'.format(self.controller.data))
+        #self.controller.simulate_data(10)
+        #print('current = {}'.format(self.controller.current))
+        #print('data = {}'.format(self.controller.data))
 
         # simulate data
-        self.controller.simulate_data(10)
-        print('current = {}'.format(self.controller.current))
-        print('data = {}'.format(self.controller.data))
+        #self.controller.simulate_data(10)
+        #print('current = {}'.format(self.controller.current))
+        #print('data = {}'.format(self.controller.data))
 
         self.commands = { 'e': ('S', self.controller.echo),
                           'H': ('', self.controller.help),
@@ -42,7 +42,8 @@ class MyTCPHandler(socketserver.StreamRequestHandler):
                           'Y': ('I', self.controller.control_mode),
                           'C': ('', self.controller.start_stop_controller),
                           'r': ('', self.controller.read_values),
-                          'X': ('', self.finish)}
+                          'X': ('', self.finish)
+                          'u': ('S', self.controller.array)}
         super().__init__(request, client_address, server)
         
     def handle(self):
@@ -86,6 +87,18 @@ class MyTCPHandler(socketserver.StreamRequestHandler):
             message = ('A', code)
             print("> Acknowledge '{}'\n".format(code))
             self.wfile.write(Packet.pack(*message))
+
+            if code == 'u':
+                text = format(argument)
+                text = [text[i] for i in range(len(text))]
+                j = 0
+                array = numpy.zeros(len(text))
+                for i in range(0,len(text)):
+                    if str.isnumeric(text[i]):
+                        array[j] = text[i]
+                        print('Array({}) = {}'.format(j, array[j]))
+                        j += 1
+                print('\n')
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 9999

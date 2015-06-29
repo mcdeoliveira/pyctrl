@@ -148,4 +148,14 @@ class ControllerClient(Controller):
     def read_values(self):
         self.send('r')
 
+    def array(self, value = 0):
+        retval = self.send('u', 'S', str(value))
+        print('Return values = {}'.format(retval))
+        text = value
+        text = text.split(',')
+        length = len(text)
+        for i in range(0,length):
+            print('Array({}) = {}'.format(i, text[i]))
+        print('\n')
+
     

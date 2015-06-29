@@ -58,6 +58,8 @@ with ControllerClient() as client:
             client.start_stop_controller()
         elif line[0] == 'r':
             client.read_values()
+        elif line[0] == 'u':
+            client.array(str(line[1:]))
         elif line[0] == 'X':
             break
             

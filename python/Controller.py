@@ -419,6 +419,9 @@ class Controller:
 ----------------------------------------------------------------------
 """)
 
+    def array(self, value):
+        return ('S', value)
+
 
 if __name__ == "__main__":
 
