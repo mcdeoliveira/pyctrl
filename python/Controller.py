@@ -1,4 +1,4 @@
-from threading import Timer
+import threading
 import numpy
 import time
 import random
@@ -86,8 +86,8 @@ class Controller:
         self.period = period
         self.echo = echo
         self.echo_counter = 0
-        self._timer = None
         self.is_running = False
+        self.sleep = 0
         
         # data logger
         self.set_logger(60./period)
@@ -112,6 +112,9 @@ class Controller:
         self.reference2_mode = 0 # 0 -> software, 1 -> potentiometer
         self.reference2 = 0
 
+    def set_sleep(self, duration):
+        self.sleep = duration
+
     def set_logger(self, duration):
         self.data = numpy.zeros((int(duration/self.period), 7), float)
         self.reset_logger()
@@ -128,10 +131,8 @@ class Controller:
             return numpy.vstack((self.data[self.current:,:], 
                                  self.data[:self.current,:]))
 
-    def _run(self):
-        self.is_running = False
-        self._start()
-        
+    def run(self):
+
         # Run the loop
         encoder1, pot1, encoder2, pot2 = self.read_sensors()
         time_stamp = time.clock()
@@ -147,7 +148,7 @@ class Controller:
         else:
             reference2 = self.reference2
         
-        # Call contoller
+        # Call controller
         pwm1 = pwm2 = 0
         if self.controller1 is not None:
             pwm1 = self.controller1.update(encoder1, reference1, self.period)
@@ -190,7 +191,7 @@ class Controller:
                                       reference1, pwm1),
                               end='')
                     else:
-                        print(' {0:10d} {1:+6.1f} {2:+6.1f}'
+                        print(' {0:+10d} {1:+6.1f} {2:+6.1f}'
                               .format(encoder1, reference1, pwm1),
                               end='')
                 if self.controller2 is not None:
@@ -200,19 +201,23 @@ class Controller:
                                       reference2, pwm2),
                               end='')
                     else:
-                        print(' {0:10d} {1:+6.1f} {2:+6.1f}'
+                        print(' {0:+10d} {1:+6.1f} {2:+6.1f}'
                               .format(encoder2, reference2, pwm2),
                               end='')
             self.echo_counter += 1
 
-    def _start(self):
-        if not self.is_running:
-            self._timer = Timer(self.period, self._run)
-            self._timer.start()
-            self.is_running = True
+    def _run(self):
+        # Loop
+        self.is_running = True
+        while self.is_running:
+            # Call run
+            self.run()
+            # Sleep
+            if self.sleep:
+                time.sleep(self.sleep)
 
     def start(self):
-        # Echo
+        # Heading
         if self.echo:
             print('          TIME', end='')
             if self.controller1 is not None:
@@ -226,10 +231,12 @@ class Controller:
                 else:
                     print('       ENC2   REF2   PWM2', end='')
             print('')
-        self._start()
+
+        # Start thread
+        self.thread = threading.Thread(target = self._run)
+        self.thread.start()
             
     def stop(self):
-        self._timer.cancel()
         self.is_running = False
         if self.echo:
             print('\n')
@@ -414,16 +421,17 @@ class Controller:
 
 
 if __name__ == "__main__":
+
     controller = Controller()
+    controller.set_echo(1)
+    controller.set_sleep(.1)
     controller.start()
-    print('> OI')
     time.sleep(1)
-    controller.set_motor1_pwm(+255)
+    controller.set_reference1(100)
     time.sleep(1)
-    controller.set_motor1_pwm(-77)
+    controller.set_reference1(-50)
     time.sleep(1)
-    controller.set_motor1_pwm(0)
+    controller.set_reference1(0)
     time.sleep(1)
-    print('< OI')
     controller.stop()
 

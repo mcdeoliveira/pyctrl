@@ -1,3 +1,4 @@
+from threading import Timer
 import random
 import numpy
 import math
@@ -7,14 +8,50 @@ import SISOLTISystem as siso
 class SimulateController(Controller):
 
     def __init__(self, *pars, **kpars):
+
         super().__init__(*pars, **kpars)
+
+        # Set model 1
         self.model1 = siso.SISOLTISystem(self.period)
         self.input1_range = 1;
         self.output1_range = 1;
 
+        # Set model 2
         self.model2 = siso.SISOLTISystem(self.period)
         self.input2_range = 1;
         self.output2_range = 1;
+
+        # Timer thread
+        self.timer = None
+        self.timer_is_running = False
+
+    def timer_start(self):
+        if not self.timer_is_running:
+            self.timer = Timer(self.period, self.timer_run)
+            self.timer.start()
+            self.timer_is_running = True
+
+    def timer_run(self):
+        # Initiate timer thread
+        self.timer_is_running = False
+        self.timer_start()
+
+        # Call run
+        super().run()
+
+    def stop(self):
+        self.timer_is_running = False
+        self.timer.cancel()
+
+        # Call stop
+        super().stop()
+
+    def run(self):
+        # hijack control to timer
+        self.timer_start()
+
+        # and return
+        self.is_running = False
 
     def set_period(self, value = 0.1):
         super().set_period(value)
