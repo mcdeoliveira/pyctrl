@@ -422,6 +422,12 @@ class Controller:
     def array(self, value):
         return ('S', value)
 
+    def vector(self, value):
+        return ('V', value)
+
+    def matrix(self, value):
+        return ('M', value)
+
 
 if __name__ == "__main__":
 

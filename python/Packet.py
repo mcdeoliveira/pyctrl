@@ -42,6 +42,24 @@ class Packet:
             (f,) = struct.unpack('<d', buffer)
             return ('D', d)
 
+        elif btype == b'V':
+            # Read length (int)
+            buffer = stream.read(4)
+            (blen,) = struct.unpack('<I', buffer)
+            # Read string (blen*char)
+            buffer = stream.read(blen)
+            (bmessage,) = struct.unpack('%ds' % (blen,), buffer)
+            return ('V', str(bmessage, 'utf-8'))
+
+        elif btype == b'M':
+            # Read length (int)
+            buffer = stream.read(4)
+            (blen,) = struct.unpack('<I', buffer)
+            # Read string (blen*char)
+            buffer = stream.read(blen)
+            (bmessage,) = struct.unpack('%ds' % (blen,), buffer)
+            return ('M', str(bmessage, 'utf-8'))
+
         else:
             raise NameError('Unknown type')
 
@@ -73,6 +91,16 @@ class Packet:
         elif btype == b'D':
             (f,) = struct.unpack('<d', buffer[:8])
             return ('D', d)
+
+        elif btype == b'V':
+            (blen,), buffer = struct.unpack('<I', buffer[:4]), buffer[4:]
+            (bmessage,) = struct.unpack('%ds' % (blen,), buffer)
+            return ('V', str(bmessage, 'utf-8'))
+
+        elif btype == b'M':
+            (blen,), buffer = struct.unpack('<I', buffer[:4]), buffer[4:]
+            (bmessage,) = struct.unpack('%ds' % (blen,), buffer)
+            return ('M', str(bmessage, 'utf-8'))
 
         else:
             raise NameError('Unknown type')
@@ -108,6 +136,24 @@ class Packet:
         # double
         elif type == 'D':
             return struct.pack('<cd', b'D', content)
+
+        #vector
+        elif type == 'V':
+            bmessage = bytes(content, 'utf-8')
+            blen = len(bmessage)
+            return struct.pack('<cI%ds' % (blen,),
+                               b'V', 
+                               blen,
+                               bmessage)
+
+        #matrix
+        elif type == 'M':
+            bmessage = bytes(content, 'utf-8')
+            blen = len(bmessage)
+            return struct.pack('<cI%ds' % (blen,),
+                               b'M', 
+                               blen,
+                               bmessage)
 
         else:
             raise NameError('Unknown type')

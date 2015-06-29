@@ -1,6 +1,7 @@
 import struct
 import warnings
 import socket
+import numpy
 from Packet import Packet
 from Controller import Controller
 
@@ -152,10 +153,42 @@ class ControllerClient(Controller):
         retval = self.send('u', 'S', str(value))
         print('Return values = {}'.format(retval))
         text = value
-        text = text.split(',')
-        length = len(text)
-        for i in range(0,length):
-            print('Array({}) = {}'.format(i, text[i]))
+        text = [text[i] for i in range(len(text))]
+        j = 0
+        array = numpy.zeros(len(text))
+        for i in range(0,len(text)):
+            if str.isnumeric(text[i]):
+                array[j] = text[i]
+                print('Array({}) = {}'.format(j, array[j]))
+                j += 1
+        print('\n')
+
+    def vector(self, value = 0):
+        retval = self.send('w', 'V', str(value))
+        print('Return values = {}'.format(retval))
+        text = value
+        text = [text[i] for i in range(len(text))]
+        j = 0
+        array = numpy.zeros(len(text))
+        for i in range(0,len(text)):
+            if str.isnumeric(text[i]):
+                array[j] = text[i]
+                print('Vector({}) = {}'.format(j, array[j]))
+                j += 1
+        print('\n')
+
+    def matrix(self, value = 0):
+        retval = self.send('W', 'M', str(value))
+        print('Return values = {}'.format(retval))
+        text = value
+        text = [text[i] for i in range(len(text))]
+        j = 0
+        array = numpy.zeros(len(text))
+        for i in range(0,len(text)):
+            if str.isnumeric(text[i]):
+                array[j] = text[i]
+                print('Matrix({}) = {}'.format(j, array[j]))
+                j += 1
         print('\n')
 
     

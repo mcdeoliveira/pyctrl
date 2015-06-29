@@ -43,7 +43,9 @@ class MyTCPHandler(socketserver.StreamRequestHandler):
                           'C': ('', self.controller.start_stop_controller),
                           'r': ('', self.controller.read_values),
                           'X': ('', self.finish),
-                          'u': ('S', self.controller.array)}
+                          'u': ('S', self.controller.array),
+                          'w': ('V', self.controller.vector),
+                          'W': ('M', self.controller.matrix)}
         super().__init__(request, client_address, server)
         
     def handle(self):
@@ -97,6 +99,30 @@ class MyTCPHandler(socketserver.StreamRequestHandler):
                     if str.isnumeric(text[i]):
                         array[j] = text[i]
                         print('Array({}) = {}'.format(j, array[j]))
+                        j += 1
+                print('\n')
+
+            if code == 'w':
+                text = format(argument)
+                text = [text[i] for i in range(len(text))]
+                j = 0
+                array = numpy.zeros(len(text))
+                for i in range(0,len(text)):
+                    if str.isnumeric(text[i]):
+                        array[j] = text[i]
+                        print('Vector({}) = {}'.format(j, array[j]))
+                        j += 1
+                print('\n')
+
+            if code == 'W':
+                text = format(argument)
+                text = [text[i] for i in range(len(text))]
+                j = 0
+                array = numpy.zeros(len(text))
+                for i in range(0,len(text)):
+                    if str.isnumeric(text[i]):
+                        array[j] = text[i]
+                        print('Matrix({}) = {}'.format(j, array[j]))
                         j += 1
                 print('\n')
 

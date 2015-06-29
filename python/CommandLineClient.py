@@ -60,6 +60,10 @@ with ControllerClient() as client:
             client.read_values()
         elif line[0] == 'u':
             client.array(str(line[1:]))
+        elif line[0] == 'w':
+            client.vector(str(line[1:]))
+        elif line[0] == 'W':
+            client.matrix(str(line[1:]))
         elif line[0] == 'X':
             break
             
