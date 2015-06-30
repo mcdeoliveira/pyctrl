@@ -1,6 +1,7 @@
 import struct
 import socketserver
 import numpy
+import math
 from Packet import Packet
 from Controller import Controller
 
@@ -102,17 +103,18 @@ class MyTCPHandler(socketserver.StreamRequestHandler):
                         j += 1
                 print('\n')
 
-            #if code == 'w':
-            #    text = format(argument)
-            #    text = [text[i] for i in range(len(text))]
-            #    j = 0
-            #    array = numpy.zeros(len(text))
-            #    for i in range(0,len(text)):
-            #        if str.isnumeric(text[i]):
-            #            array[j] = text[i]
-            #            print('Vector({}) = {}'.format(j, array[j]))
-            #            j += 1
-            #    print('\n')
+            if code == 'w':
+                text = format(argument)
+                text = [text[i] for i in range(len(text))]
+                j = 0
+                array = numpy.zeros(math.floor((len(text)-5)/2 + 1))
+                for i in range(2,len(text)-3):
+                    if i%2 == 0:
+                        array[j] = text[i]
+                        #print('Vector({}) = {}'.format(j, array[j]))
+                        j += 1
+                print(array)
+                print('\n')
 
             if code == 'W':
                 text = format(argument)

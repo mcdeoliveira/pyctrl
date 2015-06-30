@@ -2,6 +2,7 @@ import struct
 import warnings
 import socket
 import numpy
+import math
 from Packet import Packet
 from Controller import Controller
 
@@ -159,7 +160,7 @@ class ControllerClient(Controller):
         for i in range(0,len(text)):
             if str.isnumeric(text[i]):
                 array[j] = text[i]
-                print('Array({}) = {}'.format(j, array[j]))
+                print('Matrix({}) = {}'.format(j, array[j]))
                 j += 1
         print('\n')
 
@@ -171,12 +172,14 @@ class ControllerClient(Controller):
         text = value
         text = [text[i] for i in range(len(text))]
         j = 0
-        array = numpy.zeros(len(text))
+        array = numpy.zeros(math.floor((len(text)/2)+1))
         for i in range(0,len(text)):
-            if str.isnumeric(text[i]):
+            if i%2 == 0:
                 array[j] = text[i]
-                print('Vector({}) = {}'.format(j, array[j]))
+                #print('Vector({}) = {}'.format(j, array[j]))
                 j += 1
+        print('\n')
+        print(array)
         print('\n')
 
     def matrix(self, value = 0):
