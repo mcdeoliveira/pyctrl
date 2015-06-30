@@ -163,6 +163,8 @@ class ControllerClient(Controller):
                 j += 1
         print('\n')
 
+    #def vector(self):
+        #self.send('V')
     def vector(self, value = 0):
         retval = self.send('w', 'V', str(value))
         print('Return values = {}'.format(retval))

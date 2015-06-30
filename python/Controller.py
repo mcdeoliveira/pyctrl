@@ -424,6 +424,15 @@ class Controller:
 
     def vector(self, value):
         return ('V', value)
+        #if value > 0:
+        #array = numpy.zeros(5)
+        #for i in range(0,len(text)):
+        #    if str.isnumeric(text[i]):
+        #        array[j] = text[i]
+        #        print('Vector({}) = {}'.format(j, array[j]))
+        #        j += 1
+        #print('\n')
+        #return ('V', value)
 
     def matrix(self, value):
         return ('M', value)
