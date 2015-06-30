@@ -2,8 +2,8 @@ from threading import Timer
 import random
 import numpy
 import math
-from Controller import Controller, ProportionalController, PIDController, VelocityController
 import SISOLTISystem as siso
+from Controller import Controller
 
 class SimulateController(Controller):
 
@@ -100,9 +100,11 @@ class SimulateController(Controller):
         return (int(self.output1_range * yk1), pot1,
                 int(self.output2_range * yk2), pot2)
 
+
 if __name__ == "__main__":
 
     import time
+    from ControlAlgorithm import *
     
     controller = SimulateController()
 
