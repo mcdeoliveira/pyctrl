@@ -43,10 +43,10 @@ class MyTCPHandler(socketserver.StreamRequestHandler):
                           'Y': ('I', self.controller.control_mode),
                           'C': ('', self.controller.start_stop_controller),
                           'r': ('', self.controller.read_values),
-                          'X': ('', self.finish),
-                          'u': ('S', self.controller.array),
-                          'w': ('V', self.controller.vector),
-                          'W': ('M', self.controller.matrix)}
+                          # 'u': ('S', self.controller.array),
+                          # 'w': ('V', self.controller.vector),
+                          # 'W': ('M', self.controller.matrix),
+                          'X': ('', self.finish)}
         super().__init__(request, client_address, server)
         
     def handle(self):
@@ -91,42 +91,42 @@ class MyTCPHandler(socketserver.StreamRequestHandler):
             print("> Acknowledge '{}'\n".format(code))
             self.wfile.write(Packet.pack(*message))
 
-            if code == 'u':
-                text = format(argument)
-                text = [text[i] for i in range(len(text))]
-                j = 0
-                array = numpy.zeros(len(text))
-                for i in range(0,len(text)):
-                    if str.isnumeric(text[i]):
-                        array[j] = text[i]
-                        print('Array({}) = {}'.format(j, array[j]))
-                        j += 1
-                print('\n')
+            # if code == 'u':
+            #     text = format(argument)
+            #     text = [text[i] for i in range(len(text))]
+            #     j = 0
+            #     array = numpy.zeros(len(text))
+            #     for i in range(0,len(text)):
+            #         if str.isnumeric(text[i]):
+            #             array[j] = text[i]
+            #             print('Array({}) = {}'.format(j, array[j]))
+            #             j += 1
+            #     print('\n')
 
-            if code == 'w':
-                text = format(argument)
-                text = [text[i] for i in range(len(text))]
-                j = 0
-                array = numpy.zeros(math.floor((len(text)-5)/2 + 1))
-                for i in range(2,len(text)-3):
-                    if i%2 == 0:
-                        array[j] = text[i]
-                        #print('Vector({}) = {}'.format(j, array[j]))
-                        j += 1
-                print(array)
-                print('\n')
+            # if code == 'w':
+            #     text = format(argument)
+            #     text = [text[i] for i in range(len(text))]
+            #     j = 0
+            #     array = numpy.zeros(math.floor((len(text)-5)/2 + 1))
+            #     for i in range(2,len(text)-3):
+            #         if i%2 == 0:
+            #             array[j] = text[i]
+            #             #print('Vector({}) = {}'.format(j, array[j]))
+            #             j += 1
+            #     print(array)
+            #     print('\n')
 
-            if code == 'W':
-                text = format(argument)
-                text = [text[i] for i in range(len(text))]
-                j = 0
-                array = numpy.zeros(len(text))
-                for i in range(0,len(text)):
-                    if str.isnumeric(text[i]):
-                        array[j] = text[i]
-                        print('Matrix({}) = {}'.format(j, array[j]))
-                        j += 1
-                print('\n')
+            # if code == 'W':
+            #     text = format(argument)
+            #     text = [text[i] for i in range(len(text))]
+            #     j = 0
+            #     array = numpy.zeros(len(text))
+            #     for i in range(0,len(text)):
+            #         if str.isnumeric(text[i]):
+            #             array[j] = text[i]
+            #             print('Matrix({}) = {}'.format(j, array[j]))
+            #             j += 1
+            #     print('\n')
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 9999
