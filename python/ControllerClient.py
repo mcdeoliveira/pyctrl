@@ -67,136 +67,49 @@ class ControllerClient(Controller):
 
         return values
 
-    def echo(self, value = 0):
-        retval = self.send('e', 'S', str(value))
-        print('Return values = {}'.format(retval))
-
-    def get_log(self):
-        return self.send('L')
-
+    # Controller methods
     def help(self):
-        self.send('H')
+        return self.send('h')[0][1]
 
-    def get_status(self):
+    def set_echo(self, value):
+        self.send('E', 'I', value)
+
+    def set_sleep(self, value):
+        self.send('S', 'D', value)
+
+    def set_reference1(self, value):
+        self.send('R', 'D', value)
+
+    def start(self):
         self.send('s')
 
-    def read_sensor(self):
-        self.send('R')
+    def stop(self):
+        self.send('t')
 
-    def set_encoder(self):
-        self.send('Z')
+    def get_log(self):
+        self.send('l')
 
-    def set_period(self, value = 0):
-        retval = self.send('P', 'I', value)
-        print('Return values = {}'.format(retval))
+if __name__ == "__main__":
 
-    def set_echo_divisor(self, value = 0):
-        retval = self.send('E', 'I', value)
-        print('Return values = {}'.format(retval))
+    import time
+    import numpy
 
-    def run_loop(self, value = 0):
-        retval = self.send('L', 'I', value)
-        print('Return values = {}'.format(retval))
-
-    def set_motor_gain(self, value = 0):
-        retval = self.send('G', 'I', value)
-        print('Return values = {}'.format(retval))
-
-    def reverse_motor_direction(self):
-        self.send('V')
-
-    def set_PWM_frequency(self, value = 0):
-        retval = self.send('F', 'I', value)
-        print('Return values = {}'.format(retval))
-
-    def set_motor_curve(self, value = 0):
-        retval = self.send('Q', 'I', value)
-        print('Return values = {}'.format(retval))
-
-    def start_stop_motor(self):
-        self.send('M')
-
-    def set_target(self, value = 0):
-        retval = self.send('T', 'I', value)
-        print('Return values = {}'.format(retval))
-
-    def set_target_zero(self, value = 0):
-        retval = self.send('B', 'I', value)
-        print('Return values = {}'.format(retval))
-
-    def read_target_potentiometer(self):
-        self.send('O')
-
-    def set_target_mode(self, value = 0):
-        retval = self.send('D', 'I', value)
-        print('Return values = {}'.format(retval))
-
-    def set_proportional_gain(self, value = 0):
-        retval = self.send('K', 'F', value)
-        print('Return values = {}'.format(retval))
-
-    def set_integral_gain(self, value = 0):
-        retval = self.send('I', 'F', value)
-        print('Return values = {}'.format(retval))
-
-    def set_derivative_gain(self, value = 0):
-        retval = self.send('N', 'F', value)
-        print('Return values = {}'.format(retval))
-
-    def control_mode(self, value = 0):
-        retval = self.send('Y', 'I', value)
-        print('Return values = {}'.format(retval))
-
-    def start_stop_controller(self):
-        self.send('C')
-
-    def read_values(self):
-        self.send('r')
-
-    def array(self, value = 0):
-        retval = self.send('u', 'S', str(value))
-        print('Return values = {}'.format(retval))
-        text = value
-        text = [text[i] for i in range(len(text))]
-        j = 0
-        array = numpy.zeros(len(text))
-        for i in range(0,len(text)):
-            if str.isnumeric(text[i]):
-                array[j] = text[i]
-                print('Matrix({}) = {}'.format(j, array[j]))
-                j += 1
-        print('\n')
-
-    #def vector(self):
-        #self.send('V')
-    def vector(self, value = 0):
-        retval = self.send('w', 'V', str(value))
-        print('Return values = {}'.format(retval))
-        text = value
-        text = [text[i] for i in range(len(text))]
-        j = 0
-        array = numpy.zeros(math.floor((len(text)/2)+1))
-        for i in range(0,len(text)):
-            if i%2 == 0:
-                array[j] = text[i]
-                #print('Vector({}) = {}'.format(j, array[j]))
-                j += 1
-        print('\n')
-        print(array)
-        print('\n')
-
-    def matrix(self, value = 0):
-        retval = self.send('W', 'M', str(value))
-        print('Return values = {}'.format(retval))
-        text = value
-        text = [text[i] for i in range(len(text))]
-        j = 0
-        array = numpy.zeros(len(text))
-        for i in range(0,len(text)):
-            if str.isnumeric(text[i]):
-                array[j] = text[i]
-                print('Matrix({}) = {}'.format(j, array[j]))
-                j += 1
-        print('\n')
-
+    HOST, PORT = "localhost", 9999
     
+    with ControllerClient(HOST, PORT) as controller:
+
+        print(controller.help())
+
+        controller.set_echo(0)
+        controller.set_sleep(.5)
+        controller.start()
+        time.sleep(1)
+        controller.set_reference1(100)
+        time.sleep(1)
+        controller.set_reference1(-50)
+        time.sleep(1)
+        controller.set_reference1(0)
+        time.sleep(1)
+        controller.stop()
+
+        print(controller.get_log())

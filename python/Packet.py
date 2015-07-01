@@ -40,7 +40,7 @@ class Packet:
         elif btype == b'D':
             # Read double
             buffer = stream.read(8)
-            (f,) = struct.unpack('<d', buffer)
+            (d,) = struct.unpack('<d', buffer)
             return ('D', d)
 
         elif btype == b'V':
@@ -78,9 +78,9 @@ class Packet:
             buffer = stream.read(4)
             (rsize,) = struct.unpack('<I', buffer)
             # read vector
-            (vtype, vector) = unpack_stream(stream)
+            (vtype, vector) = Packet.unpack_stream(stream)
             # resize vector as matrix
-            vector = numpy.resize(vector, (rsize, vector.size/rsize))
+            vector = numpy.resize(vector, (rsize, vector.size/rsize)).transpose()
             # return vector
             return ('M', vector)
 
