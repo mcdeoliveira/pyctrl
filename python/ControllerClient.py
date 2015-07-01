@@ -71,6 +71,9 @@ class ControllerClient(Controller):
         retval = self.send('e', 'S', str(value))
         print('Return values = {}'.format(retval))
 
+    def get_log(self):
+        return self.send('L')
+
     def help(self):
         self.send('H')
 

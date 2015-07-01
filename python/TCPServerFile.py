@@ -27,7 +27,7 @@ class MyTCPHandler(socketserver.StreamRequestHandler):
                           'Z': ('', self.controller.set_encoder1),
                           'P': ('I', self.controller.set_period),
                           'E': ('I', self.controller.set_echo_divisor),
-                          'L': ('I', self.controller.run_loop),
+                          'L': ('', self.controller.get_log),
                           'G': ('I', self.controller.set_motor_gain),
                           'V': ('', self.controller.reverse_motor_direction),
                           'F': ('I', self.controller.set_PWM_frequency),
