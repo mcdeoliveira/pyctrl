@@ -153,50 +153,50 @@ class ControllerClient(Controller):
     def read_values(self):
         self.send('r')
 
-    def array(self, value = 0):
-        retval = self.send('u', 'S', str(value))
-        print('Return values = {}'.format(retval))
-        text = value
-        text = [text[i] for i in range(len(text))]
-        j = 0
-        array = numpy.zeros(len(text))
-        for i in range(0,len(text)):
-            if str.isnumeric(text[i]):
-                array[j] = text[i]
-                print('Matrix({}) = {}'.format(j, array[j]))
-                j += 1
-        print('\n')
+    # def array(self, value = 0):
+    #     retval = self.send('u', 'S', str(value))
+    #     print('Return values = {}'.format(retval))
+    #     text = value
+    #     text = [text[i] for i in range(len(text))]
+    #     j = 0
+    #     array = numpy.zeros(len(text))
+    #     for i in range(0,len(text)):
+    #         if str.isnumeric(text[i]):
+    #             array[j] = text[i]
+    #             print('Matrix({}) = {}'.format(j, array[j]))
+    #             j += 1
+    #     print('\n')
 
-    #def vector(self):
-        #self.send('V')
-    def vector(self, value = 0):
-        retval = self.send('w', 'V', str(value))
-        print('Return values = {}'.format(retval))
-        text = value
-        text = [text[i] for i in range(len(text))]
-        j = 0
-        array = numpy.zeros(math.floor((len(text)/2)+1))
-        for i in range(0,len(text)):
-            if i%2 == 0:
-                array[j] = text[i]
-                #print('Vector({}) = {}'.format(j, array[j]))
-                j += 1
-        print('\n')
-        print(array)
-        print('\n')
+    # #def vector(self):
+    #     #self.send('V')
+    # def vector(self, value = 0):
+    #     retval = self.send('w', 'V', str(value))
+    #     print('Return values = {}'.format(retval))
+    #     text = value
+    #     text = [text[i] for i in range(len(text))]
+    #     j = 0
+    #     array = numpy.zeros(math.floor((len(text)/2)+1))
+    #     for i in range(0,len(text)):
+    #         if i%2 == 0:
+    #             array[j] = text[i]
+    #             #print('Vector({}) = {}'.format(j, array[j]))
+    #             j += 1
+    #     print('\n')
+    #     print(array)
+    #     print('\n')
 
-    def matrix(self, value = 0):
-        retval = self.send('W', 'M', str(value))
-        print('Return values = {}'.format(retval))
-        text = value
-        text = [text[i] for i in range(len(text))]
-        j = 0
-        array = numpy.zeros(len(text))
-        for i in range(0,len(text)):
-            if str.isnumeric(text[i]):
-                array[j] = text[i]
-                print('Matrix({}) = {}'.format(j, array[j]))
-                j += 1
-        print('\n')
+    # def matrix(self, value = 0):
+    #     retval = self.send('W', 'M', str(value))
+    #     print('Return values = {}'.format(retval))
+    #     text = value
+    #     text = [text[i] for i in range(len(text))]
+    #     j = 0
+    #     array = numpy.zeros(len(text))
+    #     for i in range(0,len(text)):
+    #         if str.isnumeric(text[i]):
+    #             array[j] = text[i]
+    #             print('Matrix({}) = {}'.format(j, array[j]))
+    #             j += 1
+    #     print('\n')
 
     
