@@ -3,7 +3,7 @@ import warnings
 import socket
 import numpy
 import math
-from Packet import Packet
+import Packet
 from Controller import Controller
 
 class WrapSocket:

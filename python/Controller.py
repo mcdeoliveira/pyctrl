@@ -39,30 +39,27 @@ class Controller:
         self.reference2_mode = 0 # 0 -> software, 1 -> potentiometer
         self.reference2 = 0
 
-    def set_sleep(self, duration):
-        self.sleep = duration
-
-    def set_logger(self, duration):
-        self.data = numpy.zeros((int(duration/self.period), 7), float)
-        self.reset_logger()
-
-    def reset_logger(self):
-        self.page = 0
-        self.current = 0
-        self.time_origin = time.clock()
-        
-    def get_log(self):
-        if self.page == 0:
-            return self.data[:self.current,:]
+    def set_motor1_pwm(self, value = 0):
+        if value > 0:
+            self.motor1_pwm = value
+            self.motor1_dir = 1
         else:
-            return numpy.vstack((self.data[self.current:,:], 
-                                 self.data[:self.current,:]))
+            self.motor1_pwm = -value
+            self.motor1_dir = -1
+
+    def set_motor2_pwm(self, value = 0):
+        if value > 0:
+            self.motor2_pwm = value
+            self.motor2_dir = 1
+        else:
+            self.motor2_pwm = -value
+            self.motor2_dir = -1
 
     def run(self):
 
         # Run the loop
         encoder1, pot1, encoder2, pot2 = self.read_sensors()
-        time_stamp = time.clock()
+        time_stamp = time.perf_counter() - self.time_origin
 
         # Update reference
         if self.reference1_mode:
@@ -143,6 +140,64 @@ class Controller:
             if self.sleep:
                 time.sleep(self.sleep)
 
+    def read_sensors(self):
+        # Randomly generate sensor outputs
+        return (random.randint(0,65355),
+                random.randint(0,4095),
+                random.randint(0,65355),
+                random.randint(0,4095))
+
+    # "public"
+
+    def set_controller1(self, algorithm = None):
+        self.controller1 = algorithm
+
+    def set_controller2(self, algorithm = None):
+        self.controller2 = algorithm
+
+    def set_reference1(self, value = 0):
+        self.reference1 = value
+
+    def set_reference2(self, value = 0):
+        self.reference2 = value
+
+    def set_echo(self, value):
+        self.echo = int(value)
+
+    def set_sleep(self, duration):
+        self.sleep = duration
+
+    def set_period(self, value = 0.1):
+        self.period = value
+        
+    # TODO: Complete get methods
+    # TODO: Test Controller
+
+    def get_echo(self):
+        return self.echo
+
+    def get_sleep(self):
+        return self.sleep
+
+    def get_period(self):
+        return self.period
+
+    def set_logger(self, duration):
+        self.data = numpy.zeros((int(duration/self.period), 7), float)
+        self.reset_logger()
+
+    def reset_logger(self):
+        self.page = 0
+        self.current = 0
+        self.time_origin = time.perf_counter()
+        
+    def get_log(self):
+        if self.page == 0:
+            return self.data[:self.current,:]
+        else:
+            return numpy.vstack((self.data[self.current:,:], 
+                                 self.data[:self.current,:]))
+
     def start(self):
         # Heading
         if self.echo:
@@ -168,55 +223,6 @@ class Controller:
         if self.echo:
             print('\n')
 
-    def set_period(self, value = 0.1):
-        self.period = value
-
-    def read_sensors(self):
-        # Randomly generate sensor outputs
-        return (random.randint(0,65355),
-                random.randint(0,4095),
-                random.randint(0,65355),
-                random.randint(0,4095))
-
-    def set_controller1(self, algorithm = None):
-        self.controller1 = algorithm
-
-    def set_controller2(self, algorithm = None):
-        self.controller2 = algorithm
-
-    def set_encoder1(self, value = 0):
-        self.encoder1 = value
-
-    def set_encoder2(self, value = 0):
-        self.encoder2 = value
-
-    def set_reference1(self, value = 0):
-        self.reference1 = value
-
-    def set_reference2(self, value = 0):
-        self.reference2 = value
-
-    def set_motor1_pwm(self, value = 0):
-        if value > 0:
-            self.motor1_pwm = value
-            self.motor1_dir = 1
-        else:
-            self.motor1_pwm = -value
-            self.motor1_dir = -1
-
-    def set_motor2_pwm(self, value = 0):
-        if value > 0:
-            self.motor2_pwm = value
-            self.motor2_dir = 1
-        else:
-            self.motor2_pwm = -value
-            self.motor2_dir = -1
-
-    def set_echo(self, value):
-        self.echo = int(value)
-
-    def echo(self, value):
-        return ('S', value)
 
     def help(self):
         return ('S', """
@@ -346,23 +352,6 @@ class Controller:
 ----------------------------------------------------------------------
 """)
 
-    # def array(self, value):
-    #     return ('S', value)
-
-    # def vector(self, value):
-    #     return ('V', value)
-    #     #if value > 0:
-    #     #array = numpy.zeros(5)
-    #     #for i in range(0,len(text)):
-    #     #    if str.isnumeric(text[i]):
-    #     #        array[j] = text[i]
-    #     #        print('Vector({}) = {}'.format(j, array[j]))
-    #     #        j += 1
-    #     #print('\n')
-    #     #return ('V', value)
-
-    # def matrix(self, value):
-    #     return ('M', value)
 
 
 if __name__ == "__main__":

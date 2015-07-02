@@ -2,7 +2,7 @@ import struct
 import socketserver
 import numpy
 import math
-from Packet import Packet
+import Packet
 from Controller import Controller
 
 class ControllerServer(socketserver.StreamRequestHandler):
@@ -16,15 +16,7 @@ class ControllerServer(socketserver.StreamRequestHandler):
         # initialize controller
         self.controller = controller
 
-        # simulate data
-        #self.controller.simulate_data(10)
-        #print('current = {}'.format(self.controller.current))
-        #print('data = {}'.format(self.controller.data))
-
-        # simulate data
-        #self.controller.simulate_data(10)
-        #print('current = {}'.format(self.controller.current))
-        #print('data = {}'.format(self.controller.data))
+        # TODO: Complete public controller methods
 
         self.commands = { 'h': ('',  'S', self.help),
 
@@ -32,6 +24,8 @@ class ControllerServer(socketserver.StreamRequestHandler):
                           'S': ('D', '',  self.controller.set_sleep),
                           'R': ('D', '',  self.controller.set_reference1),
                           
+                          'C': ('P', '',  self.controller.set_controller1),
+
                           's': ('',  '',  self.controller.start),
                           't': ('',  '',  self.controller.stop),
 

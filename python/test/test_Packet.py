@@ -5,7 +5,7 @@ import struct
 import numpy
 import io
 
-from Packet import Packet
+import Packet
 
 def testA():
 
