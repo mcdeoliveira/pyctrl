@@ -111,35 +111,35 @@ def testM():
 
     # test MI
     vector = numpy.array(((1,2,3), (3,4,5)), int)
-    assert Packet.pack('M',vector) == struct.pack('<cIccIiiiiii', b'M', 2, b'V', b'I', 6, 1, 3, 2, 4, 3, 5)
+    assert Packet.pack('M',vector) == struct.pack('<cIccIiiiiii', b'M', 2, b'V', b'I', 6, 1, 2, 3, 3, 4, 5)
 
     (type, rvector) = Packet.unpack_stream(
-        io.BytesIO(struct.pack('<cIccIiiiiii', b'M', 3, b'V', b'I', 6, 1, 3, 2, 4, 3, 5)))
+        io.BytesIO(struct.pack('<cIccIiiiiii', b'M', 2, b'V', b'I', 6, 1, 2, 3, 3, 4, 5)))
     assert type == 'M'
     assert numpy.all(rvector == vector)
 
     vector = numpy.array(((1,-2,3), (3,4,-5)), int)
-    assert Packet.pack('M',vector) == struct.pack('<cIccIiiiiii', b'M', 2, b'V', b'I', 6, 1, 3, -2, 4, 3, -5)
+    assert Packet.pack('M',vector) == struct.pack('<cIccIiiiiii', b'M', 2, b'V', b'I', 6, 1, -2, 3, 3, 4, -5)
 
     (type, rvector) = Packet.unpack_stream(
-        io.BytesIO(struct.pack('<cIccIiiiiii', b'M', 3, b'V', b'I', 6, 1, 3, -2, 4, 3, -5)))
+        io.BytesIO(struct.pack('<cIccIiiiiii', b'M', 2, b'V', b'I', 6, 1, -2, 3, 3, 4, -5)))
     assert type == 'M'
     assert numpy.all(rvector == vector)
 
     # test MF
     vector = numpy.array(((1.3,-2,3), (0,-1,2.5)), numpy.float32)
-    assert Packet.pack('M',vector) == struct.pack('<cIccIffffff', b'M', 2, b'V', b'F', 6, 1.3, 0, -2, -1, 3, 2.5)
+    assert Packet.pack('M',vector) == struct.pack('<cIccIffffff', b'M', 2, b'V', b'F', 6, 1.3, -2, 3, 0, -1, 2.5)
 
     (type, rvector) = Packet.unpack_stream(
-        io.BytesIO(struct.pack('<cIccIffffff', b'M', 3, b'V', b'F', 6, 1.3, 0, -2, -1, 3, 2.5)))
+        io.BytesIO(struct.pack('<cIccIffffff', b'M', 2, b'V', b'F', 6, 1.3, -2, 3, 0, -1, 2.5)))
     assert type == 'M'
     assert numpy.all(rvector == vector)
 
     # test MD
     vector = numpy.array(((1.3,-2,3), (0,-1,2.5)), numpy.float)
-    assert Packet.pack('M',vector) == struct.pack('<cIccIdddddd', b'M', 2, b'V', b'D', 6, 1.3, 0, -2, -1, 3, 2.5)
+    assert Packet.pack('M',vector) == struct.pack('<cIccIdddddd', b'M', 2, b'V', b'D', 6, 1.3, -2, 3, 0, -1, 2.5)
 
     (type, rvector) = Packet.unpack_stream(
-        io.BytesIO(struct.pack('<cIccIdddddd', b'M', 3, b'V', b'D', 6, 1.3, 0, -2, -1, 3, 2.5)))
+        io.BytesIO(struct.pack('<cIccIdddddd', b'M', 2, b'V', b'D', 6, 1.3, -2, 3, 0, -1, 2.5)))
     assert type == 'M'
     assert numpy.all(rvector == vector)

@@ -52,7 +52,9 @@ S(F)\t- Set sleep
 R(F)\t- Set reference 1
 
 s\t- Start controller
-t\t- stop controller
+t\t- Stop controller
+
+l\t- Get log
 """.format(ControllerServer.version())
         
     def handle(self):
@@ -123,8 +125,7 @@ if __name__ == "__main__":
         server.serve_forever()
 
     except (KeyboardInterrupt, SystemExit):
-        print('Exiting...')
-        server.shutdown();
+        pass
 
     finally:
         print('Exiting...')

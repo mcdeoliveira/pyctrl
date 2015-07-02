@@ -80,7 +80,7 @@ class Packet:
             # read vector
             (vtype, vector) = Packet.unpack_stream(stream)
             # resize vector as matrix
-            vector = numpy.resize(vector, (rsize, vector.size/rsize)).transpose()
+            vector = numpy.resize(vector, (rsize, vector.size/rsize))
             # return vector
             return ('M', vector)
 
@@ -92,8 +92,8 @@ class Packet:
         type = '<' + type
         if len(content.shape) > 1:
             # matrix
-            for k in range(content.shape[1]):
-                for value in content[:,k]:
+            for k in range(content.shape[0]):
+                for value in content[k,:]:
                     buffer += struct.pack(type, value)
         else:
             # vector
