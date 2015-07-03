@@ -4,6 +4,7 @@ sys.path.append('..')
 import struct
 import numpy
 import io
+import pickle
 
 import Packet
 
@@ -143,3 +144,16 @@ def testM():
         io.BytesIO(struct.pack('<cIccIdddddd', b'M', 2, b'V', b'D', 6, 1.3, -2, 3, 0, -1, 2.5)))
     assert type == 'M'
     assert numpy.all(rvector == vector)
+
+def testP():
+
+    vector = numpy.array(((1.3,-2,3), (0,-1,2.5)), numpy.float)
+    string = Packet.pack('P', vector)
+    (type, rvector) = Packet.unpack_stream(io.BytesIO(string))
+    assert type == 'P'
+    assert numpy.all(rvector == vector)
+
+if __name__ == "__main__":
+
+    testP()
+

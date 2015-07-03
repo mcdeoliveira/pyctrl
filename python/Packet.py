@@ -1,5 +1,6 @@
 import struct
 import numpy
+import pickle
 
 def unpack_stream(stream):
 
@@ -82,6 +83,17 @@ def unpack_stream(stream):
         # return vector
         return ('M', vector)
 
+    elif btype == b'P':
+        # Read object size (int)
+        buffer = stream.read(4)
+        (bsize,) = struct.unpack('<I', buffer)
+        # read object
+        buffer = stream.read(bsize)
+        # unpickle
+        object = pickle.loads(buffer)
+        # return vector
+        return ('P', object)
+
     else:
         raise NameError('Unknown type')
 
@@ -152,6 +164,11 @@ def pack(type, content):
         rsize = content.shape[0]
         return ( struct.pack('<cI', b'M', rsize) +
                  pack('V', content) )
+
+    # pickle
+    elif type == 'P':
+        bmessage = pickle.dumps(content)
+        return struct.pack('<cI', b'P', len(bmessage)) + bmessage
 
     else:
         raise NameError('Unknown type')
