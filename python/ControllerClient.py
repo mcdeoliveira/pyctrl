@@ -77,8 +77,17 @@ class ControllerClient(Controller):
     def set_sleep(self, value):
         self.send('S', 'D', value)
 
+    def set_logger(self, duration):
+        self.send('L', 'D', duration)
+
+    def reset_logger(self):
+        self.send('T')
+
     def set_reference1(self, value):
         self.send('R', 'D', value)
+
+    def set_controller1(self, controller):
+        self.send('C', 'P', controller)
 
     def start(self):
         self.send('s')
@@ -93,6 +102,7 @@ if __name__ == "__main__":
 
     import time
     import numpy
+    from ControlAlgorithm import ProportionalController
 
     HOST, PORT = "localhost", 9999
     
@@ -102,6 +112,9 @@ if __name__ == "__main__":
 
         controller.set_echo(0)
         controller.set_sleep(.5)
+
+        controller.reset_logger()
+
         controller.start()
         time.sleep(1)
         controller.set_reference1(100)
@@ -113,3 +126,17 @@ if __name__ == "__main__":
         controller.stop()
 
         print(controller.get_log())
+
+        controller.set_logger(2)
+
+        controller.start()
+        time.sleep(1)
+        controller.set_reference1(100)
+        time.sleep(1)
+        controller.set_reference1(-100)
+        time.sleep(1)
+        controller.stop()
+
+        print(controller.get_log())
+
+        controller.set_controller1(ProportionalController(1, 1))

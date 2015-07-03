@@ -1,3 +1,4 @@
+import warnings
 import threading
 import numpy
 import time
@@ -166,6 +167,9 @@ class Controller:
 
     def set_sleep(self, duration):
         self.sleep = duration
+        if self.period < duration:
+            warnings.warn('Period has been increased to accomodate sleep')
+            self.period = 1.1*duration
 
     def set_period(self, value = 0.1):
         self.period = value
@@ -183,7 +187,8 @@ class Controller:
         return self.period
 
     def set_logger(self, duration):
-        self.data = numpy.zeros((int(duration/self.period), 7), float)
+        self.data = numpy.zeros((math.ceil(duration/self.period), 7), float)
+        print('data.shape = {}'.format(self.data.shape))
         self.reset_logger()
 
     def reset_logger(self):
@@ -359,8 +364,12 @@ if __name__ == "__main__":
     from ControlAlgorithm import *
 
     controller = Controller()
+
     controller.set_echo(1)
     controller.set_sleep(.1)
+
+    controller.set_logger(2)
+
     controller.start()
     time.sleep(1)
     controller.set_reference1(100)

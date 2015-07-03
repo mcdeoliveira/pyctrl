@@ -22,8 +22,10 @@ class ControllerServer(socketserver.StreamRequestHandler):
 
                           'E': ('I', '',  self.controller.set_echo),
                           'S': ('D', '',  self.controller.set_sleep),
+                          'L': ('D', '',  self.controller.set_logger),
+                          'T': ('',  '',  self.controller.reset_logger),
+
                           'R': ('D', '',  self.controller.set_reference1),
-                          
                           'C': ('P', '',  self.controller.set_controller1),
 
                           's': ('',  '',  self.controller.start),
@@ -43,7 +45,9 @@ h\t- Help
 
 E(I)\t- Set echo 
 S(F)\t- Set sleep
+
 R(F)\t- Set reference 1
+C(F)\t- Set controller 1
 
 s\t- Start controller
 t\t- Stop controller
