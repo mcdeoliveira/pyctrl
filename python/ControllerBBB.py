@@ -6,31 +6,41 @@ import Adafruit_BBIO.PWM as PWM
 import time
 import sys
 
-dir_A="P9_15"
-dir_B="P9_23"
-pwm1="P9_14"
+# PWM1 PINS
+dir_A = "P9_15"
+dir_B = "P9_23"
+pwm1  = "P9_14"
+
+# ENC1 PINS
+# eQEP2A_in(P8_12)
+# eQEP2B_in(P8_11)
+eQEP2 = "/sys/devices/ocp.3/48304000.epwmss/48304180.eqep"
 
 class ControllerBBB(Controller):
 
     def __init__(self, *pars, **kpars):
 
         super().__init__(*pars, **kpars)
- 
-        nperiod = 5000000
-        period = nperiod / 1e9
-    
-        eQEP2="/sys/devices/ocp.3/48304000.epwmss/48304180.eqep"    #eQEP2A_in(P8_12)
-        eqep2=eQEP(eQEP2,eQEP.MODE_ABSOLUTE)                   #eQEP2B_in(P8_11)
-        eqep2.set_period(nperiod)
-        
+
+        self.eqep2 = eQEP(eQEP2, eQEP.MODE_ABSOLUTE)
+        self.set_period(self.period)
+
         PWM.start(pwm1)
         GPIO.setup(dir_A,GPIO.OUT)
         GPIO.setup(dir_B,GPIO.OUT)
 
+    def set_period(self, value):
+
+        # call super().set_period
+        super().set_period(value)
+
+        # set period on BBB eQEP
+        self.eqep2.set_period(int(self.period * 1e9))
+
     def read_sensors(self):
 
         # Read encoder1
-        encoder1 = eqep2.poll_position
+        encoder1 = self.eqep2.poll_position()
 
         # Read pot1
         pot1 = 0 # EDUARDO
@@ -55,7 +65,7 @@ class ControllerBBB(Controller):
             GPIO.output(dir_A,0)
             GPIO.output(dir_B,1)
 
-        PWM.set_duty_cycle(pwm_A, self.motor1_pwm)
+        PWM.set_duty_cycle(pwm1, self.motor1_pwm)
 
     def set_motor2_pwm(self, pwm2):
         pass
