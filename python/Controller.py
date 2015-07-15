@@ -4,7 +4,13 @@ import numpy
 import time
 import random
 import math
+import sys
 from ControlAlgorithm import OpenLoop, VelocityController
+
+if sys.version_info < (3, 4):
+    perf_counter = time.clock
+else:
+    perf_counter = time.perf_counter
 
 class Controller:
 
@@ -16,7 +22,7 @@ class Controller:
         self.echo_counter = 0
         self.is_running = False
         self.sleep = 0
-        
+
         # data logger
         self.set_logger(60./period)
 
@@ -60,19 +66,19 @@ class Controller:
 
         # Run the loop
         encoder1, pot1, encoder2, pot2 = self.read_sensors()
-        time_stamp = time.perf_counter() - self.time_origin
+        time_stamp = perf_counter() - self.time_origin
 
         # Update reference
         if self.reference1_mode:
-            reference1 = pot1
+            reference1 = 2 * (pot1 - 50)
         else:
             reference1 = self.reference1
 
         if self.reference2_mode:
-            reference2 = pot2
+            reference2 = 2 * (pot2 - 50)
         else:
             reference2 = self.reference2
-        
+
         # Call controller
         pwm1 = pwm2 = 0
         if self.controller1 is not None:
@@ -88,14 +94,22 @@ class Controller:
             if pwm2 > 0:
                 pwm2 = min(pwm2, 100)
             else:
+                pwm1 = max(pwm1, -100)
+            self.set_motor1_pwm(pwm1)
+
+        if self.controller2 is not None:
+            pwm2 = self.controller2.update(encoder2, reference2, self.period)
+            if pwm2 > 0:
+                pwm2 = min(pwm2, 100)
+            else:
                 pwm2 = max(pwm2, -100)
             self.set_motor2_pwm(pwm2)
 
-        # Log data 
+        # Log data
         self.data[self.current, :] = ( time_stamp,
-                                       encoder1, reference1, pwm1, 
+                                       encoder1, reference1, pwm1,
                                        encoder2, reference2, pwm2 )
-        
+
         if self.current < self.data.shape[0] - 1:
             # increment current pointer
             self.current += 1
@@ -103,7 +117,7 @@ class Controller:
             # reset current pointer
             self.current = 0
             self.page += 1
-        
+
         # Echo
         if self.echo:
             coeff, self.echo_counter = divmod(self.echo_counter, self.echo)
@@ -112,7 +126,7 @@ class Controller:
                 if self.controller1 is not None:
                     if isinstance(self.controller1, VelocityController):
                         print(' {0:+10.1f} {1:+6.1f} {2:+6.1f}'
-                              .format(self.controller1.velocity, 
+                              .format(self.controller1.velocity,
                                       reference1, pwm1),
                               end='')
                     else:
@@ -122,7 +136,7 @@ class Controller:
                 if self.controller2 is not None:
                     if isinstance(self.controller2, VelocityController):
                         print(' {0:+10.1f} {1:+6.1f} {2:+6.1f}'
-                              .format(self.controller2.velocity, 
+                              .format(self.controller2.velocity,
                                       reference2, pwm2),
                               end='')
                     else:
@@ -162,6 +176,12 @@ class Controller:
     def set_reference2(self, value = 0):
         self.reference2 = value
 
+    def set_reference1_mode(self, value = 0):
+        self.reference1_mode = value
+
+    def set_reference2_mode(self, value = 0):
+        self.reference2_mode = value
+
     def set_echo(self, value):
         self.echo = int(value)
 
@@ -173,7 +193,7 @@ class Controller:
 
     def set_period(self, value = 0.1):
         self.period = value
-        
+
     # TODO: Complete get methods
     # TODO: Test Controller
 
@@ -194,13 +214,13 @@ class Controller:
     def reset_logger(self):
         self.page = 0
         self.current = 0
-        self.time_origin = time.perf_counter()
-        
+        self.time_origin = perf_counter()
+
     def get_log(self):
         if self.page == 0:
             return self.data[:self.current,:]
         else:
-            return numpy.vstack((self.data[self.current:,:], 
+            return numpy.vstack((self.data[self.current:,:],
                                  self.data[:self.current,:]))
 
     def start(self):
@@ -214,6 +234,11 @@ class Controller:
                     print('       ENC1   REF1   PWM1', end='')
             if self.controller2 is not None:
                 if isinstance(self.controller2, VelocityController):
+                    print('       VEL1   REF1   PWM1', end='')
+                else:
+                    print('       ENC1   REF1   PWM1', end='')
+            if self.controller2 is not None:
+                if isinstance(self.controller2, VelocityController):
                     print('       VEL2   REF2   PWM2', end='')
                 else:
                     print('       ENC2   REF2   PWM2', end='')
@@ -222,7 +247,7 @@ class Controller:
         # Start thread
         self.thread = threading.Thread(target = self._run)
         self.thread.start()
-            
+
     def stop(self):
         self.is_running = False
         if self.echo:
@@ -365,9 +390,8 @@ if __name__ == "__main__":
 
     controller = Controller()
 
+    controller.set_sleep(0.1)
     controller.set_echo(1)
-    controller.set_sleep(.1)
-
     controller.set_logger(2)
 
     controller.start()
@@ -379,4 +403,3 @@ if __name__ == "__main__":
     controller.set_reference1(0)
     time.sleep(1)
     controller.stop()
-

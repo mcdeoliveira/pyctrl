@@ -3,6 +3,7 @@ from Controller import Controller
 from eqep import eQEP
 import Adafruit_BBIO.GPIO as GPIO
 import Adafruit_BBIO.PWM as PWM
+import Adafruit_BBIO.ADC as ADC
 import time
 import sys
 
@@ -29,6 +30,8 @@ class ControllerBBB(Controller):
         GPIO.setup(dir_A,GPIO.OUT)
         GPIO.setup(dir_B,GPIO.OUT)
 
+        ADC.setup()
+
     def set_period(self, value):
 
         # call super().set_period
@@ -43,8 +46,8 @@ class ControllerBBB(Controller):
         encoder1 = self.eqep2.poll_position()
 
         # Read pot1
-        pot1 = 0 # EDUARDO
-            
+        pot1 = min(100, 100 * ADC.read("AIN0") / 0.88)
+
         # Read encoder2
         encoder2 = 0 # EDUARDO
 
@@ -78,17 +81,16 @@ if __name__ == "__main__":
     controller = ControllerBBB()
 
     controller.set_echo(1)
-    #controller.set_sleep(.1)
-
     controller.set_logger(2)
 
     controller.start()
     time.sleep(1)
     controller.set_reference1(100)
-    time.sleep(1)
+    time.sleep(5)
     controller.set_reference1(-50)
-    time.sleep(1)
+    time.sleep(5)
     controller.set_reference1(0)
     time.sleep(1)
+    controller.set_reference1_mode(1)
+    time.sleep(30)
     controller.stop()
-    
