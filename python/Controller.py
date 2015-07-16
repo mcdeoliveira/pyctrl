@@ -7,7 +7,7 @@ import math
 import sys
 from ControlAlgorithm import OpenLoop, VelocityController
 
-if sys.version_info < (3, 10):
+if sys.version_info < (3, 3):
     import gettime
     perf_counter = gettime.gettime
     print('> Controller: using gettime instead of perf_counter')
