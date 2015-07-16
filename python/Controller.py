@@ -24,6 +24,7 @@ class Controller:
         self.echo_counter = 0
         self.is_running = False
         self.sleep = 0
+        self.current_time = perf_counter()
 
         # data logger
         self.set_logger(60./period)
@@ -69,6 +70,9 @@ class Controller:
         # Run the loop
         encoder1, pot1, encoder2, pot2 = self.read_sensors()
         time_stamp = perf_counter() - self.time_origin
+        time_delta = time_stamp - self.current_time
+        #print('delta = {}'.format(time_delta))
+        #time_delta = self.period
 
         # Update reference
         if self.reference1_mode:
@@ -84,7 +88,7 @@ class Controller:
         # Call controller
         pwm1 = pwm2 = 0
         if self.controller1 is not None:
-            pwm1 = self.controller1.update(encoder1, reference1, self.period)
+            pwm1 = self.controller1.update(encoder1, reference1, time_delta)
             if pwm1 > 0:
                 pwm1 = min(pwm1, 100)
             else:
@@ -92,7 +96,7 @@ class Controller:
             self.set_motor1_pwm(pwm1)
 
         if self.controller2 is not None:
-            pwm2 = self.controller2.update(encoder2, reference2, self.period)
+            pwm2 = self.controller2.update(encoder2, reference2, time_delta)
             if pwm2 > 0:
                 pwm2 = min(pwm2, 100)
             else:
@@ -100,7 +104,7 @@ class Controller:
             self.set_motor1_pwm(pwm1)
 
         if self.controller2 is not None:
-            pwm2 = self.controller2.update(encoder2, reference2, self.period)
+            pwm2 = self.controller2.update(encoder2, reference2, time_delta)
             if pwm2 > 0:
                 pwm2 = min(pwm2, 100)
             else:
@@ -147,9 +151,13 @@ class Controller:
                               end='')
             self.echo_counter += 1
 
+        # Update current time
+        self.current_time = time_stamp
+
     def _run(self):
         # Loop
         self.is_running = True
+        self.current_time = perf_counter()
         while self.is_running:
             # Call run
             self.run()
