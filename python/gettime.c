@@ -1,20 +1,36 @@
 #include "gettime.h"
 
-#include <stdio.h>	/* for printf */
-#include <stdint.h>	/* for uint64 definition */
-#include <stdlib.h>	/* for exit() definition */
-#include <time.h>	/* for clock_gettime */
+#ifdef __MACH__
+
+#include <mach/clock.h>
+#include <mach/mach.h>
+
+#else
+
+#include <time.h>
+
+#endif
 
 double gettime(void) {
 
-  double diff;
-  struct timespec start;
+#ifdef __MACH__ // OS X does not have clock_gettime, use clock_get_time
+
+  clock_serv_t cclock;
+  mach_timespec_t mts;
+
+  host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
+  clock_get_time(cclock, &mts);
+  mach_port_deallocate(mach_task_self(), cclock);
+
+#else
+
+  struct timespec mts;
 
   /* measure monotonic time */
-  clock_gettime(CLOCK_MONOTONIC, &start);
+  clock_gettime(CLOCK_MONOTONIC, &mts);
 
-  diff = start.tv_sec + 1e-9 * start.tv_nsec;
+#endif
 
-  return diff;
+  return mts.tv_sec + 1e-9 * mts.tv_nsec;
   
 }
