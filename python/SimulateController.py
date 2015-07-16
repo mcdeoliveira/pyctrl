@@ -219,7 +219,7 @@ if __name__ == "__main__":
     controller.stop()
 
     controller.set_controller1(
-        VelocityController(PIDController(1 / k, 0.05, 0, reference / 100))
+        VelocityController(PIDController(1 / k, 0.03, 0, reference / 100))
     )
 
     print('> CLOSED LOOP ON VELOCITY INTEGRAL')
