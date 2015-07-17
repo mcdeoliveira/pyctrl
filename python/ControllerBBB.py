@@ -23,13 +23,18 @@ class ControllerBBB(Controller):
 
         super().__init__(*pars, **kpars)
 
+        # initialize eqep2
         self.eqep2 = eQEP(eQEP2, eQEP.MODE_ABSOLUTE)
-        self.set_period(self.period)
 
+        # set period on BBB eQEP
+        self.eqep2.set_period(int(self.period * 1e9))
+
+        # initialize pwm1
         PWM.start(pwm1)
         GPIO.setup(dir_A,GPIO.OUT)
         GPIO.setup(dir_B,GPIO.OUT)
 
+        # initialize adc
         ADC.setup()
 
     def set_period(self, value):
@@ -42,10 +47,10 @@ class ControllerBBB(Controller):
 
     def read_sensors(self):
 
-        # Read encoder1
-        encoder1 = self.eqep2.poll_position()
+        # Read encoder1 in cycles/s
+        encoder1 = float(self.eqep2.poll_position()) / (48 * 9.68)
 
-        # Read pot1
+        # Read pot1 [0,100]
         pot1 = min(100, 100 * ADC.read("AIN0") / 0.88)
 
         # Read encoder2
@@ -73,24 +78,45 @@ class ControllerBBB(Controller):
     def set_motor2_pwm(self, pwm2):
         pass
 
-
 if __name__ == "__main__":
 
     from ControlAlgorithm import *
 
-    controller = ControllerBBB()
+    Ts = 0.01              # s
+    a = 17                 # 1/s
+    k = 1.63               # cycles/s duty
 
-    controller.set_echo(1)
+    controller = ControllerBBB(Ts, 1)
     controller.set_logger(2)
 
+    # open loop controller
+    print('> OPEN LOOP CONTROL (REFERENCE)')
     controller.start()
     time.sleep(1)
     controller.set_reference1(100)
+    time.sleep(5)
+    controller.set_reference1(50)
     time.sleep(5)
     controller.set_reference1(-50)
     time.sleep(5)
     controller.set_reference1(0)
     time.sleep(1)
+    controller.stop()
+
+    print('> OPEN LOOP CONTROL (POTENTIOMETER)')
     controller.set_reference1_mode(1)
+    controller.start()
     time.sleep(30)
+    controller.stop()
+
+    reference = 2
+    print('> CLOSED LOOP CONTROL (POSITION, REFERENCE = {})'.format(reference))
+    controller.set_reference1_mode(0)
+    controller.set_controller1(
+        ProportionalController(0.09 / (k*Ts), reference / 100)
+    )
+    controller.start()
+    time.sleep(1)
+    controller.set_reference1(100)
+    time.sleep(5)
     controller.stop()

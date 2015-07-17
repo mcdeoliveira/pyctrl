@@ -1,9 +1,13 @@
 from distutils.core import setup, Extension
-import numpy.distutils.misc_util
+import platform
+
+LIBS = []
+if platform.system() == 'linux':
+    LIBS.append('rt')
 
 gettime = Extension("gettime", 
                     sources = ["_gettime.c", "gettime.c"],
-                    libraries = ['rt'])
+                    libraries = LIBS)
 
 setup(
       ext_modules=[gettime])

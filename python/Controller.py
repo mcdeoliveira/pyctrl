@@ -24,7 +24,6 @@ class Controller:
         self.echo_counter = 0
         self.is_running = False
         self.sleep = 0
-        self.current_time = perf_counter()
 
         # data logger
         self.set_logger(60./period)
@@ -70,9 +69,9 @@ class Controller:
         # Run the loop
         encoder1, pot1, encoder2, pot2 = self.read_sensors()
         time_stamp = perf_counter() - self.time_origin
-        time_delta = time_stamp - self.current_time
-        #print('delta = {}'.format(time_delta))
-        #time_delta = self.period
+        time_delta = time_stamp - self.time_current
+        # if abs(time_delta / self.period) > 1.2:
+        #     print('time_delta = {}'.format(time_delta))
 
         # Update reference
         if self.reference1_mode:
@@ -91,14 +90,6 @@ class Controller:
             pwm1 = self.controller1.update(encoder1, reference1, time_delta)
             if pwm1 > 0:
                 pwm1 = min(pwm1, 100)
-            else:
-                pwm1 = max(pwm1, -100)
-            self.set_motor1_pwm(pwm1)
-
-        if self.controller2 is not None:
-            pwm2 = self.controller2.update(encoder2, reference2, time_delta)
-            if pwm2 > 0:
-                pwm2 = min(pwm2, 100)
             else:
                 pwm1 = max(pwm1, -100)
             self.set_motor1_pwm(pwm1)
@@ -131,33 +122,33 @@ class Controller:
                 print('\r  {0:12.4f}'.format(time_stamp), end='')
                 if self.controller1 is not None:
                     if isinstance(self.controller1, VelocityController):
-                        print(' {0:+10.1f} {1:+6.1f} {2:+6.1f}'
+                        print(' {0:+10.2f} {1:+6.1f} {2:+6.1f}'
                               .format(self.controller1.velocity,
                                       reference1, pwm1),
                               end='')
                     else:
-                        print(' {0:+10d} {1:+6.1f} {2:+6.1f}'
+                        print(' {0:+10.2f} {1:+6.1f} {2:+6.1f}'
                               .format(encoder1, reference1, pwm1),
                               end='')
                 if self.controller2 is not None:
                     if isinstance(self.controller2, VelocityController):
-                        print(' {0:+10.1f} {1:+6.1f} {2:+6.1f}'
+                        print(' {0:+10.2f} {1:+6.1f} {2:+6.1f}'
                               .format(self.controller2.velocity,
                                       reference2, pwm2),
                               end='')
                     else:
-                        print(' {0:+10d} {1:+6.1f} {2:+6.1f}'
+                        print(' {0:+10.2f} {1:+6.1f} {2:+6.1f}'
                               .format(encoder2, reference2, pwm2),
                               end='')
             self.echo_counter += 1
 
         # Update current time
-        self.current_time = time_stamp
+        self.time_current = time_stamp
 
     def _run(self):
         # Loop
         self.is_running = True
-        self.current_time = perf_counter()
+        self.time_current = perf_counter() - self.time_origin
         while self.is_running:
             # Call run
             self.run()
@@ -176,9 +167,11 @@ class Controller:
 
     def set_controller1(self, algorithm = None):
         self.controller1 = algorithm
+        self.set_reference1(0)
 
     def set_controller2(self, algorithm = None):
         self.controller2 = algorithm
+        self.set_reference2(0)
 
     def set_reference1(self, value = 0):
         self.reference1 = value
@@ -218,13 +211,13 @@ class Controller:
 
     def set_logger(self, duration):
         self.data = numpy.zeros((math.ceil(duration/self.period), 7), float)
-        print('data.shape = {}'.format(self.data.shape))
         self.reset_logger()
 
     def reset_logger(self):
         self.page = 0
         self.current = 0
         self.time_origin = perf_counter()
+        self.time_current = 0 
 
     def get_log(self):
         if self.page == 0:

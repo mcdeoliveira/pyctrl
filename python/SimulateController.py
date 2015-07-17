@@ -13,13 +13,9 @@ class SimulateController(Controller):
 
         # Set model 1
         self.model1 = siso.SISOLTISystem(self.period)
-        self.input1_range = 1;
-        self.output1_range = 1;
 
         # Set model 2
         self.model2 = siso.SISOLTISystem(self.period)
-        self.input2_range = 1;
-        self.output2_range = 1;
 
         # Timer thread
         self.timer = None
@@ -70,23 +66,11 @@ class SimulateController(Controller):
                    state = None ):
         self.model2.set_model(self.period, num, den, state)
 
-    def set_input1_range(self, value = 1):
-        self.input1_range = value;
-
-    def set_output1_range(self, value = 65535):
-        self.output1_range = value;
-
-    def set_input2_range(self, value = 1):
-        self.input2_range = value;
-
-    def set_output2_range(self, value = 65535):
-        self.output2_range = value;
-        
     def read_sensors(self):
 
         # Read current inputs
-        uk1 = self.input1_range * self.motor1_dir * self.motor1_pwm
-        uk2 = self.input2_range * self.motor2_dir * self.motor2_pwm
+        uk1 = self.motor1_dir * self.motor1_pwm
+        uk2 = self.motor2_dir * self.motor2_pwm
 
         # Read current outputs
         yk1 = self.model1.update(uk1)
@@ -97,8 +81,7 @@ class SimulateController(Controller):
         pot2 = 0
 
         # Return outputs
-        return (int(self.output1_range * yk1), pot1,
-                int(self.output2_range * yk2), pot2)
+        return (yk1, pot1, yk2, pot2)
 
 
 if __name__ == "__main__":
@@ -116,19 +99,15 @@ if __name__ == "__main__":
     # w + a w = b u,   w = x
     #
     # Units are:
-    #   x = counts
-    #   w = counts/s
+    #   x = cycles
+    #   w = cycles/s
     #
     # Conversions:
-    #   360 degree = 48*9.68 counts
-    #     1 degree = 48*9.68/360 counts = 1.2907 counts
-    #
-    #   1 RPM      = 360 degrees / 60 s = 6 degrees/s
-    #              = 6*1.2907 counts/s  = 7.7440 counts/s
+    #   1 RPM      = 1 cycle / 60 s = 1/60 cycles/s
     #
     # a = 1/tau = 1/0.1 = 10 (1/s)
-    # b/a = w/u = 9800 RPM / 100 duty = 98 * 7.740 counts/s/duty
-    #                                 = 758.9 counts/s/duty
+    # b/a = w/u = 9800 RPM / 100 duty = 98 /60 cycles/s/duty
+    #                                 = 1.63 cycles/s/duty
     #             a
     # G(s) = k -------, k = b/a
     #           s + a
@@ -156,8 +135,8 @@ if __name__ == "__main__":
     #                           1 - z   (1 + c) + z  c
     
     Ts = 0.01              # s
-    a = 10                 # 1/s
-    k = 758.9              # counts/s duty
+    a = 17                 # 1/s
+    k = 1.63               # cycles/s duty
     c = math.exp(-a * Ts)  # adimensional
         
     controller.set_period(Ts)
@@ -165,8 +144,6 @@ if __name__ == "__main__":
                            numpy.array((1, -(1 + c), c)),
                            numpy.array((0,0)) )
 
-    controller.set_input1_range(1)
-    controller.set_output1_range(1)
     controller.set_echo(.1/Ts)
 
     print('> OPEN LOOP')
@@ -179,12 +156,12 @@ if __name__ == "__main__":
     controller.set_reference1(0)
     time.sleep(1)
     controller.stop()
-
-    reference = 2 * 360 * 1.2907
+    
+    reference = 2
     controller.set_controller1(
         ProportionalController(0.09 / (k*Ts), reference / 100)
     )
-
+    
     print('> CLOSED LOOP ON POSITION')
     controller.start()
     time.sleep(1)
@@ -199,12 +176,14 @@ if __name__ == "__main__":
     time.sleep(3)
     controller.stop()
 
-    reference = 5000 * 7.7440
+    reference = 5000 / 60
+
     controller.set_controller1(
-        VelocityController(ProportionalController(1 / k, reference / 100))
+        VelocityController(ProportionalController(5 / k, reference / 100))
     )
 
     print('> CLOSED LOOP ON VELOCITY')
+    #controller.set_reference1(0)
     controller.start()
     time.sleep(1)
     controller.set_reference1(100)
@@ -219,7 +198,7 @@ if __name__ == "__main__":
     controller.stop()
 
     controller.set_controller1(
-        VelocityController(PIDController(1 / k, 0.03, 0, reference / 100))
+        VelocityController(PIDController(1 / k, a / k, 0, reference / 100))
     )
 
     print('> CLOSED LOOP ON VELOCITY INTEGRAL')
@@ -237,6 +216,6 @@ if __name__ == "__main__":
     time.sleep(3)
     controller.stop()
 
-    print('page = {}\tcurrent = {}'.format(controller.page, controller.current))
-    print('data = {}'.format(controller.data))
-    print('log = {}'.format(controller.get_log()))
+    # print('page = {}\tcurrent = {}'.format(controller.page, controller.current))
+    # print('data = {}'.format(controller.data))
+    # print('log = {}'.format(controller.get_log()))
