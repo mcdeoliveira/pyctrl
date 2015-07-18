@@ -3,7 +3,16 @@ import random
 import numpy
 import math
 import SISOLTISystem as siso
+import sys
+import time
 from Controller import Controller
+
+if sys.version_info < (3, 3):
+    import gettime
+    perf_counter = gettime.gettime
+    print('> Controller: using gettime instead of perf_counter')
+else:
+    perf_counter = time.perf_counter
 
 class SimulateController(Controller):
 
@@ -21,9 +30,51 @@ class SimulateController(Controller):
         self.timer = None
         self.timer_is_running = False
 
+        # Set delta mode to 1: delta T = period
+        self.delta_period = 0
+        self.set_delta_mode(1)
+
+    def calibrate(self, T = 2, K = 3):
+        
+        # save controllers
+        controller1 = self.controller1
+        controller2 = self.controller2
+        echo = self.echo
+        
+        # remove controllers
+        self.controller1 = None
+        self.controller2 = None
+        self.echo = 0
+
+        print('> Calibrating period...')
+        print('  ITER  TARGET  ACTUAL')
+
+        for k in range(K):
+
+            # run loop for T seconds
+            k0 = self.current
+            t0 = perf_counter()
+            self.start()
+            time.sleep(T)
+            self.stop()
+            t1 = perf_counter()
+            k1 = self.current
+            
+            # estimate actual period
+            est_period = (t1 - t0) / (k1 - k0)
+            print('  {:4}  {:6.4f}  {:6.4f}'
+                  .format(k+1, self.period, est_period))
+            self.delta_period = est_period - self.period + self.delta_period
+            
+        # restore controllers
+        self.controller1 = controller1
+        self.controller2 = controller2
+        self.echo = echo
+
     def timer_start(self):
         if not self.timer_is_running:
-            self.timer = Timer(self.period, self.timer_run)
+            self.timer = Timer(self.period - self.delta_period, 
+                               self.timer_run)
             self.timer.start()
             self.timer_is_running = True
 
@@ -145,6 +196,8 @@ if __name__ == "__main__":
                            numpy.array((0,0)) )
 
     controller.set_echo(.1/Ts)
+    controller.calibrate()
+    controller.set_delta_mode(0)
 
     print('> OPEN LOOP')
     controller.start()

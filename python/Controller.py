@@ -41,6 +41,7 @@ class Controller:
         # controller
         self.controller1 = OpenLoop()
         self.controller2 = None
+        self.delta_mode = 0
 
         # references
         self.reference1_mode = 0 # 0 -> software, 1 -> potentiometer
@@ -64,14 +65,22 @@ class Controller:
             self.motor2_pwm = -value
             self.motor2_dir = -1
 
+    def set_delta_mode(self, value = 0):
+        self.delta_mode = value
+
     def run(self):
 
         # Run the loop
         encoder1, pot1, encoder2, pot2 = self.read_sensors()
         time_stamp = perf_counter() - self.time_origin
-        time_delta = time_stamp - self.time_current
-        # if abs(time_delta / self.period) > 1.2:
-        #     print('time_delta = {}'.format(time_delta))
+
+        # Calculate delta T
+        if self.delta_mode:
+            time_delta = self.period
+        else:
+            time_delta = time_stamp - self.time_current
+            # if abs(time_delta / self.period) > 1.2:
+            #     print('time_delta = {}'.format(time_delta))
 
         # Update reference
         if self.reference1_mode:
