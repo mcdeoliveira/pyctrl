@@ -2,7 +2,7 @@ from distutils.core import setup, Extension
 import platform
 
 LIBS = []
-if platform.system() == 'linux':
+if platform.system().lower() == 'linux':
     LIBS.append('rt')
 
 gettime = Extension("gettime", 
