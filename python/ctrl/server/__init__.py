@@ -3,14 +3,20 @@ import socketserver
 from .. import packet
 import ctrl
 
-debug = 0
+verbose_level = 0
 controller = ctrl.Controller()
 commands = {}
+
+def verbose(value = 1):
+    global verbose_level
+    verbose_level = value
 
 def version():
     return '1.0'
 
 def help(value):
+
+    global commands
     help_str = ''
 
     if value:
@@ -75,29 +81,32 @@ class Handler(socketserver.StreamRequestHandler):
 
     def handle(self):
         
-        global debug, controller, commands
+        global verbose_level, controller, commands
+
+        if verbose_level > 0:
+            print('> Connected to {}'.format(self.client_address))
 
         # Read command
         while True:
             
-            print('Ready... ', end='')
-
             try:
                 (type, code) = packet.unpack_stream(self.rfile)
             except NameError as e:
                 # TODO: Differentiate closed socket from error
-                print('closing socket')
+                if verbose_level > 0:
+                    print('> Closed connection to {}'.format(self.client_address))
                 break
             
             if type == 'C':
 
-                print("Got '{}'".format(code))
+                if verbose_level > 1:
+                    print(">> Got '{}'".format(code))
 
                 (argument_type, output_type, function,
                  short_help) = commands.get(code, ('', '', None, ''))
                 
-                if debug > 0:
-                    print("> Will execute '{}({})'".format(code, argument_type))
+                if verbose_level > 2:
+                    print(">>> Will execute '{}({})'".format(code, argument_type))
                 
                 # Handle input arguments
                 if argument_type == '':
@@ -106,8 +115,8 @@ class Handler(socketserver.StreamRequestHandler):
                     (type, argument) = packet.unpack_stream(self.rfile)
                     argument = (argument,)
 
-                if debug > 0:
-                    print('> Argument = {}'.format(argument))
+                if verbose_level > 2:
+                    print('>>> Argument = {}'.format(argument))
 
                 # Call function
                 message = function(*argument)
@@ -118,8 +127,8 @@ class Handler(socketserver.StreamRequestHandler):
                 else:
                     message = (output_type, message)
 
-                if debug > 0:
-                    print('> Message = {}'.format(message))
+                if verbose_level > 2:
+                    print('>>> Message = {}'.format(message))
 
             else:
                 message = ('S', 
@@ -127,11 +136,11 @@ class Handler(socketserver.StreamRequestHandler):
 
             if message is not None:
                 # Send message back
-                if debug > 0:
-                    print('> Sending message = ', *message)
+                if verbose_level > 2:
+                    print('>>> Sending message = ', *message)
                 self.wfile.write(packet.pack(*message))
 
             message = ('A', code)
-            if debug > 0:
-                print("> Acknowledge '{}'\n".format(code))
+            if verbose_level > 2:
+                print(">>> Acknowledge '{}'\n".format(code))
             self.wfile.write(packet.pack(*message))
