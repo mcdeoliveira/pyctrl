@@ -1,7 +1,7 @@
 import warnings
 import socket
 
-from .. import packet
+from . import packet
 import ctrl
 
 class WrapSocket:

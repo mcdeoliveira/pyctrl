@@ -2,7 +2,7 @@ from threading import Timer
 import numpy
 import time
 
-from .. import lti
+from . import lti
 import ctrl
 
 # alternative perf_counter

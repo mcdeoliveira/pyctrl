@@ -1,6 +1,6 @@
 import socketserver
 
-from .. import packet
+from . import packet
 import ctrl
 
 verbose_level = 0
