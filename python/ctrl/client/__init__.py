@@ -1,10 +1,8 @@
-import struct
 import warnings
 import socket
-import numpy
-import math
-import Packet
-from Controller import Controller
+
+from .. import packet
+import ctrl
 
 class WrapSocket:
 
@@ -14,20 +12,25 @@ class WrapSocket:
     def read(self, bufsize = 1):
         return self.socket.recv(bufsize)
 
-class ControllerClient(Controller):
+class Controller(ctrl.Controller):
 
     def __init__(self, host = "localhost", port = 9999):
         self.host = host
         self.port = port
         self.socket = None
+        self.debug = 0
 
     def __enter__(self):
-        print('> Opening socket')
+        if self.debug > 0:
+            print('> Opening socket')
         self.open()
+        super().__enter__()
         return self
 
     def __exit__(self, type, value, traceback):
-        print('> Closing socket')
+        super().__exit__(type, value, traceback)
+        if self.debug > 0:
+            print('> Closing socket')
         self.close()
 
     def open(self):
@@ -46,36 +49,50 @@ class ControllerClient(Controller):
             self.socket = None
             
     def send(self, command, argtype = None, argvalue = None):
+
+        # Open socket if closed
+        auto_close = False
+        if self.socket is None:
+            self.open()
+            auto_close = True
+
         # Send command to server
-        self.socket.send(Packet.pack('C', command))
+        self.socket.send(packet.pack('C', command))
         if argtype is not None:
-            self.socket.send(Packet.pack(argtype, argvalue))
+            self.socket.send(packet.pack(argtype, argvalue))
 
         values = []
         while True:
 
-            (type, _value) = Packet.unpack_stream(WrapSocket(self.socket))
+            (type, _value) = packet.unpack_stream(WrapSocket(self.socket))
             if type == 'A':
                 break
 
             # append to return values
             values.append((type, _value))
 
-            print("> Received type = '{}', value = '{}'".format(type, _value))
+            if self.debug > 0:
+                print("> Received type = '{}', value = '{}'"
+                      .format(type, _value))
 
-        print("> Received Acknowledgment '{}'\n".format(_value))
+        if self.debug > 0:
+            print("> Received Acknowledgment '{}'\n".format(_value))
+
+        # Close socket
+        if auto_close:
+            self.close()
 
         return values
 
     # Controller methods
-    def help(self):
-        return self.send('h')[0][1]
+    def help(self, value = ''):
+        return self.send('h', 'S', value)[0][1]
+
+    def get_log(self):
+        return self.send('l')[0][1]
 
     def set_echo(self, value):
         self.send('E', 'I', value)
-
-    def set_sleep(self, value):
-        self.send('S', 'D', value)
 
     def set_logger(self, duration):
         self.send('L', 'D', duration)
@@ -95,9 +112,6 @@ class ControllerClient(Controller):
     def stop(self):
         self.send('t')
 
-    def get_log(self):
-        self.send('l')
-
 if __name__ == "__main__":
 
     import time
@@ -110,8 +124,10 @@ if __name__ == "__main__":
 
         print(controller.help())
 
+        print(controller.help('s'))
+        print(controller.help('S'))
+
         controller.set_echo(0)
-        controller.set_sleep(.5)
 
         controller.reset_logger()
 

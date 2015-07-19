@@ -5,8 +5,8 @@ LIBS = []
 if platform.system().lower() == 'linux':
     LIBS.append('rt')
 
-gettime = Extension("gettime", 
-                    sources = ["_gettime.c", "gettime.c"],
+gettime = Extension("ctrl.gettime", 
+                    sources = ["source/_gettime.c", "source/gettime.c"],
                     libraries = LIBS)
 
 setup(

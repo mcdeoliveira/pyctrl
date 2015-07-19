@@ -1,16 +1,19 @@
 import warnings
-import threading
+from threading import Thread, Timer, Condition
 import numpy
 import time
 import random
 import math
-import sys
-from ControlAlgorithm import OpenLoop, VelocityController
 
+from . import algo
+
+# alternative perf_counter
+import sys
 if sys.version_info < (3, 3):
-    import gettime
+    from . import gettime
     perf_counter = gettime.gettime
-    print('> Controller: using gettime instead of perf_counter')
+    warnings.warn('Using gettime instead of perf_counter',
+                  RuntimeWarning)
 else:
     perf_counter = time.perf_counter
 
@@ -18,12 +21,17 @@ class Controller:
 
     def __init__(self, period = .01, echo = 0):
 
+        # debug
+        self.debug = 0
+
         # real-time loop
         self.period = period
+        self.delta_period = 0.
+        self.is_running = False
+
+        # echo
         self.echo = echo
         self.echo_counter = 0
-        self.is_running = False
-        self.sleep = 0
 
         # data logger
         self.set_logger(60./period)
@@ -39,7 +47,7 @@ class Controller:
         self.motor2_dir = 1
 
         # controller
-        self.controller1 = OpenLoop()
+        self.controller1 = algo.OpenLoop()
         self.controller2 = None
         self.delta_mode = 0
 
@@ -48,6 +56,17 @@ class Controller:
         self.reference1 = 0
         self.reference2_mode = 0 # 0 -> software, 1 -> potentiometer
         self.reference2 = 0
+
+    def __enter__(self):
+        if self.debug > 0:
+            print('> Starting controller')
+        self.start()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        if self.debug > 0:
+            print('> Stoping controller')
+        self.stop()
 
     def set_motor1_pwm(self, value = 0):
         if value > 0:
@@ -67,6 +86,55 @@ class Controller:
 
     def set_delta_mode(self, value = 0):
         self.delta_mode = value
+
+    def calibrate(self, eps = 0.05, T = 5, K = 20):
+        
+        # save controllers
+        controller1 = self.controller1
+        controller2 = self.controller2
+        echo = self.echo
+        
+        # remove controllers
+        self.controller1 = None
+        self.controller2 = None
+        self.echo = 0
+
+        print('> Calibrating period...')
+        print('  ITER   TARGET   ACTUAL ACCURACY')
+
+        k = 1
+        est_period = (1 + 2 * eps) * self.period
+        error = abs(est_period - self.period) / self.period
+        while error > eps:
+
+            # run loop for T seconds
+            k0 = self.current
+            t0 = perf_counter()
+            self.start()
+            time.sleep(T)
+            self.stop()
+            t1 = perf_counter()
+            k1 = self.current
+            
+            # estimate actual period
+            est_period = (t1 - t0) / (k1 - k0)
+            error = abs(est_period - self.period) / self.period
+            print('  {:4}  {:6.5f}  {:6.5f}   {:5.2f}%'
+                  .format(k, self.period, est_period, 100 * error))
+            self.delta_period += (est_period - self.period)
+            
+            # counter
+            k = k + 1
+            if k > K:
+                warnings.warn("Could not calibrate to '{}' accuracy".format(eps))
+                break
+
+        print('< ...done.')
+
+        # restore controllers
+        self.controller1 = controller1
+        self.controller2 = controller2
+        self.echo = echo
 
     def run(self):
 
@@ -130,7 +198,7 @@ class Controller:
             if self.echo_counter == 0:
                 print('\r  {0:12.4f}'.format(time_stamp), end='')
                 if self.controller1 is not None:
-                    if isinstance(self.controller1, VelocityController):
+                    if isinstance(self.controller1, algo.VelocityController):
                         print(' {0:+10.2f} {1:+6.1f} {2:+6.1f}'
                               .format(self.controller1.velocity,
                                       reference1, pwm1),
@@ -140,7 +208,7 @@ class Controller:
                               .format(encoder1, reference1, pwm1),
                               end='')
                 if self.controller2 is not None:
-                    if isinstance(self.controller2, VelocityController):
+                    if isinstance(self.controller2, algo.VelocityController):
                         print(' {0:+10.2f} {1:+6.1f} {2:+6.1f}'
                               .format(self.controller2.velocity,
                                       reference2, pwm2),
@@ -154,23 +222,43 @@ class Controller:
         # Update current time
         self.time_current = time_stamp
 
+    def _release(self):
+        # Acquire lock
+        self.condition.acquire()
+        # Notify lock
+        self.condition.notify()
+        # Release lock
+        self.condition.release()
+
     def _run(self):
         # Loop
         self.is_running = True
+        self.condition = Condition()
         self.time_current = perf_counter() - self.time_origin
         while self.is_running:
+
+            # Acquire condition
+            self.condition.acquire()
+
+            # Setup timer
+            timer = Timer(self.period - self.delta_period, self._release)
+            timer.start()
+
             # Call run
             self.run()
-            # Sleep
-            if self.sleep:
-                time.sleep(self.sleep)
 
+            # Wait 
+            self.condition.wait()
+            
+            # and release
+            self.condition.release()
+                            
     def read_sensors(self):
         # Randomly generate sensor outputs
-        return (random.randint(0,65355),
-                random.randint(0,4095),
-                random.randint(0,65355),
-                random.randint(0,4095))
+        return (random.randint(0,65355)/653.55,
+                random.randint(0,65355)/65.355,
+                random.randint(0,65355)/653.55,
+                random.randint(0,65355)/65.355)
 
     # "public"
 
@@ -197,12 +285,6 @@ class Controller:
     def set_echo(self, value):
         self.echo = int(value)
 
-    def set_sleep(self, duration):
-        self.sleep = duration
-        if self.period < duration:
-            warnings.warn('Period has been increased to accomodate sleep')
-            self.period = 1.1*duration
-
     def set_period(self, value = 0.1):
         self.period = value
 
@@ -211,9 +293,6 @@ class Controller:
 
     def get_echo(self):
         return self.echo
-
-    def get_sleep(self):
-        return self.sleep
 
     def get_period(self):
         return self.period
@@ -235,183 +314,39 @@ class Controller:
             return numpy.vstack((self.data[self.current:,:],
                                  self.data[:self.current,:]))
 
+    def get_sample_number(self):
+        return self.page * self.data.shape[0] + self.current
+            
     def start(self):
+        """Start controller loop"""
         # Heading
         if self.echo:
             print('          TIME', end='')
             if self.controller1 is not None:
-                if isinstance(self.controller1, VelocityController):
+                if isinstance(self.controller1, algo.VelocityController):
                     print('       VEL1   REF1   PWM1', end='')
                 else:
                     print('       ENC1   REF1   PWM1', end='')
             if self.controller2 is not None:
-                if isinstance(self.controller2, VelocityController):
+                if isinstance(self.controller2, algo.VelocityController):
                     print('       VEL1   REF1   PWM1', end='')
                 else:
                     print('       ENC1   REF1   PWM1', end='')
             if self.controller2 is not None:
-                if isinstance(self.controller2, VelocityController):
+                if isinstance(self.controller2, algo.VelocityController):
                     print('       VEL2   REF2   PWM2', end='')
                 else:
                     print('       ENC2   REF2   PWM2', end='')
             print('')
 
         # Start thread
-        self.thread = threading.Thread(target = self._run)
+        self.thread = Thread(target = self._run)
         self.thread.start()
 
     def stop(self):
-        self.is_running = False
+        if self.is_running:
+            self.is_running = False
+            # Release condition lock
+            self._release()
         if self.echo:
-            print('\n')
-
-
-    def help(self):
-        return ('S', """
-----------------------------------------------------------------------
-% General commands:
-% > e - Echo message
-% > H - Help
-% > s - Status and configuration
-% > S - Compact status and configuration
-% > R - Read sensor, control and target
-
-% Encoder commands:
-% > Z - Zero encoder count
-
-% Loop commands:
-% > P int\t- set loop Period
-% > E int\t- set Echo divisor
-% > L [01]\t- run Loop (on/off)
-
-% Motor commands:
-% > G int\t- set motor Gain
-% > V\t\t- reVerse motor direction
-% > F [0123]\t- set PWM Frequency
-% > Q [012]\t- set motor curve
-% > M\t\t- start/stop Motors
-
-% Target commands:
-% > T int\t- set Target
-% > B int\t- set target zero
-% > O\t\t- read target pOtentiometer
-% > D [01]\t- set target mode (int/pot)
-
-% Controller commands:
-% > K float\t- set proportional gain
-% > I float\t- set Integral gain
-% > N float\t- set derivative gain
-% > Y [0123]\t- control mode (position/velocitY/open loop/off)
-% > C\t\t- start/stop Controller
-% > r - Read values
-% > X - Finish / Break
-----------------------------------------------------------------------
-""")
-
-    def get_status(self):
-        return ('S', """
-----------------------------------------------------------------------
-% > s - Status and configuration
-----------------------------------------------------------------------
-""")
-
-    def read_sensor(self):
-        return ('S', """
-----------------------------------------------------------------------
-% > R - Read sensor, control and target
-----------------------------------------------------------------------
-""")
-
-
-    def set_echo_divisor(self, value = 0):
-        pass
-
-    def run_loop(self, value = 0):
-        pass
-
-    def set_motor_gain(self, value = 0):
-        pass
-
-    def reverse_motor_direction(self, value = 0):
-        return ('S', """
-----------------------------------------------------------------------
-% > V\t\t- reVerse motor direction
-----------------------------------------------------------------------
-""")
-
-    def set_PWM_frequency(self, value = 0):
-        pass
-
-    def set_motor_curve(self, value = 0):
-        pass
-
-    def start_stop_motor(self, value = 0):
-        return ('S', """
-----------------------------------------------------------------------
-% > M\t\t- start/stop Motor
-----------------------------------------------------------------------
-""")
-
-    def set_target(self, value = 0):
-        pass
-
-    def set_target_zero(self, value = 0):
-        pass
-
-    def read_target_potentiometer(self, value = 0):
-        return ('S', """
-----------------------------------------------------------------------
-% > O\t\t- read target pOtentiometer
-----------------------------------------------------------------------
-""")
-
-    def set_target_mode(self, value = 0):
-        pass
-
-    def set_proportional_gain(self, value = 0):
-        pass
-
-    def set_integral_gain(self, value = 0):
-        pass
-
-    def set_derivative_gain(self, value = 0):
-        pass
-
-    def control_mode(self, value = 0):
-        pass
-
-    def start_stop_controller(self, value = 0):
-        return ('S', """
-----------------------------------------------------------------------
-% > C\t\t- start/stop Controller
-----------------------------------------------------------------------
-""")
-
-    def read_values(self):
-        return ('S', """
-----------------------------------------------------------------------
-% > r - Read values
-----------------------------------------------------------------------
-""")
-
-
-
-if __name__ == "__main__":
-
-    from ControlAlgorithm import *
-
-    controller = Controller()
-
-    controller.set_sleep(0.1)
-    controller.set_echo(1)
-    controller.set_logger(2)
-
-    controller.start()
-    time.sleep(1)
-    controller.set_reference1(100)
-    time.sleep(1)
-    controller.set_reference1(-50)
-    time.sleep(1)
-    controller.set_reference1(0)
-    time.sleep(1)
-    controller.stop()
+            print('')

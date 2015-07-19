@@ -1,11 +1,12 @@
 import warnings
-from Controller import Controller
+
+from .. import packet
+import ctrl
+
 from eqep import eQEP
 import Adafruit_BBIO.GPIO as GPIO
 import Adafruit_BBIO.PWM as PWM
 import Adafruit_BBIO.ADC as ADC
-import time
-import sys
 
 # PWM1 PINS
 dir_A = "P9_15"
@@ -17,7 +18,7 @@ pwm1  = "P9_14"
 # eQEP2B_in(P8_11)
 eQEP2 = "/sys/devices/ocp.3/48304000.epwmss/48304180.eqep"
 
-class ControllerBBB(Controller):
+class Controller(ctlr.Controller):
 
     def __init__(self, *pars, **kpars):
 

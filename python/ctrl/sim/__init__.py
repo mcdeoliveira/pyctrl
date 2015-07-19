@@ -1,30 +1,31 @@
 from threading import Timer
-import random
 import numpy
-import math
-import SISOLTISystem as siso
-import sys
 import time
-from Controller import Controller
 
+from .. import lti
+import ctrl
+
+# alternative perf_counter
+import sys
 if sys.version_info < (3, 3):
-    import gettime
+    from .. import gettime
     perf_counter = gettime.gettime
-    print('> Controller: using gettime instead of perf_counter')
+    warnings.warn('Using gettime instead of perf_counter',
+                  RuntimeWarning)
 else:
     perf_counter = time.perf_counter
 
-class SimulateController(Controller):
+class Controller(ctrl.Controller):
 
     def __init__(self, *pars, **kpars):
 
         super().__init__(*pars, **kpars)
 
         # Set model 1
-        self.model1 = siso.SISOLTISystem(self.period)
+        self.model1 = lti.SISOLTISystem(self.period)
 
         # Set model 2
-        self.model2 = siso.SISOLTISystem(self.period)
+        self.model2 = lti.SISOLTISystem(self.period)
 
         # Timer thread
         self.timer = None
@@ -33,43 +34,6 @@ class SimulateController(Controller):
         # Set delta mode to 1: delta T = period
         self.delta_period = 0
         self.set_delta_mode(1)
-
-    def calibrate(self, T = 2, K = 3):
-        
-        # save controllers
-        controller1 = self.controller1
-        controller2 = self.controller2
-        echo = self.echo
-        
-        # remove controllers
-        self.controller1 = None
-        self.controller2 = None
-        self.echo = 0
-
-        print('> Calibrating period...')
-        print('  ITER  TARGET  ACTUAL')
-
-        for k in range(K):
-
-            # run loop for T seconds
-            k0 = self.current
-            t0 = perf_counter()
-            self.start()
-            time.sleep(T)
-            self.stop()
-            t1 = perf_counter()
-            k1 = self.current
-            
-            # estimate actual period
-            est_period = (t1 - t0) / (k1 - k0)
-            print('  {:4}  {:6.4f}  {:6.4f}'
-                  .format(k+1, self.period, est_period))
-            self.delta_period = est_period - self.period + self.delta_period
-            
-        # restore controllers
-        self.controller1 = controller1
-        self.controller2 = controller2
-        self.echo = echo
 
     def timer_start(self):
         if not self.timer_is_running:
@@ -134,13 +98,12 @@ class SimulateController(Controller):
         # Return outputs
         return (yk1, pot1, yk2, pot2)
 
-
 if __name__ == "__main__":
 
     import time
-    from ControlAlgorithm import *
+    from Algorithms import *
     
-    controller = SimulateController()
+    controller = Controller()
 
     # Motor produces 9800 RPM @ 100% duty
     #
@@ -229,7 +192,7 @@ if __name__ == "__main__":
     time.sleep(3)
     controller.stop()
 
-    reference = 5000 / 60
+    reference = 2000 / 60
 
     controller.set_controller1(
         VelocityController(ProportionalController(5 / k, reference / 100))

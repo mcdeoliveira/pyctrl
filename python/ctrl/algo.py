@@ -1,14 +1,14 @@
-class ControlAlgorithm:
-    def update(self, measurement, reference):
+class Algorithm:
+    def update(self, measurement, reference, period):
         raise NameError('update method undefined')
 
-class OpenLoop(ControlAlgorithm):
+class OpenLoop(Algorithm):
     # Open-loop control is:
     # u = reference
     def update(self, measurement, reference, period):
         return reference
 
-class ProportionalController(ControlAlgorithm):
+class Proportional(Algorithm):
     # Proportional control is:
     # u = Kp * (gamma * reference - measurement)
     def __init__(self, Kp, gamma = 1):
@@ -18,7 +18,7 @@ class ProportionalController(ControlAlgorithm):
     def update(self, measurement, reference, period):
         return self.Kp * (self.gamma * reference - measurement)
 
-class PIDController(ControlAlgorithm):
+class PID(Algorithm):
     # PID Controller is:
     # u = Kp * e + Ki int_0^t e dt + Kd de/dt
     # e = (gamma * reference - measurement)
@@ -43,14 +43,14 @@ class PIDController(ControlAlgorithm):
         #                   Ts  
         # ei[k] = ei[k-1] + --- ( w[k] + w[k-1] )
         #                    2
-        self.ierror = self.ierror + period * (error + self.error) / 2
+        self.ierror += period * (error + self.error) / 2
 
         # Update error
         self.error = error
         
         return self.Kp * error + self.Ki * self.ierror + self.Kd * de
     
-class VelocityController(ControlAlgorithm):
+class VelocityController(Algorithm):
 
     # VelocityController is a wraper for controllers closed on velocity
     # instead of position
@@ -58,6 +58,7 @@ class VelocityController(ControlAlgorithm):
     def __init__(self, controller):
         self.measurement = 0
         self.controller = controller
+        # velocit is for convinience only
         self.velocity = 0
     
     def update(self, measurement, reference, period):
@@ -70,5 +71,3 @@ class VelocityController(ControlAlgorithm):
 
         # Call controller
         return self.controller.update(self.velocity, reference, period)
-
-
