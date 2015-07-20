@@ -66,8 +66,7 @@ def main():
             assert False, "unhandled option"
 
     # Setup controller
-
-    if platform.version() is 'beaglebone':
+    if True: #platform.uname()[2] is '3.8.13-bone72':
 
         if simulate:
 
@@ -87,7 +86,6 @@ def main():
 
         # We're not on the beaglebone, simulate
         warnings.warn('Not on the BBB. Simulating controller')
-        import ctrl.sim
 
         # Setup simulated controller
 
