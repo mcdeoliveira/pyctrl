@@ -76,9 +76,9 @@ def main():
         else:
 
             # We're on the beaglebone, run the real thing
-            import ctrl.bbb
+            import ctrl.bbb as bbb
+            controller = bbb.Controller(Ts)
 
-            controller.set_period(Ts)
     else:
 
         simulate = 1
@@ -92,13 +92,12 @@ def main():
         # Setup simulated controller
 
         import ctrl.sim as sim
-        controller = sim.Controller()
+        controller = sim.Controller(Ts)
 
         a = 17                 # 1/s
         k = 0.11               # cycles/s duty
         c = math.exp(-a * Ts)  # adimensional
 
-        controller.set_period(Ts)
         controller.set_model1( numpy.array((0, (k*Ts)*(1-c)/2, (k*Ts)*(1-c)/2)), 
                                numpy.array((1, -(1 + c), c)),
                                numpy.array((0,0)) )
@@ -111,6 +110,7 @@ def main():
 
     # Finish setup
     controller.set_logger(log_size)
+    ctrl.server.set_controller(controller)
     ctrl.server.verbose(verbose_level)
 
     # Start server

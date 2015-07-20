@@ -260,6 +260,12 @@ class Controller:
                 random.randint(0,65355)/653.55,
                 random.randint(0,65355)/65.355)
 
+    def set_encoder1(self, value):
+        pass
+
+    def set_encoder2(self, value):
+        pass
+
     # "public"
 
     def set_controller1(self, algorithm = None):

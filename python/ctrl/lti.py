@@ -72,14 +72,21 @@ class SISOLTISystem:
         #print('den = {}'.format(self.den))
         #print('state = {}'.format(self.state))
 
+    def set_position(self, yk):
+        # with uk = 0
+        # zk = - den[1:] (zk-1, ..., zk-n)
+        # yk = (num[1:] - num[0] den[1:]) (zk-1, ..., zk-n)
+        self.state[1:] = 0
+        self.state[0] = (yk - self.state[1:].dot(self.num[2:]) + self.num[0] * self.state[1:].dot(self.den[2:]) ) / (self.num[1] - self.num[0] * self.den[1])
+    
     def update(self, uk):
-        
-        #   zk = uk - den[1:] (zk-1, ..., zk-n)
-        #   yk = num[0] zk + num[1:] (zk-1, ..., zk-n)
+        # zk = uk - den[1:] (zk-1, ..., zk-n)
+        # yk = num[0] zk + num[1:] (zk-1, ..., zk-n)
         zk = uk - self.state.dot(self.den[1:])
         yk = self.num[0] * zk + self.state.dot(self.num[1:])
         if self.state.size > 0:
             if self.state.size > 1:
+                # shift state
                 self.state[1:] = self.state[:-1]
             self.state[0] = zk
             

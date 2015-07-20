@@ -98,6 +98,12 @@ class Controller(ctrl.Controller):
         # Return outputs
         return (yk1, pot1, yk2, pot2)
 
+    def set_encoder1(self, value):
+        self.model1.set_position(value)
+
+    def set_encoder2(self, value):
+        self.model2.set_position(value)
+
 if __name__ == "__main__":
 
     import time

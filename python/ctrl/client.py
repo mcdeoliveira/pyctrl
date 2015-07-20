@@ -100,6 +100,9 @@ class Controller(ctrl.Controller):
     def reset_logger(self):
         self.send('T')
 
+    def set_encoder1(self, value):
+        self.send('P', 'D', value)
+
     def set_reference1(self, value):
         self.send('R', 'D', value)
 
@@ -111,6 +114,10 @@ class Controller(ctrl.Controller):
 
     def stop(self):
         self.send('t')
+
+    def get_period(self):
+        return self.send('l')[0][1]
+
 
 if __name__ == "__main__":
 

@@ -52,6 +52,9 @@ def set_controller(_controller = ctrl.Controller()):
         
         'E': ('I', '',  controller.set_echo,
               'Set echo'),
+        'p': ('',  'D', controller.get_period,
+              'Get period'),
+
         'L': ('D', '',  controller.set_logger,
               'Set logger'),
         'T': ('',  '',  controller.reset_logger,
@@ -59,6 +62,10 @@ def set_controller(_controller = ctrl.Controller()):
         
         'R': ('D', '',  controller.set_reference1,
               'Set reference'),
+        'M': ('I',  '', controller.set_reference1_mode,
+              'Set reference mode'),
+        'P': ('D', '',  controller.set_encoder1,
+              'Set encoder position'),
         'C': ('P', '',  controller.set_controller1,
               'Set controller'),
         
@@ -68,7 +75,10 @@ def set_controller(_controller = ctrl.Controller()):
               'Stop control loop'),
         
         'l': ('',  'M', controller.get_log,
-              'Get log')
+              'Get log'),
+
+
+
     }
 
 # Initialize default controller
