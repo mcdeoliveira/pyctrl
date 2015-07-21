@@ -79,6 +79,14 @@ class Controller(ctrl.Controller):
     def set_motor2_pwm(self, pwm2):
         pass
 
+    def stop(self):
+        super().stop()
+
+        # stop motors
+        self.set_motor1_pwm(0)
+        self.set_motor2_pwm(0)
+
+
 if __name__ == "__main__":
 
     from ControlAlgorithm import *
