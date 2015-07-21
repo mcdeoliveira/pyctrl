@@ -61,19 +61,19 @@ def unpack_stream(stream):
             print("> packet::vector: '{}[{}]'".format(vtype, vlen))
         if vtype == b'I':
             vector = numpy.zeros(vlen, int)
+            buffer = stream.read(4 * vlen)
             for k in range(vlen):
-                buffer = stream.read(4)
-                (vector[k],) = struct.unpack('<i', buffer)
+                (vector[k],) = struct.unpack('<i', buffer[k*4:(k+1)*4])
         elif vtype == b'F':
             vector = numpy.zeros(vlen, float)
+            buffer = stream.read(4 * vlen)
             for k in range(vlen):
-                buffer = stream.read(4)
-                (vector[k],) = struct.unpack('<f', buffer)
+                (vector[k],) = struct.unpack('<f', buffer[k*4:(k+1)*4])
         elif vtype == b'D':
             vector = numpy.zeros(vlen, float)
+            buffer = stream.read(8 * vlen)
             for k in range(vlen):
-                buffer = stream.read(8)
-                (vector[k],) = struct.unpack('<d', buffer)
+                (vector[k],) = struct.unpack('<d', buffer[k*8:(k+1)*8])
         else:
             # error
             pass

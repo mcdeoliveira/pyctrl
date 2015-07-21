@@ -10,7 +10,12 @@ class WrapSocket:
         self.socket = socket
 
     def read(self, bufsize = 1):
-        return self.socket.recv(bufsize, 0x40)
+        buffer = b''
+        while bufsize:
+            temp = self.socket.recv(bufsize)
+            bufsize -= len(temp)
+            buffer += temp
+        return buffer
 
 class Controller(ctrl.Controller):
 
