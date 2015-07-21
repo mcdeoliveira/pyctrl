@@ -2,12 +2,19 @@ import struct
 import numpy
 import pickle
 
+debug_level = 0
+
 def unpack_stream(stream):
 
+    if debug_level > 0:
+        print('> packet: waiting for next character')
     buffer = stream.read(1)
     if not buffer:
         raise NameError('read failed')
     (btype,) = struct.unpack('c', buffer)
+
+    if debug_level > 0:
+        print("> packet: got '{}'".format(btype))
 
     if btype == b'A' or btype == b'C':
         # Read next character
@@ -50,6 +57,8 @@ def unpack_stream(stream):
         buffer = stream.read(4)
         (vlen,) = struct.unpack('<I', buffer)
         # Read data (blen*)
+        if debug_level > 0:
+            print("> packet::vector: '{}[{}]'".format(vtype, vlen))
         if vtype == b'I':
             vector = numpy.zeros(vlen, int)
             for k in range(vlen):

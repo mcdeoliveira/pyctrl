@@ -10,7 +10,7 @@ class WrapSocket:
         self.socket = socket
 
     def read(self, bufsize = 1):
-        return self.socket.recv(bufsize)
+        return self.socket.recv(bufsize, 0x40)
 
 class Controller(ctrl.Controller):
 
@@ -57,15 +57,25 @@ class Controller(ctrl.Controller):
             auto_close = True
 
         # Send command to server
+        if self.debug > 0:
+            print("> Will request command '{}'"
+                  .format(command))
         self.socket.send(packet.pack('C', command))
         if argtype is not None:
+            if self.debug > 0:
+                print("> Will send argument '{}({})'"
+                      .format(argtype, argvalue))
             self.socket.send(packet.pack(argtype, argvalue))
 
         values = []
         while True:
 
+            if self.debug > 0:
+                print("> Waiting for stream...")
             (type, _value) = packet.unpack_stream(WrapSocket(self.socket))
             if type == 'A':
+                if self.debug > 0:
+                    print("> Received Acknowledgment '{}'\n".format(_value))
                 break
 
             # append to return values
@@ -74,9 +84,6 @@ class Controller(ctrl.Controller):
             if self.debug > 0:
                 print("> Received type = '{}', value = '{}'"
                       .format(type, _value))
-
-        if self.debug > 0:
-            print("> Received Acknowledgment '{}'\n".format(_value))
 
         # Close socket
         if auto_close:
