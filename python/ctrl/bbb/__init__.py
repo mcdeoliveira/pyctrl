@@ -49,22 +49,22 @@ class Controller(ctrl.Controller):
     def read_sensors(self):
 
         # Read encoder1 in cycles/s
-        encoder1 = float(self.eqep2.poll_position()) / (48 * 9.68)
+        self.encoder1 = float(self.eqep2.poll_position()) / (48 * 9.68)
 
         # Read pot1 [0,100]
-        pot1 = min(100, 100 * ADC.read("AIN0") / 0.88)
+        self.pot1 = min(100, 100 * ADC.read("AIN0") / 0.88)
 
         # Read encoder2
-        encoder2 = 0 # EDUARDO
+        self.encoder2 = 0 # EDUARDO
 
         # Read pot2
-        pot2 = 0 # EDUARDO
+        self.pot2 = 0 # EDUARDO
 
         return (encoder1, pot1, encoder2, pot2)
 
     def set_encoder1(self, value):
-
         self.eqep2.set_position(int(value * 48 * 9.68))
+        super().set_encoder1(value)
 
     def set_motor1_pwm(self, value = 0):
 

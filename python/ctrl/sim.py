@@ -89,21 +89,23 @@ class Controller(ctrl.Controller):
         uk2 = self.motor2_dir * self.motor2_pwm
 
         # Read current outputs
-        yk1 = self.model1.update(uk1)
-        yk2 = self.model2.update(uk2)
+        self.encoder1 = self.model1.update(uk1)
+        self.encoder2 = self.model2.update(uk2)
 
         # Read potentiometers
-        pot1 = 0
-        pot2 = 0
+        self.pot1 = 0
+        self.pot2 = 0
 
         # Return outputs
-        return (yk1, pot1, yk2, pot2)
+        return (self.encoder1, self.pot1, self.encoder2, self.pot2)
 
     def set_encoder1(self, value):
         self.model1.set_position(value)
+        super().set_encoder1(value)
 
     def set_encoder2(self, value):
         self.model2.set_position(value)
+        super().set_encoder2(value)
 
 if __name__ == "__main__":
 

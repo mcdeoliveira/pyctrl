@@ -46,6 +46,14 @@ class Controller:
         self.motor2_pwm = 0
         self.motor2_dir = 1
 
+        # encoders
+        self.encoder1 = 0
+        self.encoder2 = 0
+
+        # potentiometers
+        self.pot1 = 0
+        self.pot2 = 0
+
         # controller
         self.controller1 = algo.OpenLoop()
         self.controller2 = None
@@ -255,16 +263,19 @@ class Controller:
                             
     def read_sensors(self):
         # Randomly generate sensor outputs
-        return (random.randint(0,65355)/653.55,
-                random.randint(0,65355)/65.355,
-                random.randint(0,65355)/653.55,
-                random.randint(0,65355)/65.355)
+        self.encoder1 = random.randint(0,65355)/653.55;
+        self.pot1 = random.randint(0,65355)/653.55;
+
+        self.encoder2 = random.randint(0,65355)/653.55;
+        self.pot2 = random.randint(0,65355)/653.55;
+
+        return (self.encoder1, self.pot1, self.encoder2, self.pot2)
 
     def set_encoder1(self, value):
-        pass
+        self.encoder1 = value
 
     def set_encoder2(self, value):
-        pass
+        self.encoder2 = value
 
     # "public"
 
@@ -302,6 +313,18 @@ class Controller:
 
     def get_period(self):
         return self.period
+
+    def get_encoder1(self):
+        return self.encoder1
+
+    def get_encoder2(self):
+        return self.encoder2
+
+    def get_pot1(self):
+        return self.pot1
+
+    def get_pot2(self):
+        return self.pot2
 
     def set_logger(self, duration):
         self.data = numpy.zeros((math.ceil(duration/self.period), 7), float)
