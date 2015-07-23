@@ -29,11 +29,9 @@ print('Controller Test Routine')
 k = 1
 with controller:
     position1 = controller.get_encoder1()
-    print('position1 = {}'.format(position1))
     controller.set_reference1(100)
     time.sleep(2)
     position2 = controller.get_encoder1()
-    print('position2 = {}'.format(position2))
 test(k, 'Did the motor spin clockwise for two seconds?', 'motor1 not working')
 
 if position2 == position1:
@@ -70,11 +68,9 @@ k += 1
 with controller:
     controller.set_reference1(0)
     position1 = controller.get_encoder1()
-    print('position1 = {}'.format(position1))
     controller.set_encoder1(0)
     time.sleep(5*controller.period)
     position2 = controller.get_encoder1()
-    print('position2 = {}'.format(position2))
 
 if position2 != 0:
     print("> Failed test #{}: could not reset encoder1".format(k))

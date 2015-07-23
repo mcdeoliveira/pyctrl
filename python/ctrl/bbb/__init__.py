@@ -60,7 +60,7 @@ class Controller(ctrl.Controller):
         # Read pot2
         self.pot2 = 0 # EDUARDO
 
-        return (encoder1, pot1, encoder2, pot2)
+        return (self.encoder1, self.pot1, self.encoder2, self.pot2)
 
     def set_encoder1(self, value):
         self.eqep2.set_position(int(value * 48 * 9.68))
