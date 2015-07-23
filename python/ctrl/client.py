@@ -100,9 +100,6 @@ class Controller(ctrl.Controller):
     def help(self, value = ''):
         return self.send('h', 'S', value)[0][1]
 
-    def get_log(self):
-        return self.send('l')[0][1]
-
     def set_echo(self, value):
         self.send('E', 'I', value)
 
@@ -112,11 +109,14 @@ class Controller(ctrl.Controller):
     def reset_logger(self):
         self.send('T')
 
-    def set_encoder1(self, value):
-        self.send('P', 'D', value)
-
     def set_reference1(self, value):
         self.send('R', 'D', value)
+
+    def set_reference1_mode(self, value):
+        self.send('M', 'I', value)
+
+    def set_encoder1(self, value):
+        self.send('P', 'D', value)
 
     def set_controller1(self, controller):
         self.send('C', 'P', controller)
@@ -127,8 +127,11 @@ class Controller(ctrl.Controller):
     def stop(self):
         self.send('t')
 
-    def get_period(self):
+    def get_log(self):
         return self.send('l')[0][1]
+
+    def get_period(self):
+        return self.send('p')[0][1]
 
 
 if __name__ == "__main__":

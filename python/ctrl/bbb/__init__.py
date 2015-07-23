@@ -62,6 +62,10 @@ class Controller(ctrl.Controller):
 
         return (encoder1, pot1, encoder2, pot2)
 
+    def set_encoder1(self, value):
+
+        self.eqep2.set_position(int(value * 48 * 9.68))
+
     def set_motor1_pwm(self, value = 0):
 
         super().set_motor1_pwm(value)

@@ -52,8 +52,6 @@ def set_controller(_controller = ctrl.Controller()):
         
         'E': ('I', '',  controller.set_echo,
               'Set echo'),
-        'p': ('',  'D', controller.get_period,
-              'Get period'),
 
         'L': ('D', '',  controller.set_logger,
               'Set logger'),
@@ -66,6 +64,7 @@ def set_controller(_controller = ctrl.Controller()):
               'Set reference mode'),
         'P': ('D', '',  controller.set_encoder1,
               'Set encoder position'),
+
         'C': ('P', '',  controller.set_controller1,
               'Set controller'),
         
@@ -77,7 +76,8 @@ def set_controller(_controller = ctrl.Controller()):
         'l': ('',  'M', controller.get_log,
               'Get log'),
 
-
+        'p': ('',  'D', controller.get_period,
+              'Get period'),
 
     }
 
