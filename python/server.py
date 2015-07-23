@@ -66,7 +66,7 @@ def main():
             assert False, "unhandled option"
 
     # Setup controller
-    if True: #platform.uname()[2] is '3.8.13-bone72':
+    if platform.uname()[2] == '3.8.13-bone72':
 
         if simulate:
 
