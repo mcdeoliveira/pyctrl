@@ -93,13 +93,13 @@ class Controller(ctrl.Controller):
 
 if __name__ == "__main__":
 
-    from ControlAlgorithm import *
+    from algo import *
 
     Ts = 0.01              # s
     a = 17                 # 1/s
     k = 0.163               # cycles/s duty
 
-    controller = ControllerBBB(Ts, 1)
+    controller = Controller(Ts, 1)
     controller.set_logger(2)
 
     # open loop controller
