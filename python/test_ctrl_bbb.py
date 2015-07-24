@@ -1,4 +1,6 @@
-import ctrl.bbb
+import time
+
+from ctrl.bbb import Controller
 from ctrl.algo import *
 
 def main():
@@ -29,14 +31,14 @@ def main():
     print('> OPEN LOOP CONTROL (POTENTIOMETER)')
     controller.set_reference1_mode(1)
     controller.start()
-    time.sleep(2)
+    time.sleep(10)
     controller.stop()
 
     reference = 6
     print('> CLOSED LOOP CONTROL (POSITION, REFERENCE = {})'.format(reference))
     controller.set_reference1_mode(0)
     controller.set_controller1(
-        ProportionalController(30 / k, reference / 100)
+        Proportional(30 / k, reference / 100)
     )
     controller.start()
     time.sleep(1)
@@ -47,16 +49,16 @@ def main():
     print('> CLOSED LOOP CONTROL (POSITION, POTENTIOMETER)')
     controller.set_reference1_mode(1)
     controller.set_controller1(
-        ProportionalController(30 / k, reference / 100)
+        Proportional(30 / k, reference / 100)
     )
     controller.start()
-    time.sleep(5)
+    time.sleep(10)
     controller.stop()
 
     reference = 11
 
     controller.set_controller1(
-        VelocityController(ProportionalController(5 / k, reference / 100))
+        VelocityController(Proportional(5 / k, reference / 100))
     )
 
     print('> CLOSED LOOP ON VELOCITY')
