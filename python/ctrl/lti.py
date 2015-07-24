@@ -76,6 +76,7 @@ class SISOLTISystem:
         # with uk = 0
         # zk = - den[1:] (zk-1, ..., zk-n)
         # yk = (num[1:] - num[0] den[1:]) (zk-1, ..., zk-n)
+        # yk+j = (num[1:] - num[0] den[1:]) (zk-1+j, ..., zk-n+j)
         self.state[1:] = 0
         self.state[0] = (yk - self.state[1:].dot(self.num[2:]) + self.num[0] * self.state[1:].dot(self.den[2:]) ) / (self.num[1] - self.num[0] * self.den[1])
     

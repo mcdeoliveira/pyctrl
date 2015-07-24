@@ -1,6 +1,5 @@
 import time
 import platform, sys
-import Adafruit_BBIO.ADC as ADC
 
 def test(k, s, msg):
     print('> TEST #{}'.format(k))
@@ -12,6 +11,7 @@ def test(k, s, msg):
 # Are we on the beaglebone?
 if 'bone' in platform.uname()[2]:
     from ctrl.bbb import Controller
+    import Adafruit_BBIO.ADC as ADC
     simulated = False
 else:
     from ctrl import Controller
@@ -40,6 +40,7 @@ if position2 == position1:
     sys.exit(2)
 elif position2 < position1:
     print("> Failed test #{}: encoder1 reading reversed".format(k))
+    print("> {:5.2f} > {:5.2f}".format(position1, position2))
     sys.exit(2)
 
 k += 1
@@ -55,6 +56,7 @@ if position2 == position1:
     sys.exit(2)
 elif position2 > position1:
     print("> Failed test #{}: encoder1 reading reversed".format(k))
+    print("> {:5.2f} < {:5.2f}".format(position1, position2))
     sys.exit(2)
 
 k += 1
@@ -72,12 +74,14 @@ with controller:
     controller.set_encoder1(0)
     time.sleep(5*controller.period)
     position2 = controller.get_encoder1()
+    print(position2)
 
 if position2 != 0:
     print("> Failed test #{}: could not reset encoder1".format(k))
     sys.exit(2)
 
-print("\n\n> Set the potentiometer to the minimum position\n") 
+k += 1
+print("> Set the potentiometer to the minimum position\n") 
 time.sleep(5)
 pot_min = min(100, 100 * ADC.read("AIN0") / 0.88)
 print(pot_min)
