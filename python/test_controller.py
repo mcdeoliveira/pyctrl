@@ -1,5 +1,6 @@
 import time
 import platform, sys
+import Adafruit_BBIO.ADC as ADC
 
 def test(k, s, msg):
     print('> TEST #{}'.format(k))
@@ -76,3 +77,17 @@ if position2 != 0:
     print("> Failed test #{}: could not reset encoder1".format(k))
     sys.exit(2)
 
+print("\n\n> Set the potentiometer to the minimum position\n") 
+time.sleep(5)
+pot_min = min(100, 100 * ADC.read("AIN0") / 0.88)
+print(pot_min)
+print("\n> Set the potentiometer to the maximum position\n") 
+time.sleep(5)
+pot_max = min(100, 100 * ADC.read("AIN0") / 0.88)
+print(pot_max)
+pot_zero = (pot_min + pot_max)/2
+print("\> pot_zero = {}".format(pot_zero))
+for i in range(1,100):
+    p = min(100, 100 * ADC.read("AIN0") / 0.88)
+    print(p)
+    time.sleep(0.2)
