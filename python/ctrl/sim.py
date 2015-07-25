@@ -89,8 +89,8 @@ class Controller(ctrl.Controller):
         uk2 = self.motor2_dir * self.motor2_pwm
 
         # Read current outputs
-        self.encoder1 = self.model1.update(uk1)
-        self.encoder2 = self.model2.update(uk2)
+        self.encoder1 = float(self.model1.update(uk1))
+        self.encoder2 = float(self.model2.update(uk2))
 
         # Read potentiometers
         self.pot1 = 0

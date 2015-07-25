@@ -34,7 +34,7 @@ class Controller:
         self.echo_counter = 0
 
         # data logger
-        self.set_logger(60./period)
+        self.set_logger(120./period)
 
         # motor1
         self.motor1_on = False
@@ -355,17 +355,12 @@ class Controller:
                 if isinstance(self.controller1, algo.VelocityController):
                     print('       VEL1   REF1   PWM1', end='')
                 else:
-                    print('       ENC1   REF1   PWM1', end='')
-            if self.controller2 is not None:
-                if isinstance(self.controller2, algo.VelocityController):
-                    print('       VEL1   REF1   PWM1', end='')
-                else:
-                    print('       ENC1   REF1   PWM1', end='')
+                    print('       POS1   REF1   PWM1', end='')
             if self.controller2 is not None:
                 if isinstance(self.controller2, algo.VelocityController):
                     print('       VEL2   REF2   PWM2', end='')
                 else:
-                    print('       ENC2   REF2   PWM2', end='')
+                    print('       POS2   REF2   PWM2', end='')
             print('')
 
         # Start thread

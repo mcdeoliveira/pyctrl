@@ -73,16 +73,22 @@ class SISOLTISystem:
         #print('state = {}'.format(self.state))
 
     def set_position(self, yk):
+        # From the realization:
+        #   zk = uk - den[1:] (zk-1, ..., zk-n)
+        #   yk = num[0] zk + num[1:] (zk-1, ..., zk-n)
         # with uk = 0
-        # zk = - den[1:] (zk-1, ..., zk-n)
-        # yk = (num[1:] - num[0] den[1:]) (zk-1, ..., zk-n)
-        # yk+j = (num[1:] - num[0] den[1:]) (zk-1+j, ..., zk-n+j)
+        #  => zk-1 = (yk - num[2:] + num[0] den[2:]) (zk-2, ..., zk-n) / (num[1] - num[0] den[1])
         self.state[1:] = 0
-        self.state[0] = (yk - self.state[1:].dot(self.num[2:]) + self.num[0] * self.state[1:].dot(self.den[2:]) ) / (self.num[1] - self.num[0] * self.den[1])
+        if yk != 0:
+            self.state[0] = (yk - self.state[1:].dot(self.num[2:]) + self.num[0] * self.state[1:].dot(self.den[2:]) ) / (self.num[1] - self.num[0] * self.den[1])
+        else:
+            self.state[0] = 0
+        #print('state = {}'.format(self.state))
     
     def update(self, uk):
         # zk = uk - den[1:] (zk-1, ..., zk-n)
         # yk = num[0] zk + num[1:] (zk-1, ..., zk-n)
+        #print('uk = {}, state = {}'.format(uk, self.state))
         zk = uk - self.state.dot(self.den[1:])
         yk = self.num[0] * zk + self.state.dot(self.num[1:])
         if self.state.size > 0:
