@@ -66,6 +66,33 @@ def test_reset_encoder(args):
         return (False, 'could not reset encoder1')
     return (True, [position1, position2])
 
+def test_potentiometer(args):
+    
+    # Calibrate potentiometer
+    KMAX = 100
+    print("> Set the potentiometer to the minimum position\n") 
+    k = 0
+    pot_min = 100
+    while pot_min > 2 or k < KMAX:
+        pot_min = min(100, 100 * ADC.read("AIN0") / 0.88)
+        time.sleep(1)
+        print('\r> minimum = {}'.format(pot_min), end='')
+        k += 1
+    print()
+
+    if pot_min > 2:
+        return (False, 'potentiometer did not reach minimum')
+
+    print("\n> Set the potentiometer to the maximum position\n") 
+    k = 0
+    pot_max = 0
+    while pot_max < 98 or k < KMAX:
+        pot_max = min(100, 100 * ADC.read("AIN0") / 0.88)
+        time.sleep(1)
+        print('\r> maximum = {}'.format(pot_max), end='')
+        k += 1
+    print()
+
 def main():
 
     # Are we on the beaglebone?
@@ -138,6 +165,14 @@ def main():
                '',
                test_reset_encoder)
 
+    if not simulated:
+        k += 1
+        position1, position2 \
+            = test(k, (),
+                   '', 
+                   '',
+                   test_potentiometer)
+
     # Identify motor
     print('> Identifying motor parameters...')
     with controller:
@@ -174,27 +209,6 @@ def main():
         print('> rise time = {:5.3f}'.format(t90 - t10))
         print('> lambda    = {:5.3f}'.format(1/tau))
         
-    if False:
-
-        if not simulated:
-
-            # Calibrate potentiometer
-            k += 1
-            print("> Set the potentiometer to the minimum position\n") 
-            time.sleep(5)
-            pot_min = min(100, 100 * ADC.read("AIN0") / 0.88)
-            print(pot_min)
-            print("\n> Set the potentiometer to the maximum position\n") 
-            time.sleep(5)
-            pot_max = min(100, 100 * ADC.read("AIN0") / 0.88)
-            print(pot_max)
-            pot_zero = (pot_min + pot_max)/2
-            print("\> pot_zero = {}".format(pot_zero))
-            for i in range(1,100):
-                p = min(100, 100 * ADC.read("AIN0") / 0.88)
-                print(p)
-                time.sleep(0.2)
-
     
 if __name__ == "__main__":
     main()
