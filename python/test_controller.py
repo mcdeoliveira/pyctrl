@@ -3,6 +3,34 @@ import math
 import numpy
 import platform, sys
 
+# Are we on the beaglebone?
+if 'bone' in platform.uname()[2]:
+    from ctrl.bbb import Controller
+    import Adafruit_BBIO.ADC as ADC
+    simulated = False
+else:
+    from ctrl.sim import Controller
+    simulated = True
+
+controller = Controller()
+
+if simulated:
+
+    Ts = 0.01              # s
+    a = 17                 # 1/s
+    k = 0.11               # cycles/s duty
+    c = math.exp(-a * Ts)  # adimensional
+
+    controller.set_period(Ts)
+    controller.set_model1( numpy.array((0, (k*Ts)*(1-c)/2, (k*Ts)*(1-c)/2)), 
+                           numpy.array((1, -(1 + c), c)),
+                           numpy.array((0,0)) )
+
+    # controller.calibrate()
+
+controller.set_echo(1)
+controller.set_logger(2)
+
 def test(k, args, query_msg, failed_msg, test_function):
     print('> TEST #{}'.format(k))
     passed, retval = test_function(args)
@@ -94,35 +122,6 @@ def test_potentiometer(args):
     print()
 
 def main():
-
-    # Are we on the beaglebone?
-    if 'bone' in platform.uname()[2]:
-        from ctrl.bbb import Controller
-        import Adafruit_BBIO.ADC as ADC
-        simulated = False
-    else:
-        from ctrl.sim import Controller
-        simulated = True
-
-    global controller
-    controller = Controller()
-
-    if simulated:
-
-        Ts = 0.01              # s
-        a = 17                 # 1/s
-        k = 0.11               # cycles/s duty
-        c = math.exp(-a * Ts)  # adimensional
-
-        controller.set_period(Ts)
-        controller.set_model1( numpy.array((0, (k*Ts)*(1-c)/2, (k*Ts)*(1-c)/2)), 
-                               numpy.array((1, -(1 + c), c)),
-                               numpy.array((0,0)) )
-
-        # controller.calibrate()
-
-    controller.set_echo(1)
-    controller.set_logger(2)
 
     print('Controller Test Routine')
 
