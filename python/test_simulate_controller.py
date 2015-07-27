@@ -112,7 +112,7 @@ time.sleep(3)
 controller.stop()
 
 pmax = 2
-Kp = 1/k
+Kp = 10/k
 controller.set_controller1(
     algo.Proportional(Kp, pmax)
 )
