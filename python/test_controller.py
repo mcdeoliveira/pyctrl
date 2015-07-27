@@ -97,29 +97,35 @@ def test_reset_encoder(args):
 def test_potentiometer(args):
     
     # Calibrate potentiometer
-    KMAX = 100
+    KMAX = 600 
+    TOL = 2
     print("> Set the potentiometer to the minimum position\n") 
     k = 0
     pot_min = 100
-    while pot_min > 2 or k < KMAX:
-        pot_min = min(100, 100 * ADC.read("AIN0") / 0.88)
-        time.sleep(1)
-        print('\r> minimum = {}'.format(pot_min), end='')
+    while pot_min > TOL and k < KMAX:
+        pot_min = 100 - min(100, 100 * ADC.read("AIN0") / 0.88)
+        time.sleep(.1)
+        print('\r> minimum = {:4.1f}'.format(pot_min), end='')
         k += 1
     print()
 
-    if pot_min > 2:
+    if pot_min > TOL:
         return (False, 'potentiometer did not reach minimum')
 
     print("\n> Set the potentiometer to the maximum position\n") 
     k = 0
     pot_max = 0
-    while pot_max < 98 or k < KMAX:
-        pot_max = min(100, 100 * ADC.read("AIN0") / 0.88)
-        time.sleep(1)
-        print('\r> maximum = {}'.format(pot_max), end='')
+    while pot_max < 100 - TOL and k < KMAX:
+        pot_max = 100 - min(100, 100 * ADC.read("AIN0") / 0.88)
+        time.sleep(.1)
+        print('\r> maximum = {:4.1f}'.format(pot_max), end='')
         k += 1
     print()
+
+    if pot_max < 100 - TOL:
+        return (False, 'potentiometer did not reach maximum')
+
+    return (True, [pot_min, pot_max])
 
 def main():
 
