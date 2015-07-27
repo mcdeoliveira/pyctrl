@@ -10,10 +10,10 @@ class OpenLoop(Algorithm):
 
 class Proportional(Algorithm):
     # Proportional control is:
-    # u = Kp * (gamma * reference - measurement)
-    def __init__(self, Kp, gamma = 1):
+    # u = Kp * (gamma/100 * reference - measurement)
+    def __init__(self, Kp, gamma = 100):
         self.Kp = Kp
-        self.gamma = gamma
+        self.gamma = gamma/100
     
     def update(self, measurement, reference, period):
         return self.Kp * (self.gamma * reference - measurement)
@@ -21,13 +21,13 @@ class Proportional(Algorithm):
 class PID(Algorithm):
     # PID Controller is:
     # u = Kp * e + Ki int_0^t e dt + Kd de/dt
-    # e = (gamma * reference - measurement)
+    # e = (gamma/100 * reference - measurement)
 
-    def __init__(self, Kp, Ki, Kd = 0, gamma = 1):
+    def __init__(self, Kp, Ki, Kd = 0, gamma = 100):
         self.Kp = Kp
         self.Ki = Ki
         self.Kd = Kd
-        self.gamma = gamma
+        self.gamma = gamma/100
         self.error = 0
         self.ierror = 0
     
@@ -48,7 +48,7 @@ class PID(Algorithm):
         # Update error
         self.error = error
         
-        return self.Kp * error + self.Ki * self.ierror + self.Kd * de
+        return (self.Kp * error + self.Ki * self.ierror + self.Kd * de)
     
 class VelocityController(Algorithm):
 
