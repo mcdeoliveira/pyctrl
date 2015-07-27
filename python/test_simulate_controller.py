@@ -49,13 +49,13 @@ a = 17                 # 1/s
 k = 0.11               # cycles/s duty
 c = math.exp(-a * Ts)  # adimensional
 
-controller.set_period(Ts)
-controller.set_model1( numpy.array((0, (k*Ts)*(1-c)/2, (k*Ts)*(1-c)/2)), 
-                       numpy.array((1, -(1 + c), c)),
-                       numpy.array((0,0)) )
+#controller.set_period(Ts)
+#controller.set_model1( numpy.array((0, (k*Ts)*(1-c)/2, (k*Ts)*(1-c)/2)), 
+#                       numpy.array((1, -(1 + c), c)),
+#                       numpy.array((0,0)) )
 
 controller.set_echo(.1/Ts)
-controller.calibrate()
+#controller.calibrate()
 controller.set_delta_mode(0)
 
 print('> OPEN LOOP')
@@ -69,29 +69,10 @@ controller.set_reference1(0)
 time.sleep(1)
 controller.stop()
 
-reference = 2
+vmax = 11
+Kp = 1/k
 controller.set_controller1(
-    algo.Proportional(0.09 / (k*Ts), reference / 100)
-)
-
-print('> CLOSED LOOP ON POSITION')
-controller.start()
-time.sleep(1)
-controller.set_reference1(100)
-print('\n> REFERENCE = {}'.format(reference))
-time.sleep(3)
-controller.set_reference1(50)
-print('\n> REFERENCE = {}'.format(reference/2))
-time.sleep(3)
-controller.set_reference1(-50)
-print('\n> REFERENCE = {}'.format(-reference/2))
-time.sleep(3)
-controller.stop()
-
-reference = 11
-
-controller.set_controller1(
-    algo.VelocityController(algo.Proportional(1 / k, reference / 100))
+    algo.VelocityController(algo.Proportional(Kp, vmax))
 )
 
 print('> CLOSED LOOP ON VELOCITY')
@@ -99,18 +80,20 @@ print('> CLOSED LOOP ON VELOCITY')
 controller.start()
 time.sleep(1)
 controller.set_reference1(100)
-print('\n> REFERENCE = {}'.format(reference))
+print('\n> REFERENCE = {}'.format(vmax))
 time.sleep(3)
 controller.set_reference1(50)
-print('\n> REFERENCE = {}'.format(reference/2))
+print('\n> REFERENCE = {}'.format(vmax/2))
 time.sleep(3)
 controller.set_reference1(-50)
-print('\n> REFERENCE = {}'.format(-reference/2))
+print('\n> REFERENCE = {}'.format(-vmax/2))
 time.sleep(3)
 controller.stop()
 
+Kp = 1/k
+Ki = a/k
 controller.set_controller1(
-    algo.VelocityController(algo.PID(1 / k, a / k, 0, reference / 100))
+    algo.VelocityController(algo.PID(Kp, Ki, 0, vmax))
 )
 
 print('> CLOSED LOOP ON VELOCITY INTEGRAL')
@@ -118,13 +101,33 @@ controller.set_logger(20*controller.period)
 controller.start()
 time.sleep(1)
 controller.set_reference1(100)
-print('\n> REFERENCE = {}'.format(reference))
+print('\n> REFERENCE = {}'.format(vmax))
 time.sleep(3)
 controller.set_reference1(50)
-print('\n> REFERENCE = {}'.format(reference/2))
+print('\n> REFERENCE = {}'.format(vmax/2))
 time.sleep(3)
 controller.set_reference1(-50)
-print('\n> REFERENCE = {}'.format(-reference/2))
+print('\n> REFERENCE = {}'.format(-vmax/2))
+time.sleep(3)
+controller.stop()
+
+pmax = 2
+Kp = 1/k
+controller.set_controller1(
+    algo.Proportional(Kp, pmax)
+)
+
+print('> CLOSED LOOP ON POSITION')
+controller.start()
+time.sleep(1)
+controller.set_reference1(100)
+print('\n> REFERENCE = {}'.format(pmax))
+time.sleep(3)
+controller.set_reference1(50)
+print('\n> REFERENCE = {}'.format(pmax/2))
+time.sleep(3)
+controller.set_reference1(-50)
+print('\n> REFERENCE = {}'.format(-pmax/2))
 time.sleep(3)
 controller.stop()
 

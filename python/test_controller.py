@@ -47,10 +47,10 @@ def test(k, args, query_msg, failed_msg, test_function):
 def test_motor_forward(args):
 
     with controller:
-        position1 = controller.get_encoder1()
+        t, position1 = controller.get_encoder1()
         controller.set_reference1(100)
         time.sleep(2)
-        position2 = controller.get_encoder1()
+        t, position2 = controller.get_encoder1()
     return True, (position1, position2)
 
 def test_encoder(args):
@@ -65,10 +65,10 @@ def test_encoder(args):
 def test_motor_backward(args):
 
     with controller:
-        position1 = controller.get_encoder1()
+        t, position1 = controller.get_encoder1()
         controller.set_reference1(-100)
         time.sleep(2)
-        position2 = controller.get_encoder1()
+        t, position2 = controller.get_encoder1()
     return True, (position1, position2)
 
 def test_motor_speeds(args):
@@ -85,10 +85,10 @@ def test_reset_encoder(args):
     with controller:
         controller.set_reference1(0)
         time.sleep(10*controller.period) # sleep to make sure it is stoped
-        position1 = controller.get_encoder1()
+        t, position1 = controller.get_encoder1()
         controller.set_encoder1(0)
         time.sleep(10*controller.period) # sleep to make sure it did not move
-        position2 = controller.get_encoder1()
+        t, position2 = controller.get_encoder1()
 
     if position2 != 0:
         return (False, 'could not reset encoder1')

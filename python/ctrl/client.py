@@ -133,6 +133,9 @@ class Controller(ctrl.Controller):
     def get_period(self):
         return self.send('p')[0][1]
 
+    def get_encoder1(self):
+        return self.send('e')[0][1]
+
 
 if __name__ == "__main__":
 

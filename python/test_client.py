@@ -5,6 +5,7 @@ from ctrl.algo import Proportional
 import ctrl.client
 
 HOST, PORT = "192.168.10.107", 9999
+HOST, PORT = "localhost", 9999
 
 controller = ctrl.client.Controller(HOST, PORT)
 print(controller.help())
@@ -25,6 +26,7 @@ with controller:
     time.sleep(1)
     
 print(controller.get_log())
+print(controller.get_encoder1())
 
     # controller.set_logger(2)
 

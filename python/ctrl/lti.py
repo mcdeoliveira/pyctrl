@@ -81,7 +81,7 @@ class SISOLTISystem:
         self.state[1:] = 0
         if yk != 0:
             self.state[0] = (yk - self.state[1:].dot(self.num[2:]) + self.num[0] * self.state[1:].dot(self.den[2:]) ) / (self.num[1] - self.num[0] * self.den[1])
-        else:
+        elif self.state.size > 0:
             self.state[0] = 0
         #print('state = {}'.format(self.state))
     

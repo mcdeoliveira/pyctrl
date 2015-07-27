@@ -315,16 +315,16 @@ class Controller:
         return self.period
 
     def get_encoder1(self):
-        return self.encoder1
+        return perf_counter(), self.encoder1
 
     def get_encoder2(self):
-        return self.encoder2
+        return perf_counter(), self.encoder2
 
     def get_pot1(self):
-        return self.pot1
+        return perf_counter(), self.pot1
 
     def get_pot2(self):
-        return self.pot2
+        return perf_counter(), self.pot2
 
     def set_logger(self, duration):
         self.data = numpy.zeros((math.ceil(duration/self.period), 7), float)

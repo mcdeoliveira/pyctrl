@@ -2,6 +2,7 @@ from threading import Timer
 import warnings
 import numpy
 import time
+import math
 
 from . import lti
 import ctrl
@@ -20,13 +21,23 @@ class Controller(ctrl.Controller):
 
     def __init__(self, *pars, **kpars):
 
+        # Initialize controller
         super().__init__(*pars, **kpars)
+        
+        Ts = self.period
+        a = 17                 # 1/s
+        k = 0.11               # cycles/s duty
+        c = math.exp(-a * Ts)  # adimensional
 
         # Set model 1
-        self.model1 = lti.SISOLTISystem(self.period)
+        self.model1 = \
+            kpars.pop('model1', 
+                      lti.SISOLTISystem(Ts, \
+                            numpy.array((0, (k*Ts)*(1-c)/2, (k*Ts)*(1-c)/2)), 
+                            numpy.array((1, -(1 + c), c))))
 
         # Set model 2
-        self.model2 = lti.SISOLTISystem(self.period)
+        self.model2 = kpars.pop('model2', lti.SISOLTISystem(Ts))
 
         # Timer thread
         self.timer = None

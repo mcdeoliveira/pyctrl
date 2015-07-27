@@ -78,6 +78,8 @@ def set_controller(_controller = ctrl.Controller()):
 
         'p': ('',  'D', controller.get_period,
               'Get period'),
+        'e': ('',  'P', controller.get_encoder1,
+              'Get encoder'),
 
     }
 
@@ -148,6 +150,8 @@ class Handler(socketserver.StreamRequestHandler):
                 # Send message back
                 if verbose_level > 2:
                     print('>>> Sending message = ', *message)
+                    if verbose_level > 3:
+                        print('>>>> Message content = ', packet.pack(*message))
                 self.wfile.write(packet.pack(*message))
 
             message = ('A', code)
