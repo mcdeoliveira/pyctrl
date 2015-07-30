@@ -22,7 +22,7 @@ print("X, Y, Z axis accelerations (in g's)")
 # Most significant byte on 0x3b
 # Least significant byte on 0x3c
 # Combined to obtain raw acceleration data
-for x in range(0, 5):
+for x in range(0, 200):
         # getting values from the registers
     bx = i2c.readS8(0x3b)
     sx = i2c.readU8(0x3c)
