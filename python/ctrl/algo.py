@@ -49,6 +49,27 @@ class PID(Algorithm):
         self.error = error
         
         return (self.Kp * error + self.Ki * self.ierror + self.Kd * de)
+
+class LTIController(Algorithm):
+
+    def __init__(self, 
+                 num = numpy.array((1,)),
+                 den = numpy.array((1,)),
+                 state = None,
+                 gamma = 100):
+
+        self.gamma = gamma/100
+        self.model = []
+        
+        pass
+
+
+    def update(self, measurement, reference, period):
+
+        # calculate error
+        error = (self.gamma * reference - measurement)
+
+        # return self.model.update()
     
 class VelocityController(Algorithm):
 
