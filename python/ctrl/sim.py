@@ -32,12 +32,13 @@ class Controller(ctrl.Controller):
         # Set model 1
         self.model1 = \
             kpars.pop('model1', 
-                      lti.SISOLTISystem(Ts, \
-                            numpy.array((0, (k*Ts)*(1-c)/2, (k*Ts)*(1-c)/2)), 
-                            numpy.array((1, -(1 + c), c))))
+                      lti.SISOLTISystem(
+                          numpy.array((0, (k*Ts)*(1-c)/2, (k*Ts)*(1-c)/2)), 
+                          numpy.array((1, -(1 + c), c)))
+                  )
 
         # Set model 2
-        self.model2 = kpars.pop('model2', lti.SISOLTISystem(Ts))
+        self.model2 = kpars.pop('model2', lti.SISOLTISystem())
 
         # Timer thread
         self.timer = None
@@ -76,10 +77,10 @@ class Controller(ctrl.Controller):
         # and return
         self.is_running = False
 
-    def set_period(self, value = 0.1):
-        super().set_period(value)
-        self.model1.set_period(value)
-        self.model2.set_period(value)
+    # def set_period(self, value = 0.1):
+    #     super().set_period(value)
+    #     self.model1.set_period(value)
+    #     self.model2.set_period(value)
 
     def set_model1(self, 
                    num = numpy.array((1,)),

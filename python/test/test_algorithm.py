@@ -3,6 +3,8 @@ sys.path.append('..')
 
 import pytest
 
+import numpy
+import math
 import ctrl.algo as algo
 
 def test0():
@@ -126,3 +128,47 @@ def testV():
     vel = 1.*(4 - meas) / 3
     assert alg.measurement == meas
     assert alg.update(4,7,3) == 3 * (4/100 * 7 - vel)
+
+def testLTI():
+
+    # P
+    alg = algo.LTI(numpy.array([3]), numpy.array([1]))
+    assert alg.update(1,2,3) == 3 * (2 - 1)
+    assert alg.update(1,2,3) == 3 * (2 - 1)
+
+    # PID = PI
+    Kp = 3
+    Ki = 4
+    T = 6.
+    alg = algo.LTI(numpy.array([Kp+Ki*T/2, Ki*T/2-Kp]), 
+                   numpy.array([1, -1]))
+
+    # PID = PI
+    ierror = 0
+    error = 0
+    err = 7 - 5
+    ierror += T * (err + error) / 2
+    assert alg.update(5,7,T) == Kp * err + Ki * ierror
+    error = err
+
+    err = -1 - 2
+    ierror += T * (err + error) / 2
+    assert alg.update(2,-1,T) == Kp * err + Ki * ierror
+    error = err
+
+
+    # PID = PI + gain
+    alg = algo.LTI(numpy.array([Kp+Ki*T/2, Ki*T/2-Kp]), 
+                   numpy.array([1, -1]), None, -2)
+
+    ierror = 0
+    error = 0
+    err = -2/100 * 7 - 5
+    ierror += T * (err + error) / 2
+    assert alg.update(5,7,T) == Kp * err + Ki * ierror
+    error = err
+
+    err = -2/100*(-1) - 2
+    ierror += T * (err + error) / 2
+    assert abs(alg.update(2,-1,T) - (Kp * err + Ki * ierror)) < 1e-6
+    error = err

@@ -28,20 +28,13 @@ class SISOLTISystem:
     #
 
     def __init__(self,
-                 period,
                  num = numpy.array((1,)),
                  den = numpy.array((1,)),
                  state = None):
         
-        self.set_model(period, num, den, state)
+        self.set_model(num, den, state)
         
-    def set_period(self, value = 0.1):
-        self.period = value
-
-    def set_model(self, period, num, den, state = None):
-        
-        # set period
-        self.period = period
+    def set_model(self, num, den, state = None):
         
         # must be proper
         n = num.size - 1

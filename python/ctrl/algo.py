@@ -1,3 +1,6 @@
+import numpy
+import ctrl.lti as lti
+
 class Algorithm:
     def update(self, measurement, reference, period):
         raise NameError('update method undefined')
@@ -50,28 +53,23 @@ class PID(Algorithm):
         
         return (self.Kp * error + self.Ki * self.ierror + self.Kd * de)
 
-class LTIController(Algorithm):
-
-    import numpy
+class LTI(Algorithm):
 
     def __init__(self, 
-                 num = numpy.array((-0.7921,1.5921,-0.8)),
-                 den = numpy.array((0.9824,-1.9824,1)),
+                 num = numpy.array((1,)),
+                 den = numpy.array((1,)),
                  state = None,
                  gamma = 100):
 
         self.gamma = gamma/100
-        self.model = []
+        self.model = lti.SISOLTISystem(num, den, state)
         
-        pass
-
-
     def update(self, measurement, reference, period):
 
         # calculate error
         error = (self.gamma * reference - measurement)
 
-        #return self.model.update()
+        return self.model.update(error)
     
 class VelocityController(Algorithm):
 

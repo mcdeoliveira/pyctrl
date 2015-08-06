@@ -8,24 +8,23 @@ import ctrl.lti as lti
 
 def test0():
 
-    Ts = 0.1
     num = np.array([1, 1])
     den = np.array([1, -1])
-    sys = lti.SISOLTISystem(Ts, num, den)
+    sys = lti.SISOLTISystem(num, den)
     assert np.all(sys.num == num)
     assert np.all(sys.den == den)
     assert np.all(sys.state == np.zeros(2))
 
     num = np.array([1, 1])
     den = np.array([2, -1])
-    sys = lti.SISOLTISystem(Ts, num, den)
+    sys = lti.SISOLTISystem(num, den)
     assert np.all(sys.num == num/2)
     assert np.all(sys.den == den/2)
     assert np.all(sys.state == np.zeros(2))
 
     num = np.array([1, 1, 3])
     den = np.array([1, -1])
-    sys = lti.SISOLTISystem(Ts, num, den)
+    sys = lti.SISOLTISystem(num, den)
     assert np.all(sys.num == num)
     den = np.array([1, -1, 0])
     assert np.all(sys.den == den)
