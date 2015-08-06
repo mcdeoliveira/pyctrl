@@ -36,7 +36,7 @@ for x in range(0, 120):
     gz = z / 16384.
 
     #r = gy/gx
-    rad = math.atan2(gy,gx)
+    rad = math.atan2(y,x)
     deg = rad*180/math.pi
 
     print ('theta = {:5.3f}, ax = {:5.3f}, ay = {:5.3f}, az = {:5.3f}'.format(deg, gx, gy, gz))
