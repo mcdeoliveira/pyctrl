@@ -7,6 +7,7 @@ from .eqep import eQEP
 import Adafruit_BBIO.GPIO as GPIO
 import Adafruit_BBIO.PWM as PWM
 import Adafruit_BBIO.ADC as ADC
+import Adafruit_I2C as I2C 
 
 # PWM1 PINS
 dir_A = "P9_15"
@@ -38,6 +39,14 @@ class Controller(ctrl.Controller):
         # initialize adc
         ADC.setup()
 
+        # initialize i2c connection to MPU6050
+        # i2c address is 0x68
+        i2c = Adafruit_I2C(0x68)
+
+        # wake up the device (out of sleep mode)
+        # bit 6 on register 0x6B set to 0
+        i2c.write8(0x6B, 0)
+
     def set_period(self, value):
 
         # call super().set_period
@@ -50,6 +59,26 @@ class Controller(ctrl.Controller):
 
         # Read encoder1 in cycles/s
         self.encoder1 = float(self.eqep2.poll_position()) / (48 * 9.68)
+
+        # getting values from the registers
+        bx = i2c.readS8(0x3b)
+        sx = i2c.readU8(0x3c)
+        by = i2c.readS8(0x3d)
+        sy = i2c.readU8(0x3e)
+        bz = i2c.readS8(0x3f)
+        sz = i2c.readU8(0x40)
+        
+        # converting 2 8 bit words into a 16 bit
+        # signed "raw" value
+        x = -(bx * 256 + sx)
+        y = -(by * 256 + sy)
+        z = -(bz * 256 + sz)
+
+        # still needs to be converted into G-forces
+        #gx = x / 16384.
+        #gy = y / 16384.
+        #gz = z / 16384.
+        self.encoder1 = math.atan2(y, x)
 
         # Read pot1 [0,100]
         self.pot1 = min(100, 100 * ADC.read("AIN0") / 0.88)
