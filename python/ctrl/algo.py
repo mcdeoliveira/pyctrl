@@ -52,9 +52,11 @@ class PID(Algorithm):
 
 class LTIController(Algorithm):
 
+    import numpy
+
     def __init__(self, 
-                 num = numpy.array((1,)),
-                 den = numpy.array((1,)),
+                 num = numpy.array((-0.7921,1.5921,-0.8)),
+                 den = numpy.array((0.9824,-1.9824,1)),
                  state = None,
                  gamma = 100):
 
@@ -69,7 +71,7 @@ class LTIController(Algorithm):
         # calculate error
         error = (self.gamma * reference - measurement)
 
-        # return self.model.update()
+        #return self.model.update()
     
 class VelocityController(Algorithm):
 

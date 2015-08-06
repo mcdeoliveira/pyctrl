@@ -16,7 +16,7 @@ print("X, Y, Z axis accelerations (in g's)")
 # Most significant byte on 0x3b
 # Least significant byte on 0x3c
 # Combined to obtain raw acceleration data
-for x in range(0, 10):
+for x in range(0, 120):
         # getting values from the registers
     bx = i2c.readS8(0x3b)
     sx = i2c.readU8(0x3c)
@@ -39,7 +39,5 @@ for x in range(0, 10):
     rad = math.atan2(gy,gx)
     deg = rad*180/math.pi
 
-
-    print (str(gx)+'\t' + str(gy)+'\t' + str(gz))
-    print (str(rad) + '\t' + str(deg))
-    sleep(0.2)
+    print ('theta = {:5.3f}, ax = {:5.3f}, ay = {:5.3f}, az = {:5.3f}'.format(deg, gx, gy, gz))
+    sleep(0.5)
