@@ -92,3 +92,32 @@ class VelocityController(Algorithm):
 
         # Call controller
         return self.controller.update(self.velocity, reference, period)
+
+class DeadZoneCompensation(Algorithm):
+
+    def __init__(self, controller, y, d):
+        # Wrapper for the piecewise function
+        # f(x) = { x (100-y)/(100-d) + 100(y-d)/(100-d), x > d,
+        #        { x (100-y)/(100-d) - 100(y-d)/(100-d), x < -d,
+        #        { x (y/d),                              -d <= x <= d
+        assert y >= 0
+        assert d >= 0
+
+        self.controller = controller
+        self.a = (100 - y) / (100 - d)
+        self.b = 100 * (y - d) / (100 - d)
+        self.c = y / d
+        self.d = d
+    
+    def update(self, measurement, reference, period):
+
+        # Call controller
+        x = self.controller.update(measurement, reference, period)
+
+        # Dead-zone compensation
+        if x > self.d:
+            return x * self.a + self.b
+        elif x < -self.d:
+            return x * self.a - self.b
+        else: # -d <= x <= d
+            return x * self.c
