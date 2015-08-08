@@ -133,6 +133,9 @@ if __name__ == "__main__":
     with controller:
         time.sleep(1)
 
+    log = controller.read_sink('logger')
+    print('\n> LOG HAS {} ROWS and {} COLUMNS'.format(log.shape[0], log.shape[1]))
+
     controller.remove_sink('logger')
 
     print('\n> OPEN LOOP')
@@ -162,13 +165,13 @@ if __name__ == "__main__":
 
     with controller:
         time.sleep(1)
-        controller.set_reference1(100)
+        controller.set_signal('reference1', 100)
         print('\n> REFERENCE = {}'.format(pmax))
         time.sleep(3)
-        controller.set_reference1(50)
+        controller.set_signal('reference1', 50)
         print('\n> REFERENCE = {}'.format(pmax/2))
         time.sleep(3)
-        controller.set_reference1(-50)
+        controller.set_signal('reference1', -50)
         print('\n> REFERENCE = {}'.format(-pmax/2))
         time.sleep(3)
 
@@ -184,13 +187,13 @@ if __name__ == "__main__":
 
     with controller:
         time.sleep(1)
-        controller.set_reference1(100)
+        controller.set_signal('reference1', 100)
         print('\n> REFERENCE = {}'.format(pmax))
         time.sleep(3)
-        controller.set_reference1(50)
+        controller.set_signal('reference1', 50)
         print('\n> REFERENCE = {}'.format(pmax/2))
         time.sleep(3)
-        controller.set_reference1(-50)
+        controller.set_signal('reference1', -50)
         print('\n> REFERENCE = {}'.format(-pmax/2))
         time.sleep(3)
 
@@ -205,16 +208,16 @@ if __name__ == "__main__":
                           ['velocity1', 'reference1'], ['motor1'])
     print(controller.info('all'))
 
-    controller.set_reference1(0)
+    controller.set_signal('reference1', 0)
     with controller:
         time.sleep(1)
-        controller.set_reference1(100)
+        controller.set_signal('reference1', 100)
         print('\n> REFERENCE = {}'.format(vmax))
         time.sleep(3)
-        controller.set_reference1(50)
+        controller.set_signal('reference1', 50)
         print('\n> REFERENCE = {}'.format(vmax/2))
         time.sleep(3)
-        controller.set_reference1(-50)
+        controller.set_signal('reference1', -50)
         print('\n> REFERENCE = {}'.format(-vmax/2))
         time.sleep(3)
 
@@ -230,16 +233,16 @@ if __name__ == "__main__":
                           ['velocity1', 'reference1'], ['motor1'])
     print(controller.info('all'))
 
-    controller.set_reference1(0)
+    controller.set_signal('reference1', 0)
     with controller:
         time.sleep(1)
-        controller.set_reference1(100)
+        controller.set_signal('reference1', 100)
         print('\n> REFERENCE = {}'.format(vmax))
         time.sleep(3)
-        controller.set_reference1(50)
+        controller.set_signal('reference1', 50)
         print('\n> REFERENCE = {}'.format(vmax/2))
         time.sleep(3)
-        controller.set_reference1(-50)
+        controller.set_signal('reference1', -50)
         print('\n> REFERENCE = {}'.format(-vmax/2))
         time.sleep(3)
 

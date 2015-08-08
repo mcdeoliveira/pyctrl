@@ -43,6 +43,8 @@ class Logger(block.Block):
             return numpy.vstack((self.data[self.current:,:],
                                  self.data[:self.current,:]))
     
+    read = get_log
+        
     def write(self, values):
 
         # convert to list

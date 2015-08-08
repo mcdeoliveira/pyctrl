@@ -12,6 +12,9 @@ class Block:
     def set_enabled(self, enabled  = True):
         self.enabled = enabled
 
+    def reset(self):
+        pass
+
     def read(self):
         raise BlockException('This block does not support read')
 

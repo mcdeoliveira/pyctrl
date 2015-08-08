@@ -48,7 +48,7 @@ class Controller:
             result += '> sources\n'
             for (k, label) in enumerate(self.sources_order):
                 device = self.sources[label]
-                source = device['source']
+                source = device['block']
                 result += '  {}. '.format(k+1) + \
                           label + '[' 
                 if source.is_enabled():
@@ -63,7 +63,7 @@ class Controller:
             result += '> filters\n'
             for (k,label) in enumerate(self.filters_order):
                 device = self.filters[label]
-                filter_ = device['filter']
+                filter_ = device['block']
                 result += '  {}. '.format(k+1) + \
                           ', '.join(device['inputs']) + \
                           ' >> ' + label + '[' 
@@ -78,7 +78,7 @@ class Controller:
             result += '> sinks\n'
             for (k, label) in enumerate(self.sinks_order):
                 device = self.sinks[label]
-                sink = device['sink']
+                sink = device['block']
                 result += '  {}. '.format(k+1) + \
                           ', '.join(device['inputs']) + \
                           ' >> ' + label + '[' 
@@ -143,9 +143,10 @@ class Controller:
         assert isinstance(label, str)
         if label in self.sources:
             raise ControllerException("Source '{}' already present".format(label))
+        assert isinstance(source, block.Block)
         assert isinstance(signals, (list, tuple))
         self.sources[label] = {
-            'source': source,
+            'block': source,
             'outputs': signals
         }
         self.sources_order.append(label)
@@ -154,27 +155,30 @@ class Controller:
         self.sources_order.remove(label)
         self.sources.pop(label)
 
-    def set_source(self, label, key, values):
+    def set_source(self, label, key, values = None):
         if label not in self.sources:
             raise ControllerException("Source '{}' does not exist".format(label))
         key = key.lower()
         if key == 'outputs':
             assert isinstance(values, (list, tuple))
             self.sources[label][key] = values
+        elif key == 'reset':
+            self.sources[label]['block'].reset()
         else:
             raise ControllerException("Unknown key '{}'".format(key))
 
     def get_source(self, label):
-        return self.source[label]['source']
+        return self.source[label]['block']
 
     # sinks
     def add_sink(self, label, sink, signals):
         assert isinstance(label, str)
         if label in self.sinks:
             raise ControllerException("Sink '{}' already present".format(label))
+        assert isinstance(sink, block.Block)
         assert signals == '*' or isinstance(signals, (list, tuple))
         self.sinks[label] = {
-            'sink': sink,
+            'block': sink,
             'inputs': signals
         }
         self.sinks_order.append(label)
@@ -183,26 +187,35 @@ class Controller:
         self.sinks_order.remove(label)
         self.sinks.pop(label)
 
-    def set_sink(self, label, key, values):
+    def set_sink(self, label, key, values = None):
         if label not in self.sinks:
             raise ControllerException("Sink '{}' does not exist".format(label))
         key = key.lower()
         if key == 'inputs':
             assert isinstance(values, (list, tuple))
             self.sinks[label][key] = values
+        elif key == 'reset':
+            self.sinks[label]['block'].reset()
         else:
             raise ControllerException("Unknown key '{}'".format(key))
 
     def get_sink(self, label):
-        return self.sinks[label]['sink']
+        return self.sinks[label]['block']
+
+    def read_sink(self, label):
+        return self.sinks[label]['block'].read()
 
     # filters
     def add_filter(self, label, 
                        filter_, input_signals, output_signals):
+        assert isinstance(label, str)
         if label in self.filters:
             raise ControllerException("Filter '{}' already present".format(label))
+        assert isinstance(filter_, block.Block)
+        assert isinstance(input_signals, (list, tuple))
+        assert isinstance(output_signals, (list, tuple))
         self.filters[label] = { 
-            'filter': filter_,  
+            'block': filter_,  
             'inputs': input_signals,
             'outputs': output_signals
         }
@@ -212,25 +225,27 @@ class Controller:
         self.filters_order.remove(label)
         self.filters.pop(label)
 
-    def set_filter(self, label, key, values):
+    def set_filter(self, label, key, values = None):
         if label not in self.filters:
             raise ControllerException("Filter '{}' does not exist".format(label))
         key = key.lower()
         if key == 'inputs' or key == 'outputs':
             assert isinstance(values, (list, tuple))
             self.filters[label][key] = values
+        elif key == 'reset':
+            self.filters[label]['block'].reset()
         else:
             raise ControllerException("Unknown key '{}'".format(key))
             
     def get_filter(self, label):
-        return self.filters[label]['filter']
+        return self.filters[label]['block']
 
     # clock
 
     def get_clock(self):
 
         device = self.sources['clock']
-        source = device['source']
+        source = device['block']
         if source.is_enabled():
             self.signals.update(dict(zip(device['outputs'], 
                                          source.read())))
@@ -332,7 +347,7 @@ class Controller:
         # Read all sources
         for label in self.sources_order:
             device = self.sources[label]
-            source = device['source']
+            source = device['block']
             if source.is_enabled():
                 # retrieve outputs
                 self.signals.update(dict(zip(device['outputs'], 
@@ -347,7 +362,7 @@ class Controller:
         # Process all filters
         for label in self.filters_order:
             device = self.filters[label]
-            fltr = device['filter']
+            fltr = device['block']
             if fltr.is_enabled():
                 # write inputs
                 fltr.write(list(self.signals[label] 
@@ -396,7 +411,7 @@ class Controller:
         # Write to all sinks
         for label in self.sinks_order:
             device = self.sinks[label]
-            sink = device['sink']
+            sink = device['block']
             if sink.is_enabled():
                 # write inputs
                 if device['inputs'] == '*':
