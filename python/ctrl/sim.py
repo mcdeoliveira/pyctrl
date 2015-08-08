@@ -1,258 +1,246 @@
-from threading import Timer
 import warnings
 import numpy
-import time
 import math
 
-from . import lti
-import ctrl
+if __name__ == "__main__":
 
-# alternative perf_counter
-import sys
-if sys.version_info < (3, 3):
-    from . import gettime
-    perf_counter = gettime.gettime
-    warnings.warn('Using gettime instead of perf_counter',
-                  RuntimeWarning)
-else:
-    perf_counter = time.perf_counter
+    import sys
+    sys.path.append('.')
+
+import ctrl
+import ctrl.lti as lti
+import ctrl.clock as clock
 
 class Controller(ctrl.Controller):
+    """Controller(a, k) implements a simulated controlled.
 
-    def __init__(self, *pars, **kpars):
+    It adds a *clock* source and the signals *motor1* and *encoder1*.
+
+    Default model is that of a second order system which could be used
+    to model, for instance, a motor:
+
+      .                    .
+      w + a w = b u,   w = x
+
+    Units are:
+
+      x = cycles
+      w = cycles/s (Hz)
+
+    Default parameters are:
+
+      a = 1/tau = 17 (1/s)
+      k = b/a   = 11 Hz / 100 duty = 0.11 cycles/s/duty
+
+    Transfer-function (continuous):
+
+             W(s)       a
+      G(s) = ---- = k ------, k = b/a
+             U(s)     s + a
+
+    Zero-order hold equivalent (Ts < pi/a = 0.3):
+
+                                 -1      
+                1 - c           z  (1 - c)        -a Ts
+      G(z) = k ----------- = k ------------, c = e
+                z - c                -1
+                                1 - z  c
+
+    Transfer-function (continuous):
+
+              X(s)     1
+      H(s) = ------ = ---
+              W(s)     s
+
+    Zero-order hold equivalent:
+
+                       -1
+             Ts   1 + z  
+      H(z) = --- ---------
+              2        -1
+                  1 - z
+
+    Complete discrete model is:
+
+                                 -1           -2
+                          k Ts   z  (1 - c) + z  (1 - c)
+      T(z) = H(z) G(z) = ----- -------------------------
+                           2         -1            -2
+                                1 - z   (1 + c) + z  c
+
+    """
+
+    def __init__(self, *vargs, **kwargs):
+
+        # Model parameters
+        a = kwargs.pop('a', 17)   # 1/s
+        k = kwargs.pop('k', 0.11) # cycles/s duty
 
         # Initialize controller
-        super().__init__(*pars, **kpars)
+        super().__init__(*vargs, **kwargs)
         
         Ts = self.period
-        a = 17                 # 1/s
-        k = 0.11               # cycles/s duty
         c = math.exp(-a * Ts)  # adimensional
-
-        # Set model 1
-        self.model1 = \
-            kpars.pop('model1', 
-                      lti.SISOLTISystem(
-                          numpy.array((0, (k*Ts)*(1-c)/2, (k*Ts)*(1-c)/2)), 
-                          numpy.array((1, -(1 + c), c)))
-                  )
-
-        # Set model 2
-        self.model2 = kpars.pop('model2', lti.SISOLTISystem())
-
-        # Timer thread
-        self.timer = None
-        self.timer_is_running = False
 
         # Set delta mode to 1: delta T = period
         self.delta_period = 0
         self.set_delta_mode(1)
 
-    def timer_start(self):
-        if not self.timer_is_running:
-            self.timer = Timer(self.period - self.delta_period, 
-                               self.timer_run)
-            self.timer.start()
-            self.timer_is_running = True
+        # add source: clock
+        self.clock = clock.Clock(self.period)
+        self.add_source('clock', self.clock, ['clock'])
+        self.signals['clock'] = self.clock.time
+        self.time_origin = self.clock.time_origin
 
-    def timer_run(self):
-        # Initiate timer thread
-        self.timer_is_running = False
-        self.timer_start()
+        # add signals
+        self.add_signals('motor1', 'encoder1')
 
-        # Call run
-        super().run()
+        # add filter: model
+        self.model3 = lti.SISOLTIBlock(model = \
+            lti.SISOLTISystem(
+                numpy.array((0, (k*Ts)*(1-c)/2, (k*Ts)*(1-c)/2)), 
+                numpy.array((1, -(1 + c), c))))
+        self.add_filter('model1', self.model3, 
+                        ['motor1'], ['encoder1'])
+
+    def start(self):
+        self.clock.set_enabled(True)
+        super().start()
 
     def stop(self):
-        self.timer_is_running = False
-        self.timer.cancel()
-
-        # Call stop
         super().stop()
-
-    def run(self):
-        # hijack control to timer
-        self.timer_start()
-
-        # and return
-        self.is_running = False
-
-    # def set_period(self, value = 0.1):
-    #     super().set_period(value)
-    #     self.model1.set_period(value)
-    #     self.model2.set_period(value)
-
-    def set_model1(self, 
-                   num = numpy.array((1,)),
-                   den = numpy.array((1,)),
-                   state = None ):
-        self.model1.set_model(self.period, num, den, state)
-
-    def set_model2(self, 
-                   num = numpy.array((1,)),
-                   den = numpy.array((1,)),
-                   state = None ):
-        self.model2.set_model(self.period, num, den, state)
-
-    def read_sensors(self):
-
-        # Read current inputs
-        uk1 = self.motor1_dir * self.motor1_pwm
-        uk2 = self.motor2_dir * self.motor2_pwm
-
-        # Read current outputs
-        self.encoder1 = float(self.model1.update(uk1))
-        self.encoder2 = float(self.model2.update(uk2))
-
-        # Read potentiometers
-        self.pot1 = 0
-        self.pot2 = 0
-
-        # Return outputs
-        return (self.encoder1, self.pot1, self.encoder2, self.pot2)
-
-    def set_encoder1(self, value):
-        self.model1.set_position(value)
-        super().set_encoder1(value)
-
-    def set_encoder2(self, value):
-        self.model2.set_position(value)
-        super().set_encoder2(value)
+        self.clock.set_enabled(False)
 
 if __name__ == "__main__":
 
+    import ctrl.sim as sim
+    import ctrl.block as block
+    import ctrl.logger as logger
     import time
-    from Algorithms import *
-    
-    controller = Controller()
 
-    # Motor produces 9800 RPM @ 100% duty
-    #
-    # Model is
-    #
-    # .                    .
-    # w + a w = b u,   w = x
-    #
-    # Units are:
-    #   x = cycles
-    #   w = cycles/s
-    #
-    # Conversions:
-    #   1 RPM      = 1 cycle / 60 s = 1/60 cycles/s
-    #
-    # a = 1/tau = 1/0.1 = 10 (1/s)
-    # b/a = w/u = 9800 RPM / 100 duty = 98 /60 cycles/s/duty
-    #                                 = 1.63 cycles/s/duty
-    #             a
-    # G(s) = k -------, k = b/a
-    #           s + a
-    #
-    # Zero-order hold equivalent (Ts < pi/a = 0.3):
-    #
-    #                            -1      
-    #           1 - c           z  (1 - c)        -a Ts
-    # G(z) = k ----------- = k ------------, c = e
-    #           z - c                -1
-    #                           1 - z  c
-    #
-    #                                     Ts  
-    # x[k] = int_{t-Ts}^t w dt = x[k-1] + --- ( w[k] + w[k-1] )
-    #                                      2
-    #                  -1
-    #        Ts   1 + z  
-    # H(z) = --- ---------
-    #         2        -1
-    #             1 - z
-    #                            -1           -2
-    #                     k Ts   z  (1 - c) + z  (1 - c)
-    # T(z) = H(z) G(z) = ----- -------------------------
-    #                      2         -1            -2
-    #                           1 - z   (1 + c) + z  c
-    
-    Ts = 0.01              # s
-    a = 17                 # 1/s
-    k = 1.63               # cycles/s duty
-    c = math.exp(-a * Ts)  # adimensional
-        
-    controller.set_period(Ts)
-    controller.set_model1( numpy.array((0, (k*Ts)*(1-c)/2, (k*Ts)*(1-c)/2)), 
-                           numpy.array((1, -(1 + c), c)),
-                           numpy.array((0,0)) )
+    a = 17   # 1/s
+    k = 0.11 # cycles/s duty
+    controller = sim.Controller(a = a, k = k)
+    controller.add_sink('printer', block.Printer(endln = '\r'), 
+                        ['clock', 'motor1', 'encoder1'])
 
-    controller.set_echo(.1/Ts)
-    controller.calibrate()
-    controller.set_delta_mode(0)
+    print(controller.info('all'))
 
-    print('> OPEN LOOP')
-    controller.start()
-    time.sleep(1)
-    controller.set_reference1(100)
-    time.sleep(1)
-    controller.set_reference1(-100)
-    time.sleep(1)
+    logger = logger.Logger()
+    controller.add_sink('logger', logger, ['clock','encoder1'])
+
+    print('> IDLE')
+    with controller:
+        time.sleep(1)
+
+    controller.remove_sink('logger')
+
+    print('\n> OPEN LOOP')
+
+    with controller:
+        time.sleep(1)
+        controller.set_signal('motor1', 100)
+        time.sleep(1)
+        controller.set_signal('motor1', -100)
+        time.sleep(1)
+        controller.set_signal('motor1', 0)
+        time.sleep(1)
+
+    print('\n> CLOSED LOOP ON POSITION')
+
+    pmax = 2
+    Kp = 10/k
+
+    controller.add_signal('reference1')
+    controller.add_filter('controller1', 
+                          block.Feedback(gamma = pmax,
+                                         block = block.Gain(gain = Kp)),
+                          ['encoder1', 'reference1'], ['motor1'])
+    controller.set_sink('printer', 'inputs',
+                        ['clock', 'encoder1', 'reference1', 'motor1'])
+    print(controller.info('all'))
+
+    with controller:
+        time.sleep(1)
+        controller.set_reference1(100)
+        print('\n> REFERENCE = {}'.format(pmax))
+        time.sleep(3)
+        controller.set_reference1(50)
+        print('\n> REFERENCE = {}'.format(pmax/2))
+        time.sleep(3)
+        controller.set_reference1(-50)
+        print('\n> REFERENCE = {}'.format(-pmax/2))
+        time.sleep(3)
+
+    print('\n> CLOSED LOOP ON POSITION SHOWING VELOCITY')
+
+    controller.add_signal('velocity1')
+    controller.add_filter('differentiator1', 
+                          block.Differentiator(),
+                          ['clock', 'encoder1'], ['velocity1'])
+    controller.set_sink('printer', 'inputs',
+                        ['clock', 'encoder1', 'velocity1', 'reference1', 'motor1'])
+    print(controller.info('all'))
+
+    with controller:
+        time.sleep(1)
+        controller.set_reference1(100)
+        print('\n> REFERENCE = {}'.format(pmax))
+        time.sleep(3)
+        controller.set_reference1(50)
+        print('\n> REFERENCE = {}'.format(pmax/2))
+        time.sleep(3)
+        controller.set_reference1(-50)
+        print('\n> REFERENCE = {}'.format(-pmax/2))
+        time.sleep(3)
+
+    print('\n> CLOSED LOOP ON VELOCITY')
+
+    vmax = 11
+    Kp = 1/k
+    controller.remove_filter('controller1') 
+    controller.add_filter('controller1', 
+                          block.Feedback(gamma = vmax,
+                                         block = block.Gain(gain = Kp)),
+                          ['velocity1', 'reference1'], ['motor1'])
+    print(controller.info('all'))
+
     controller.set_reference1(0)
-    time.sleep(1)
-    controller.stop()
-    
-    reference = 2
-    controller.set_controller1(
-        ProportionalController(0.09 / (k*Ts), reference / 100)
-    )
-    
-    print('> CLOSED LOOP ON POSITION')
-    controller.start()
-    time.sleep(1)
-    controller.set_reference1(100)
-    print('\n> REFERENCE = {}'.format(reference))
-    time.sleep(3)
-    controller.set_reference1(50)
-    print('\n> REFERENCE = {}'.format(reference/2))
-    time.sleep(3)
-    controller.set_reference1(-50)
-    print('\n> REFERENCE = {}'.format(-reference/2))
-    time.sleep(3)
-    controller.stop()
+    with controller:
+        time.sleep(1)
+        controller.set_reference1(100)
+        print('\n> REFERENCE = {}'.format(vmax))
+        time.sleep(3)
+        controller.set_reference1(50)
+        print('\n> REFERENCE = {}'.format(vmax/2))
+        time.sleep(3)
+        controller.set_reference1(-50)
+        print('\n> REFERENCE = {}'.format(-vmax/2))
+        time.sleep(3)
 
-    reference = 2000 / 60
+    print('\n> CLOSED LOOP ON VELOCITY WITH INTEGRAL CONTROL')
 
-    controller.set_controller1(
-        VelocityController(ProportionalController(5 / k, reference / 100))
-    )
+    Kp = 1/k
+    Ki = a/k
+    controller.remove_filter('controller1') 
+    pi = lti.SISOLTIBlock(model = \
+                          lti.PID(Kp = Kp, Ki = Ki, period = controller.period))
+    controller.add_filter('controller1', 
+                          block.Feedback(gamma = vmax, block = pi),
+                          ['velocity1', 'reference1'], ['motor1'])
+    print(controller.info('all'))
 
-    print('> CLOSED LOOP ON VELOCITY')
-    #controller.set_reference1(0)
-    controller.start()
-    time.sleep(1)
-    controller.set_reference1(100)
-    print('\n> REFERENCE = {}'.format(reference))
-    time.sleep(3)
-    controller.set_reference1(50)
-    print('\n> REFERENCE = {}'.format(reference/2))
-    time.sleep(3)
-    controller.set_reference1(-50)
-    print('\n> REFERENCE = {}'.format(-reference/2))
-    time.sleep(3)
-    controller.stop()
+    controller.set_reference1(0)
+    with controller:
+        time.sleep(1)
+        controller.set_reference1(100)
+        print('\n> REFERENCE = {}'.format(vmax))
+        time.sleep(3)
+        controller.set_reference1(50)
+        print('\n> REFERENCE = {}'.format(vmax/2))
+        time.sleep(3)
+        controller.set_reference1(-50)
+        print('\n> REFERENCE = {}'.format(-vmax/2))
+        time.sleep(3)
 
-    controller.set_controller1(
-        VelocityController(PIDController(1 / k, a / k, 0, reference / 100))
-    )
-
-    print('> CLOSED LOOP ON VELOCITY INTEGRAL')
-    controller.set_logger(20*controller.period)
-    controller.start()
-    time.sleep(1)
-    controller.set_reference1(100)
-    print('\n> REFERENCE = {}'.format(reference))
-    time.sleep(3)
-    controller.set_reference1(50)
-    print('\n> REFERENCE = {}'.format(reference/2))
-    time.sleep(3)
-    controller.set_reference1(-50)
-    print('\n> REFERENCE = {}'.format(-reference/2))
-    time.sleep(3)
-    controller.stop()
-
-    # print('page = {}\tcurrent = {}'.format(controller.page, controller.current))
-    # print('data = {}'.format(controller.data))
-    # print('log = {}'.format(controller.get_log()))
+    print()

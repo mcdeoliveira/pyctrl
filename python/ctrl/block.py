@@ -87,20 +87,40 @@ class Feedback(Block):
         self.block.write((error, ))
         self.output = self.block.read()
 
-
-from . import lti
-
-class SISOLTI(Block):
+class Differentiator(Block):
 
     def __init__(self, *vars, **kwargs):
-
-        self.model = kwargs.pop('model', lti.SISOLTISystem())
+        """
+        Differentiator
+        inputs: clock, signal
+        output: derivative"""
+        
+        self.time = -1
+        self.last = ()
         self.output = ()
 
         super().__init__(*vars, **kwargs)
-        
+    
     def read(self):
         return self.output
 
     def write(self, values):
-        self.output = (self.model.update(values[0]), )
+
+        #print('values = {}'.format(values))
+
+        if self.time > 0:
+            dt = values[0] - self.time
+        else:
+            dt = 0
+        #print('dt = {}'.format(dt))
+
+        if dt > 0:
+            self.time, self.last, self.output = values[0], values[1:], \
+                [(n-o)/dt for n,o in zip(values[1:], self.last)]
+        else:
+            self.time, self.last, self.output = values[0], values[1:], \
+                (len(values)-1)*[0.]
+
+        #print('self.time = {}'.format(self.time))
+        #print('self.last = {}'.format(self.last))
+        #print('self.output = {}'.format(self.output))
