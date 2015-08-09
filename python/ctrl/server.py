@@ -1,3 +1,4 @@
+import warnings
 import socketserver
 
 from . import packet
@@ -22,7 +23,7 @@ def help(value):
     if value:
         function = commands.get(value, ('', '', None, ''))[2]
         if not function:
-            help_str += "Error: '{}' not a command\n".format(value)
+            help_str += "Error: '{}' is not a command\n".format(value)
         if function.__doc__:
             return function.__doc__
         else:
@@ -49,37 +50,48 @@ def set_controller(_controller = ctrl.Controller()):
     commands = { 
         'h': ('S',  'S', help,
               'Help'),
-        
-        'E': ('I', '',  controller.set_echo,
-              'Set echo'),
 
-        'L': ('D', '',  controller.set_logger,
-              'Set logger'),
-        'T': ('',  '',  controller.reset_logger,
-              'Reset logger'),
-        
-        'R': ('D', '',  controller.set_reference1,
-              'Set reference'),
-        'M': ('I',  '', controller.set_reference1_mode,
-              'Set reference mode'),
-        'P': ('D', '',  controller.set_encoder1,
-              'Set encoder position'),
+        'i': ('S',  'S', controller.info,
+              'Controller info'),
 
-        'C': ('P', '',  controller.set_controller1,
-              'Set controller'),
-        
+        'G': ('S', '', controller.add_signal,
+              'Add signal'),
+        'A': ('SD', '', controller.set_signal,
+              'Set signal'),
+        'L': ('S', '', controller.remove_signal,
+              'Remove signal'),
+
+        'S': ('SPP', '', controller.add_sink,
+              'Add sink'),
+        'I': ('SSP', '', controller.set_sink,
+              'Set sink'),
+        'N': ('S', 'P', controller.read_sink,
+              'Read sink'),
+        'K': ('S', '', controller.remove_sink,
+              'Remove sink'),
+
+        'O': ('SPP', '', controller.add_source,
+              'Add source'),
+        'U': ('SSP', '', controller.set_source,
+              'Set source'),
+        'R': ('S', '', controller.remove_source,
+              'Remove source'),
+
+        'F': ('SPPP', '', controller.add_filter,
+              'Add filter'),
+        'T': ('SSP', '', controller.set_filter,
+              'Set filter'),
+        'E': ('S', '', controller.remove_filter,
+              'Remove sink'),
+
+
         's': ('',  '',  controller.start,
               'Start control loop'),
         't': ('',  '',  controller.stop,
               'Stop control loop'),
         
-        'l': ('',  'M', controller.get_log,
-              'Get log'),
-
         'p': ('',  'D', controller.get_period,
               'Get period'),
-        'e': ('',  'P', controller.get_encoder1,
-              'Get encoder'),
 
     }
 
@@ -121,17 +133,22 @@ class Handler(socketserver.StreamRequestHandler):
                     print(">>> Will execute '{}({})'".format(code, argument_type))
                 
                 # Handle input arguments
-                if argument_type == '':
-                    argument = tuple()
-                else:
-                    (type, argument) = packet.unpack_stream(self.rfile)
-                    argument = (argument,)
+                argument = []
+                for letter in argument_type:
+                    (type, arg) = packet.unpack_stream(self.rfile)
+                    argument.append(arg)
 
                 if verbose_level > 2:
                     print('>>> Argument = {}'.format(argument))
 
-                # Call function
-                message = function(*argument)
+                try:
+                    # Call function
+                    message = function(*argument)
+
+                except:
+                    # TODO: Handle errors
+                    warnings.warn('ERROR')
+                    pass
 
                 # Wrap outupt 
                 if output_type == '':

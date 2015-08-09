@@ -92,22 +92,22 @@ def main():
         import ctrl.sim as sim
         controller = sim.Controller(Ts)
 
-        a = 17                 # 1/s
-        k = 0.11               # cycles/s duty
-        c = math.exp(-a * Ts)  # adimensional
+        # a = 17                 # 1/s
+        # k = 0.11               # cycles/s duty
+        # c = math.exp(-a * Ts)  # adimensional
 
-        controller.set_model1( numpy.array((0, (k*Ts)*(1-c)/2, (k*Ts)*(1-c)/2)), 
-                               numpy.array((1, -(1 + c), c)),
-                               numpy.array((0,0)) )
+        # controller.set_model1( numpy.array((0, (k*Ts)*(1-c)/2, (k*Ts)*(1-c)/2)), 
+        #                        numpy.array((1, -(1 + c), c)),
+        #                        numpy.array((0,0)) )
 
-        # Calibrate
-        if calibrate:
-            controller.calibrate()
-        else:
-            warnings.warn('> Skipping calibration')
+        # # Calibrate
+        # if calibrate:
+        #     controller.calibrate()
+        # else:
+        #     warnings.warn('> Skipping calibration')
 
     # Finish setup
-    controller.set_logger(log_size)
+    #controller.set_logger(log_size)
     ctrl.server.set_controller(controller)
     ctrl.server.verbose(verbose_level)
 

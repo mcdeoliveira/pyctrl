@@ -8,7 +8,7 @@ if __name__ == "__main__":
     sys.path.append('.')
 
 import ctrl
-import ctrl.lti as lti
+import ctrl.linear as linear
 import ctrl.clock as clock
 
 class Controller(ctrl.Controller):
@@ -82,10 +82,6 @@ class Controller(ctrl.Controller):
         Ts = self.period
         c = math.exp(-a * Ts)  # adimensional
 
-        # Set delta mode to 1: delta T = period
-        self.delta_period = 0
-        self.set_delta_mode(1)
-
         # add source: clock
         self.clock = clock.Clock(self.period)
         self.add_source('clock', self.clock, ['clock'])
@@ -96,10 +92,10 @@ class Controller(ctrl.Controller):
         self.add_signals('motor1', 'encoder1')
 
         # add filter: model
-        self.model3 = lti.SISOLTIBlock(model = \
-            lti.SISOLTISystem(
-                numpy.array((0, (k*Ts)*(1-c)/2, (k*Ts)*(1-c)/2)), 
-                numpy.array((1, -(1 + c), c))))
+        self.model3 = linear.TransferFunction(model = \
+                linear.TFModel(
+                    numpy.array((0, (k*Ts)*(1-c)/2, (k*Ts)*(1-c)/2)), 
+                    numpy.array((1, -(1 + c), c))))
         self.add_filter('model1', self.model3, 
                         ['motor1'], ['encoder1'])
 
@@ -156,8 +152,8 @@ if __name__ == "__main__":
 
     controller.add_signal('reference1')
     controller.add_filter('controller1', 
-                          block.Feedback(gamma = pmax,
-                                         block = block.Gain(gain = Kp)),
+                          linear.Feedback(gamma = pmax,
+                                         block = linear.Gain(gain = Kp)),
                           ['encoder1', 'reference1'], ['motor1'])
     controller.set_sink('printer', 'inputs',
                         ['clock', 'encoder1', 'reference1', 'motor1'])
@@ -179,7 +175,7 @@ if __name__ == "__main__":
 
     controller.add_signal('velocity1')
     controller.add_filter('differentiator1', 
-                          block.Differentiator(),
+                          linear.Differentiator(),
                           ['clock', 'encoder1'], ['velocity1'])
     controller.set_sink('printer', 'inputs',
                         ['clock', 'encoder1', 'velocity1', 'reference1', 'motor1'])
@@ -203,8 +199,8 @@ if __name__ == "__main__":
     Kp = 1/k
     controller.remove_filter('controller1') 
     controller.add_filter('controller1', 
-                          block.Feedback(gamma = vmax,
-                                         block = block.Gain(gain = Kp)),
+                          linear.Feedback(gamma = vmax,
+                                         block = linear.Gain(gain = Kp)),
                           ['velocity1', 'reference1'], ['motor1'])
     print(controller.info('all'))
 
@@ -226,10 +222,10 @@ if __name__ == "__main__":
     Kp = 1/k
     Ki = a/k
     controller.remove_filter('controller1') 
-    pi = lti.SISOLTIBlock(model = \
-                          lti.PID(Kp = Kp, Ki = Ki, period = controller.period))
+    pi = linear.TransferFunction(model = \
+                                 linear.PID(Kp = Kp, Ki = Ki, period = controller.period))
     controller.add_filter('controller1', 
-                          block.Feedback(gamma = vmax, block = pi),
+                          linear.Feedback(gamma = vmax, block = pi),
                           ['velocity1', 'reference1'], ['motor1'])
     print(controller.info('all'))
 

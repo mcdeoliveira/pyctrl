@@ -2,9 +2,9 @@ import numpy
 
 from . import block
 
-class SISOLTISystem:
+class TFModel:
     """ 
-    SISOLTISystem(num, den, state)
+    TFModel(num, den, state)
 
     Model is of the form:
 
@@ -94,9 +94,9 @@ class SISOLTISystem:
             
         return yk
 
-class PID(SISOLTISystem):
+class PID(TFModel):
     """PID(Kp, Ki = 0, Kd = 0, period = 0, state = None) implements a PID
-    controller base on SISOLTISystem.
+    controller base on TFModel.
 
     Continuous:
 
@@ -186,14 +186,16 @@ class PID(SISOLTISystem):
             
         super().__init__(num, den, state)
 
-class SISOLTIBlock(block.Block):
+# Blocks
+
+class TransferFunction(block.Block):
 
     def __init__(self, *vars, **kwargs):
         """
-        Wrapper for SISOLTISystem as a Block
+        Wrapper for TransferFunction as a Block
         """
 
-        self.model = kwargs.pop('model', SISOLTISystem())
+        self.model = kwargs.pop('model', TFModel())
         self.output = ()
 
         super().__init__(*vars, **kwargs)
@@ -203,3 +205,95 @@ class SISOLTIBlock(block.Block):
 
     def write(self, values):
         self.output = (self.model.update(values[0]), )
+
+class Gain(block.Block):
+
+    def __init__(self, *vars, **kwargs):
+
+        self.gain = kwargs.pop('gain', 1)
+        self.output = ()
+
+        super().__init__(*vars, **kwargs)
+    
+    def read(self):
+        return self.output
+
+    def write(self, values):
+        self.output = [value*self.gain for value in values]
+
+class ShortCircuit(block.Block):
+
+    def __init__(self, *vars, **kwargs):
+
+        self.output = ()
+
+        super().__init__(*vars, **kwargs)
+    
+    def read(self):
+        return self.output
+
+    def write(self, values):
+        self.output = values
+
+class Feedback(block.Block):
+
+    def __init__(self, *vars, **kwargs):
+        """
+        Feedback connection:
+            u = block (error), 
+        error = gamma * ref - y
+        
+        inputs = (y, ref)
+        output = (u, )
+        """
+        self.gamma = kwargs.pop('gamma', 100)/100
+        self.block = kwargs.pop('block', ShortCircuit())
+        self.output = ()
+
+        super().__init__(*vars, **kwargs)
+    
+    def read(self):
+        return self.output
+
+    def write(self, values):
+        error = self.gamma * values[1] - values[0]
+        self.block.write((error, ))
+        self.output = self.block.read()
+
+class Differentiator(block.Block):
+
+    def __init__(self, *vars, **kwargs):
+        """
+        Differentiator
+        inputs: clock, signal
+        output: derivative"""
+        
+        self.time = -1
+        self.last = ()
+        self.output = ()
+
+        super().__init__(*vars, **kwargs)
+    
+    def read(self):
+        return self.output
+
+    def write(self, values):
+
+        #print('values = {}'.format(values))
+
+        if self.time > 0:
+            dt = values[0] - self.time
+        else:
+            dt = 0
+        #print('dt = {}'.format(dt))
+
+        if dt > 0:
+            self.time, self.last, self.output = values[0], values[1:], \
+                [(n-o)/dt for n,o in zip(values[1:], self.last)]
+        else:
+            self.time, self.last, self.output = values[0], values[1:], \
+                (len(values)-1)*[0.]
+
+        #print('self.time = {}'.format(self.time))
+        #print('self.last = {}'.format(self.last))
+        #print('self.output = {}'.format(self.output))

@@ -23,10 +23,11 @@ class Clock(block.Block):
         super().__init__(*pars, **kpars)
 
         self.timer = None
+        self.running = False
+
         self.time_origin = perf_counter()
         self.time = self.time_origin
         self.counter = 0
-        self.running = False
         
         if self.enabled:
             self.enabled = False
@@ -73,11 +74,6 @@ class Clock(block.Block):
         self.condition.release()
 
     def run(self):
-
-        # initialize counter
-        self.time_origin = perf_counter()
-        self.time = self.time_origin
-        self.counter = 0
 
         #print('> run')
         self.running = True
@@ -137,6 +133,12 @@ class Clock(block.Block):
             # and release
             self.condition.release()
 
+    def reset(self):
+
+        # reset clock
+        self.time_origin = self.time
+        self.counter = 0
+
     def read(self):
 
         #print('> read')
@@ -149,5 +151,39 @@ class Clock(block.Block):
             # and release
             self.condition.release()
         
-        return (self.time, )
+        return (self.time - self.time_origin, )
+
+    # def calibrate(self, eps = 0.05, T = 5, K = 20):
+        
+    #     print('> Calibrating period...')
+    #     print('  ITER   TARGET   ACTUAL ACCURACY')
+
+    #     k = 1
+    #     est_period = (1 + 2 * eps) * self.period
+    #     error = abs(est_period - self.period) / self.period
+    #     while error > eps:
+
+    #         # run loop for T seconds
+    #         k0 = self.current
+    #         t0 = perf_counter()
+    #         self.start()
+    #         time.sleep(T)
+    #         self.stop()
+    #         t1 = perf_counter()
+    #         k1 = self.current
+            
+    #         # estimate actual period
+    #         est_period = (t1 - t0) / (k1 - k0)
+    #         error = abs(est_period - self.period) / self.period
+    #         print('  {:4}  {:6.5f}  {:6.5f}   {:5.2f}%'
+    #               .format(k, self.period, est_period, 100 * error))
+    #         self.delta_period += (est_period - self.period)
+            
+    #         # counter
+    #         k = k + 1
+    #         if k > K:
+    #             warnings.warn("Could not calibrate to '{}' accuracy".format(eps))
+    #             break
+
+    #     print('< ...done.')
 

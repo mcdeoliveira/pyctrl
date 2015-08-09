@@ -19,11 +19,17 @@ class WrapSocket:
 
 class Controller(ctrl.Controller):
 
-    def __init__(self, host = "localhost", port = 9999):
-        self.host = host
-        self.port = port
+    def __init__(self, *vargs, **kwargs):
+
+        # parameters
+        self.host = kwargs.pop('host', 'localhost')
+        self.port = kwargs.pop('port', 9999)
+
         self.socket = None
-        self.debug = 0
+        self.debug = 1
+
+        # Initialize controller
+        super().__init__(*vargs, **kwargs)
 
     def __enter__(self):
         if self.debug > 0:
@@ -53,7 +59,11 @@ class Controller(ctrl.Controller):
             self.socket.close()
             self.socket = None
             
-    def send(self, command, argtype = None, argvalue = None):
+    def send(self, command, *vargs):
+
+        # Make sure vargs is in pairs
+        n = len(vargs)
+        assert n % 2 == 0
 
         # Open socket if closed
         auto_close = False
@@ -66,60 +76,100 @@ class Controller(ctrl.Controller):
             print("> Will request command '{}'"
                   .format(command))
         self.socket.send(packet.pack('C', command))
-        if argtype is not None:
+
+        # Send arguments to server
+        for (argtype, argvalue) in (vargs[i:i+2] for i in range(0, n, 2)):
             if self.debug > 0:
                 print("> Will send argument '{}({})'"
                       .format(argtype, argvalue))
             self.socket.send(packet.pack(argtype, argvalue))
 
-        values = []
-        while True:
+        # Wait for response
+        if self.debug > 0:
+            print("> Waiting for stream...")
+        (type, value) = packet.unpack_stream(WrapSocket(self.socket))
+
+        if type == 'A':
 
             if self.debug > 0:
-                print("> Waiting for stream...")
-            (type, _value) = packet.unpack_stream(WrapSocket(self.socket))
-            if type == 'A':
-                if self.debug > 0:
-                    print("> Received Acknowledgment '{}'\n".format(_value))
-                break
+                print("> Received Acknowledgment '{}'\n".format(value))
+            value = None
 
-            # append to return values
-            values.append((type, _value))
+        else: # if type != 'A':
 
             if self.debug > 0:
                 print("> Received type = '{}', value = '{}'"
-                      .format(type, _value))
+                      .format(type, value))
+
+            if self.debug > 0:
+                print("> Waiting for acknowledgment...")
+            (type, value_) = packet.unpack_stream(WrapSocket(self.socket))
+
+            if type == 'A':
+
+                if self.debug > 0:
+                    print("> Received Acknowledgment '{}'\n".format(value))
+
+            else: # if type != 'A':
+
+                warnings.warn('Failed to receive acknowledgment')
 
         # Close socket
         if auto_close:
             self.close()
 
-        return values
+        return value
 
     # Controller methods
     def help(self, value = ''):
-        return self.send('h', 'S', value)[0][1]
+        return self.send('h', 'S', value)
 
-    def set_echo(self, value):
-        self.send('E', 'I', value)
+    def info(self, options = 'summary'):
+        return self.send('i', 'S', options)
 
-    def set_logger(self, duration):
-        self.send('L', 'D', duration)
+    # signals
+    def add_signal(self, label):
+        self.send('G', 'S', label)
 
-    def reset_logger(self):
-        self.send('T')
+    def set_signal(self, label, values):
+        self.send('A', 'S', label, 'P', values)
 
-    def set_reference1(self, value):
-        self.send('R', 'D', value)
+    def remove_signal(self, label):
+        self.send('L', 'S', label)
 
-    def set_reference1_mode(self, value):
-        self.send('M', 'I', value)
+    # sinks
+    def add_sink(self, label, sink, signals):
+        self.send('S', 'S', label, 'P', sink, 'P', signals)
 
-    def set_encoder1(self, value):
-        self.send('P', 'D', value)
+    def set_sink(self, label, key, values = None):
+        self.send('I', 'S', label, 'S', key, 'P', values)
 
-    def set_controller1(self, controller):
-        self.send('C', 'P', controller)
+    def read_sink(self, label):
+        return self.send('N', 'S', label)
+
+    def remove_sink(self, label):
+        return self.send('K', 'S', label)
+
+    # sources
+    def add_source(self, label, source, signals):
+        self.send('O', 'S', label, 'P', source, 'P', signals)
+
+    def set_source(self, label, key, values = None):
+        self.send('U', 'S', label, 'S', key, 'P', values)
+
+    def remove_source(self, label):
+        return self.send('R', 'S', label)
+
+    # filters
+    def add_filter(self, label, filter_, input_signals, output_signals):
+        self.send('F', 'S', label, 'P', filter_, 
+                  'P', input_signals, 'P', output_signals)
+
+    def set_filter(self, label, key, values = None):
+        self.send('T', 'S', label, 'S', key, 'P', values)
+
+    def remove_filter(self, label):
+        return self.send('E', 'S', label)
 
     def start(self):
         self.send('s')
@@ -127,14 +177,35 @@ class Controller(ctrl.Controller):
     def stop(self):
         self.send('t')
 
-    def get_log(self):
-        return self.send('l')[0][1]
+    # def set_echo(self, value):
+    #     self.send('E', 'I', value)
 
-    def get_period(self):
-        return self.send('p')[0][1]
+    # def set_logger(self, duration):
+    #     self.send('L', 'D', duration)
 
-    def get_encoder1(self):
-        return self.send('e')[0][1]
+    # def reset_logger(self):
+    #     self.send('T')
+
+    # def set_reference1(self, value):
+    #     self.send('R', 'D', value)
+
+    # def set_reference1_mode(self, value):
+    #     self.send('M', 'I', value)
+
+    # def set_encoder1(self, value):
+    #     self.send('P', 'D', value)
+
+    # def set_controller1(self, controller):
+    #     self.send('C', 'P', controller)
+    
+    # def get_log(self):
+    #     return self.send('l')[0][1]
+
+    # def get_period(self):
+    #     return self.send('p')[0][1]
+
+    # def get_encoder1(self):
+    #     return self.send('e')[0][1]
 
 
 if __name__ == "__main__":
