@@ -12,21 +12,7 @@ else:
     from ctrl.sim import Controller
     simulated = True
 
-controller = Controller()
-
-if simulated:
-
-    Ts = 0.01              # s
-    a = 17                 # 1/s
-    k = 0.11               # cycles/s duty
-    c = math.exp(-a * Ts)  # adimensional
-
-    controller.set_period(Ts)
-    controller.set_model1( numpy.array((0, (k*Ts)*(1-c)/2, (k*Ts)*(1-c)/2)), 
-                           numpy.array((1, -(1 + c), c)),
-                           numpy.array((0,0)) )
-
-    # controller.calibrate()
+controller = Controller(period = 0.01)
 
 controller.set_echo(1)
 controller.set_logger(2)

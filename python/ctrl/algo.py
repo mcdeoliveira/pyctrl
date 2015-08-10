@@ -1,5 +1,5 @@
 import numpy
-import ctrl.lti as lti
+import ctrl.linear as lti
 
 class Algorithm:
     def update(self, measurement, reference, period):

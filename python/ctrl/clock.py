@@ -17,6 +17,7 @@ else:
 class Clock(block.Block):
 
     def __init__(self, *pars, **kpars):
+
         self.period = kpars.pop('period', .01)
         self.condition = Condition()
 

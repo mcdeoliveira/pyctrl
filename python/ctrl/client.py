@@ -84,7 +84,7 @@ class Controller(ctrl.Controller):
                       .format(argtype, argvalue))
             self.socket.send(packet.pack(argtype, argvalue))
 
-        # Wait for response
+        # Wait for output
         if self.debug > 0:
             print("> Waiting for stream...")
         (type, value) = packet.unpack_stream(WrapSocket(self.socket))
@@ -103,9 +103,9 @@ class Controller(ctrl.Controller):
 
             if self.debug > 0:
                 print("> Waiting for acknowledgment...")
-            (type, value_) = packet.unpack_stream(WrapSocket(self.socket))
+            (type_, value_) = packet.unpack_stream(WrapSocket(self.socket))
 
-            if type == 'A':
+            if type_ == 'A':
 
                 if self.debug > 0:
                     print("> Received Acknowledgment '{}'\n".format(value))
@@ -118,95 +118,107 @@ class Controller(ctrl.Controller):
         if auto_close:
             self.close()
 
+        # If error, raise exception
+        if type == 'E':
+            raise value
+
         return value
 
     # Controller methods
     def help(self, value = ''):
-        return self.send('h', 'S', value)
+        return self.send('A', 'S', value)
 
     def info(self, options = 'summary'):
-        return self.send('i', 'S', options)
+        return self.send('B', 'S', options)
 
     # signals
     def add_signal(self, label):
-        self.send('G', 'S', label)
+        self.send('C', 'S', label)
 
     def set_signal(self, label, values):
-        self.send('A', 'S', label, 'P', values)
+        self.send('D', 'S', label, 'P', values)
+
+    def get_signal(self, label):
+        return self.send('E', 'S', label)
+
+    def list_signals(self):
+        return self.send('F')
 
     def remove_signal(self, label):
-        self.send('L', 'S', label)
-
-    # sinks
-    def add_sink(self, label, sink, signals):
-        self.send('S', 'S', label, 'P', sink, 'P', signals)
-
-    def set_sink(self, label, key, values = None):
-        self.send('I', 'S', label, 'S', key, 'P', values)
-
-    def read_sink(self, label):
-        return self.send('N', 'S', label)
-
-    def remove_sink(self, label):
-        return self.send('K', 'S', label)
+        self.send('G', 'S', label)
 
     # sources
     def add_source(self, label, source, signals):
-        self.send('O', 'S', label, 'P', source, 'P', signals)
+        self.send('H', 'S', label, 'P', source, 'P', signals)
 
     def set_source(self, label, key, values = None):
-        self.send('U', 'S', label, 'S', key, 'P', values)
+        self.send('I', 'S', label, 'S', key, 'P', values)
 
     def remove_source(self, label):
-        return self.send('R', 'S', label)
+        return self.send('J', 'S', label)
+
+    def list_sources(self):
+        return self.send('K')
+
+    def write_source(self, label, values):
+        self.send('L', 'S', label, 'P', values)
+
+    def read_source(self, label):
+        return self.send('M', 'S', label)
+
+
+    # sinks
+    def add_sink(self, label, sink, signals):
+        self.send('N', 'S', label, 'P', sink, 'P', signals)
+
+    def set_sink(self, label, key, values = None):
+        self.send('O', 'S', label, 'S', key, 'P', values)
+
+    def remove_sink(self, label):
+        return self.send('P', 'S', label)
+
+    def list_sinks(self):
+        return self.send('Q')
+
+    def write_sink(self, label, values):
+        self.send('R', 'S', label, 'P', values)
+
+    def read_sink(self, label):
+        return self.send('S', 'S', label)
+
 
     # filters
+
     def add_filter(self, label, filter_, input_signals, output_signals):
-        self.send('F', 'S', label, 'P', filter_, 
+        self.send('T', 'S', label, 'P', filter_, 
                   'P', input_signals, 'P', output_signals)
 
     def set_filter(self, label, key, values = None):
-        self.send('T', 'S', label, 'S', key, 'P', values)
+        self.send('U', 'S', label, 'S', key, 'P', values)
 
     def remove_filter(self, label):
-        return self.send('E', 'S', label)
+        return self.send('V', 'S', label)
+
+    def list_filters(self):
+        return self.send('W')
+
+    def write_filter(self, label, values):
+        self.send('X', 'S', label, 'P', values)
+
+    def read_filter(self, label):
+        return self.send('Y', 'S', label)
+
+    def set_period(self, value):
+        return self.send('a', 'D', value)
+
+    def get_period(self):
+        return self.send('b')
 
     def start(self):
-        self.send('s')
+        self.send('c')
 
     def stop(self):
-        self.send('t')
-
-    # def set_echo(self, value):
-    #     self.send('E', 'I', value)
-
-    # def set_logger(self, duration):
-    #     self.send('L', 'D', duration)
-
-    # def reset_logger(self):
-    #     self.send('T')
-
-    # def set_reference1(self, value):
-    #     self.send('R', 'D', value)
-
-    # def set_reference1_mode(self, value):
-    #     self.send('M', 'I', value)
-
-    # def set_encoder1(self, value):
-    #     self.send('P', 'D', value)
-
-    # def set_controller1(self, controller):
-    #     self.send('C', 'P', controller)
-    
-    # def get_log(self):
-    #     return self.send('l')[0][1]
-
-    # def get_period(self):
-    #     return self.send('p')[0][1]
-
-    # def get_encoder1(self):
-    #     return self.send('e')[0][1]
-
+        self.send('d')
 
 if __name__ == "__main__":
 

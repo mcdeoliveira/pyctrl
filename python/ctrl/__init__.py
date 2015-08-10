@@ -38,7 +38,7 @@ class Controller:
     __repr__ = __str__
     
     # period
-    def set_period(self, value = 0.1):
+    def set_period(self, value):
         self.period = value
 
     def get_period(self):
@@ -145,6 +145,9 @@ class Controller:
     def get_signal(self, label):
         return self.signals[label]
 
+    def list_signals(self):
+        return self.signals.keys()
+
     # sources
     def add_source(self, label, source, signals):
         assert isinstance(label, str)
@@ -174,8 +177,15 @@ class Controller:
         else:
             raise ControllerException("Unknown key '{}'".format(key))
 
-    def get_source(self, label):
-        return self.source[label]['block']
+    def read_source(self, label):
+        return self.sources[label]['block'].read()
+
+    def write_source(self, label, values):
+        self.sources[label]['block'].write(values)
+
+    def list_sources(self):
+        return self.sources.keys()
+
 
     # sinks
     def add_sink(self, label, sink, signals):
@@ -206,11 +216,14 @@ class Controller:
         else:
             raise ControllerException("Unknown key '{}'".format(key))
 
-    def get_sink(self, label):
-        return self.sinks[label]['block']
-
     def read_sink(self, label):
         return self.sinks[label]['block'].read()
+
+    def write_sink(self, label, values):
+        self.sinks[label]['block'].write(values)
+
+    def list_sinks(self):
+        return self.sinks.keys()
 
     # filters
     def add_filter(self, label, 
@@ -244,12 +257,18 @@ class Controller:
         else:
             raise ControllerException("Unknown key '{}'".format(key))
             
-    def get_filter(self, label):
-        return self.filters[label]['block']
+    def read_filter(self, label):
+        return self.filters[label]['block'].read()
+
+    def write_filter(self, label, values):
+        self.filters[label]['block'].write(values)
+
+    def list_filters(self):
+        return self.filters.keys()
 
     # clock
 
-    def get_clock(self):
+    def get_time(self):
 
         device = self.sources['clock']
         source = device['block']

@@ -48,50 +48,74 @@ def set_controller(_controller = ctrl.Controller()):
         
     # TODO: Complete public controller methods
     commands = { 
-        'h': ('S',  'S', help,
+        'A': ('S',  'S', help,
               'Help'),
 
-        'i': ('S',  'S', controller.info,
+        'B': ('S',  'S', controller.info,
               'Controller info'),
 
-        'G': ('S', '', controller.add_signal,
+        'C': ('S', '', controller.add_signal,
               'Add signal'),
-        'A': ('SD', '', controller.set_signal,
+        'D': ('SD', '', controller.set_signal,
               'Set signal'),
-        'L': ('S', '', controller.remove_signal,
+        'E': ('S', 'D', controller.get_signal,
+              'Get signal'),
+        'F': ('', 'P', controller.list_signals,
+              'List signals'),
+        'G': ('S', '', controller.remove_signal,
               'Remove signal'),
 
-        'S': ('SPP', '', controller.add_sink,
-              'Add sink'),
-        'I': ('SSP', '', controller.set_sink,
-              'Set sink'),
-        'N': ('S', 'P', controller.read_sink,
-              'Read sink'),
-        'K': ('S', '', controller.remove_sink,
-              'Remove sink'),
-
-        'O': ('SPP', '', controller.add_source,
+        'H': ('SPP', '', controller.add_source,
               'Add source'),
-        'U': ('SSP', '', controller.set_source,
+        'I': ('SSP', '', controller.set_source,
               'Set source'),
-        'R': ('S', '', controller.remove_source,
+        'J': ('S', '', controller.remove_source,
               'Remove source'),
+        'K': ('', 'P', controller.list_sources,
+              'List sources'),
+        'L': ('P', '', controller.write_source,
+              'Write source'),
+        'M': ('S', 'P', controller.read_source,
+              'Read source'),
 
-        'F': ('SPPP', '', controller.add_filter,
-              'Add filter'),
-        'T': ('SSP', '', controller.set_filter,
-              'Set filter'),
-        'E': ('S', '', controller.remove_filter,
+        'N': ('SPP', '', controller.add_sink,
+              'Add sink'),
+        'O': ('SSP', '', controller.set_sink,
+              'Set sink'),
+        'P': ('S', '', controller.remove_sink,
               'Remove sink'),
+        'Q': ('', 'P', controller.list_sinks,
+              'List sinks'),
+        'R': ('P', '', controller.write_sink,
+              'Write sink'),
+        'S': ('S', 'P', controller.read_sink,
+              'Read sink'),
 
+        'T': ('SPPP', '', controller.add_filter,
+              'Add filter'),
+        'U': ('SSP', '', controller.set_filter,
+              'Set filter'),
+        'V': ('S', '', controller.remove_filter,
+              'Remove filter'),
+        'W': ('', 'P', controller.list_filters,
+              'List filters'),
+        'X': ('P', '', controller.write_filter,
+              'Write filter'),
+        'Y': ('S', 'P', controller.read_filter,
+              'Read filter'),
 
-        's': ('',  '',  controller.start,
+        'a': ('D',  '', controller.set_period,
+              'Set period'),
+
+        'b': ('',  'D', controller.get_period,
+              'Get period'),
+
+        'c': ('',  '',  controller.start,
               'Start control loop'),
-        't': ('',  '',  controller.stop,
+
+        'd': ('',  '',  controller.stop,
               'Stop control loop'),
         
-        'p': ('',  'D', controller.get_period,
-              'Get period'),
 
     }
 
@@ -142,13 +166,17 @@ class Handler(socketserver.StreamRequestHandler):
                     print('>>> Argument = {}'.format(argument))
 
                 try:
+
                     # Call function
                     message = function(*argument)
 
-                except:
-                    # TODO: Handle errors
-                    warnings.warn('ERROR')
-                    pass
+                except Exception as inst:
+                    
+                    # Something bad happen
+                    message = inst
+                    output_type = 'E'
+                    if verbose_level > 1:
+                        print('> **Exception**: ', inst)
 
                 # Wrap outupt 
                 if output_type == '':

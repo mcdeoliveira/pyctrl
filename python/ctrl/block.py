@@ -36,3 +36,28 @@ class Printer(Block):
         print(self.join_.join(self.format_.format(val) for val in values), 
               end=self.endln)
 
+import random
+
+class RandomUniform(Block):
+
+    def __init__(self, *vars, **kwargs):
+
+        self.a = kwargs.pop('a', 0)
+        self.b = kwargs.pop('b', 1)
+
+        super().__init__(*vars, **kwargs)
+
+    def read(self):
+        return (random.uniform(self.a, self.b), )
+
+class RandomGaussian(Block):
+
+    def __init__(self, *vars, **kwargs):
+
+        self.mu = kwargs.pop('a', 0)
+        self.sigma = kwargs.pop('b', 1)
+
+        super().__init__(*vars, **kwargs)
+
+    def read(self):
+        return (random.gauss(self.mu, self.sigma), )

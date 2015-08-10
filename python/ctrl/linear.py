@@ -297,3 +297,23 @@ class Differentiator(block.Block):
         #print('self.time = {}'.format(self.time))
         #print('self.last = {}'.format(self.last))
         #print('self.output = {}'.format(self.output))
+
+class Sum(block.Block):
+
+    def __init__(self, *vars, **kwargs):
+        """
+        Sum:
+            y = \sum_{k = 1}^n u_k
+        
+        inputs = u
+        output = y
+        """
+        self.output = ()
+
+        super().__init__(*vars, **kwargs)
+    
+    def read(self):
+        return self.output
+
+    def write(self, values):
+        self.output = (sum(values), )

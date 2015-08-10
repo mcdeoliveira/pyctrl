@@ -89,7 +89,7 @@ class Controller(ctrl.Controller):
         self.time_origin = self.clock.time_origin
 
         # add signals
-        self.add_signals('motor1', 'encoder1')
+        self.add_signals('motor1', 'encoder1', 'pot1')
 
         # add filter: model
         self.model3 = linear.TransferFunction(model = \
