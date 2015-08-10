@@ -26,7 +26,7 @@ class Clock(block.Block):
     def __init__(self, *vars, **kwargs):
 
         # set period
-        self.period = kwargs.get('period')
+        self.period = kwargs.pop('period')
 
         # call super
         super().__init__(*vars, **kwargs)
@@ -79,10 +79,10 @@ class Encoder(block.Block):
     def __init__(self, *vars, **kwargs):
 
         # set period
-        self.clock = kwargs.get('clock')
+        self.clock = kwargs.pop('clock')
 
         # gear ratio
-        self.ratio = kwargs.get('ratio', 48 * 9.6)
+        self.ratio = kwargs.pop('ratio', 48 * 9.6)
 
         # call super
         super().__init__(*vars, **kwargs)
@@ -108,10 +108,10 @@ class Potentiometer(block.Block):
     def __init__(self, *vars, **kwargs):
 
         # set pin
-        self.pin = kwargs.get('pin', 'AIN0')
+        self.pin = kwargs.pop('pin', 'AIN0')
 
         # set full_scale
-        self.full_scale = kwargs.get('full_scale', 0.88)
+        self.full_scale = kwargs.pop('full_scale', 0.88)
 
         # call super
         super().__init__(*vars, **kwargs)
@@ -174,9 +174,9 @@ class Motor(block.Block):
     def __init__(self, *vars, **kwargs):
 
         # PWM1 PINS
-        self.dir_A   = kwargs.get('dir_A', 'P9_15')
-        self.dir_B   = kwargs.get('dir_B', 'P9_23')
-        self.pwm_pin = kwargs.get('pwm_pin', 'P9_14')
+        self.dir_A   = kwargs.pop('dir_A', 'P9_15')
+        self.dir_B   = kwargs.pop('dir_B', 'P9_23')
+        self.pwm_pin = kwargs.pop('pwm_pin', 'P9_14')
 
         # call super
         super().__init__(*vars, **kwargs)
