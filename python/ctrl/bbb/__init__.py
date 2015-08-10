@@ -39,7 +39,7 @@ class Clock():
         eQEP2 = "/sys/devices/ocp.3/48304000.epwmss/48304180.eqep"
 
         # initialize eqep2
-        self.eqep2 = eQEP(self.eQEP2, eQEP.MODE_ABSOLUTE)
+        self.eqep2 = eQEP(eQEP2, eQEP.MODE_ABSOLUTE)
         self.encoder1 = 0
 
         # set period on BBB eQEP
