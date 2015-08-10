@@ -216,7 +216,7 @@ class Controller(ctrl.Controller):
         super().__init__(*vargs, **kwargs)
 
         # add source: clock
-        self.clock = Clock(self.period)
+        self.clock = Clock(period = self.period)
         self.add_source('clock', self.clock, ['clock'])
         self.signals['clock'] = self.clock.time
         self.time_origin = self.clock.time_origin
@@ -225,7 +225,7 @@ class Controller(ctrl.Controller):
         self.add_signals('motor1', 'encoder1', 'pot1')
 
         # add source: encoder1
-        self.encoder1 = Encoder(self.clock)
+        self.encoder1 = Encoder(clock = self.clock)
         self.add_source('encoder1', self.encoder1, ['encoder1'])
 
         # add source: pot1
