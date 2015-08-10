@@ -5,7 +5,7 @@ import pytest
 import time
 
 HOST, PORT = "localhost", 9999
-start_server = True
+start_server = False
 
 def test_local():
 
