@@ -2,6 +2,8 @@ import warnings
 from threading import Thread
 import numpy
 
+from . import block
+
 class ControllerException(Exception):
     pass
 
