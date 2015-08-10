@@ -188,14 +188,15 @@ class Motor(block.Block):
 
     def write(self, values):
 
-        #print('> read')
+        print('> write to motor')
         if self.enabled:
 
             try:
                 self.motor_pwm = values[0]
             except:
                 self.motor_pwm = next(values)
-            if self.motor_pwm > 0:
+
+            if self.motor_pwm >= 0:
 
                 pwm = self.motor_pwm
                 GPIO.output(self.dir_A, 1)
@@ -207,6 +208,7 @@ class Motor(block.Block):
                 GPIO.output(self.dir_A, 0)
                 GPIO.output(self.dir_B, 1)
 
+            print('> pwm = {}'.format(pwm))
             PWM.set_duty_cycle(self.pwm_pin, pwm)
         
 class Controller(ctrl.Controller):
