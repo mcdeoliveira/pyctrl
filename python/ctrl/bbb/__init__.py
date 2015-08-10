@@ -222,17 +222,17 @@ class Controller(ctrl.Controller):
         # add signals
         self.add_signals('motor1', 'encoder1', 'pot1')
 
-        # add source: encoder1
-        self.encoder1 = Encoder(clock = self.clock)
-        self.add_source('encoder1', self.encoder1, ['encoder1'])
+        # # add source: encoder1
+        # self.encoder1 = Encoder(clock = self.clock)
+        # self.add_source('encoder1', self.encoder1, ['encoder1'])
 
-        # add source: pot1
-        self.pot1 = Potentiometer()
-        self.add_source('pot1', self.pot1, ['pot1'])
+        # # add source: pot1
+        # self.pot1 = Potentiometer()
+        # self.add_source('pot1', self.pot1, ['pot1'])
 
-        # add sink: motor1
-        self.motor1 = Motor()
-        self.add_source('motor1', self.motor1, ['motor1'])
+        # # add sink: motor1
+        # self.motor1 = Motor()
+        # self.add_source('motor1', self.motor1, ['motor1'])
 
     def stop(self):
 
