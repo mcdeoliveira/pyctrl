@@ -102,7 +102,7 @@ class Potentiometer():
         if self.enabled:
 
             self.output = (min(100, 
-                               100 * ADC.read(self.pin) / self.full_scale, )
+                               100 * ADC.read(self.pin) / self.full_scale), )
         
         return self.output
         
