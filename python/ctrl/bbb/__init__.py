@@ -206,8 +206,6 @@ class Motor(block.Block):
 
             PWM.set_duty_cycle(self.pwm_pin, pwm)
         
-        return self.output
-
 class Controller(ctrl.Controller):
 
     def __init__(self, *vargs, **kwargs):
