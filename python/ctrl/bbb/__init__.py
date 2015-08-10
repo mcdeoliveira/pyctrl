@@ -1,6 +1,6 @@
 import warnings
 
-from .. import packet
+from .. import block
 import ctrl
 
 from .eqep import eQEP
@@ -21,13 +21,16 @@ else:
     import time
     perf_counter = time.perf_counter
 
-class Clock():
+class Clock(block.Block):
 
-    def __init__(self, period):
-        
+    def __init__(self, *vars, **kwargs):
+
         # set period
-        self.period = period
+        self.period = kwargs.get('period')
 
+        # call super
+        super().__init__(*vars, **kwargs)
+        
         # set time_origin
         self.time_origin = perf_counter()
         self.time = self.time_origin
@@ -71,15 +74,18 @@ class Clock():
         
         return (self.time - self.time_origin, )
 
-class Encoder():
+class Encoder(block.Block):
         
-    def __init__(self, clock):
-        
-        # set clock
-        self.clock = clock
+    def __init__(self, *vars, **kwargs):
+
+        # set period
+        self.clock = kwargs.get('clock')
 
         # gear ratio
-        self.ratio = 48 * 9.6
+        self.ratio = kwargs.get('ratio', 48 * 9.6)
+
+        # call super
+        super().__init__(*vars, **kwargs)
         
         # output is in cycles/s
         self.output = (self.clock.encoder1 / self.ratio, )
@@ -97,16 +103,22 @@ class Encoder():
         
         return self.output
 
-class Potentiometer():
+class Potentiometer(block.Block):
         
-    def __init__(self):
+    def __init__(self, *vars, **kwargs):
+
+        # set pin
+        self.pin = kwargs.get('pin', 'AIN0')
+
+        # set full_scale
+        self.full_scale = kwargs.get('full_scale', 0.88)
+
+        # call super
+        super().__init__(*vars, **kwargs)
 
         # initialize adc
         ADC.setup()
         
-        self.pin = "AIN0"
-        self.full_scale = 0.88
-
     def read(self):
 
         #print('> read')
@@ -117,9 +129,12 @@ class Potentiometer():
         
         return self.output
         
-class Accelerometer():
+class Accelerometer(block.Block):
 
-    def __init__(self):
+    def __init__(self, *vars, **kwargs):
+
+        # call super
+        super().__init__(*vars, **kwargs)
 
         # initialize i2c connection to MPU6050
         # i2c address is 0x68
@@ -154,17 +169,20 @@ class Accelerometer():
 
         return self.output
 
-class Motor():
+class Motor(block.Block):
         
-    def __init__(self):
-        
+    def __init__(self, *vars, **kwargs):
+
         # PWM1 PINS
-        self.dir_A   = "P9_15"
-        self.dir_B   = "P9_23"
-        self.pwm_pin = "P9_14"
+        self.dir_A   = kwargs.get('dir_A', 'P9_15')
+        self.dir_B   = kwargs.get('dir_B', 'P9_23')
+        self.pwm_pin = kwargs.get('pwm_pin', 'P9_14')
+
+        # call super
+        super().__init__(*vars, **kwargs)
 
         # initialize pwm1
-        PWM.start(self.pwm)
+        PWM.start(self.pwm_pin)
         GPIO.setup(self.dir_A, GPIO.OUT)
         GPIO.setup(self.dir_B, GPIO.OUT)
 
