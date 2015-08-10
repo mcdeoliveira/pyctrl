@@ -10,6 +10,17 @@ import Adafruit_BBIO.ADC as ADC
 import Adafruit_I2C as I2C 
 import math
 
+# alternative perf_counter
+import sys
+if sys.version_info < (3, 3):
+    from . import gettime
+    perf_counter = gettime.gettime
+    warnings.warn('Using gettime instead of perf_counter',
+                  RuntimeWarning)
+else:
+    import time
+    perf_counter = time.perf_counter
+
 class Clock():
 
     def __init__(self, period):
