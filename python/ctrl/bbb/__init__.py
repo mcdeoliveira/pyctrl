@@ -1,14 +1,17 @@
 import warnings
 import time
+import math
 
 from .. import block
 import ctrl
 
-from .eqep import eQEP
 import Adafruit_BBIO.GPIO as GPIO
 import Adafruit_BBIO.PWM as PWM
 import Adafruit_BBIO.ADC as ADC
-import math
+
+from .eqep import eQEP
+
+from . import mpu6050
 
 # alternative perf_counter
 import sys
@@ -85,7 +88,7 @@ class Encoder(block.Block):
         self.clock = kwargs.pop('clock')
 
         # gear ratio
-        self.ratio = kwargs.pop('ratio', 48 * 9.6)
+        self.ratio = kwargs.pop('ratio', 48 * 98.78)
 
         # call super
         super().__init__(*vars, **kwargs)
@@ -194,7 +197,7 @@ class Controller(ctrl.Controller):
         self.time_origin = self.clock.time_origin
 
         # add signals
-        self.add_signals('motor1', 'encoder1', 'pot1')
+        self.add_signals('motor1', 'encoder1', 'pot1', 'theta')
 
         # add source: encoder1
         self.encoder1 = Encoder(clock = self.clock)
@@ -203,6 +206,10 @@ class Controller(ctrl.Controller):
         # add source: pot1
         self.pot1 = Potentiometer()
         self.add_source('pot1', self.pot1, ['pot1'])
+
+        # add source: incl1
+        self.incl = Inclinometer()
+        self.add_source('theta', self.incl, ['theta']) 
 
         # add sink: motor1
         self.motor1 = Motor()
