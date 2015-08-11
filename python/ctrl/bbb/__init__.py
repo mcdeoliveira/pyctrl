@@ -241,7 +241,8 @@ class Controller(ctrl.Controller):
 
     def stop(self):
 
-        super().stop()
-
         # stop motors
-        self.motor1.write((0,))
+        self.set_signal('motor1', 0)
+
+        # then stop
+        super().stop()
