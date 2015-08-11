@@ -1,4 +1,5 @@
 import warnings
+import time
 
 from .. import block
 import ctrl
