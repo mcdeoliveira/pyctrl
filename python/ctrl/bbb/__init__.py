@@ -8,7 +8,6 @@ from .eqep import eQEP
 import Adafruit_BBIO.GPIO as GPIO
 import Adafruit_BBIO.PWM as PWM
 import Adafruit_BBIO.ADC as ADC
-import Adafruit_I2C as I2C 
 import math
 
 # alternative perf_counter
@@ -96,7 +95,7 @@ class Encoder(block.Block):
 
     def write(self, values):
 
-        self.clock.set_encoder1(int(values[0] * self.ratio))
+        self.clock.set_encoder1(int(next(values) * self.ratio))
 
     def read(self):
 
@@ -133,46 +132,6 @@ class Potentiometer(block.Block):
         
         return self.output
         
-class Accelerometer(block.Block):
-
-    def __init__(self, *vars, **kwargs):
-
-        # call super
-        super().__init__(*vars, **kwargs)
-
-        # initialize i2c connection to MPU6050
-        # i2c address is 0x68
-        self.i2c = I2C.Adafruit_I2C(0x68)
-
-        # wake up the device (out of sleep mode)
-        # bit 6 on register 0x6B set to 0
-        self.i2c.write8(0x6B, 0)
-
-    def read(self):
-
-        #print('> read')
-        if self.enabled:
-
-            # getting values from the registers
-            bx = self.i2c.readS8(0x3b)
-            sx = self.i2c.readU8(0x3c)
-            by = self.i2c.readS8(0x3d)
-            sy = self.i2c.readU8(0x3e)
-            bz = self.i2c.readS8(0x3f)
-            sz = self.i2c.readU8(0x40)
-
-            # converting 2 8 bit words into a 16 bit
-            # signed "raw" value
-            x = -(bx * 256 + sx)
-            y = -(by * 256 + sy)
-            z = -(bz * 256 + sz)
-
-            self.output = (x, y, z)
-        
-            #self.encoder1 = math.atan2(y, x) / (2 * math.pi)
-
-        return self.output
-
 class Motor(block.Block):
         
     def __init__(self, *vars, **kwargs):
@@ -190,16 +149,22 @@ class Motor(block.Block):
         GPIO.setup(self.dir_A, GPIO.OUT)
         GPIO.setup(self.dir_B, GPIO.OUT)
 
+    def set_enabled(self, enabled = True):
+
+        # call super
+        super().set_enabled(enabled)
+
+        if not enabled:
+            
+            # write 0 to motor
+            PWM.set_duty_cycle(self.pwm_pin, 0)
+
     def write(self, values):
 
         #print('> write to motor')
         if self.enabled:
 
-            try:
-                self.motor_pwm = values[0]
-            except:
-                self.motor_pwm = next(values)
-
+            self.motor_pwm = next(values)
             if self.motor_pwm >= 0:
 
                 pwm = self.motor_pwm
@@ -245,11 +210,17 @@ class Controller(ctrl.Controller):
 
     def stop(self):
 
-        # stop motors
-        self.set_signal('motor1', 0)
-
-        # sleep one period
-        time.sleep(self.period)
-
-        # then stop
+        # stop
         super().stop()
+
+        # then disable motor
+        self.motor1.set_enabled(False)
+
+
+    def start(self):
+
+        # enable motor
+        self.motor1.set_enabled(True)
+
+        # then start
+        super().start()

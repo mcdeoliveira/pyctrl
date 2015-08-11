@@ -112,3 +112,30 @@ def test2():
     assert (alg.update(err) - (3 * err + 4 * ierror + .5 * (err - error) / 4)) < 1e-6
     error = err
 
+def test3():
+
+    signals = { 'clock' : 1, 'encoder1' : 2 , 'test' : 3}
+    labels = ['clock', 'encoder1']
+
+    diff = linear.Differentiator()
+    diff.write(signals[label] for label in labels)
+    result = diff.read()
+    assert result == ([0])
+
+    signals = { 'clock' : 2, 'encoder1' : 5 , 'test' : 3}
+
+    diff.write(signals[label] for label in labels)
+    result = diff.read()
+    assert result == ([3])
+
+    signals = { 'clock' : 4, 'encoder1' : 6 , 'test' : 3}
+
+    diff.write(signals[label] for label in labels)
+    result = diff.read()
+    assert result == ([.5])
+
+if __name__ == "__main__":
+
+    test1()
+    test2()
+    test3()

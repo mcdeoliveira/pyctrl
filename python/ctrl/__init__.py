@@ -318,8 +318,8 @@ class Controller:
             fltr = device['block']
             if fltr.is_enabled():
                 # write inputs
-                fltr.write(list(self.signals[label] 
-                                   for label in device['inputs']))
+                fltr.write(self.signals[label] 
+                           for label in device['inputs'])
                 # retrieve outputs
                 self.signals.update(dict(zip(device['outputs'], 
                                              fltr.read())))

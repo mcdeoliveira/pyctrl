@@ -201,10 +201,12 @@ class TransferFunction(block.Block):
         super().__init__(*vars, **kwargs)
         
     def read(self):
+
         return self.output
 
     def write(self, values):
-        self.output = (self.model.update(values[0]), )
+
+        self.output = (self.model.update(next(values)), )
 
 class Gain(block.Block):
 
@@ -253,10 +255,12 @@ class Feedback(block.Block):
         super().__init__(*vars, **kwargs)
     
     def read(self):
+
         return self.output
 
     def write(self, values):
-        error = self.gamma * values[1] - values[0]
+
+        error = - next(values) + self.gamma * next(values)
         self.block.write((error, ))
         self.output = self.block.read()
 
@@ -275,28 +279,25 @@ class Differentiator(block.Block):
         super().__init__(*vars, **kwargs)
     
     def read(self):
+
         return self.output
 
     def write(self, values):
 
         #print('values = {}'.format(values))
 
+        t = next(values)
+        x = list(values)
         if self.time > 0:
-            dt = values[0] - self.time
+            dt = t - self.time
         else:
             dt = 0
-        #print('dt = {}'.format(dt))
-
+        
         if dt > 0:
-            self.time, self.last, self.output = values[0], values[1:], \
-                [(n-o)/dt for n,o in zip(values[1:], self.last)]
+            self.time, self.last, self.output = t, x, \
+                [(n-o)/dt for n,o in zip(x, self.last)]
         else:
-            self.time, self.last, self.output = values[0], values[1:], \
-                (len(values)-1)*[0.]
-
-        #print('self.time = {}'.format(self.time))
-        #print('self.last = {}'.format(self.last))
-        #print('self.output = {}'.format(self.output))
+            self.time, self.last, self.output = t, x, (len(x))*[0.]
 
 class Sum(block.Block):
 

@@ -5,7 +5,7 @@ import pytest
 import time
 
 HOST, PORT = "localhost", 9999
-start_server = False
+start_server = True
 
 def test_local():
 
@@ -101,6 +101,8 @@ def run(controller):
         time.sleep(.2)
 
     log = controller.read_sink('_logger_')
+
+    print(log)
     assert isinstance(log, numpy.ndarray)
     assert log.shape[0] > 1
     assert log.shape[1] == 1
