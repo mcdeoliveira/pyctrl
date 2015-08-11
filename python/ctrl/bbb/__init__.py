@@ -164,16 +164,16 @@ class Motor(block.Block):
         #print('> write to motor')
         if self.enabled:
 
-            self.motor_pwm = next(values)
-            if self.motor_pwm >= 0:
+            pwm = next(values)
+            if pwm >= 0:
 
-                pwm = self.motor_pwm
+                pwm = min(100, pwm)
                 GPIO.output(self.dir_A, 1)
                 GPIO.output(self.dir_B, 0)
 
             else:
 
-                pwm = - self.motor_pwm
+                pwm = min(100, -pwm)
                 GPIO.output(self.dir_A, 0)
                 GPIO.output(self.dir_B, 1)
 
