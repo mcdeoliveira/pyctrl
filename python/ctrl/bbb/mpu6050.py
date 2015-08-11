@@ -1,5 +1,10 @@
 import Adafruit_I2C as I2C 
 
+if __name__ == "__main__":
+
+    import sys
+    sys.path.append('.')
+
 import ctrl.block as block
 
 # SAMPLE RATE = GIRO_RATE / (1 + SMPLRT_DIV[7:0])
