@@ -188,7 +188,7 @@ class Motor(block.Block):
 
     def write(self, values):
 
-        print('> write to motor')
+        #print('> write to motor')
         if self.enabled:
 
             try:
@@ -208,7 +208,7 @@ class Motor(block.Block):
                 GPIO.output(self.dir_A, 0)
                 GPIO.output(self.dir_B, 1)
 
-            print('> pwm = {}'.format(pwm))
+            #print('> pwm = {}'.format(pwm))
             PWM.set_duty_cycle(self.pwm_pin, pwm)
         
 class Controller(ctrl.Controller):
@@ -243,6 +243,9 @@ class Controller(ctrl.Controller):
 
         # stop motors
         self.set_signal('motor1', 0)
+
+        # sleep one period
+        time.sleep(self.period)
 
         # then stop
         super().stop()
