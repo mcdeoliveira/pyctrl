@@ -5,6 +5,8 @@ if __name__ == "__main__":
     import sys
     sys.path.append('.')
 
+import struct
+
 import ctrl.block as block
 
 # SAMPLE RATE = GIRO_RATE / (1 + SMPLRT_DIV[7:0])
@@ -32,7 +34,7 @@ AFS_SEL_8  = 0x02 << 3
 AFS_SEL_16 = 0x03 << 3
 
 # SENSIVITY (LSB/g)
-ACCEL_SCALE = { 
+AFS_SCALE = { 
     AFS_SEL_2  : 16384,
     AFS_SEL_4  : 8192,
     AFS_SEL_8  : 4096,
@@ -48,7 +50,7 @@ GFS_SEL_1000 = 0x02 << 3
 GFS_SEL_2000 = 0x03 << 3
 
 # SENSIVITY (LSB/^o/s)
-GIRO_SCALE = { 
+GFS_SCALE = { 
     GFS_SEL_250  : 131,
     GFS_SEL_500  : 65.5,
     GFS_SEL_1000 : 32.8,
@@ -116,14 +118,17 @@ class Accelerometer(block.Block):
         self.giro_sensitivity = kwargs.pop('accel_sensitivity', GFS_SEL_250)
         self.gfs_scale = GFS_SCALE[self.giro_sensitivity]
 
+        # debug_I2C?
+        self.debug_I2C = kwargs.pop('debug_I2C', False)
+
         # call super
         super().__init__(*vars, **kwargs)
 
         # initialize i2c connection to MPU6050
-        self.i2c = I2C.Adafruit_I2C(self.address)
+        self.i2c = I2C.Adafruit_I2C(self.address, debug = self.debug_I2C)
 
         # Enable low pass filter
-        self.i2c.write8(CONFIG, self.dlp_cfg_44)
+        self.i2c.write8(CONFIG, self.dlp_cfg)
 
         # Set sample rate
         self.i2c.write8(SMPRT_DIV, self.smprt_div)
@@ -146,13 +151,13 @@ class Accelerometer(block.Block):
 
         if enabled:
             
-            # put in sleep mode
-            self.i2c.write8(PWR_MGMT_1, SLEEP)
+            # wake up
+            self.i2c.write8(PWR_MGMT_1, 0)
 
         else:
 
-            # wake up
-            self.i2c.write8(PWR_MGMT_1, 0)
+            # put in sleep mode
+            self.i2c.write8(PWR_MGMT_1, SLEEP)
 
     def read(self):
 
@@ -168,34 +173,87 @@ class Accelerometer(block.Block):
                         self.i2c.readList(ACCEL_XOUT_H, 14)
                 
                 # convert 8 bit words into a 16 bit signed "raw" value
-                x = -(xh * 256 + xl) / self.afs_scale
-                y = -(yh * 256 + yl) / self.afs_scale
-                z = -(zh * 256 + zl) / self.afs_scale
+                (x,) = struct.unpack('<h', bytes([xl, xh]))
+                (y,) = struct.unpack('<h', bytes([yl, yh]))
+                (z,) = struct.unpack('<h', bytes([zl, zh]))
 
-                gx = -(gxh * 256 + gxl) / self.gfs_scale
-                gy = -(gyh * 256 + gyl) / self.gfs_scale
-                gz = -(gzh * 256 + gzl) / self.gfs_scale
+                # convert 8 bit words into a 16 bit signed "raw" value
+                (gx,) = struct.unpack('<h', bytes([gxl, gxh]))
+                (gy,) = struct.unpack('<h', bytes([gyl, gyh]))
+                (gz,) = struct.unpack('<h', bytes([gzl, gzh]))
 
-                self.output = (x, y, z, gx, gy, gz)
+                self.output = (x / self.afs_scale, 
+                               y / self.afs_scale, 
+                               z / self.afs_scale, 
+                               gx / self.gfs_scale, 
+                               gy / self.gfs_scale, 
+                               gz / self.gfs_scale)
 
             else: # no giro
 
                 # Burst-read accelerometer registers
                 xh, xl, yh, yl, zh, zl = self.i2c.readList(ACCEL_XOUT_H, 6)
-                
+
                 # convert 8 bit words into a 16 bit signed "raw" value
-                x = -(xh * 256 + xl) / self.afs_scale
-                y = -(yh * 256 + yl) / self.afs_scale
-                z = -(zh * 256 + zl) / self.afs_scale
+                (x,) = struct.unpack('<h', bytes([xl, xh]))
+                (y,) = struct.unpack('<h', bytes([yl, yh]))
+                (z,) = struct.unpack('<h', bytes([zl, zh]))
 
-                self.output = (x, y, z)
+                self.output = (x / self.afs_scale,
+                               y / self.afs_scale,
+                               z / self.afs_scale)
         
-            #self.encoder1 = math.atan2(y, x) / (2 * math.pi)
-
         return self.output
 
-if __name__ == "main":
+class Inclinometer(Accelerometer):
 
-    print("Accelerometer test")
+    def __init__(self, *vars, **kwargs):
 
+        # 
+
+        # call super
+        super().__init__(*vars, **kwargs)
+
+    def read(self):
+
+        (x, y, z) = super().read()
+        theta = math.atan2(y, x) / (2 * math.pi)
+
+        return (theta, )
+
+if __name__ == "__main__":
+
+    import time, math
+
+    T = 0.1
+    K = 10
+
+    print("> Testing accelerometer")
+    
     accel = Accelerometer()
+
+    k = 0
+    while k < K:
+
+        # read accelerometer
+        (x, y, z) = accel.read()
+
+        print('> (x, y, z) = ({:5.3f}, {:5.3f}, {:5.3f})g'.format(x, y, z))
+
+        time.sleep(T)
+        k += 1
+
+    K = 100
+    print("> Testing inclinometer")
+
+    accel = Inclinometer()
+
+    k = 0
+    while k < K:
+
+        # read inclinometer
+        (theta, ) = accel.read()
+        print('> theta = {:5.3f}deg'.format(360*theta))
+
+        time.sleep(T)
+        k += 1
