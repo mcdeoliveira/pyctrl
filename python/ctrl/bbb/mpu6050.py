@@ -1,6 +1,6 @@
 import Adafruit_I2C as I2C 
 
-from .. import block
+import ctrl.block as block
 
 # SAMPLE RATE = GIRO_RATE / (1 + SMPLRT_DIV[7:0])
 # GIRO_RATE = 1kHz if 0 < DLP_CFG < 7
@@ -188,3 +188,7 @@ class Accelerometer(block.Block):
             #self.encoder1 = math.atan2(y, x) / (2 * math.pi)
 
         return self.output
+
+if __name__ == "main":
+
+    print("Accelerometer test")
