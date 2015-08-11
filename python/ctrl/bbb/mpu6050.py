@@ -197,3 +197,5 @@ class Accelerometer(block.Block):
 if __name__ == "main":
 
     print("Accelerometer test")
+
+    accel = Accelerometer()
