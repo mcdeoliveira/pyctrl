@@ -73,6 +73,9 @@ class Clock(block.Block):
             # Read encoder1 (blocking call)
             self.encoder1 = self.eqep2.poll_position()
         
+            # Read clock
+            self.time = perf_counter()
+
         return (self.time - self.time_origin, )
 
 class Encoder(block.Block):
