@@ -5,6 +5,7 @@ if __name__ == "__main__":
     import sys
     sys.path.append('.')
 
+import math
 import struct
 
 import ctrl.block as block

@@ -128,6 +128,7 @@ def main():
             print('    Sampling rate : {}s'.format(Ts))
             print('    Log size      : {}s'.format(log_size))
             print('    Verbose level : {}'.format(verbose_level))
+            print(controller.info('all'))
             print('> Server started...')
         server.serve_forever()
 

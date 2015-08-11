@@ -161,7 +161,7 @@ class Controller(ctrl.Controller):
         return self.send('K')
 
     def write_source(self, label, values):
-        self.send('L', 'S', label, 'P', values)
+        self.send('L', 'S', label, 'P', (v for v in values))
 
     def read_source(self, label):
         return self.send('M', 'S', label)
