@@ -210,7 +210,8 @@ class Inclinometer(Accelerometer):
 
     def __init__(self, *vars, **kwargs):
 
-        # 
+        # zero: location of the zero angle
+        self.zero = kwargs.pop('zero', 0)
 
         # call super
         super().__init__(*vars, **kwargs)
