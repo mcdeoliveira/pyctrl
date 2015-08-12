@@ -260,8 +260,8 @@ class Feedback(block.Block):
 
     def write(self, values):
 
-        error = - next(values) + self.gamma * next(values)
-        self.block.write((error, ))
+        error = [- next(values) + self.gamma * next(values), ]
+        self.block.write(iter(error))
         self.output = self.block.read()
 
 class Differentiator(block.Block):
