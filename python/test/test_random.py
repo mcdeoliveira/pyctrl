@@ -36,14 +36,14 @@ def test_random_uniform():
     assert x == y
     
     blk = blkrnd.RandomUniform(-1,1)
-    blk.set('seed', 5)
+    blk.set(seed = 5)
     (y,) = blk.read()
     assert x == y
 
-    blk.set('a', -3)
+    blk.set(a = -3)
     assert blk.a == -3
 
-    blk.set('b', 3)
+    blk.set(b = 3)
     assert blk.b == 3
 
 def test_random_gaussian():
@@ -68,7 +68,7 @@ def test_random_gaussian():
     assert x == y
     
     blk = blkrnd.RandomGaussian(-1,1)
-    blk.set('seed', 5)
+    blk.set(seed = 5)
     (y,) = blk.read()
     assert x == y
 
@@ -79,10 +79,10 @@ def test_random_gaussian():
     (y,) = blk.read()
     assert x == y
 
-    blk.set('mu', -3)
+    blk.set(mu = -3)
     assert blk.mu == -3
 
-    blk.set('sigma', 3)
+    blk.set(sigma = 3)
     assert blk.sigma == 3
 
 

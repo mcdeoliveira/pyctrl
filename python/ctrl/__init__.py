@@ -167,17 +167,17 @@ class Controller:
         self.sources_order.remove(label)
         self.sources.pop(label)
 
-    def set_source(self, label, key, values = None):
+    def set_source(self, label, **kwargs):
+
         if label not in self.sources:
             raise ControllerException("Source '{}' does not exist".format(label))
-        key = key.lower()
-        if key == 'outputs':
+
+        if 'outputs' in kwargs:
+            values = kwargs.pop('outputs')
             assert isinstance(values, (list, tuple))
-            self.sources[label][key] = values
-        elif key == 'reset':
-            self.sources[label]['block'].reset()
-        else:
-            raise ControllerException("Unknown key '{}'".format(key))
+            self.sources[label]['outputs'] = values
+
+        self.sources[label]['block'].set(**kwargs)
 
     def read_source(self, label):
         return self.sources[label]['block'].read()
@@ -206,17 +206,17 @@ class Controller:
         self.sinks_order.remove(label)
         self.sinks.pop(label)
 
-    def set_sink(self, label, key, values = None):
+    def set_sink(self, label, **kwargs):
+
         if label not in self.sinks:
             raise ControllerException("Sink '{}' does not exist".format(label))
-        key = key.lower()
-        if key == 'inputs':
+
+        if 'inputs' in kwargs:
+            values = kwargs.pop('inputs')
             assert isinstance(values, (list, tuple))
-            self.sinks[label][key] = values
-        elif key == 'reset':
-            self.sinks[label]['block'].reset()
-        else:
-            raise ControllerException("Unknown key '{}'".format(key))
+            self.sinks[label]['inputs'] = values
+            
+        self.sinks[label]['block'].set(**kwargs)
 
     def read_sink(self, label):
         return self.sinks[label]['block'].read()
@@ -247,17 +247,22 @@ class Controller:
         self.filters_order.remove(label)
         self.filters.pop(label)
 
-    def set_filter(self, label, key, values = None):
+    def set_filter(self, label, **kwargs):
+
         if label not in self.filters:
             raise ControllerException("Filter '{}' does not exist".format(label))
-        key = key.lower()
-        if key == 'inputs' or key == 'outputs':
+
+        if 'inputs' in kwargs:
+            values = kwargs.pop('inputs')
             assert isinstance(values, (list, tuple))
-            self.filters[label][key] = values
-        elif key == 'reset':
-            self.filters[label]['block'].reset()
-        else:
-            raise ControllerException("Unknown key '{}'".format(key))
+            self.filters[label]['inputs'] = values
+
+        if 'outputs' in kwargs:
+            values = kwargs.pop('outputs')
+            assert isinstance(values, (list, tuple))
+            self.filters[label]['outputs'] = values
+
+        self.filters[label]['block'].set(**kwargs)
             
     def read_filter(self, label):
         return self.filters[label]['block'].read()

@@ -6,20 +6,14 @@ class Logger(block.Block):
     """Logger(number_of_rows, number_of_columns) implements a logger.
     """
 
-    def __init__(self, *vars, **kwargs):
+    def __init__(self, number_of_rows = 12000, number_of_columns = 0, 
+                 *vars, **kwargs):
 
-        number_of_rows = kwargs.pop('number_of_rows', 12000)
-
-        labels = kwargs.pop('labels', ())
-        assert isinstance(labels, (list, tuple))
-
-        number_of_columns = len(labels)
-
-        self.set(number_of_rows, number_of_columns)
+        self.reshape(number_of_rows, number_of_columns)
 
         super().__init__(*vars, **kwargs)
 
-    def set(self, number_of_rows, number_of_columns):
+    def reshape(self, number_of_rows, number_of_columns):
 
         self.data = numpy.zeros((number_of_rows, number_of_columns), float)
         self.reset()
@@ -53,7 +47,7 @@ class Logger(block.Block):
         # reshape?
         if self.data.shape[1] != len(values):
             # reshape log
-            self.set(self.data.shape[0], len(values))
+            self.reshape(self.data.shape[0], len(values))
         
         # Log data
         self.data[self.current, :] = values

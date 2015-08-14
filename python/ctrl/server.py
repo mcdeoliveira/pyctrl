@@ -67,7 +67,7 @@ def set_controller(_controller = ctrl.Controller()):
 
         'H': ('SPP', '', controller.add_source,
               'Add source'),
-        'I': ('SSP', '', controller.set_source,
+        'I': ('SK', '', controller.set_source,
               'Set source'),
         'J': ('S', '', controller.remove_source,
               'Remove source'),
@@ -80,7 +80,7 @@ def set_controller(_controller = ctrl.Controller()):
 
         'N': ('SPP', '', controller.add_sink,
               'Add sink'),
-        'O': ('SSP', '', controller.set_sink,
+        'O': ('SK', '', controller.set_sink,
               'Set sink'),
         'P': ('S', '', controller.remove_sink,
               'Remove sink'),
@@ -93,7 +93,7 @@ def set_controller(_controller = ctrl.Controller()):
 
         'T': ('SPPP', '', controller.add_filter,
               'Add filter'),
-        'U': ('SSP', '', controller.set_filter,
+        'U': ('SK', '', controller.set_filter,
               'Set filter'),
         'V': ('S', '', controller.remove_filter,
               'Remove filter'),
@@ -157,18 +157,23 @@ class Handler(socketserver.StreamRequestHandler):
                     print(">>> Will execute '{}({})'".format(code, argument_type))
                 
                 # Handle input arguments
-                argument = []
+                vargs = []
+                kwargs = {}
                 for letter in argument_type:
                     (type, arg) = packet.unpack_stream(self.rfile)
-                    argument.append(arg)
+                    if type == 'K':
+                        kwargs = arg
+                    else:
+                        vargs.append(arg)
 
                 if verbose_level > 2:
-                    print('>>> Argument = {}'.format(argument))
+                    print('>>> vargs = {}'.format(vargs))
+                    print('>>> kwargs = {}'.format(kwargs))
 
                 try:
 
                     # Call function
-                    message = function(*argument)
+                    message = function(*vargs, **kwargs)
 
                 except Exception as inst:
                     

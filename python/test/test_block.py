@@ -46,16 +46,16 @@ def test_set():
     with pytest.raises(KeyError):
         blk.get('*enabled')
 
-    blk.set('enabled', False)
+    blk.set(enabled = False)
     assert blk.get('enabled') == False
 
-    blk.set('enabled', True)
+    blk.set(enabled = True)
     assert blk.get('enabled') == True
 
     with pytest.raises(block.BlockException):
-        blk.set('*enabled', True)
+        blk.set(_enabled = True)
     
-    blk.set('sep', '-')
+    blk.set(sep = '-')
     assert blk.get('sep') == '-'
 
     blk = block.BufferBlock()

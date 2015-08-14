@@ -171,7 +171,7 @@ def test3():
     sys2 = linear.TFModel(num, den)
 
     blk = linear.TransferFunction(sys)
-    blk.set('model', sys2)
+    blk.set(model = sys2)
     assert blk.model is sys2
 
     # Gain
@@ -208,7 +208,7 @@ def test3():
     yk = blk.read()
     assert yk == (6, 12)
 
-    blk.set('gain', 8)
+    blk.set(gain = 8)
     assert blk.gain == 8
 
     # Short-Circuit
@@ -250,10 +250,10 @@ def test3():
     assert result == ([.5])
 
     with pytest.raises(block.BlockException):
-        blk.set('time', 8)
+        blk.set(time = 8)
 
     with pytest.raises(block.BlockException):
-        blk.set('last', 8)
+        blk.set(last = 8)
 
     # Feedback
 
@@ -275,10 +275,10 @@ def test3():
     assert yk == 2 * (3 * 2 / 100 - 2)
 
     gn = linear.Gain(150)
-    blk.set('block', gn)
+    blk.set(block = gn)
     assert blk.block is gn
 
-    blk.set('gamma', 10)
+    blk.set(gamma = 10)
     assert blk.gamma == 0.1
 
     # Sum

@@ -155,8 +155,8 @@ if __name__ == "__main__":
                           linear.Feedback(gamma = pmax,
                                          block = linear.Gain(gain = Kp)),
                           ['encoder1', 'reference1'], ['motor1'])
-    controller.set_sink('printer', 'inputs',
-                        ['clock', 'encoder1', 'reference1', 'motor1'])
+    controller.set_sink('printer', 
+                        inputs = ['clock', 'encoder1', 'reference1', 'motor1'])
     print(controller.info('all'))
 
     with controller:
@@ -177,8 +177,8 @@ if __name__ == "__main__":
     controller.add_filter('differentiator1', 
                           linear.Differentiator(),
                           ['clock', 'encoder1'], ['velocity1'])
-    controller.set_sink('printer', 'inputs',
-                        ['clock', 'encoder1', 'velocity1', 'reference1', 'motor1'])
+    controller.set_sink('printer', 
+                        inputs = ['clock', 'encoder1', 'velocity1', 'reference1', 'motor1'])
     print(controller.info('all'))
 
     with controller:

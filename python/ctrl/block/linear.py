@@ -199,12 +199,12 @@ class TransferFunction(block.BufferBlock):
 
         super().__init__(*vars, **kwargs)
 
-    def set(self, key, value):
+    def set(self, **kwargs):
         
-        if key == 'model':
-            self.model = value
-        else:
-            super().set(key, value)
+        if 'model' in kwargs:
+            self.model = kwargs.pop('model')
+
+        super().set(**kwargs)
 
     def reset(self):
 
@@ -223,12 +223,12 @@ class Gain(block.BufferBlock):
 
         super().__init__(*vars, **kwargs)
     
-    def set(self, key, value):
+    def set(self, **kwargs):
         
-        if key == 'gain':
-            self.gain = value
-        else:
-            super().set(key, value)
+        if 'gain' in kwargs:
+            self.gain = kwargs.pop('gain')
+
+        super().set(**kwargs)
 
     def write(self, values):
 
@@ -291,14 +291,15 @@ class Feedback(block.BufferBlock):
 
         super().__init__(*vars, **kwargs)
     
-    def set(self, key, value):
+    def set(self, **kwargs):
         
-        if key == 'block':
-            self.block = value
-        elif key == 'gamma':
-            self.gamma = value/100
-        else:
-            super().set(key, value)
+        if 'block' in kwargs:
+            self.block = kwargs.pop('block')
+
+        if 'gamma' in kwargs:
+            self.gamma = kwargs.pop('gamma')/100
+
+        super().set(**kwargs)
 
     def write(self, values):
 

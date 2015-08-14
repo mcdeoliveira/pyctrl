@@ -21,14 +21,17 @@ class Block:
     def reset(self):
         pass
 
-    def set(self, key, value = None):
+    def set(self, **kwargs):
 
-        if key == 'reset':
-            self.reset()
-        elif key == 'enabled':
-            self.set_enabled(value)
-        else:
-            raise BlockException("Does not know how to set key '{}'".format(key))
+        if 'reset' in kwargs:
+            if kwargs.pop('reset'):
+                self.reset()
+
+        if 'enabled' in kwargs:
+            self.set_enabled(kwargs.pop('enabled'))
+            
+        if len(kwargs) > 0:
+            raise BlockException("Does not know how to set '{}'".format(kwargs))
 
     def get(self, keys = None, exclude = None):
 
@@ -63,16 +66,18 @@ class Printer(Block):
 
         super().__init__(*vars, **kwargs)
 
-    def set(self, key, value = None):
+    def set(self, **kwargs):
 
-        if key == 'endln':
-            self.endln = value
-        elif key == 'frmt':
-            self.frmt = value
-        elif key == 'sep':
-            self.sep = value
-        else:
-            super().set(key, value)
+        if 'endln' in kwargs:
+            self.endln = kwargs.pop('endln')
+        
+        if 'frmt' in kwargs:
+            self.frmt = kwargs.pop('frmt')
+
+        if 'sep' in kwargs:
+            self.sep = kwargs.pop('sep')
+
+        super().set(**kwargs)
     
     def write(self, values):
 

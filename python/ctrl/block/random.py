@@ -19,17 +19,19 @@ class RandomUniform(block.Block):
         if self.seed is not None:
             random.seed(self.seed)
 
-    def set(self, key, value = None):
+    def set(self, **kwargs):
         
-        if key == 'a':
-            self.a = value
-        elif key == 'b':
-            self.b = value
-        elif key == 'seed':
-            self.seed = value
+        if 'a' in kwargs:
+            self.a = kwargs.pop('a')
+
+        if 'b' in kwargs:
+            self.b = kwargs.pop('b')
+
+        if 'seed' in kwargs:
+            self.seed = kwargs.pop('seed')
             self.reset()
-        else:
-            super().set(key, value)
+        
+        super().set(**kwargs)
 
     def read(self):
 
@@ -52,17 +54,19 @@ class RandomGaussian(block.Block):
         if self.seed is not None:
             random.seed(self.seed)
 
-    def set(self, key, value = None):
+    def set(self, **kwargs):
         
-        if key == 'mu':
-            self.mu = value
-        elif key == 'sigma':
-            self.sigma = value
-        elif key == 'seed':
-            self.seed = value
+        if 'mu' in kwargs:
+            self.mu = kwargs.pop('mu')
+
+        if 'sigma' in kwargs:
+            self.sigma = kwargs.pop('sigma')
+
+        if 'seed' in kwargs:
+            self.seed = kwargs.pop('seed')
             self.reset()
-        else:
-            super().set(key, value)
+
+        super().set(**kwargs)
 
     def read(self):
 

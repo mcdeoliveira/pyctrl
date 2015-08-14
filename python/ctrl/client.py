@@ -151,8 +151,8 @@ class Controller(ctrl.Controller):
     def add_source(self, label, source, signals):
         self.send('H', 'S', label, 'P', source, 'P', signals)
 
-    def set_source(self, label, key, values = None):
-        self.send('I', 'S', label, 'S', key, 'P', values)
+    def set_source(self, label, **kwargs):
+        self.send('I', 'S', label, 'K', kwargs)
 
     def remove_source(self, label):
         return self.send('J', 'S', label)
@@ -171,8 +171,8 @@ class Controller(ctrl.Controller):
     def add_sink(self, label, sink, signals):
         self.send('N', 'S', label, 'P', sink, 'P', signals)
 
-    def set_sink(self, label, key, values = None):
-        self.send('O', 'S', label, 'S', key, 'P', values)
+    def set_sink(self, label, **kwargs):
+        self.send('O', 'S', label, 'K', kwargs)
 
     def remove_sink(self, label):
         return self.send('P', 'S', label)
@@ -193,8 +193,8 @@ class Controller(ctrl.Controller):
         self.send('T', 'S', label, 'P', filter_, 
                   'P', input_signals, 'P', output_signals)
 
-    def set_filter(self, label, key, values = None):
-        self.send('U', 'S', label, 'S', key, 'P', values)
+    def set_filter(self, label, **kwargs):
+        self.send('U', 'S', label, 'K', kwargs)
 
     def remove_filter(self, label):
         return self.send('V', 'S', label)

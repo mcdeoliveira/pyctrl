@@ -6,6 +6,7 @@ import time
 
 HOST, PORT = "localhost", 9999
 start_server = True
+#start_server = False
 
 def test_local():
 
@@ -89,14 +90,14 @@ def run(controller):
     with pytest.raises(ctrl.ControllerException):
         controller.add_sink('_logger_', logger.Logger(), ['clock'])
 
-    controller.set_sink('_logger_', 'reset')
+    controller.set_sink('_logger_', reset = True)
 
     log = controller.read_sink('_logger_')
     assert isinstance(log, numpy.ndarray)
     assert log.shape == (0, 0)
 
-    with pytest.raises(ctrl.ControllerException):
-        controller.set_sink('_logger_', '_reset')
+    with pytest.raises(block.BlockException):
+        controller.set_sink('_logger_', _reset = True)
 
     with controller:
         time.sleep(.2)
@@ -108,7 +109,7 @@ def run(controller):
     assert log.shape[0] > 1
     assert log.shape[1] == 1
 
-    controller.set_sink('_logger_', 'reset')
+    controller.set_sink('_logger_', reset = True)
     log = controller.read_sink('_logger_')
     assert isinstance(log, numpy.ndarray)
     assert log.shape == (0,1)
@@ -129,7 +130,7 @@ def run(controller):
     assert log.shape[0] > 1
     assert log.shape[1] == 2
 
-    controller.set_sink('_logger_', 'reset')
+    controller.set_sink('_logger_', reset = True)
     log = controller.read_sink('_logger_')
     assert isinstance(log, numpy.ndarray)
     assert log.shape == (0,2)
@@ -145,14 +146,14 @@ def run(controller):
     with pytest.raises(ctrl.ControllerException):
         controller.add_source('_rand_', blkrnd.RandomUniform(), ['clock'])
 
-    controller.set_source('_rand_', 'reset')
+    controller.set_source('_rand_', reset = True)
 
     a = controller.read_source('_rand_')
     assert isinstance(a[0], float)
     assert 0 <= a[0] <= 1
 
-    with pytest.raises(ctrl.ControllerException):
-        controller.set_source('_rand_', '_reset')
+    with pytest.raises(block.BlockException):
+        controller.set_source('_rand_', _reset = True)
 
     controller.remove_source('_rand_')
     assert '_rand_' not in controller.list_sources()
