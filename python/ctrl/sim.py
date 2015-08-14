@@ -8,8 +8,8 @@ if __name__ == "__main__":
     sys.path.append('.')
 
 import ctrl
-import ctrl.linear as linear
-import ctrl.clock as clock
+import ctrl.block.clock as clock
+import ctrl.block.linear as linear
 
 class Controller(ctrl.Controller):
     """Controller(a, k) implements a simulated controlled.
@@ -83,7 +83,7 @@ class Controller(ctrl.Controller):
         c = math.exp(-a * Ts)  # adimensional
 
         # add source: clock
-        self.clock = clock.Clock(self.period)
+        self.clock = clock.TimerClock(self.period)
         self.add_source('clock', self.clock, ['clock'])
         self.signals['clock'] = self.clock.time
         self.time_origin = self.clock.time_origin
@@ -109,10 +109,10 @@ class Controller(ctrl.Controller):
 
 if __name__ == "__main__":
 
+    import time
     import ctrl.sim as sim
     import ctrl.block as block
-    import ctrl.logger as logger
-    import time
+    import ctrl.block.logger as logger
 
     a = 17   # 1/s
     k = 0.11 # cycles/s duty

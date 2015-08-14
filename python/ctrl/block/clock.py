@@ -1,7 +1,6 @@
 import warnings
-from threading import Thread, Timer, Condition
 
-from . import block
+from .. import block
 
 # alternative perf_counter
 import sys
@@ -16,30 +15,109 @@ else:
 
 class Clock(block.Block):
 
-    def __init__(self, *pars, **kpars):
+    def __init__(self, period = 0.01, *pars, **kpars):
 
-        self.period = kpars.pop('period', .01)
-        self.condition = Condition()
+        self.period = period
 
         super().__init__(*pars, **kpars)
-
-        self.timer = None
-        self.running = False
 
         self.time_origin = perf_counter()
         self.time = self.time_origin
         self.counter = 0
         
-        if self.enabled:
-            self.enabled = False
-            self.set_enabled(True)
-    
+    def set_period(self, period):
+        
+        self.period = period
+
+    def reset(self):
+
+        # reset clock and counter
+        self.time_origin = self.time
+        self.counter = 0
+
     def get_average_period(self):
+
         if self.counter:
             return (self.time - self.time_origin) / self.counter
         else:
             return 0
 
+    def calibrate(self, eps = 1/100, N = 100, K = 20):
+                
+        enabled = self.enabled
+        if not enabled:
+            warnings.warn('Enabling clock for calibration.')
+            self.set_enabled(True)
+
+        print('> Calibrating clock...')
+        print('  ITER   TARGET   ACTUAL ACCURACY')
+
+        k = 1
+        target = self.period
+        while True:
+
+            # reset and run for T seconds
+            self.reset()
+            for n in range(N):
+                self.read()
+            period = self.get_average_period()
+            
+            # estimate actual period
+            error = abs(period - target) / target
+            print('  {:4}  {:6.5f}  {:6.5f}   {:5.2f}%'
+                  .format(k, target, period, 100 * error))
+
+            # counter
+            k = k + 1
+
+            # Success?
+            if error < eps:
+                # success!
+                success = True
+                break
+
+            elif k > K:
+                warnings.warn("Could not calibrate to '{}' accuracy".format(eps))
+                success = False
+                break
+
+            # compensate error
+            self.set_period(self.period + target - period)
+
+        print('< Done!')
+
+        if not enabled:
+            warnings.warn('Disabling clock.')
+            self.set_enabled(False)
+
+        return (success, period)
+
+    def read(self):
+
+        if self.enabled:
+
+            self.time += self.period
+            self.counter += 1
+
+        return (self.time - self.time_origin, )
+
+
+from threading import Thread, Timer, Condition
+
+class TimerClock(Clock):
+
+    def __init__(self, *pars, **kpars):
+
+        super().__init__(*pars, **kpars)
+
+        self.condition = Condition()
+        self.timer = None
+        self.running = False
+
+        if self.enabled:
+            self.enabled = False
+            self.set_enabled(True)
+    
     def tick(self):
 
         # Acquire lock
@@ -134,12 +212,6 @@ class Clock(block.Block):
             # and release
             self.condition.release()
 
-    def reset(self):
-
-        # reset clock
-        self.time_origin = self.time
-        self.counter = 0
-
     def read(self):
 
         #print('> read')
@@ -147,44 +219,9 @@ class Clock(block.Block):
 
             # Acquire condition
             self.condition.acquire()
-            # Wait 
+            # wait 
             self.condition.wait()
             # and release
             self.condition.release()
         
         return (self.time - self.time_origin, )
-
-    # def calibrate(self, eps = 0.05, T = 5, K = 20):
-        
-    #     print('> Calibrating period...')
-    #     print('  ITER   TARGET   ACTUAL ACCURACY')
-
-    #     k = 1
-    #     est_period = (1 + 2 * eps) * self.period
-    #     error = abs(est_period - self.period) / self.period
-    #     while error > eps:
-
-    #         # run loop for T seconds
-    #         k0 = self.current
-    #         t0 = perf_counter()
-    #         self.start()
-    #         time.sleep(T)
-    #         self.stop()
-    #         t1 = perf_counter()
-    #         k1 = self.current
-            
-    #         # estimate actual period
-    #         est_period = (t1 - t0) / (k1 - k0)
-    #         error = abs(est_period - self.period) / self.period
-    #         print('  {:4}  {:6.5f}  {:6.5f}   {:5.2f}%'
-    #               .format(k, self.period, est_period, 100 * error))
-    #         self.delta_period += (est_period - self.period)
-            
-    #         # counter
-    #         k = k + 1
-    #         if k > K:
-    #             warnings.warn("Could not calibrate to '{}' accuracy".format(eps))
-    #             break
-
-    #     print('< ...done.')
-

@@ -42,9 +42,10 @@ def run(controller):
 
     import ctrl
     import numpy
-    import ctrl.logger as logger
+    import ctrl.block.logger as logger
     import ctrl.block as block
-    import ctrl.linear as linear
+    import ctrl.block.linear as linear
+    import ctrl.block.random as blkrnd
 
     # period
     assert controller.get_period() == 0.01 # default
@@ -102,7 +103,7 @@ def run(controller):
 
     log = controller.read_sink('_logger_')
 
-    print(log)
+    #print(log)
     assert isinstance(log, numpy.ndarray)
     assert log.shape[0] > 1
     assert log.shape[1] == 1
@@ -138,11 +139,11 @@ def run(controller):
 
     # test source
 
-    controller.add_source('_rand_', block.RandomUniform(), ['_test_'])
+    controller.add_source('_rand_', blkrnd.RandomUniform(), ['_test_'])
     assert '_rand_' in controller.list_sources()
 
     with pytest.raises(ctrl.ControllerException):
-        controller.add_source('_rand_', block.RandomUniform(), ['clock'])
+        controller.add_source('_rand_', blkrnd.RandomUniform(), ['clock'])
 
     controller.set_source('_rand_', 'reset')
 
@@ -160,7 +161,7 @@ def run(controller):
 
     controller.add_signal('_output_')
 
-    controller.add_source('_rand_', block.RandomUniform(), ['_test_'])
+    controller.add_source('_rand_', blkrnd.RandomUniform(), ['_test_'])
     assert '_rand_' in controller.list_sources()
 
     controller.add_filter('_gain_', linear.Gain(gain = 2), 

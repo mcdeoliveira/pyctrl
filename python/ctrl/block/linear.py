@@ -1,6 +1,6 @@
 import numpy
 
-from . import block
+from .. import block
 
 class TFModel:
     """ 
@@ -188,58 +188,96 @@ class PID(TFModel):
 
 # Blocks
 
-class TransferFunction(block.Block):
+class TransferFunction(block.BufferBlock):
 
-    def __init__(self, *vars, **kwargs):
+    def __init__(self, model = TFModel(), *vars, **kwargs):
         """
         Wrapper for TransferFunction as a Block
         """
 
-        self.model = kwargs.pop('model', TFModel())
-        self.output = ()
+        self.model = model
 
         super().__init__(*vars, **kwargs)
+
+    def set(self, key, value):
         
-    def read(self):
+        if key == 'model':
+            self.model = value
+        else:
+            super().set(key, value)
 
-        return self.output
+    def reset(self):
 
+        self.model.set_output(0)
+        
     def write(self, values):
 
-        self.output = (self.model.update(next(values)), )
+        self.buffer = (self.model.update(values[0]), )
 
-class Gain(block.Block):
+class Gain(block.BufferBlock):
 
-    def __init__(self, *vars, **kwargs):
+    def __init__(self, gain = 1, *vars, **kwargs):
 
-        self.gain = kwargs.pop('gain', 1)
-        self.output = ()
+        assert isinstance(gain, (int, float))
+        self.gain = gain
 
         super().__init__(*vars, **kwargs)
     
-    def read(self):
-        return self.output
+    def set(self, key, value):
+        
+        if key == 'gain':
+            self.gain = value
+        else:
+            super().set(key, value)
 
     def write(self, values):
-        self.output = [value*self.gain for value in values]
 
-class ShortCircuit(block.Block):
+        self.buffer = tuple(value*self.gain for value in values)
+
+class ShortCircuit(block.BufferBlock):
+
+    def write(self, values):
+
+        self.buffer = tuple(values)
+
+class Differentiator(block.BufferBlock):
 
     def __init__(self, *vars, **kwargs):
-
-        self.output = ()
+        """Differentiator
+        inputs: clock, signal
+        output: derivative
+        """
+        
+        self.time = -1
+        self.last = ()
 
         super().__init__(*vars, **kwargs)
+
+    def get(self, keys = None):
+
+        # call super
+        return super().get(keys, exclude = ('time','last'))
     
-    def read(self):
-        return self.output
-
     def write(self, values):
-        self.output = values
 
-class Feedback(block.Block):
+        #print('values = {}'.format(values))
 
-    def __init__(self, *vars, **kwargs):
+        t = values[0]
+        x = values[1:]
+        if self.time > 0:
+            dt = t - self.time
+        else:
+            dt = 0
+        
+        if dt > 0:
+            self.time, self.last, self.buffer = t, x, \
+                [(n-o)/dt for n,o in zip(x, self.last)]
+        else:
+            self.time, self.last, self.buffer = t, x, (len(x))*[0.]
+
+class Feedback(block.BufferBlock):
+
+    def __init__(self, block = ShortCircuit(), gamma = 100, *vars, **kwargs):
         """
         Feedback connection:
             u = block (error), 
@@ -248,58 +286,29 @@ class Feedback(block.Block):
         inputs = (y, ref)
         output = (u, )
         """
-        self.gamma = kwargs.pop('gamma', 100)/100
-        self.block = kwargs.pop('block', ShortCircuit())
-        self.output = ()
+        self.block = block
+        self.gamma = gamma/100
 
         super().__init__(*vars, **kwargs)
     
-    def read(self):
-
-        return self.output
+    def set(self, key, value):
+        
+        if key == 'block':
+            self.block = value
+        elif key == 'gamma':
+            self.gamma = value/100
+        else:
+            super().set(key, value)
 
     def write(self, values):
 
-        error = [- next(values) + self.gamma * next(values), ]
-        self.block.write(iter(error))
-        self.output = self.block.read()
-
-class Differentiator(block.Block):
-
-    def __init__(self, *vars, **kwargs):
-        """
-        Differentiator
-        inputs: clock, signal
-        output: derivative"""
+        # write error to block
+        self.block.write((self.gamma * values[1] - values[0], ))
         
-        self.time = -1
-        self.last = ()
-        self.output = ()
+        # then read
+        self.buffer = self.block.read()
 
-        super().__init__(*vars, **kwargs)
-    
-    def read(self):
-
-        return self.output
-
-    def write(self, values):
-
-        #print('values = {}'.format(values))
-
-        t = next(values)
-        x = list(values)
-        if self.time > 0:
-            dt = t - self.time
-        else:
-            dt = 0
-        
-        if dt > 0:
-            self.time, self.last, self.output = t, x, \
-                [(n-o)/dt for n,o in zip(x, self.last)]
-        else:
-            self.time, self.last, self.output = t, x, (len(x))*[0.]
-
-class Sum(block.Block):
+class Sum(block.BufferBlock):
 
     def __init__(self, *vars, **kwargs):
         """
@@ -309,12 +318,9 @@ class Sum(block.Block):
         inputs = u
         output = y
         """
-        self.output = ()
 
         super().__init__(*vars, **kwargs)
     
-    def read(self):
-        return self.output
-
     def write(self, values):
-        self.output = (sum(values), )
+
+        self.buffer = (sum(values), )

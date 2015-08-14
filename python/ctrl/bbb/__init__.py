@@ -3,6 +3,7 @@ import time
 import math
 
 from .. import block
+from .. import block.clock as clock
 import ctrl
 
 import Adafruit_BBIO.GPIO as GPIO
@@ -24,21 +25,13 @@ else:
     import time
     perf_counter = time.perf_counter
 
-class Clock(block.Block):
+class Clock(clock.Clock):
 
     def __init__(self, *vars, **kwargs):
-
-        # set period
-        self.period = kwargs.pop('period')
 
         # call super
         super().__init__(*vars, **kwargs)
         
-        # set time_origin
-        self.time_origin = perf_counter()
-        self.time = self.time_origin
-        self.counter = 0
-
         # ENC1 PINS
         # eQEP2A_in(P8_12)
         # eQEP2B_in(P8_11)
@@ -53,8 +46,8 @@ class Clock(block.Block):
 
     def set_period(self, period):
         
-        # set period
-        self.period = period
+        # call supper
+        super().set_period(period)
 
         # set period on BBB eQEP
         self.eqep2.set_period(int(self.period * 1e9))
@@ -77,47 +70,50 @@ class Clock(block.Block):
         
             # Read clock
             self.time = perf_counter()
+            self.counter += 1
 
         return (self.time - self.time_origin, )
 
-class Encoder(block.Block):
+
+class Encoder(block.BufferBlock):
         
-    def __init__(self, *vars, **kwargs):
+    def __init__(self, clock, gear_ratio = 48 * 98.78, *vars, **kwargs):
 
         # set period
-        self.clock = kwargs.pop('clock')
+        self.clock = clock
 
         # gear ratio
-        self.ratio = kwargs.pop('ratio', 48 * 98.78)
+        self.ratio = ratio
 
         # call super
         super().__init__(*vars, **kwargs)
         
         # output is in cycles/s
-        self.output = (self.clock.encoder1 / self.ratio, )
+        self.buffer = (self.clock.encoder1 / self.ratio, )
 
     def write(self, values):
 
-        self.clock.set_encoder1(int(next(values) * self.ratio))
+        self.clock.set_encoder1(int(values[0] * self.ratio))
 
     def read(self):
 
         #print('> read')
         if self.enabled:
 
-            self.output = (self.clock.get_encoder1() / self.ratio, )
+            self.buffer = (self.clock.get_encoder1() / self.ratio, )
         
-        return self.output
+        return self.buffer
 
-class Potentiometer(block.Block):
+
+class Potentiometer(block.BufferBlock):
         
-    def __init__(self, *vars, **kwargs):
+    def __init__(self, pin = 'AIN0', full_scale = 0.88, *vars, **kwargs):
 
         # set pin
-        self.pin = kwargs.pop('pin', 'AIN0')
+        self.pin = pin
 
         # set full_scale
-        self.full_scale = kwargs.pop('full_scale', 0.88)
+        self.full_scale = full_scale
 
         # call super
         super().__init__(*vars, **kwargs)
@@ -130,11 +126,12 @@ class Potentiometer(block.Block):
         #print('> read')
         if self.enabled:
 
-            self.output = (min(100, 
+            self.buffer = (min(100, 
                                100 * ADC.read(self.pin) / self.full_scale), )
         
-        return self.output
+        return self.buffer
         
+
 class Motor(block.Block):
         
     def __init__(self, *vars, **kwargs):
@@ -167,7 +164,7 @@ class Motor(block.Block):
         #print('> write to motor')
         if self.enabled:
 
-            pwm = next(values)
+            pwm = values[0]
             if pwm >= 0:
 
                 pwm = min(100, pwm)
@@ -182,6 +179,7 @@ class Motor(block.Block):
 
             #print('> pwm = {}'.format(pwm))
             PWM.set_duty_cycle(self.pwm_pin, pwm)
+
         
 class Controller(ctrl.Controller):
 

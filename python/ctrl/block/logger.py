@@ -1,6 +1,6 @@
 import numpy
 
-from . import block
+from .. import block
 
 class Logger(block.Block):
     """Logger(number_of_rows, number_of_columns) implements a logger.

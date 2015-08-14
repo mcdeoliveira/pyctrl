@@ -318,8 +318,8 @@ class Controller:
             fltr = device['block']
             if fltr.is_enabled():
                 # write inputs
-                fltr.write(self.signals[label] 
-                           for label in device['inputs'])
+                fltr.write([self.signals[label] 
+                            for label in device['inputs']])
                 # retrieve outputs
                 self.signals.update(dict(zip(device['outputs'], 
                                              fltr.read())))
@@ -331,11 +331,11 @@ class Controller:
             if sink.is_enabled():
                 # write inputs
                 if device['inputs'] == '*':
-                    sink.write(self.signals.values())
+                    sink.write(list(self.signals.values()))
                 else:
-                    sink.write(self.signals[label] 
-                               for label in device['inputs'])
-            
+                    sink.write([self.signals[label]
+                                for label in device['inputs']])
+                               
     def start(self):
         """Start controller loop
         """
