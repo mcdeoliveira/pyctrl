@@ -31,6 +31,9 @@ class Clock(block.Block):
 
     def reset(self):
 
+        # Make sure time is current
+        self.read()
+
         # reset clock and counter
         self.time_origin = self.time
         self.counter = 0

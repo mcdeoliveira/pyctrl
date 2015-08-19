@@ -13,6 +13,52 @@ def test_local():
     from ctrl import Controller
     run(Controller())
 
+def test_clock():
+
+    from ctrl import Controller
+    from ctrl.block.clock import Clock, TimerClock
+
+    controller = Controller()
+    print(controller.info('all'))
+
+    controller.add_source('clock', Clock(controller.period), ['clock'])
+    K = 10
+    k = 0
+    while k < K:
+        (t,) = controller.read_source('clock')
+        k += 1
+
+    print('t = {}'.format(t))
+    assert t > 0.9 * K * controller.period
+
+    controller.set_source('clock', reset = True)
+
+    (t,) = controller.read_source('clock')
+    print('t = {}'.format(t))
+    assert t < 0.9 * 2 * controller.period
+
+    controller.remove_source('clock')
+
+    clock = TimerClock(controller.period)
+    controller.add_source('clock', clock, ['clock'])
+
+    K = 10
+    k = 0
+    while k < K:
+        (t,) = controller.read_source('clock')
+        k += 1
+
+    print('t = {}'.format(t))
+    assert t > 0.9 * K * controller.period
+
+    controller.set_source('clock', reset = True)
+
+    (t,) = controller.read_source('clock')
+    print('t = {}'.format(t))
+    assert t < 0.9 * 2 * controller.period
+
+    clock.set_enabled(False)
+
 def test_client_server():
 
     import ctrl.client
@@ -190,4 +236,7 @@ if __name__ == "__main__":
 
     print('> Client-Server')
     test_client_server()
+
+    print('> Clock')
+    test_clock()
 
