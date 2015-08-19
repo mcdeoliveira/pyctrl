@@ -10,6 +10,7 @@ if __name__ == "__main__":
 import ctrl
 import ctrl.block.clock as clock
 import ctrl.block.linear as linear
+import ctrl.system.tf as tf
 
 class Controller(ctrl.Controller):
     """Controller(a, k) implements a simulated controlled.
@@ -93,7 +94,7 @@ class Controller(ctrl.Controller):
 
         # add filter: model
         self.model3 = linear.TransferFunction(model = \
-                linear.TFModel(
+                tf.DTTF(
                     numpy.array((0, (k*Ts)*(1-c)/2, (k*Ts)*(1-c)/2)), 
                     numpy.array((1, -(1 + c), c))))
         self.add_filter('model1', self.model3, 
@@ -223,7 +224,7 @@ if __name__ == "__main__":
     Ki = a/k
     controller.remove_filter('controller1') 
     pi = linear.TransferFunction(model = \
-                                 linear.PID(Kp = Kp, Ki = Ki, period = controller.period))
+                                 tf.PID(Kp = Kp, Ki = Ki, period = controller.period))
     controller.add_filter('controller1', 
                           linear.Feedback(gamma = vmax, block = pi),
                           ['velocity1', 'reference1'], ['motor1'])
