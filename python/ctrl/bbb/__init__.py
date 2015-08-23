@@ -80,6 +80,7 @@ class Encoder(block.BufferBlock):
     def __init__(self, clock, gear_ratio = 48 * 98.78, *vars, **kwargs):
 
         # set period
+        assert isinstance(clock, Clock)
         self.clock = clock
 
         # gear ratio
@@ -90,6 +91,13 @@ class Encoder(block.BufferBlock):
         
         # output is in cycles/s
         self.buffer = (self.clock.encoder1 / self.ratio, )
+
+    def set(self, **kwargs):
+        
+        if 'ratio' in kwargs:
+            self.ratio = kwargs.pop('ratio')
+
+        super().set(**kwargs)
 
     def write(self, values):
 
@@ -121,6 +129,13 @@ class Potentiometer(block.BufferBlock):
         # initialize adc
         ADC.setup()
         
+    def set(self, **kwargs):
+        
+        if 'full_scale' in kwargs:
+            self.full_scale = kwargs.pop('full_scale')
+
+        super().set(**kwargs)
+
     def read(self):
 
         #print('> read')
@@ -130,8 +145,8 @@ class Potentiometer(block.BufferBlock):
                                100 * ADC.read(self.pin) / self.full_scale), )
         
         return self.buffer
-        
 
+        
 class Motor(block.Block):
         
     def __init__(self, *vars, **kwargs):

@@ -216,6 +216,14 @@ class Inclinometer(Accelerometer):
         # call super
         super().__init__(*vars, **kwargs)
 
+    def set(self, **kwargs):
+        
+        if 'zero' in kwargs:
+            self.zero = kwargs.pop('zero')
+
+        super().set(**kwargs)
+
+
     def read(self):
 
         (x, y, z) = super().read()
