@@ -2,6 +2,7 @@ import numpy
 
 from .. import block
 from ctrl.system.tf import DTTF
+from ctrl.system.ss import DTSS
 
 # Blocks
 
@@ -9,10 +10,11 @@ class TransferFunction(block.BufferBlock):
 
     def __init__(self, model = DTTF(), *vars, **kwargs):
         """
-        Wrapper for TransferFunction as a Block
+        Wrapper for transfer-function model as a Block
         """
 
         self.model = model
+        assert isinstance(self.model, DTTF)
 
         super().__init__(*vars, **kwargs)
 
@@ -20,6 +22,7 @@ class TransferFunction(block.BufferBlock):
         
         if 'model' in kwargs:
             self.model = kwargs.pop('model')
+            assert isinstance(self.model, DTTF)
 
         super().set(**kwargs)
 
@@ -30,6 +33,38 @@ class TransferFunction(block.BufferBlock):
     def write(self, values):
 
         self.buffer = (self.model.update(values[0]), )
+
+class StateSpace(block.BufferBlock):
+
+    def __init__(self, model = DTSS(), *vars, **kwargs):
+        """
+        Wrapper for state-space model as a Block
+        """
+
+        self.model = model
+        assert isinstance(self.model, DTSS)
+
+        super().__init__(*vars, **kwargs)
+
+    def set(self, **kwargs):
+        
+        if 'model' in kwargs:
+            self.model = kwargs.pop('model')
+            assert isinstance(self.model, DTSS)
+
+        super().set(**kwargs)
+
+    def reset(self):
+
+        self.model.state *= 0
+        
+    def write(self, values):
+
+        # convert input to array
+        uk = numpy.array([values]).transpose()
+        # convert output to list
+        yk = self.model.update(uk)[:,0]
+        self.buffer = yk.tolist()
 
 class Gain(block.BufferBlock):
 
