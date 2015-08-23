@@ -149,6 +149,19 @@ def test3():
     assert np.all(sys.den == den2)
     assert sys.state.size == 1
 
+    # inproper
+    # G(z) = z^2 / (z - 1) = 1 /(q - q^2)
+    num1 = np.array([0, 0, 1])
+    den1 = np.array([-1, 1])
+    with pytest.raises(system.SysException):
+        sys = tf.zDTTF(num1, den1)
+
+    # G(z) = z^2 / (z - 1) = 1 /(q - q^2)
+    num1 = np.array([0, 0, 1])
+    den1 = np.array([-1, 1, 0])
+    with pytest.raises(system.SysException):
+        sys = tf.zDTTF(num1, den1)
+
     # G(z) = (z + 2)/(z - 1) = (1 + 2 q) / (1 - q)
     num1 = np.array([2, 1])
     den1 = np.array([-1, 1])
