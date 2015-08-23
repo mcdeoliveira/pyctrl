@@ -1,0 +1,2 @@
+class SysException(Exception):
+    pass
