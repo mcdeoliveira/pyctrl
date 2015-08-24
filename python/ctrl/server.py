@@ -53,6 +53,8 @@ def set_controller(_controller = ctrl.Controller()):
 
         'B': ('S',  'S', controller.info,
               'Controller info'),
+        'Z': ('',  '', controller.reset,
+              'Reset controller'),
 
         'C': ('S', '', controller.add_signal,
               'Add signal'),

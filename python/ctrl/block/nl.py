@@ -42,10 +42,12 @@ class DeadZone(block.BufferBlock):
         b = 100 * (self.Y - self.X) / (100 - self.X)
         if self.X != 0:
             c = self.Y / self.X
+        elif self.X == self.Y:
+            c = 1
         else:
             c = numpy.nan
         self._pars = (a,b,c)
-    
+
     def get(self, keys = None):
 
         # call super

@@ -94,6 +94,12 @@ def run(controller):
     import ctrl.block.linear as linear
     import ctrl.block.random as blkrnd
 
+    # initial signals
+    _signals = controller.list_signals()
+    _sinks = controller.list_sinks()
+    _sources = controller.list_sources()
+    _filters = controller.list_filters()
+
     # period
     assert controller.get_period() == 0.01 # default
     controller.set_period(0.1)
@@ -228,6 +234,26 @@ def run(controller):
     assert log.shape[1] == 2
 
     assert numpy.all(numpy.fabs(log[:,1] / log[:,0] - 2) < 1e-6)
+
+    # test reset
+    signals = controller.list_signals()
+    sinks = controller.list_sinks()
+    sources = controller.list_sources()
+    filters = controller.list_filters()
+    print(signals, sources, filters, sinks)
+
+    controller.reset()
+
+    signals = controller.list_signals()
+    sinks = controller.list_sinks()
+    sources = controller.list_sources()
+    filters = controller.list_filters()
+    print(signals, sources, filters, sinks)
+
+    assert signals == _signals
+    assert sources == _sources
+    assert filters == _filters
+    assert sinks == _sinks
 
 if __name__ == "__main__":
 

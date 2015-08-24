@@ -18,6 +18,11 @@ class Controller:
         self.period = period
         self.is_running = False
 
+        # call __reset
+        self.__reset()
+
+    def __reset(self):
+
         # signals
         self.signals = { 'clock': 0 }
 
@@ -45,6 +50,15 @@ class Controller:
 
     def get_period(self):
         return self.period
+
+    # reset
+    def reset(self):
+
+        # call stop
+        self.stop()
+
+        # call __reset
+        self.__reset()
 
     # info
     def info(self, options = 'summary'):
@@ -148,7 +162,7 @@ class Controller:
         return self.signals[label]
 
     def list_signals(self):
-        return self.signals.keys()
+        return list(self.signals.keys())
 
     # sources
     def add_source(self, label, source, signals):
@@ -186,7 +200,7 @@ class Controller:
         self.sources[label]['block'].write(values)
 
     def list_sources(self):
-        return self.sources.keys()
+        return list(self.sources.keys())
 
 
     # sinks
@@ -225,7 +239,7 @@ class Controller:
         self.sinks[label]['block'].write(values)
 
     def list_sinks(self):
-        return self.sinks.keys()
+        return list(self.sinks.keys())
 
     # filters
     def add_filter(self, label, 
@@ -271,7 +285,7 @@ class Controller:
         self.filters[label]['block'].write(values)
 
     def list_filters(self):
-        return self.filters.keys()
+        return list(self.filters.keys())
 
     # clock
 

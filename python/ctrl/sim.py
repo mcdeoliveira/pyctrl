@@ -10,6 +10,7 @@ if __name__ == "__main__":
 import ctrl
 import ctrl.block.clock as clock
 import ctrl.block.linear as linear
+import ctrl.block.nl as nl
 import ctrl.system.tf as tf
 
 class Controller(ctrl.Controller):
@@ -74,14 +75,17 @@ class Controller(ctrl.Controller):
     def __init__(self, *vargs, **kwargs):
 
         # Model parameters
-        a = kwargs.pop('a', 17)   # 1/s
-        k = kwargs.pop('k', 0.11) # cycles/s duty
+        self.a = kwargs.pop('a', 17)   # 1/s
+        self.k = kwargs.pop('k', 0.11) # cycles/s duty
+        self.X = kwargs.pop('X', 10)   # deadzone
 
         # Initialize controller
         super().__init__(*vargs, **kwargs)
-        
-        Ts = self.period
-        c = math.exp(-a * Ts)  # adimensional
+
+    def __reset(self):
+
+        # call super
+        super().__reset()
 
         # add source: clock
         self.clock = clock.TimerClock(self.period)
@@ -90,15 +94,21 @@ class Controller(ctrl.Controller):
         self.time_origin = self.clock.time_origin
 
         # add signals
-        self.add_signals('motor1', 'encoder1', 'pot1')
+        self.add_signals('motor1', 'encoder1', 'pot1', 'input1')
+
+        # add filter: deadzone
+        self.add_filter('dz1', nl.DeadZone(self.X), 
+                        ['motor1'], ['input1'])
 
         # add filter: model
+        Ts = self.period
+        c = math.exp(-self.a * Ts)
         self.model3 = linear.TransferFunction(model = \
                 tf.DTTF(
-                    numpy.array((0, (k*Ts)*(1-c)/2, (k*Ts)*(1-c)/2)), 
+                    numpy.array((0, (self.k*Ts)*(1-c)/2, (self.k*Ts)*(1-c)/2)), 
                     numpy.array((1, -(1 + c), c))))
         self.add_filter('model1', self.model3, 
-                        ['motor1'], ['encoder1'])
+                        ['input1'], ['encoder1'])
 
     def start(self):
         self.clock.set_enabled(True)
@@ -119,7 +129,7 @@ if __name__ == "__main__":
     k = 0.11 # cycles/s duty
     controller = sim.Controller(a = a, k = k)
     controller.add_sink('printer', block.Printer(endln = '\r'), 
-                        ['clock', 'motor1', 'encoder1'])
+                        ['clock', 'motor1', 'input1', 'encoder1'])
 
     print(controller.info('all'))
 

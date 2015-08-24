@@ -16,6 +16,11 @@ def test1():
     assert blk.X == 10
     assert blk._pars == (1,0,1)
 
+    blk = nonlinear.DeadZone(0, 0)
+    assert blk.Y == 0
+    assert blk.X == 0
+    assert blk._pars == (1,0,1)
+
     blk = nonlinear.DeadZone(0, 50)
     assert blk.Y == 50
     assert blk.X == 0

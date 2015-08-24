@@ -6,25 +6,35 @@ import platform, sys
 # Are we on the beaglebone?
 if 'bone' in platform.uname()[2]:
     from ctrl.bbb import Controller
-    import Adafruit_BBIO.ADC as ADC
     simulated = False
 else:
     from ctrl.sim import Controller
     simulated = True
 
-controller = Controller(period = 0.01)
+import ctrl.block as block
+import ctrl.block.logger as logger
 
-controller.set_echo(1)
-controller.set_logger(2)
+# initialize controller
+controller = Controller(period = 0.01)
+controller.add_sink('logger', 
+                    logger.Logger(), 
+                    ['clock','encoder1'])
+controller.add_sink('printer', block.Printer(endln = '\r'), 
+                    ['clock', 'motor1', 'encoder1'])
+    
+print(controller.info('all'))
+
+# define tests
 
 def test(k, args, query_msg, failed_msg, test_function):
-    print('> TEST #{}'.format(k))
+    print('\n> TEST #{}'.format(k))
     passed, retval = test_function(args)
     if not passed:
         print("> Failed test #{}: {}".format(k, retval))
         sys.exit(2)
+    time.sleep(.1)
     if query_msg:
-        answer = input('< ' + query_msg + ' [Y/n]').lower()
+        answer = input('\n< ' + query_msg + ' [Y/n]').lower()
         if 'n' in answer:
             print("> Failed test #{}: {}".format(k, failed_msg))
             sys.exit(2)
@@ -33,52 +43,68 @@ def test(k, args, query_msg, failed_msg, test_function):
 def test_motor_forward(args):
 
     with controller:
-        t, position1 = controller.get_encoder1()
-        controller.set_reference1(100)
+        position1 = controller.get_signal('encoder1')
+        controller.set_signal('motor1',100)
         time.sleep(2)
-        t, position2 = controller.get_encoder1()
+        position2 = controller.get_signal('encoder1')
     return True, (position1, position2)
 
 def test_encoder(args):
 
     position1, position2 = args[0], args[1]
     if position2 == position1:
-        return (False, 'encoder1 not working')
+        return False, 'encoder1 not working'
     elif position2 < position1:
-        return (False, 'encoder1 reading reversed')
-    return (True, [])
+        return False, 'encoder1 reading reversed'
+    return True, []
+
+def test_reset_clock(args):
+
+    t1 = controller.get_signal('clock')
+    controller.set_source('clock', reset = True)
+    with controller:
+        time.sleep(.1)
+    t2 = controller.get_signal('clock')
+    if t2 > t1:
+        return False, 'clock did not reset ({} > {})'.format(t2,t1)
+    return True, []
 
 def test_motor_backward(args):
 
     with controller:
-        t, position1 = controller.get_encoder1()
-        controller.set_reference1(-100)
+        controller.set_source('clock', reset = True)
+        position1 = controller.get_signal('encoder1')
+        controller.set_signal('motor1',-100)
         time.sleep(2)
-        t, position2 = controller.get_encoder1()
+        position2 = controller.get_signal('encoder1')
     return True, (position1, position2)
 
 def test_motor_speeds(args):
 
     with controller:
-        controller.set_reference1(100)
+        controller.set_source('clock', reset = True)
+        controller.set_signal('motor1',100)
         time.sleep(1)
-        controller.set_reference1(50)
-        time.sleep(2)
-    return (True, [])
+        controller.set_signal('motor1',50)
+        time.sleep(1)
+    return True, []
 
 def test_reset_encoder(args):
 
     with controller:
-        controller.set_reference1(0)
+        controller.set_signal('motor1',0)
         time.sleep(10*controller.period) # sleep to make sure it is stoped
-        t, position1 = controller.get_encoder1()
-        controller.set_encoder1(0)
+        position1 = controller.get_signal('encoder1')
+        if not simulated:
+            controller.set_source('encoder1', reset = True)
+        else:
+            controller.set_filter('model1', reset = True)
         time.sleep(10*controller.period) # sleep to make sure it did not move
-        t, position2 = controller.get_encoder1()
+        position2 = controller.get_signal('encoder1')
 
     if position2 != 0:
-        return (False, 'could not reset encoder1')
-    return (True, [position1, position2])
+        return False, 'could not reset encoder1'
+    return True, [position1, position2]
 
 def test_potentiometer(args):
     
@@ -111,7 +137,7 @@ def test_potentiometer(args):
     if pot_max < 100 - TOL:
         return (False, 'potentiometer did not reach maximum')
 
-    return (True, [pot_min, pot_max])
+    return True, [pot_min, pot_max]
 
 def main():
 
@@ -119,39 +145,45 @@ def main():
 
     k = 1
     position1, position2 \
-        = test(k, (),
+        = test('{}: MOTOR FORWARD'.format(k), (),
                'Did the motor spin clockwise for two seconds?', 
                'motor1 not working',
                test_motor_forward)
   
     k += 1
-    test(k, (position1, position2),
+    test('{}: ENCODER FORWARD'.format(k), (position1, position2),
          '',
          '',
          test_encoder)
 
     k += 1
+    test('{}: CLOCK RESET'.format(k), (), 
+         '',
+         '',
+         test_reset_clock)
+
+    k += 1
     position1, position2 \
-        = test(k, (),
+        = test('{}: MOTOR BACKWARD'.format(k), (),
                'Did the motor spin counter-clockwise for two seconds?', 
                'motor1 not working',
                test_motor_backward)
 
     k += 1
-    test(k, (position2, position1),
+    test('{}: ENCODER BACKWARD'.format(k), (position2, position1),
          '',
          '',
          test_encoder)
 
     k += 1
-    test(k, (),
+    test('{}: MOTOR TWO SPEEDS'.format(k), (),
          'Did the motor spin at full speed then slowed down to half speed?', 
          'motor1 not working',
          test_motor_speeds)
 
     k += 1
     position1, position2 \
-        = test(k, (),
+        = test('{}: ENCODER RESET'.format(k), (),
                '', 
                '',
                test_reset_encoder)
@@ -159,7 +191,7 @@ def main():
     if not simulated:
         k += 1
         position1, position2 \
-            = test(k, (),
+            = test('{}: POTENTIOMETER RANGE'.format(k), (),
                    '', 
                    '',
                    test_potentiometer)
@@ -167,15 +199,20 @@ def main():
     # Identify motor
     print('> Identifying motor parameters...')
     with controller:
-        controller.set_reference1(0)
-        controller.set_encoder1(0)
-        controller.set_logger(10)
+        controller.set_signal('motor1',0)
+        if not simulated:
+            controller.set_source('encoder1', reset = True)
+        else:
+            controller.set_filter('model1', reset = True)
+
+        controller.set_sink('logger', reset = True)
+        controller.set_source('clock', reset = True)
         time.sleep(1)
-        controller.set_reference1(100)
+        controller.set_signal('motor1',100)
         time.sleep(5)
         
         Ts = controller.get_period()
-        log = controller.get_log()
+        log = controller.read_sink('logger')
         t = log[:,0]
         position = log[:,1]
         velocity = numpy.zeros(t.shape, float)

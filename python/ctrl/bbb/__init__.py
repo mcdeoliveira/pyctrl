@@ -203,6 +203,11 @@ class Controller(ctrl.Controller):
         # Initialize controller
         super().__init__(*vargs, **kwargs)
 
+    def __reset(self):
+
+        # call super
+        super().__reset()
+
         # add source: clock
         self.clock = Clock(period = self.period)
         self.add_source('clock', self.clock, ['clock'])
@@ -235,7 +240,6 @@ class Controller(ctrl.Controller):
 
         # then disable motor
         self.motor1.set_enabled(False)
-
 
     def start(self):
 

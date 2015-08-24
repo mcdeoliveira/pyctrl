@@ -137,8 +137,12 @@ class Accelerometer(block.Block):
         # Set sensitivity
         self.i2c.write8(ACCEL_CONFIG, self.accel_sensitivity)
 
-        if not self.giro_enabled:
+        if self.giro_enabled:
 
+            # TO DO: Configure giroscope
+
+        else:
+            
             # Disable giroscope
             self.i2c.write8(PWR_MGMT_2, STDB_XG + STDB_YG + STDB_ZG)
 

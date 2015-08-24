@@ -131,6 +131,9 @@ class Controller(ctrl.Controller):
     def info(self, options = 'summary'):
         return self.send('B', 'S', options)
 
+    def reset(self):
+        return self.send('Z')
+
     # signals
     def add_signal(self, label):
         self.send('C', 'S', label)
