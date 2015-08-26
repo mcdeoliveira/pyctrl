@@ -252,13 +252,13 @@ if __name__ == "__main__":
         # read accelerometer
         (x, y, z) = accel.read()
 
-        print('> (x, y, z) = ({:5.3f}, {:5.3f}, {:5.3f})g'.format(x, y, z))
+        print('\r> (x, y, z) = ({:5.3f}, {:5.3f}, {:5.3f})g'.format(x, y, z), end='')
 
         time.sleep(T)
         k += 1
 
     K = 100
-    print("> Testing inclinometer")
+    print("\n> Testing inclinometer")
 
     accel = Inclinometer()
 
@@ -267,7 +267,7 @@ if __name__ == "__main__":
 
         # read inclinometer
         (theta, ) = accel.read()
-        print('> theta = {:5.3f}deg'.format(360*theta))
+        print('\r> theta = {:5.3f}deg'.format(360*theta), end='')
 
         time.sleep(T)
         k += 1
