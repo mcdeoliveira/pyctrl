@@ -77,7 +77,7 @@ class Clock(clock.Clock):
 
 class Encoder(block.BufferBlock):
         
-    def __init__(self, clock, ratio = 48 * 98.78, *vars, **kwargs):
+    def __init__(self, clock, ratio = 48 * 172, *vars, **kwargs):
 
         # set period
         assert isinstance(clock, Clock)

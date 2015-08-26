@@ -1,7 +1,7 @@
 import time
 import math
 import numpy
-import platform, sys
+import platform, sys, select
 
 # Are we on the beaglebone?
 if 'bone' in platform.uname()[2]:
@@ -62,6 +62,7 @@ def test_reset_clock(args):
 
     t1 = controller.get_signal('clock')
     controller.set_source('clock', reset = True)
+    controller.set_signal('motor1',0)
     with controller:
         time.sleep(.1)
     t2 = controller.get_signal('clock')
@@ -103,7 +104,7 @@ def test_reset_encoder(args):
         position2 = controller.get_signal('encoder1')
 
     if position2 != 0:
-        return False, 'could not reset encoder1'
+        return False, 'could not reset encoder1 ({} != 0)'.format(position2)
     return True, [position1, position2]
 
 def test_potentiometer(args):
@@ -111,33 +112,85 @@ def test_potentiometer(args):
     # Calibrate potentiometer
     KMAX = 600 
     TOL = 2
-    print("> Set the potentiometer to the minimum position\n") 
+    #controller.get_source('pot1', ['full_scale', 'invert'])
+    controller.set_source('pot1', full_scale = 1, invert = False)
+    inverted = False
+    full_scale = 100
+    print("> Set the potentiometer to the minimum position and hit <ENTER>") 
     k = 0
-    pot_min = 100
-    while pot_min > TOL and k < KMAX:
-        pot_min = 100 - min(100, 100 * ADC.read("AIN0") / 0.88)
+    while k < KMAX:
+        pot_min, = controller.read_source('pot1')
+        print('\r  reading = {:4.1f}'.format(pot_min), end='')
         time.sleep(.1)
-        print('\r> minimum = {:4.1f}'.format(pot_min), end='')
+        if select.select([sys.stdin], [], [], 0)[0]:
+            line = sys.stdin.readline()
+            if pot_min > TOL:
+                inverted = True
+                full_scale = pot_min
+            break
         k += 1
-    print()
 
-    if pot_min > TOL:
-        return (False, 'potentiometer did not reach minimum')
+    #if pot_min > TOL:
+    #    return (False, 'potentiometer did not reach minimum')
 
-    print("\n> Set the potentiometer to the maximum position\n") 
+    print("\n> Set the potentiometer to the maximum position and hit <ENTER>") 
     k = 0
     pot_max = 0
-    while pot_max < 100 - TOL and k < KMAX:
-        pot_max = 100 - min(100, 100 * ADC.read("AIN0") / 0.88)
+    while k < KMAX:
+        pot_max, = controller.read_source('pot1')
+        print('\r  reading = {:4.1f}'.format(pot_max), end='')
         time.sleep(.1)
-        print('\r> maximum = {:4.1f}'.format(pot_max), end='')
+        if select.select([sys.stdin], [], [], 0)[0]:
+            line = sys.stdin.readline()
+            if pot_max > TOL:
+                inverted = False
+                full_scale = pot_max
+            break
         k += 1
-    print()
 
-    if pot_max < 100 - TOL:
-        return (False, 'potentiometer did not reach maximum')
+    #if pot_max < 100 - TOL:
+    #    return (False, 'potentiometer did not reach maximum')
+
+    if inverted:
+        print('> Potentiometer is INVERTED')
+    else:
+        print('> Potentiometer IS NOT inverted')
+    print('> Full scale is {}'.format(full_scale))
 
     return True, [pot_min, pot_max]
+
+def test_inclinometer(args):
+
+    KMAX = 600 
+    #controller.get_source('pot1', ['full_scale', 'invert'])
+    controller.set_source('inclinometer1', zero = 0)
+    print("> Orient the inclinometer at 0deg and hit <ENTER>") 
+    k = 0
+    while k < KMAX:
+        incl_0, = controller.read_source('inclinometer1')
+        print('\r  reading = {:4.1f}'.format(360*incl_0), end='')
+        time.sleep(.1)
+        if select.select([sys.stdin], [], [], 0)[0]:
+            line = sys.stdin.readline()
+            break
+        k += 1
+
+    print("\n> Orient the inclinometer at 90deg and hit <ENTER>") 
+    k = 0
+    pot_max = 0
+    while k < KMAX:
+        incl_90, = controller.read_source('inclinometer1')
+        print('\r  reading = {:4.1f}'.format(360*incl_90), end='')
+        time.sleep(.1)
+        if select.select([sys.stdin], [], [], 0)[0]:
+            line = sys.stdin.readline()
+            break
+        k += 1
+
+    #if pot_max < 100 - TOL:
+    #    return (False, 'potentiometer did not reach maximum')
+
+    return True, [incl_0, incl_90]
 
 def main():
 
@@ -187,14 +240,23 @@ def main():
                '', 
                '',
                test_reset_encoder)
-
-    if not simulated:
+        
+    
+        
+    if 'pot1' in controller.list_sources():
         k += 1
         position1, position2 \
             = test('{}: POTENTIOMETER RANGE'.format(k), (),
                    '', 
                    '',
                    test_potentiometer)
+
+    if 'inclinometer1' in controller.list_sources():
+        k += 1
+        test('{}: INCLINOMETER'.format(k), (),
+             '', 
+             '',
+             test_inclinometer)
 
     # Identify motor
     print('> Identifying motor parameters...')
