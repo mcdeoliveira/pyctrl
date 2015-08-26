@@ -140,6 +140,7 @@ class Accelerometer(block.Block):
         if self.giro_enabled:
 
             # TO DO: Configure giroscope
+            pass
 
         else:
             
@@ -226,7 +227,6 @@ class Inclinometer(Accelerometer):
             self.zero = kwargs.pop('zero')
 
         super().set(**kwargs)
-
 
     def read(self):
 

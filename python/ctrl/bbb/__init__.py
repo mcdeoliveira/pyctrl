@@ -3,7 +3,7 @@ import time
 import math
 
 from .. import block
-from .. import block.clock as clock
+from ..block import clock
 import ctrl
 
 import Adafruit_BBIO.GPIO as GPIO
@@ -77,7 +77,7 @@ class Clock(clock.Clock):
 
 class Encoder(block.BufferBlock):
         
-    def __init__(self, clock, gear_ratio = 48 * 98.78, *vars, **kwargs):
+    def __init__(self, clock, ratio = 48 * 98.78, *vars, **kwargs):
 
         # set period
         assert isinstance(clock, Clock)
@@ -99,6 +99,10 @@ class Encoder(block.BufferBlock):
 
         super().set(**kwargs)
 
+    def reset(self):
+
+        self.clock.set_encoder1(0)
+
     def write(self, values):
 
         self.clock.set_encoder1(int(values[0] * self.ratio))
@@ -115,13 +119,20 @@ class Encoder(block.BufferBlock):
 
 class Potentiometer(block.BufferBlock):
         
-    def __init__(self, pin = 'AIN0', full_scale = 0.88, *vars, **kwargs):
+    def __init__(self, 
+                 pin = 'AIN0', 
+                 full_scale = 0.85, 
+                 invert = True,
+                 *vars, **kwargs):
 
         # set pin
         self.pin = pin
 
         # set full_scale
         self.full_scale = full_scale
+
+        # set invert
+        self.invert = invert
 
         # call super
         super().__init__(*vars, **kwargs)
@@ -134,6 +145,9 @@ class Potentiometer(block.BufferBlock):
         if 'full_scale' in kwargs:
             self.full_scale = kwargs.pop('full_scale')
 
+        if 'invert' in kwargs:
+            self.invert = kwargs.pop('invert')
+
         super().set(**kwargs)
 
     def read(self):
@@ -141,8 +155,15 @@ class Potentiometer(block.BufferBlock):
         #print('> read')
         if self.enabled:
 
-            self.buffer = (min(100, 
-                               100 * ADC.read(self.pin) / self.full_scale), )
+            # read analog pin
+            measure = min(100, 
+                          100 * ADC.read(self.pin) / self.full_scale)
+
+            # invert?
+            if self.invert:
+                measure = 100 - measure
+
+            self.buffer = (measure, )
         
         return self.buffer
 
@@ -170,8 +191,11 @@ class Motor(block.Block):
         super().set_enabled(enabled)
 
         if not enabled:
-            
-            # write 0 to motor
+
+            # wait
+            time.sleep(0.1)
+
+            # and write 0 to motor
             PWM.set_duty_cycle(self.pwm_pin, 0)
 
     def write(self, values):
@@ -227,7 +251,7 @@ class Controller(ctrl.Controller):
 
         # add source: incl1
         self.incl = mpu6050.Inclinometer()
-        self.add_source('theta', self.incl, ['theta']) 
+        self.add_source('inclinometer1', self.incl, ['theta']) 
 
         # add sink: motor1
         self.motor1 = Motor()
