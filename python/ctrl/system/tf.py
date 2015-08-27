@@ -251,6 +251,7 @@ class PID(DTTF):
             
         super().__init__(num, den, state)
 
+import math
 
 class LPF(DTTF):
     """LPF(fc, order = 1) implements a low pass-filter base on DTTF.
