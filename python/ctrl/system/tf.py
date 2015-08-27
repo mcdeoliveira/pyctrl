@@ -251,3 +251,25 @@ class PID(DTTF):
             
         super().__init__(num, den, state)
 
+
+class LPF(DTTF):
+    """LPF(fc, order = 1) implements a low pass-filter base on DTTF.
+    """
+
+    def __init__(self, fc, period = 0, order = 1):
+
+        if order != 1:
+            raise Exception('Not implemented yet')
+
+        assert period > 0
+
+        # LPF order 1
+        # wc = 2 pi fc
+        # T(s) = wc / (s + wc)
+        # T(z) = wc Ts z / (z - e^{-wc Ts}) = wc Ts / (1 - q e^{-wc * Ts})
+        
+        wc = 2 * math.pi * fc
+        num = numpy.array([wc * period ])
+        den = numpy.array([1, -math.exp(-wc * period)])
+            
+        super().__init__(num, den)
