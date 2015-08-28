@@ -218,8 +218,19 @@ class Inclinometer(Accelerometer):
         # zero: location of the zero angle
         self.zero = kwargs.pop('zero', 0)
 
+        self.turns = 0
+        self.quadrant = 0
+
         # call super
         super().__init__(*vars, **kwargs)
+
+    def reset(self):
+
+        # call super
+        super().reset()
+
+        self.turns = 0
+        self.quadrant = 0
 
     def set(self, **kwargs):
         
@@ -230,10 +241,40 @@ class Inclinometer(Accelerometer):
 
     def read(self):
 
+        # read accelerometer
         (x, y, z) = super().read()
+
+        # calculate angle
         theta = math.atan2(y, x) / (2 * math.pi)
 
-        return (theta, )
+        # calculate quadrant
+        if x >= 0:
+            if y >= 0:
+                quadrant = 1
+            else:
+                quadrant = 4
+        elif y >= 0:
+            quadrant = 2
+        else:
+            quadrant = 3
+
+        if not self.quadrant:
+            self.quadrant = quadrant
+
+        else:
+
+            if quadrant == 3 and self.quadrant == 2:
+                self.turns += 1
+            elif quadrant == 2 and self.quadrant == 3:
+                self.turns -= 1
+
+        #print('quadrant = {}, last = {}, turns = {}'.format(quadrant,
+        #                                                    self.quadrant,
+        #                                                    self.turns))
+
+        self.quadrant = quadrant
+
+        return (self.turns + theta, )
 
 if __name__ == "__main__":
 
