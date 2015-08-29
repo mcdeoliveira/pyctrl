@@ -250,8 +250,12 @@ class Controller(ctrl.Controller):
         self.add_source('pot1', self.pot1, ['pot1'])
 
         # add source: incl1
+        self.incl = mpu6050.Inclinometer()
         try:
-            self.incl = mpu6050.Inclinometer()
+            # Try to read
+            self.incl.read()
+
+            # And add if no exceptions
             self.add_source('inclinometer1', self.incl, ['theta']) 
         except:
             self.incl = None
