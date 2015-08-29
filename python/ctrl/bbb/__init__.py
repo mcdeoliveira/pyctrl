@@ -239,7 +239,7 @@ class Controller(ctrl.Controller):
         self.time_origin = self.clock.time_origin
 
         # add signals
-        self.add_signals('motor1', 'encoder1', 'pot1', 'theta')
+        self.add_signals('motor1', 'encoder1', 'pot1')
 
         # add source: encoder1
         self.encoder1 = Encoder(clock = self.clock)
@@ -257,6 +257,7 @@ class Controller(ctrl.Controller):
 
             # And add if no exceptions
             self.add_source('inclinometer1', self.incl, ['theta']) 
+            self.add_signal('theta')
         except:
             self.incl = None
 
