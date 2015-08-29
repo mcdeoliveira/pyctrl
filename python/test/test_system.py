@@ -3,12 +3,14 @@ sys.path.append('..')
 
 import pytest
 
+import math
 import numpy as np
 import ctrl.block as block
 import ctrl.block.linear as linear
 import ctrl.system as system
 import ctrl.system.tf as tf
 import ctrl.system.ss as ss
+import ctrl.system.ode as ode
 
 def test1():
 
@@ -526,8 +528,162 @@ def test3():
     assert np.all(sys.state == np.array([[10],[-15]]))
     assert isinstance(y2, np.ndarray) and np.all(y2 == np.array([[-15],[8]]))
 
+def test4(oode = ode.ODE):
+
+    # \dot{x} = 1
+
+    def f(x, *pars):
+        return np.array([1])
+    
+    sys = oode(f, period = 1)
+
+    yk = sys.update(0)
+    #print(yk)
+    assert np.abs(yk - np.array([1.])) < 1e-4
+
+    yk = sys.update(0)
+    assert np.abs(yk - np.array([2.])) < 1e-4
+
+    sys = oode(f, period = .1)
+
+    yk = sys.update(0)
+    assert np.abs(yk - np.array([.1])) < 1e-4
+    
+    yk = sys.update(0)
+    assert np.abs(yk - np.array([.2])) < 1e-4
+
+    sys = oode(f, period = 1, pars = (3,))
+
+    yk = sys.update(-1)
+    assert np.abs(yk - np.array([1.])) < 1e-4
+
+    # \dot{x} = u
+    def f(x, u, *pars):
+        #print('x = {}, u = {}, pars = {}'.format(x, u, pars))
+        return u
+    
+    sys = oode(f, period = 1)
+
+    yk = sys.update(0)
+    assert np.abs(yk - np.array([0.])) < 1e-4
+
+    yk = sys.update(1)
+    assert np.abs(yk - np.array([1.])) < 1e-4
+
+    sys = oode(f, period = .1)
+
+    yk = sys.update(2)
+    assert np.abs(yk - np.array([.2])) < 1e-4
+
+    yk = sys.update(-2)
+    assert np.abs(yk - np.array([0])) < 1e-4
+
+    # \dot{x} = -a * x + a * u
+    def F(x, u, a):
+        return -a * x + a * u
+
+    a = 2
+    x0 = -1.5
+    t = 1
+    sys = oode(f = F, period = t, x0 = x0, pars = (a,))
+
+    yk = sys.update(0)
+    assert np.abs(yk - np.array([x0 * math.exp(-a)])) < 1e-4
+
+    x0 = -1.5
+    t = 2
+    sys = oode(f = F, period = t, x0 = x0, pars = (a,))
+
+    u = 3
+    yk = sys.update(u)
+    #print(yk)
+    yyk = u * (1 - math.exp(-a*t)) + x0 * math.exp(-a*t)
+    assert np.abs(yk - np.array([yyk])) < 1e-4
+
+def test5(oode = ode.ODE2):
+
+    # \dot{x} = 1
+
+    def f(t, x, *pars):
+        return 1
+    
+    sys = oode(f, period = 1)
+
+    yk = sys.update(0)
+    #print(yk)
+    assert np.abs(yk - np.array([1.])) < 1e-4
+
+    yk = sys.update(0)
+    assert np.abs(yk - np.array([2.])) < 1e-4
+
+    sys = oode(f, period = .1)
+
+    yk = sys.update(0)
+    assert np.abs(yk - np.array([.1])) < 1e-4
+    
+    yk = sys.update(0)
+    assert np.abs(yk - np.array([.2])) < 1e-4
+
+    sys = oode(f, period = 1, pars = (3,))
+
+    yk = sys.update(-1)
+    assert np.abs(yk - np.array([1.])) < 1e-4
+
+    # \dot{x} = u
+    def f(t, x, u, *pars):
+        return u
+    
+    sys = oode(f, period = 1)
+
+    yk = sys.update(0)
+    assert np.abs(yk - np.array([0.])) < 1e-4
+
+    yk = sys.update(1)
+    assert np.abs(yk - np.array([1.])) < 1e-4
+
+    sys = oode(f, period = .1)
+
+    yk = sys.update(2)
+    assert np.abs(yk - np.array([.2])) < 1e-4
+
+    yk = sys.update(-2)
+    assert np.abs(yk - np.array([0])) < 1e-4
+
+    # \dot{x} = -a * x + a * u
+    def F(t, x, u, a):
+        return -a * x + a * u
+
+    a = 2
+    x0 = -1.5
+    t = 1
+    sys = oode(f = F, period = t, x0 = x0, pars = (a,))
+
+    yk = sys.update(0)
+    assert np.abs(yk - np.array([x0 * math.exp(-a)])) < 1e-4
+
+    x0 = -1.5
+    t = 2
+    sys = oode(f = F, period = t, x0 = x0, pars = (a,))
+
+    u = 3
+    yk = sys.update(u)
+    #print(yk)
+    yyk = u * (1 - math.exp(-a*t)) + x0 * math.exp(-a*t)
+    assert np.abs(yk - np.array([yyk])) < 1e-4
+
+    def f(t, x, *pars):
+        return t
+    
+    sys = oode(f, period = 2)
+
+    yk = sys.update(0)
+    print(yk)
+    assert np.abs(yk - np.array([2])) < 1e-4
+
 if __name__ == "__main__":
 
     test1()
     test2()
     test3()
+    test4()
+    test5()
