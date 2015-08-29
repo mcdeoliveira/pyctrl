@@ -250,8 +250,11 @@ class Controller(ctrl.Controller):
         self.add_source('pot1', self.pot1, ['pot1'])
 
         # add source: incl1
-        self.incl = mpu6050.Inclinometer()
-        self.add_source('inclinometer1', self.incl, ['theta']) 
+        try:
+            self.incl = mpu6050.Inclinometer()
+            self.add_source('inclinometer1', self.incl, ['theta']) 
+        except:
+            self.incl = None
 
         # add sink: motor1
         self.motor1 = Motor()
