@@ -1,6 +1,3 @@
-import sys
-sys.path.append('..')
-
 import struct
 import numpy
 import io
@@ -153,7 +150,28 @@ def testP():
     assert type == 'P'
     assert numpy.all(rvector == vector)
 
+def testKR():
+
+    args = { 'a': 1, 'b': 2 }
+    string = packet.pack('K', args)
+    (type, rargs) = packet.unpack_stream(io.BytesIO(string))
+    assert type == 'K'
+    assert (args == rargs)
+
+    args = ('a', 1, 'b', 2)
+    string = packet.pack('R', args)
+    (type, rargs) = packet.unpack_stream(io.BytesIO(string))
+    assert type == 'R'
+    assert (args == rargs)
+
 if __name__ == "__main__":
 
+    testA()
+    testC()
+    testS()
+    testIFD()
+    testV()
+    testM()
     testP()
+    testKR()
 

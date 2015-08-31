@@ -1,6 +1,3 @@
-import sys
-sys.path.append('..')
-
 import pytest
 
 import numpy as np
@@ -54,23 +51,23 @@ def test1():
     assert blk._pars == (1,0,1)
 
     blk = nonlinear.DeadZone(1, 10)
-    blk.write((100,))
+    blk.write(100)
     (yk,) = blk.read()
     assert yk == 100
 
-    blk.write((0,))
+    blk.write(0)
     (yk,) = blk.read()
     assert yk == 0
 
-    blk.write((1,))
+    blk.write(1)
     (yk,) = blk.read()
     assert yk == 10
 
-    blk.write((.5,))
+    blk.write(.5)
     (yk,) = blk.read()
     assert yk == 5
 
-    blk.write((1+(100-1)/2,))
+    blk.write(1+(100-1)/2)
     (yk,) = blk.read()
     assert yk == 10 + 45
 

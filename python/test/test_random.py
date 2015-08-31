@@ -1,6 +1,3 @@
-import sys
-sys.path.append('..')
-
 import pytest
 
 import ctrl.block as block

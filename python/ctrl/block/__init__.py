@@ -1,3 +1,6 @@
+import contextlib
+import numpy
+
 class BlockException(Exception):
     pass
 
@@ -33,19 +36,19 @@ class Block:
         if len(kwargs) > 0:
             raise BlockException("Does not know how to set '{}'".format(kwargs))
 
-    def get(self, keys = None, exclude = None):
+    def get(self, keys = None, exclude = ()):
 
         if keys is None or isinstance(keys, (list, tuple)):
+            print('keys = {}'.format(keys))
             if keys is None:
                 retval = self.__dict__.copy()
             else:
                 retval = { k : self.__dict__[k] for k in keys }
-            if exclude is not None:
-                for key in exclude:
-                    del retval[key]
+            for key in exclude:
+                del retval[key]
             return retval
 
-        if exclude is None or (exclude is not None and keys not in exclude):
+        if len(exclude) == 0 or keys not in exclude:
             return self.__dict__[keys]
 
         raise KeyError()
@@ -53,7 +56,7 @@ class Block:
     def read(self):
         raise BlockException('This block does not support read')
 
-    def write(self, values):
+    def write(self, *values):
         raise BlockException('This block does not support write')
 
 class Printer(Block):
@@ -61,7 +64,7 @@ class Printer(Block):
     def __init__(self, *vars, **kwargs):
 
         self.endln = kwargs.pop('endln', '\n')
-        self.frmt = kwargs.pop('frmt', '{:12.2f}')
+        self.frmt = kwargs.pop('frmt', '{: 12.4f}')
         self.sep = kwargs.pop('sep', ' ')
 
         super().__init__(*vars, **kwargs)
@@ -79,12 +82,19 @@ class Printer(Block):
 
         super().set(**kwargs)
     
-    def write(self, values):
+    def write(self, *values):
 
         if self.enabled:
 
-            print(self.sep.join(self.frmt.format(val) for val in values), 
-                  end=self.endln)
+            @contextlib.contextmanager
+            def printoptions(*args, **kwargs):
+                original = numpy.get_printoptions()
+                numpy.set_printoptions(*args, **kwargs)
+                yield 
+                numpy.set_printoptions(**original)
+
+            with printoptions(formatter = {'float': self.frmt.format}):
+                print(str(numpy.hstack(values))[1:-1], end=self.endln)
 
 class BufferBlock(Block):
 
@@ -96,15 +106,10 @@ class BufferBlock(Block):
 
         super().__init__(*vars, **kwargs)
 
-    def get(self, keys = None, exclude = None):
+    def get(self, keys = None, exclude = ()):
 
-        if exclude is None:
-            exclude = ('buffer',)
-        else:
-            exclude += ('buffer',)
-            
         # call super
-        return super().get(keys, exclude = exclude)
+        return super().get(keys, exclude = exclude + ('buffer',))
         
     def read(self):
 

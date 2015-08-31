@@ -1,6 +1,7 @@
 import numpy
 
 from .. import block
+import itertools
 
 class Logger(block.Block):
     """Logger(number_of_rows, number_of_columns) implements a logger.
@@ -12,6 +13,11 @@ class Logger(block.Block):
         self.reshape(number_of_rows, number_of_columns)
 
         super().__init__(*vars, **kwargs)
+
+    def get(self, keys = None, exclude = ()):
+
+        # call super
+        return super().get(keys, exclude = exclude + ('data',))
 
     def reshape(self, number_of_rows, number_of_columns):
 
@@ -39,10 +45,10 @@ class Logger(block.Block):
     
     read = get_log
         
-    def write(self, values):
+    def write(self, *values):
 
-        # convert to list
-        values = list(values)
+        # stack first first
+        values = numpy.hstack(values)
 
         # reshape?
         if self.data.shape[1] != len(values):

@@ -4,6 +4,9 @@ import numpy
 
 from . import block
 
+class ControllerWarning(Warning):
+    pass
+
 class ControllerException(Exception):
     pass
 
@@ -142,7 +145,8 @@ class Controller:
     def add_signal(self, label):
         assert isinstance(label, str)
         if label in self.signals:
-            raise ControllerException("Signal '{}' already present".format(label))
+            warnings.warn("Signal '{}' already present".format(label),
+                          ControllerWarning)
         else:
             self.signals[label] = 0
 
@@ -168,7 +172,10 @@ class Controller:
     def add_source(self, label, source, signals):
         assert isinstance(label, str)
         if label in self.sources:
-            raise ControllerException("Source '{}' already present".format(label))
+            warnings.warn("Source '{}' already exists and is been replaced".format(label),
+                          ControllerWarning)
+            self.remove_source(label)
+
         assert isinstance(source, block.Block)
         assert isinstance(signals, (list, tuple))
         self.sources[label] = {
@@ -193,11 +200,18 @@ class Controller:
 
         self.sources[label]['block'].set(**kwargs)
 
+    def get_source(self, label, *keys):
+        
+        if label not in self.sources:
+            raise ControllerException("Source '{}' does not exist".format(label))
+
+        return self.sources[label]['block'].get(keys)
+
     def read_source(self, label):
         return self.sources[label]['block'].read()
 
-    def write_source(self, label, values):
-        self.sources[label]['block'].write(values)
+    def write_source(self, label, *values):
+        self.sources[label]['block'].write(*values)
 
     def list_sources(self):
         return list(self.sources.keys())
@@ -207,7 +221,10 @@ class Controller:
     def add_sink(self, label, sink, signals):
         assert isinstance(label, str)
         if label in self.sinks:
-            raise ControllerException("Sink '{}' already present".format(label))
+            warnings.warn("Sink '{}' already exists and is been replaced".format(label), 
+                          ControllerWarning)
+            self.remove_sink(label)
+
         assert isinstance(sink, block.Block)
         assert signals == '*' or isinstance(signals, (list, tuple))
         self.sinks[label] = {
@@ -232,11 +249,18 @@ class Controller:
             
         self.sinks[label]['block'].set(**kwargs)
 
+    def get_sink(self, label, *keys):
+        
+        if label not in self.sinks:
+            raise ControllerException("Sink '{}' does not exist".format(label))
+
+        return self.sinks[label]['block'].get(keys)
+
     def read_sink(self, label):
         return self.sinks[label]['block'].read()
 
-    def write_sink(self, label, values):
-        self.sinks[label]['block'].write(values)
+    def write_sink(self, label, *values):
+        self.sinks[label]['block'].write(*values)
 
     def list_sinks(self):
         return list(self.sinks.keys())
@@ -246,7 +270,10 @@ class Controller:
                        filter_, input_signals, output_signals):
         assert isinstance(label, str)
         if label in self.filters:
-            raise ControllerException("Filter '{}' already present".format(label))
+            warnings.warn("Filter '{}' already exists and is been replaced".format(label),
+                          ControllerWarning)
+            self.remove_filter(label)
+
         assert isinstance(filter_, block.Block)
         assert isinstance(input_signals, (list, tuple))
         assert isinstance(output_signals, (list, tuple))
@@ -278,11 +305,18 @@ class Controller:
 
         self.filters[label]['block'].set(**kwargs)
             
+    def get_filter(self, label, *keys):
+        
+        if label not in self.filters:
+            raise ControllerException("Filter '{}' does not exist".format(label))
+
+        return self.filters[label]['block'].get(keys)
+
     def read_filter(self, label):
         return self.filters[label]['block'].read()
 
-    def write_filter(self, label, values):
-        self.filters[label]['block'].write(values)
+    def write_filter(self, label, *values):
+        self.filters[label]['block'].write(*values)
 
     def list_filters(self):
         return list(self.filters.keys())
@@ -336,9 +370,9 @@ class Controller:
             device = self.filters[label]
             fltr = device['block']
             if fltr.is_enabled():
-                # write inputs
-                fltr.write([self.signals[label] 
-                            for label in device['inputs']])
+                # write signals to inputs
+                fltr.write(*[self.signals[label] 
+                             for label in device['inputs']])
                 # retrieve outputs
                 self.signals.update(dict(zip(device['outputs'], 
                                              fltr.read())))
@@ -349,11 +383,8 @@ class Controller:
             sink = device['block']
             if sink.is_enabled():
                 # write inputs
-                if device['inputs'] == '*':
-                    sink.write(list(self.signals.values()))
-                else:
-                    sink.write([self.signals[label]
-                                for label in device['inputs']])
+                sink.write(*[self.signals[label]
+                             for label in device['inputs']])
                                
     def start(self):
         """Start controller loop

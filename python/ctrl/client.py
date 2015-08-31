@@ -157,14 +157,17 @@ class Controller(ctrl.Controller):
     def set_source(self, label, **kwargs):
         self.send('I', 'S', label, 'K', kwargs)
 
+    def get_source(self, label, *keys):
+        return self.send('i', 'S', label, 'R', keys)
+
     def remove_source(self, label):
         return self.send('J', 'S', label)
 
     def list_sources(self):
         return self.send('K')
 
-    def write_source(self, label, values):
-        self.send('L', 'S', label, 'P', (v for v in values))
+    def write_source(self, label, *values):
+        self.send('L', 'S', label, 'R', values)
 
     def read_source(self, label):
         return self.send('M', 'S', label)
@@ -177,14 +180,17 @@ class Controller(ctrl.Controller):
     def set_sink(self, label, **kwargs):
         self.send('O', 'S', label, 'K', kwargs)
 
+    def get_sink(self, label, *keys):
+        return self.send('o', 'S', label, 'R', keys)
+
     def remove_sink(self, label):
         return self.send('P', 'S', label)
 
     def list_sinks(self):
         return self.send('Q')
 
-    def write_sink(self, label, values):
-        self.send('R', 'S', label, 'P', values)
+    def write_sink(self, label, *values):
+        self.send('R', 'S', label, 'R', values)
 
     def read_sink(self, label):
         return self.send('S', 'S', label)
@@ -199,14 +205,17 @@ class Controller(ctrl.Controller):
     def set_filter(self, label, **kwargs):
         self.send('U', 'S', label, 'K', kwargs)
 
+    def get_filter(self, label, *keys):
+        return self.send('u', 'S', label, 'R', keys)
+
     def remove_filter(self, label):
         return self.send('V', 'S', label)
 
     def list_filters(self):
         return self.send('W')
 
-    def write_filter(self, label, values):
-        self.send('X', 'S', label, 'P', values)
+    def write_filter(self, label, *values):
+        self.send('X', 'S', label, 'R', values)
 
     def read_filter(self, label):
         return self.send('Y', 'S', label)

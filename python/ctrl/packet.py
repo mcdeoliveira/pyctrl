@@ -88,11 +88,11 @@ def unpack_stream(stream):
         # read vector
         (vtype, vector) = unpack_stream(stream)
         # resize vector as matrix
-        vector = numpy.resize(vector, (rsize, vector.size/rsize))
+        vector = numpy.resize(vector, (rsize, int(vector.size/rsize)))
         # return vector
         return ('M', vector)
 
-    elif btype == b'P' or btype == b'E' or btype == b'K':
+    elif btype == b'P' or btype == b'E' or btype == b'K' or btype == b'R':
         # Read object size (int)
         buffer = stream.read(4)
         (bsize,) = struct.unpack('<I', buffer)
@@ -105,8 +105,10 @@ def unpack_stream(stream):
             return ('P', object)
         elif btype == b'E':
             return ('E', object)
-        else: # btype == b'K':
+        elif btype == b'K':
             return ('K', object)
+        else: # btype == b'R':
+            return ('R', object)
 
     else:
         raise NameError('Unknown type')
@@ -197,6 +199,11 @@ def pack(type, content):
     elif type == 'K':
         bmessage = pickle.dumps(content)
         return struct.pack('<cI', b'K', len(bmessage)) + bmessage
+
+    # pickle (vargs)
+    elif type == 'R':
+        bmessage = pickle.dumps(content)
+        return struct.pack('<cI', b'R', len(bmessage)) + bmessage
 
     else:
         raise NameError('Unknown type')

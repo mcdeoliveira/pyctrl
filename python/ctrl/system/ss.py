@@ -2,7 +2,10 @@ import numpy
 
 from .. import system
 
-class DTSS:
+class MIMOSystem:
+    pass
+
+class DTSS(MIMOSystem):
     """DTSS(A, B, C, D, state)
 
     Model is of the form:
@@ -38,8 +41,8 @@ class DTSS:
 
         n = A.shape[0]
         if state is None:
-            self.state = numpy.zeros((n,1), dtype=float)
-        elif state.shape == (n, 1):
+            self.state = numpy.zeros((n,), dtype=float)
+        elif state.shape == (n,):
             self.state = state.astype(float)
         else:
             raise system.SysException('Order of state must match order of denominator')

@@ -103,10 +103,10 @@ class Controller(ctrl.Controller):
         # add filter: model
         Ts = self.period
         c = math.exp(-self.a * Ts)
-        self.model3 = linear.TransferFunction(model = \
-                tf.DTTF(
-                    numpy.array((0, (self.k*Ts)*(1-c)/2, (self.k*Ts)*(1-c)/2)), 
-                    numpy.array((1, -(1 + c), c))))
+        self.model3 = linear.SISO(model = \
+            tf.DTTF(
+                numpy.array((0, (self.k*Ts)*(1-c)/2, (self.k*Ts)*(1-c)/2)), 
+                numpy.array((1, -(1 + c), c))))
         self.add_filter('model1', self.model3, 
                         ['input1'], ['encoder1'])
 
@@ -163,8 +163,7 @@ if __name__ == "__main__":
 
     controller.add_signal('reference1')
     controller.add_filter('controller1', 
-                          linear.Feedback(gamma = pmax,
-                                         block = linear.Gain(gain = Kp)),
+                          linear.Feedback(block = linear.Gain(gain = Kp)),
                           ['encoder1', 'reference1'], ['motor1'])
     controller.set_sink('printer', 
                         inputs = ['clock', 'encoder1', 'reference1', 'motor1'])
@@ -172,13 +171,13 @@ if __name__ == "__main__":
 
     with controller:
         time.sleep(1)
-        controller.set_signal('reference1', 100)
+        controller.set_signal('reference1', pmax)
         print('\n> REFERENCE = {}'.format(pmax))
         time.sleep(3)
-        controller.set_signal('reference1', 50)
+        controller.set_signal('reference1', pmax/2)
         print('\n> REFERENCE = {}'.format(pmax/2))
         time.sleep(3)
-        controller.set_signal('reference1', -50)
+        controller.set_signal('reference1', -pmax/2)
         print('\n> REFERENCE = {}'.format(-pmax/2))
         time.sleep(3)
 
@@ -194,13 +193,13 @@ if __name__ == "__main__":
 
     with controller:
         time.sleep(1)
-        controller.set_signal('reference1', 100)
+        controller.set_signal('reference1', pmax)
         print('\n> REFERENCE = {}'.format(pmax))
         time.sleep(3)
-        controller.set_signal('reference1', 50)
+        controller.set_signal('reference1', pmax/2)
         print('\n> REFERENCE = {}'.format(pmax/2))
         time.sleep(3)
-        controller.set_signal('reference1', -50)
+        controller.set_signal('reference1', -pmax/2)
         print('\n> REFERENCE = {}'.format(-pmax/2))
         time.sleep(3)
 
@@ -210,21 +209,20 @@ if __name__ == "__main__":
     Kp = 1/k
     controller.remove_filter('controller1') 
     controller.add_filter('controller1', 
-                          linear.Feedback(gamma = vmax,
-                                         block = linear.Gain(gain = Kp)),
+                          linear.Feedback(block = linear.Gain(gain = Kp)),
                           ['velocity1', 'reference1'], ['motor1'])
     print(controller.info('all'))
 
     controller.set_signal('reference1', 0)
     with controller:
         time.sleep(1)
-        controller.set_signal('reference1', 100)
+        controller.set_signal('reference1', vmax)
         print('\n> REFERENCE = {}'.format(vmax))
         time.sleep(3)
-        controller.set_signal('reference1', 50)
+        controller.set_signal('reference1', vmax/2)
         print('\n> REFERENCE = {}'.format(vmax/2))
         time.sleep(3)
-        controller.set_signal('reference1', -50)
+        controller.set_signal('reference1', -vmax/2)
         print('\n> REFERENCE = {}'.format(-vmax/2))
         time.sleep(3)
 
@@ -233,23 +231,23 @@ if __name__ == "__main__":
     Kp = 1/k
     Ki = a/k
     controller.remove_filter('controller1') 
-    pi = linear.TransferFunction(model = \
-                                 tf.PID(Kp = Kp, Ki = Ki, period = controller.period))
+    pi = linear.SISO(model = \
+                     tf.PID(Kp = Kp, Ki = Ki, period = controller.period))
     controller.add_filter('controller1', 
-                          linear.Feedback(gamma = vmax, block = pi),
+                          linear.Feedback(block = pi),
                           ['velocity1', 'reference1'], ['motor1'])
     print(controller.info('all'))
 
     controller.set_signal('reference1', 0)
     with controller:
         time.sleep(1)
-        controller.set_signal('reference1', 100)
+        controller.set_signal('reference1', vmax)
         print('\n> REFERENCE = {}'.format(vmax))
         time.sleep(3)
-        controller.set_signal('reference1', 50)
+        controller.set_signal('reference1', vmax/2)
         print('\n> REFERENCE = {}'.format(vmax/2))
         time.sleep(3)
-        controller.set_signal('reference1', -50)
+        controller.set_signal('reference1', -vmax/2)
         print('\n> REFERENCE = {}'.format(-vmax/2))
         time.sleep(3)
 

@@ -1,6 +1,3 @@
-import sys
-sys.path.append('..')
-
 import pytest
 
 import math
@@ -317,10 +314,10 @@ def test3():
     #              x2 = [0 1; 1 -2] [0; 0] + [0; 1] 1 = [0; 1]
 
     y1 = sys.update(1)
-    y2 = sysss.update(1)
+    y2 = sysss.update(np.array([1]))
     #print(y1, y2)
     assert y1 == 0 
-    assert np.all(sysss.state == np.array([[0],[1]]))
+    assert np.all(sysss.state == np.array([0,1]))
     assert y1 == y2
 
     # u2 = -1  =>  y2 = -2 y1 + u1 = 1
@@ -329,10 +326,10 @@ def test3():
     #                 = [1; -2] + [0; -1] = [1; -3]
 
     y1 = sys.update(-1)
-    y2 = sysss.update(-1)
+    y2 = sysss.update(np.array([-1]))
     #print(y1, y2)
     assert y1 == 1 
-    assert np.all(sysss.state == np.array([[1],[-3]]))
+    assert np.all(sysss.state == np.array([1,-3]))
     assert y1 == y2
 
     # u3 = 3   =>  y3 = -2 y2 + y1 + u2 + 3 u1 = -2 + 0 + -1 + 3 = 0
@@ -341,10 +338,10 @@ def test3():
     #                 = [-3; 7] + [0; 3] = [-3; 10]
 
     y1 = sys.update(3)
-    y2 = sysss.update(3)
+    y2 = sysss.update(np.array([3]))
     #print(y1, y2)
     assert y1 == 0 
-    assert np.all(sysss.state == np.array([[-3],[10]]))
+    assert np.all(sysss.state == np.array([-3,10]))
     assert y1 == y2
 
     # u4 = 0   =>  y4 = -2 y3 + y2 + u3 + 3 u2 = 0 + 1 + 3 - 3 = 1
@@ -353,10 +350,10 @@ def test3():
     #                 = [10; -23]
 
     y1 = sys.update(0)
-    y2 = sysss.update(0)
+    y2 = sysss.update(np.array([0]))
     #print(y1, y2)
     assert y1 == 1
-    assert np.all(sysss.state == np.array([[10],[-23]]))
+    assert np.all(sysss.state == np.array([10,-23]))
     assert y1 == y2
 
     # G(z) = z^2/(z^2 + 2 z - 1) = 1 + (1 - 2 z)/(z^2 + 2 z - 1)
@@ -385,10 +382,10 @@ def test3():
     #              x2 = [0 1; 1 -2] [0; 0] + [0; 1] 1 = [0; 1]
 
     y1 = sys.update(1)
-    y2 = sysss.update(1)
+    y2 = sysss.update(np.array([1]))
     #print(y1, y2)
     assert y1 == 1 
-    assert np.all(sysss.state == np.array([[0],[1]]))
+    assert np.all(sysss.state == np.array([0,1]))
     assert y1 == y2
 
     # u2 = -1  =>  y2 = -2 y1 + u2 = -2 - 1 = -3
@@ -397,10 +394,10 @@ def test3():
     #                 = [1; -2] + [0; -1] = [1; -3]
 
     y1 = sys.update(-1)
-    y2 = sysss.update(-1)
+    y2 = sysss.update(np.array([-1]))
     #print(y1, y2)
     assert y1 == -3 
-    assert np.all(sysss.state == np.array([[1],[-3]]))
+    assert np.all(sysss.state == np.array([1,-3]))
     assert y1 == y2
 
     # u3 = 3   =>  y3 = -2 y2 + y1 + u3 = 6 + 1 + 3 = 10
@@ -409,10 +406,10 @@ def test3():
     #                 = [-3; 7] + [0; 3] = [-3; 10]
 
     y1 = sys.update(3)
-    y2 = sysss.update(3)
+    y2 = sysss.update([3])
     #print(y1, y2)
     assert y1 == 10 
-    assert np.all(sysss.state == np.array([[-3],[10]]))
+    assert np.all(sysss.state == np.array([-3,10]))
     assert y1 == y2
 
     # u4 = 0   =>  y4 = -2 y3 + y2 + u4 = - 20 - 3 + 0 = -23
@@ -421,10 +418,10 @@ def test3():
     #                 = [10; -23]
 
     y1 = sys.update(0)
-    y2 = sysss.update(0)
+    y2 = sysss.update([0])
     #print(y1, y2)
     assert y1 == -23
-    assert np.all(sysss.state == np.array([[10],[-23]]))
+    assert np.all(sysss.state == np.array([10,-23]))
     assert y1 == y2
 
     # vector input/output
@@ -442,22 +439,22 @@ def test3():
 
     # u1 = 1   =>  y1 = 1
 
-    y2 = sysss.update(np.array([[1]]))
+    y2 = sysss.update(np.array([1]))
     assert isinstance(y2, np.ndarray) and y2 == 1 
 
     # u2 = -1  =>  y2 = -2 y1 + u2 = -2 - 1 = -3
 
-    y2 = sysss.update(-1)
+    y2 = sysss.update([-1])
     assert isinstance(y2, np.ndarray) and y2 == -3 
 
     # u3 = 3   =>  y3 = -2 y2 + y1 + u3 = 6 + 1 + 3 = 10
 
-    y2 = sysss.update(np.array([[3]]))
+    y2 = sysss.update(np.array([3]))
     assert isinstance(y2, np.ndarray) and y2 == 10 
 
     # u4 = 0   =>  y4 = -2 y3 + y2 + u4 = - 20 - 3 + 0 = -23
 
-    y2 = sysss.update(0)
+    y2 = sysss.update([0])
     assert isinstance(y2, np.ndarray) and y2 == -23
 
     # SIMO
@@ -474,23 +471,23 @@ def test3():
 
     # u1 = 1   =>  y1 = 1
 
-    y2 = sys.update(np.array([[1]]))
-    assert isinstance(y2, np.ndarray) and np.all(y2 == np.array([[1],[0]]))
+    y2 = sys.update(np.array([1]))
+    assert isinstance(y2, np.ndarray) and np.all(y2 == np.array([1,0]))
 
     # u2 = -1  =>  y2 = -2 y1 + u2 = -2 - 1 = -3
 
-    y2 = sys.update(-1)
-    assert isinstance(y2, np.ndarray) and np.all(y2 == np.array([[-3],[1]]))
+    y2 = sys.update([-1])
+    assert isinstance(y2, np.ndarray) and np.all(y2 == np.array([-3,1]))
 
     # u3 = 3   =>  y3 = -2 y2 + y1 + u3 = 6 + 1 + 3 = 10
 
-    y2 = sys.update(np.array([[3]]))
-    assert isinstance(y2, np.ndarray) and np.all(y2 == np.array([[10],[-3]]))
+    y2 = sys.update(np.array([3]))
+    assert isinstance(y2, np.ndarray) and np.all(y2 == np.array([10,-3]))
 
     # u4 = 0   =>  y4 = -2 y3 + y2 + u4 = - 20 - 3 + 0 = -23
 
-    y2 = sys.update(0)
-    assert isinstance(y2, np.ndarray) and np.all(y2 == np.array([[-23],[10]]))
+    y2 = sys.update([0])
+    assert isinstance(y2, np.ndarray) and np.all(y2 == np.array([-23,10]))
 
     # MIMO
     A = np.array([[0,1],[1, -2]])
@@ -506,179 +503,187 @@ def test3():
 
     # u1 = 1   =>  y1 = 1
 
-    y2 = sys.update(np.array([[1],[1]]))
-    assert np.all(sys.state == np.array([[0],[1]]))
-    assert isinstance(y2, np.ndarray) and np.all(y2 == np.array([[1],[0]]))
+    y2 = sys.update(np.array([1,1]))
+    assert np.all(sys.state == np.array([0,1]))
+    assert isinstance(y2, np.ndarray) and np.all(y2 == np.array([1,0]))
 
     # u2 = -1  =>  y2 = -2 y1 + u2 = -2 - 1 = -3
 
-    y2 = sys.update(np.array([[-1],[0]]))
-    assert np.all(sys.state == np.array([[0],[-3]]))
-    assert isinstance(y2, np.ndarray) and np.all(y2 == np.array([[-3],[2]]))
+    y2 = sys.update(np.array([-1,0]))
+    assert np.all(sys.state == np.array([0,-3]))
+    assert isinstance(y2, np.ndarray) and np.all(y2 == np.array([-3,2]))
 
     # u3 = 3   =>  y3 = -2 y2 + y1 + u3 = 6 + 1 + 3 = 10
 
-    y2 = sys.update(np.array([[3],[-1]]))
-    assert np.all(sys.state == np.array([[1],[9]]))
-    assert isinstance(y2, np.ndarray) and np.all(y2 == np.array([[9],[-7]]))
+    y2 = sys.update(np.array([3,-1]))
+    assert np.all(sys.state == np.array([1,9]))
+    assert isinstance(y2, np.ndarray) and np.all(y2 == np.array([9,-7]))
 
     # u4 = 0   =>  y4 = -2 y3 + y2 + u4 = - 20 - 3 + 0 = -23
 
-    y2 = sys.update(np.array([[2],[1]]))
-    assert np.all(sys.state == np.array([[10],[-15]]))
-    assert isinstance(y2, np.ndarray) and np.all(y2 == np.array([[-15],[8]]))
+    y2 = sys.update(np.array([2,1]))
+    assert np.all(sys.state == np.array([10,-15]))
+    assert isinstance(y2, np.ndarray) and np.all(y2 == np.array([-15,8]))
 
 def test4(oode = ode.ODE):
 
     # \dot{x} = 1
 
-    def f(x, *pars):
+    def f(t, x, *pars):
         return np.array([1])
     
-    sys = oode(f, period = 1)
+    sys = oode(f, t0 = 0)
 
-    yk = sys.update(0)
+    yk = sys.update(1, 0)
     #print(yk)
     assert np.abs(yk - np.array([1.])) < 1e-4
 
-    yk = sys.update(0)
+    yk = sys.update(2, 0)
     assert np.abs(yk - np.array([2.])) < 1e-4
 
-    sys = oode(f, period = .1)
+    sys = oode(f, t0 = 0)
 
-    yk = sys.update(0)
+    yk = sys.update(.1, 0)
     assert np.abs(yk - np.array([.1])) < 1e-4
     
-    yk = sys.update(0)
+    yk = sys.update(.2, 0)
     assert np.abs(yk - np.array([.2])) < 1e-4
 
-    sys = oode(f, period = 1, pars = (3,))
+    sys = oode(f, t0 = 0, pars = (3,))
 
-    yk = sys.update(-1)
-    assert np.abs(yk - np.array([1.])) < 1e-4
-
-    # \dot{x} = u
-    def f(x, u, *pars):
-        #print('x = {}, u = {}, pars = {}'.format(x, u, pars))
-        return u
-    
-    sys = oode(f, period = 1)
-
-    yk = sys.update(0)
-    assert np.abs(yk - np.array([0.])) < 1e-4
-
-    yk = sys.update(1)
-    assert np.abs(yk - np.array([1.])) < 1e-4
-
-    sys = oode(f, period = .1)
-
-    yk = sys.update(2)
-    assert np.abs(yk - np.array([.2])) < 1e-4
-
-    yk = sys.update(-2)
-    assert np.abs(yk - np.array([0])) < 1e-4
-
-    # \dot{x} = -a * x + a * u
-    def F(x, u, a):
-        return -a * x + a * u
-
-    a = 2
-    x0 = -1.5
-    t = 1
-    sys = oode(f = F, period = t, x0 = x0, pars = (a,))
-
-    yk = sys.update(0)
-    assert np.abs(yk - np.array([x0 * math.exp(-a)])) < 1e-4
-
-    x0 = -1.5
-    t = 2
-    sys = oode(f = F, period = t, x0 = x0, pars = (a,))
-
-    u = 3
-    yk = sys.update(u)
-    #print(yk)
-    yyk = u * (1 - math.exp(-a*t)) + x0 * math.exp(-a*t)
-    assert np.abs(yk - np.array([yyk])) < 1e-4
-
-def test5(oode = ode.ODE2):
-
-    # \dot{x} = 1
-
-    def f(t, x, *pars):
-        return 1
-    
-    sys = oode(f, period = 1)
-
-    yk = sys.update(0)
-    #print(yk)
-    assert np.abs(yk - np.array([1.])) < 1e-4
-
-    yk = sys.update(0)
-    assert np.abs(yk - np.array([2.])) < 1e-4
-
-    sys = oode(f, period = .1)
-
-    yk = sys.update(0)
-    assert np.abs(yk - np.array([.1])) < 1e-4
-    
-    yk = sys.update(0)
-    assert np.abs(yk - np.array([.2])) < 1e-4
-
-    sys = oode(f, period = 1, pars = (3,))
-
-    yk = sys.update(-1)
+    yk = sys.update(1, -1)
     assert np.abs(yk - np.array([1.])) < 1e-4
 
     # \dot{x} = u
     def f(t, x, u, *pars):
+        #print('t = {}, x = {}, u = {}, pars = {}'.format(t, x, u, pars))
         return u
     
-    sys = oode(f, period = 1)
+    tk = 0
+    sys = oode(f, t0 = tk)
 
-    yk = sys.update(0)
+    tk += 1
+    yk = sys.update(tk, 0)
     assert np.abs(yk - np.array([0.])) < 1e-4
 
-    yk = sys.update(1)
+    tk += 1
+    yk = sys.update(tk, 1)
     assert np.abs(yk - np.array([1.])) < 1e-4
 
-    sys = oode(f, period = .1)
+    tk = 0
+    sys = oode(f, t0 = tk)
 
-    yk = sys.update(2)
+    tk += .1
+    yk = sys.update(tk, 2)
     assert np.abs(yk - np.array([.2])) < 1e-4
 
-    yk = sys.update(-2)
+    tk += .1
+    yk = sys.update(tk, -2)
     assert np.abs(yk - np.array([0])) < 1e-4
 
     # \dot{x} = -a * x + a * u
     def F(t, x, u, a):
+        #print('t = {}, x = {}, u = {}, a = {}'.format(t, x, u, a))
         return -a * x + a * u
 
     a = 2
     x0 = -1.5
-    t = 1
-    sys = oode(f = F, period = t, x0 = x0, pars = (a,))
+    tk = 0
+    sys = oode(f = F, t0 = tk, x0 = x0, pars = (a,))
 
-    yk = sys.update(0)
-    assert np.abs(yk - np.array([x0 * math.exp(-a)])) < 1e-4
+    tk += 1
+    yk = sys.update(tk, 0)
+    #print(yk, np.array([x0 * math.exp(-a*tk)]))
+    assert np.abs(yk - np.array([x0 * math.exp(-a*tk)])) < 1e-4
 
     x0 = -1.5
-    t = 2
-    sys = oode(f = F, period = t, x0 = x0, pars = (a,))
+    tk = 0
+    sys = oode(f = F, t0 = tk, x0 = x0, pars = (a,))
 
-    u = 3
-    yk = sys.update(u)
-    #print(yk)
-    yyk = u * (1 - math.exp(-a*t)) + x0 * math.exp(-a*t)
+    uk = 3
+    tk += 2
+    yk = sys.update(tk, uk)
+    yyk = uk * (1 - math.exp(-a*tk)) + x0 * math.exp(-a*tk)
     assert np.abs(yk - np.array([yyk])) < 1e-4
 
-    def f(t, x, *pars):
-        return t
-    
-    sys = oode(f, period = 2)
+def test5():
 
-    yk = sys.update(0)
-    print(yk)
-    assert np.abs(yk - np.array([2])) < 1e-4
+    test4(ode.ODEINT)
+
+
+def test6():
+
+    a = np.array([[-1, 0],[0, -2]])
+    b = np.array([[1],[1]])
+
+    def f(t, x, u, a, b):
+        return a.dot(x) + b.dot(u)
+    
+    tk = 0
+    xk = np.array([1,-1])
+    sys = ode.ODE(f = f, t0 = tk, x0 = xk, pars = (a,b))
+
+    uk = [0]
+    tk += 1
+    yyk = [-(b[0,0]/a[0,0])*uk[0] * (1 - math.exp(a[0,0]*tk)) + xk[0] * math.exp(a[0,0]*tk),
+           -(b[1,0]/a[1,1])*uk[0] * (1 - math.exp(a[1,1]*tk)) + xk[1] * math.exp(a[1,1]*tk)]
+    yk = sys.update(tk, uk)
+    assert np.all(np.abs(yk - yyk) < 1e-4)
+
+    tk = 0
+    xk = np.array([1,-1])
+    sys = ode.ODE(f = f, t0 = tk, x0 = xk, pars = (a,b))
+
+    uk = [2]
+    tk += 1
+    yyk = [-(b[0,0]/a[0,0])*uk[0] * (1 - math.exp(a[0,0]*tk)) + xk[0] * math.exp(a[0,0]*tk),
+           -(b[1,0]/a[1,1])*uk[0] * (1 - math.exp(a[1,1]*tk)) + xk[1] * math.exp(a[1,1]*tk)]
+    yk = sys.update(tk, uk)
+    assert np.all(np.abs(yk - yyk) < 1e-4)
+
+    import scipy.integrate
+
+    P = 0       # birth rate
+    d = 0.0001  # natural death percent (per day)
+    B = 0.0095  # transmission percent  (per day)
+    G = 0.0001  # resurect percent (per day)
+    A = 0.0001  # destroy percent  (per day)
+    
+    # solve the system dy/dt = f(y, t)
+    def f(y, t):
+        # the model equations (see Munz et al. 2009)
+        Si, Zi, Ri = y
+        return (P - B*Si*Zi - d*Si, 
+                B*Si*Zi + G*Ri - A*Si*Zi,
+                d*Si + A*Si*Zi - G*Ri)
+   
+    # initial conditions
+    S0 = 500.               # initial population
+    Z0 = 0                  # initial zombie population
+    R0 = 0                  # initial death population
+    y0 = [S0, Z0, R0]       # initial condition vector
+    T = 2
+    t  = np.linspace(0, T, 2)   # time grid
+
+    # solve the DEs
+    soln = scipy.integrate.odeint(f, y0, t)
+
+    # solve the system dy/dt = f(y, t)
+    def ff(t, x, u, *pars):
+        # the model equations (see Munz et al. 2009)
+        #print('t = {}, x = {}, u = {}'.format(t, x, u))
+        return list(f(x, t))
+
+    tk = 0
+    sys = ode.ODEINT(f = ff, t0 = tk, x0 = y0)
+
+    uk = [0]
+    tk += T
+    yk = sys.update(tk, uk)
+    #print(yk)
+    #print(soln[1])
+    assert np.all(np.abs(yk - soln[1]) < 1e-4)
+
 
 if __name__ == "__main__":
 
@@ -687,3 +692,4 @@ if __name__ == "__main__":
     test3()
     test4()
     test5()
+    test6()

@@ -3,92 +3,121 @@ import scipy.integrate
 
 from .. import system
 
-def identity(x, u, *pars):
+def identity(t, x, u, *pars):
     return x
 
-class ODE:
+class TVSystem:
+    pass
+
+class ODEBase(TVSystem):
     """ODE(f, state)
 
     Model is of the form:
 
       .
-      x = f(x, u, *pars)
-      y = g(x, u, *pars)
+      x = f(t, x, u, *pars)
+      y = g(t, x, u, *pars)
 
     """
     
     def __init__(self,
-                 f, g = identity, x0 = 0, period = 0, pars = ()):
+                 f, g = identity, x0 = 0, t0 = 0, pars = ()):
 
-        # set period
-        assert period > 0
-        self.period = period
-        
         # set initial condition
         self.state = x0
         
-        # ode function
-        self.f = lambda y, t, *pars: f(y, *pars)
-
         # set parameters
         self.pars = pars
 
-        # set output
+        # set ode function
+        self.f = f
+
+        # set output function
         self.g = g
+
+        # set t0
+        self.t0 = t0
         
     def set_output(self, yk):
+
         raise Exception('Not implemented yet')
     
-    def update(self, uk):
+    def update(self, tk, uk):
         
-        # solve ode
-        yk = scipy.integrate.odeint(self.f, self.state, [0, self.period], 
-                                    args = (uk,) + self.pars)
-        
-        # update state
-        self.state = yk[-1,:]
-        
-        # evaluate output
-        return self.g(self.state, uk, *self.pars)
+        raise Exception('Not implemented yet')
 
 
-class ODE2(ODE):
+class ODE(ODEBase):
     """ODE(f, state)
 
     Model is of the form:
 
       .
-      x = f(x, u, *pars)
-      y = g(x, u, *pars)
+      x = f(t, x, u, *pars)
+      y = g(t, x, u, *pars)
 
     """
     
     def __init__(self,
-                 f, g = identity, x0 = 0, period = 0, pars = ()):
+                 f, g = identity, x0 = 0, t0 = 0, pars = ()):
 
         # call super
-        super().__init__(f, g, x0, period, pars)
+        super().__init__(f, g, x0, t0, pars)
 
         # setup solver
-        self.solver = scipy.integrate.ode(f).set_integrator('dopri5')
+        self.solver = scipy.integrate.ode(self.f).set_integrator('dopri5')
 
-        # set t
-        self.t = 0
-                
-    def update(self, uk):
+    def update(self, tk, uk):
         
         # set initial condition and parameters
         pars = (uk,) + self.pars
-        self.solver.set_initial_value(self.state, self.t).set_f_params(*pars)
+        self.solver.set_initial_value(self.state, self.t0).set_f_params(*pars)
         
         # solve ode
-        yk = self.solver.integrate(self.t + self.period)
+        yk = self.solver.integrate(tk)
         
         # update state
         self.state = yk
 
         # update time
-        self.t += self.period
+        self.t0 = tk
 
         # evaluate output
-        return self.g(self.state, uk, *self.pars)
+        return self.g(tk, self.state, uk, *self.pars)
+
+class ODEINT(ODEBase):
+    """ODE(f, state)
+
+    Model is of the form:
+
+      .
+      x = f(t, x, u, *pars)
+      y = g(t, x, u, *pars)
+
+    """
+    
+    def __init__(self,
+                 f, g = identity, x0 = 0, t0 = 0, pars = ()):
+
+        # call super
+        super().__init__(f, g, x0, t0, pars)
+
+        # flip call to fit odeint
+        self.f = lambda t, x, *pars: f(x, t, *pars)
+
+    def update(self, tk, uk):
+        
+        # solve ode
+        yk = scipy.integrate.odeint(self.f, 
+                                    self.state, 
+                                    [self.t0, tk], 
+                                    args = (uk,) + self.pars)
+        
+        # update state
+        self.state = yk[-1,:]
+
+        # udpate time
+        self.t0 = tk
+
+        # evaluate output
+        return self.g(tk, self.state, uk, *self.pars)

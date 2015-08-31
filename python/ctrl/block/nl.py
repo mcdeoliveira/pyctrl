@@ -64,7 +64,7 @@ class DeadZone(block.BufferBlock):
         else:
             super().set(key, value)
 
-    def write(self, values):
+    def write(self, *values):
 
         # Dead-zone compensation
         x = values[0]

@@ -1,6 +1,3 @@
-import sys
-sys.path.append('..')
-
 import pytest
 import time
 
@@ -69,7 +66,7 @@ def test_client_server():
         print('> Starting server')
 
         import subprocess
-        server = subprocess.Popen(["python3", "../server.py"], 
+        server = subprocess.Popen(["python3", "./server.py"], 
                                   stdout = subprocess.PIPE)
 
         time.sleep(1)
@@ -111,8 +108,8 @@ def run(controller):
     controller.add_signal('_test_')
     assert '_test_' in controller.list_signals()
 
-    with pytest.raises(ctrl.ControllerException):
-        controller.add_signal('_test_')
+    #with pytest.raises(ctrl.ControllerException):
+    controller.add_signal('_test_')
 
     assert controller.get_signal('_test_') == 0
 
@@ -136,11 +133,13 @@ def run(controller):
 
     # test sink
 
+    controller.add_sink('_logger_', logger.Logger(), ['_test_'])
+    assert '_logger_' in controller.list_sinks()
+
     controller.add_sink('_logger_', logger.Logger(), ['clock'])
     assert '_logger_' in controller.list_sinks()
 
-    with pytest.raises(ctrl.ControllerException):
-        controller.add_sink('_logger_', logger.Logger(), ['clock'])
+    # TODO: test for changed signals
 
     controller.set_sink('_logger_', reset = True)
 
@@ -192,11 +191,13 @@ def run(controller):
 
     # test source
 
+    controller.add_source('_rand_', blkrnd.RandomUniform(), ['clock'])
+    assert '_rand_' in controller.list_sources()
+
     controller.add_source('_rand_', blkrnd.RandomUniform(), ['_test_'])
     assert '_rand_' in controller.list_sources()
 
-    with pytest.raises(ctrl.ControllerException):
-        controller.add_source('_rand_', blkrnd.RandomUniform(), ['clock'])
+    # TODO: test for changed signals
 
     controller.set_source('_rand_', reset = True)
 
@@ -216,6 +217,12 @@ def run(controller):
 
     controller.add_source('_rand_', blkrnd.RandomUniform(), ['_test_'])
     assert '_rand_' in controller.list_sources()
+
+    controller.add_filter('_gain_', linear.ShortCircuit(), 
+                          ['_test_'], 
+                          ['_output_'])
+    assert '_gain_' in controller.list_filters()
+    # TODO: test for changed block
 
     controller.add_filter('_gain_', linear.Gain(gain = 2), 
                           ['_test_'], 

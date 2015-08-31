@@ -3,7 +3,10 @@ import numpy
 from .. import system
 from . import ss
 
-class DTTF:
+class SISOSystem:
+    pass
+
+class DTTF(SISOSystem):
     """DTTF(num, den, state)
 
     Model is of the form:

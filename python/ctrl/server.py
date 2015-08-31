@@ -71,6 +71,8 @@ def set_controller(_controller = ctrl.Controller()):
               'Add source'),
         'I': ('SK', '', controller.set_source,
               'Set source'),
+        'i': ('SR', 'K', controller.get_source,
+              'Get source'),
         'J': ('S', '', controller.remove_source,
               'Remove source'),
         'K': ('', 'P', controller.list_sources,
@@ -84,6 +86,8 @@ def set_controller(_controller = ctrl.Controller()):
               'Add sink'),
         'O': ('SK', '', controller.set_sink,
               'Set sink'),
+        'o': ('SR', 'K', controller.get_sink,
+              'Get sink'),
         'P': ('S', '', controller.remove_sink,
               'Remove sink'),
         'Q': ('', 'P', controller.list_sinks,
@@ -97,6 +101,8 @@ def set_controller(_controller = ctrl.Controller()):
               'Add filter'),
         'U': ('SK', '', controller.set_filter,
               'Set filter'),
+        'u': ('SR', 'K', controller.get_filter,
+              'Get filter'),
         'V': ('S', '', controller.remove_filter,
               'Remove filter'),
         'W': ('', 'P', controller.list_filters,
@@ -165,6 +171,8 @@ class Handler(socketserver.StreamRequestHandler):
                     (type, arg) = packet.unpack_stream(self.rfile)
                     if type == 'K':
                         kwargs = arg
+                    elif type == 'R':
+                        vargs.extend(arg)
                     else:
                         vargs.append(arg)
 
