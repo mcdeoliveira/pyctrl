@@ -227,6 +227,9 @@ class Controller(ctrl.Controller):
 
     def __init__(self, *vargs, **kwargs):
 
+        # period
+        self.period = kwargs.pop('period', 0.01) # deadzone
+
         # Initialize controller
         super().__init__(*vargs, **kwargs)
 
