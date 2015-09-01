@@ -74,6 +74,9 @@ class Controller(ctrl.Controller):
 
     def __init__(self, *vargs, **kwargs):
 
+        # period
+        self.period = kwargs.pop('period', 0.01) # deadzone
+
         # Model parameters
         self.a = kwargs.pop('a', 17)   # 1/s
         self.k = kwargs.pop('k', 0.11) # cycles/s duty
@@ -117,6 +120,13 @@ class Controller(ctrl.Controller):
     def stop(self):
         super().stop()
         self.clock.set_enabled(False)
+
+    # period
+    def set_period(self, value):
+        self.period = value
+
+    def get_period(self):
+        return self.period
 
 if __name__ == "__main__":
 

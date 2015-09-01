@@ -18,7 +18,8 @@ def test_clock():
     controller = Controller()
     print(controller.info('all'))
 
-    controller.add_source('clock', Clock(controller.period), ['clock'])
+    period = 0.01
+    controller.add_source('clock', Clock(period), ['clock'])
     K = 10
     k = 0
     while k < K:
@@ -26,17 +27,17 @@ def test_clock():
         k += 1
 
     print('t = {}'.format(t))
-    assert t > 0.9 * K * controller.period
+    assert t > 0.9 * K * period
 
     controller.set_source('clock', reset = True)
 
     (t,) = controller.read_source('clock')
     print('t = {}'.format(t))
-    assert t < 0.9 * 2 * controller.period
+    assert t < 0.9 * 2 * period
 
     controller.remove_source('clock')
 
-    clock = TimerClock(controller.period)
+    clock = TimerClock(period)
     controller.add_source('clock', clock, ['clock'])
 
     K = 10
@@ -46,13 +47,13 @@ def test_clock():
         k += 1
 
     print('t = {}'.format(t))
-    assert t > 0.9 * K * controller.period
+    assert t > 0.9 * K * period
 
     controller.set_source('clock', reset = True)
 
     (t,) = controller.read_source('clock')
     print('t = {}'.format(t))
-    assert t < 0.9 * 2 * controller.period
+    assert t < 0.9 * 2 * period
 
     clock.set_enabled(False)
 
@@ -98,9 +99,9 @@ def run(controller):
     _filters = controller.list_filters()
 
     # period
-    assert controller.get_period() == 0.01 # default
-    controller.set_period(0.1)
-    assert controller.get_period() == 0.1
+    #assert controller.get_period() == 0.01 # default
+    #controller.set_period(0.1)
+    #assert controller.get_period() == 0.1
 
     # test signals
     assert 'clock' in controller.list_signals() # clock is default
@@ -261,6 +262,54 @@ def run(controller):
     assert sources == _sources
     assert filters == _filters
     assert sinks == _sinks
+
+    # test is_running
+    assert controller.get_signal('is_running') == False
+
+    controller.start()
+    assert controller.get_signal('is_running') == True
+
+    controller.stop()
+    assert controller.get_signal('is_running') == False
+
+def test_run():
+
+    from ctrl import Controller
+    from ctrl.block.clock import Clock, TimerClock
+    from ctrl.block import Condition
+
+    controller = Controller()
+    print(controller.info('all'))
+
+    period = 0.01
+    controller.add_source('clock', Clock(period), ['clock'])
+
+    # start/stop with condition
+
+    controller.add_filter('condition', 
+                          Condition(lambda x: x < 10), 
+                          ['clock'], ['is_running'])
+
+    controller.set_source('clock', reset=True)
+    controller.start()
+    is_running = controller.get_signal('is_running')
+    while is_running:
+        is_running = controller.get_signal('is_running')
+    controller.stop()
+
+    tk = controller.get_signal('clock')
+    assert tk > 10 and tk < 10 + period
+
+    # run with condition
+
+    controller.set_source('clock', reset=True)
+    controller.run()
+    controller.stop()
+
+    tk = controller.get_signal('clock')
+    assert tk > 10 and tk < 10 + period
+
+    controller.remove_source('clock')
 
 if __name__ == "__main__":
 

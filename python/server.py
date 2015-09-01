@@ -76,7 +76,7 @@ def main():
 
             # We're on the beaglebone, run the real thing
             import ctrl.bbb as bbb
-            controller = bbb.Controller(Ts)
+            controller = bbb.Controller(period = Ts)
 
     else:
 
@@ -90,7 +90,7 @@ def main():
         # Setup simulated controller
 
         import ctrl.sim as sim
-        controller = sim.Controller(Ts)
+        controller = sim.Controller(period = Ts)
 
         # a = 17                 # 1/s
         # k = 0.11               # cycles/s duty

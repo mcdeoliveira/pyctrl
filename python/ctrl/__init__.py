@@ -12,13 +12,13 @@ class ControllerException(Exception):
 
 class Controller:
 
-    def __init__(self, period = .01):
+    def __init__(self): #, period = .01):
 
         # debug
         self.debug = 0
 
         # real-time loop
-        self.period = period
+        #self.period = period
         self.is_running = False
 
         # call __reset
@@ -27,7 +27,7 @@ class Controller:
     def __reset(self):
 
         # signals
-        self.signals = { 'clock': 0 }
+        self.signals = { 'clock': 0, 'is_running': self.is_running }
 
         # sources
         self.sources = { }
@@ -47,13 +47,6 @@ class Controller:
 
     __repr__ = __str__
     
-    # period
-    def set_period(self, value):
-        self.period = value
-
-    def get_period(self):
-        return self.period
-
     # reset
     def reset(self):
 
@@ -121,9 +114,8 @@ class Controller:
                                   for k,key in 
                                   enumerate(sorted(self.signals.keys()))) + '\n'
 
-        elif options == 'period':
-
-            result += '> period = {}s\n'.format(self.period)
+        #elif options == 'period':
+        #result += '> period = {}s\n'.format(self.period)
 
         elif options == 'all':
             
@@ -354,16 +346,17 @@ class Controller:
             print('> Stoping controller')
         self.stop()
 
-    def _run(self):
+    def run(self):
 
         # Loop
         self.is_running = True
+        self.signals['is_running'] = self.is_running
         while self.is_running:
 
             # Call run
-            self.run()
+            self._run()
 
-    def run(self):
+    def _run(self):
         # Run the loop
 
         # Read all sources
@@ -395,15 +388,21 @@ class Controller:
                 # write inputs
                 sink.write(*[self.signals[label]
                              for label in device['inputs']])
-                               
+
+        # update is_running
+        self.is_running = self.signals['is_running']
+                
     def start(self):
         """Start controller loop
         """
 
         # Start thread
-        self.thread = Thread(target = self._run)
+        self.thread = Thread(target = self.run)
         self.thread.start()
 
     def stop(self):
+        """Stop controller loop
+        """
         if self.is_running:
             self.is_running = False
+            self.signals['is_running'] = self.is_running

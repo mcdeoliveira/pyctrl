@@ -6,7 +6,7 @@ from . import tv
 def identity(t, x, u, *pars):
     return x
 
-class ODEBase(TVSystem):
+class ODEBase(tv.TVSystem):
     """ODE(f, state)
 
     Model is of the form:
@@ -18,7 +18,7 @@ class ODEBase(TVSystem):
     """
     
     def __init__(self,
-                 f, g = identity, x0 = 0, t0 = 0, pars = ()):
+                 f, g = identity, x0 = numpy.array([0]), t0 = -1, pars = ()):
 
         # set initial condition
         self.state = x0
@@ -56,7 +56,7 @@ class ODE(ODEBase):
     """
     
     def __init__(self,
-                 f, g = identity, x0 = 0, t0 = 0, pars = ()):
+                 f, g = identity, x0 = 0, t0 = -1, pars = ()):
 
         # call super
         super().__init__(f, g, x0, t0, pars)
@@ -66,18 +66,27 @@ class ODE(ODEBase):
 
     def update(self, tk, uk):
         
-        # set initial condition and parameters
-        pars = (uk,) + self.pars
-        self.solver.set_initial_value(self.state, self.t0).set_f_params(*pars)
-        
-        # solve ode
-        yk = self.solver.integrate(tk)
-        
-        # update state
-        self.state = yk
+        #print('t0 = {}, tk = {}, xk = {}, uk = {}'.format(self.t0, tk, self.state, uk))
 
-        # update time
-        self.t0 = tk
+        if tk == self.t0:
+        
+            # same time, evaluate output
+            return self.g(tk, self.state, uk, *self.pars)
+
+        else:
+
+            # set initial condition and parameters
+            pars = (uk,) + self.pars
+            self.solver.set_initial_value(self.state, self.t0).set_f_params(*pars)
+
+            # solve ode
+            yk = self.solver.integrate(tk)
+
+            # update state
+            self.state = yk
+
+            # update time
+            self.t0 = tk
 
         # evaluate output
         return self.g(tk, self.state, uk, *self.pars)
@@ -94,7 +103,7 @@ class ODEINT(ODEBase):
     """
     
     def __init__(self,
-                 f, g = identity, x0 = 0, t0 = 0, pars = ()):
+                 f, g = identity, x0 = 0, t0 = -1, pars = ()):
 
         # call super
         super().__init__(f, g, x0, t0, pars)
@@ -103,18 +112,28 @@ class ODEINT(ODEBase):
         self.f = lambda t, x, *pars: f(x, t, *pars)
 
     def update(self, tk, uk):
-        
-        # solve ode
-        yk = scipy.integrate.odeint(self.f, 
-                                    self.state, 
-                                    [self.t0, tk], 
-                                    args = (uk,) + self.pars)
-        
-        # update state
-        self.state = yk[-1,:]
 
-        # udpate time
-        self.t0 = tk
+        #print('t0 = {}, tk = {}, uk = {}'.format(self.t0, tk, uk))
+        
+        if tk == self.t0:
+        
+            # same time, evaluate output
+            return self.g(tk, self.state, uk, *self.pars)
+
+        else:
+
+            # solve ode
+            yk = scipy.integrate.odeint(self.f, 
+                                        self.state, 
+                                        [self.t0, tk], 
+                                        args = (uk,) + self.pars)
+
+            # update state
+            # odeint returns all state, latest is last
+            self.state = yk[-1,:]
+
+            # udpate time
+            self.t0 = tk
 
         # evaluate output
         return self.g(tk, self.state, uk, *self.pars)

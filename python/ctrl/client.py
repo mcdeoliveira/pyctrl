@@ -223,11 +223,11 @@ class Controller(ctrl.Controller):
     def read_filter(self, label):
         return self.send('Y', 'S', label)
 
-    def set_period(self, value):
-        return self.send('a', 'D', value)
+    # def set_period(self, value):
+    #     return self.send('a', 'D', value)
 
-    def get_period(self):
-        return self.send('b')
+    # def get_period(self):
+    #     return self.send('b')
 
     def start(self):
         self.send('c')

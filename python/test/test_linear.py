@@ -456,7 +456,7 @@ def test2():
     # Repeat with TimeVarying block
 
     tk = 0
-    blk = linear.TimeVarying(ode.ODE(f = f, t0 = tk, x0 = xk, pars = (a,b)))
+    blk = linear.TimeVarying(ode.ODE(f = f, t0 = tk, x0 = xk, pars = (a,b)), t = tk)
 
     # u1 = 1   =>  y1 = 1
 

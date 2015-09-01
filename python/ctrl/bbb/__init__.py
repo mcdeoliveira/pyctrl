@@ -29,6 +29,9 @@ class Clock(clock.Clock):
 
     def __init__(self, *vars, **kwargs):
 
+        # period
+        self.period = kwargs.pop('period', 0.01) # deadzone
+
         # call super
         super().__init__(*vars, **kwargs)
         
@@ -278,3 +281,10 @@ class Controller(ctrl.Controller):
 
         # then start
         super().start()
+
+    # period
+    def set_period(self, value):
+        self.period = value
+
+    def get_period(self):
+        return self.period

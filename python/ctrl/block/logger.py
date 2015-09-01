@@ -47,6 +47,8 @@ class Logger(block.Block):
         
     def write(self, *values):
 
+        #print('values = {}'.format(values))
+
         # stack first first
         values = numpy.hstack(values)
 

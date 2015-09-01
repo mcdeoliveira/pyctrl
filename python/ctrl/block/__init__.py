@@ -117,3 +117,19 @@ class BufferBlock(Block):
         # get buffer
         return self.buffer
 
+
+class Condition(BufferBlock):
+
+    def __init__(self, test, *vars, **kwargs):
+        """Block with condition
+        """
+
+        self.test = test
+        
+        super().__init__(*vars, **kwargs)
+
+    def write(self, *values):
+
+        if self.enabled:
+
+            self.buffer = (self.test(values[0]), )

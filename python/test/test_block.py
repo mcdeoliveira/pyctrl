@@ -111,6 +111,18 @@ def test_logger():
 
     assert _logger.get() == { 'enabled': True, 'current': 1, 'page': 0 }
 
+def test_condition():
+
+    obj = block.Condition(lambda x: x < 1)
+    
+    obj.write(0)
+    (y,) = obj.read()
+    assert y == True
+
+    obj.write(1)
+    (y,) = obj.read()
+    assert y == False
+
 if __name__ == "__main__":
 
     test_printer()

@@ -83,6 +83,8 @@ class TimeVarying(block.BufferBlock):
         self.model = model
         assert isinstance(self.model, TVSystem)
 
+        self.t = kwargs.pop('t', -1)
+
         super().__init__(*vars, **kwargs)
 
     def set(self, **kwargs):
@@ -95,6 +97,7 @@ class TimeVarying(block.BufferBlock):
 
     def reset(self):
 
+        self.t = -1
         self.model.state *= 0
         
     def write(self, *values):
@@ -112,10 +115,20 @@ class TimeVarying(block.BufferBlock):
             uk = numpy.array(values[1])
         #print('uk = {}'.format(uk))
 
-        # convert output to list
-        yk = self.model.update(tk, uk)
+        # initialize model
+        if self.t < 0 or self.model.t0 >= tk:
 
-        self.buffer = yk.tolist()
+            self.model.t0 = tk
+
+        # update model
+        yk = self.model.update(tk, uk)
+        #print('yk = {}'.format(yk))
+
+        # save time
+        self.t = tk
+
+        # convert output to list
+        self.buffer = (yk, )
 
 class Gain(block.BufferBlock):
 
@@ -142,6 +155,19 @@ class ShortCircuit(block.BufferBlock):
     def write(self, *values):
 
         self.buffer = values
+
+class Constant(block.Block):
+
+    def __init__(self, value = 1, *vars, **kwargs):
+
+        assert isinstance(value, (int, float))
+        self.value = value
+
+        super().__init__(*vars, **kwargs)
+    
+    def read(self):
+
+        return (self.value, )
 
 class Differentiator(block.BufferBlock):
 

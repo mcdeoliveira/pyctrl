@@ -112,11 +112,11 @@ def set_controller(_controller = ctrl.Controller()):
         'Y': ('S', 'P', controller.read_filter,
               'Read filter'),
 
-        'a': ('D',  '', controller.set_period,
-              'Set period'),
+        # 'a': ('D',  '', controller.set_period,
+        #       'Set period'),
 
-        'b': ('',  'D', controller.get_period,
-              'Get period'),
+        # 'b': ('',  'D', controller.get_period,
+        #       'Get period'),
 
         'c': ('',  '',  controller.start,
               'Start control loop'),
