@@ -162,7 +162,7 @@ class Encoder(block.BufferBlock):
         #print('> read')
         if self.enabled:
 
-            self.buffer = (self.clock.get_encoder[self.eqep]() / self.ratio, )
+            self.buffer = (self.clock.get_encoder()[self.eqep] / self.ratio, )
         
         return self.buffer
 
