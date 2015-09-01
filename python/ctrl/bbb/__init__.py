@@ -27,7 +27,7 @@ else:
 
 class Clock(clock.Clock):
 
-    def __init__(self, *vars, **kwargs):
+    def __init__(self, eqeps = ['EQEP2'], *vars, **kwargs):
 
         # period
         self.period = kwargs.pop('period', 0.01) # deadzone
@@ -35,17 +35,48 @@ class Clock(clock.Clock):
         # call super
         super().__init__(*vars, **kwargs)
         
-        # ENC1 PINS
-        # eQEP2A_in(P8_12)
-        # eQEP2B_in(P8_11)
+        if 'EQEP0' in eqeps:
+
+            # ENC0 PINS
+            # eQEP0A_in(P9_42)
+            # eQEP0B_in(P9_27)
+            eQEP0 = "/sys/devices/ocp.3/48300000.epwmss/48300180.eqep"
+
+            # initialize eqep2
+            self.eqep0 = eQEP(eQEP0, eQEP.MODE_ABSOLUTE)
+            self.eqep0.set_period(int(self.period * 1e9))
+
+        else:
+            self.eqep0 = None
+
+        if 'EQEP1' in eqeps:
+
+            # ENC1 PINS
+            # eQEP1A_in(P8_35)
+            # eQEP1B_in(P8_33)
+            eQEP1 = "/sys/devices/ocp.3/48302000.epwmss/48302180.eqep"
+
+            # initialize eqep2
+            self.eqep1 = eQEP(eQEP1, eQEP.MODE_ABSOLUTE)
+            self.eqep1.set_period(int(self.period * 1e9))
+
+        else:
+            self.eqep1 = None
+
+        # Always use EQEP2 as clock    
+
+        # ENC2b PINS
+        # eQEP2bA_in(P8_12)
+        # eQEP2bB_in(P8_11)
         eQEP2 = "/sys/devices/ocp.3/48304000.epwmss/48304180.eqep"
 
         # initialize eqep2
         self.eqep2 = eQEP(eQEP2, eQEP.MODE_ABSOLUTE)
-        self.encoder1 = 0
 
         # set period on BBB eQEP
         self.eqep2.set_period(int(self.period * 1e9))
+
+        self.encoder = (0, 0, 0)
 
     def set_period(self, period):
         
@@ -55,32 +86,45 @@ class Clock(clock.Clock):
         # set period on BBB eQEP
         self.eqep2.set_period(int(self.period * 1e9))
 
-    def get_encoder1(self):
+    def get_encoder(self):
 
-        return self.encoder1
+        return self.encoder
         
-    def set_encoder1(self, value):
+    def set_encoder(self, value, index = 2):
 
-        self.eqep2.set_position(int(value))
+        if index == 0:
+            self.eqep0.set_position(int(value))
+        elif index == 1:
+            self.eqep1.set_position(int(value))
+        elif index == 2:
+            self.eqep2.set_position(int(value))
         
     def read(self):
 
         #print('> read')
         if self.enabled:
 
-            # Read encoder1 (blocking call)
-            self.encoder1 = self.eqep2.poll_position()
+            # Read encoder2 (blocking call)
+            self.encoder[2] = self.eqep2.poll_position()
         
             # Read clock
             self.time = perf_counter()
             self.counter += 1
+
+            # Read encoder0 (non-blocking)
+            if eqep0 is not None:
+                self.encoder[0] = self.eqep0.get_position()
+
+            # Read encoder1 (non-blocking)
+            if eqep1 is not None:
+                self.encoder[1] = self.eqep1.get_position()
 
         return (self.time - self.time_origin, )
 
 
 class Encoder(block.BufferBlock):
         
-    def __init__(self, clock, ratio = 48 * 172, *vars, **kwargs):
+    def __init__(self, clock, ratio = 48 * 172, eqep = 2, *vars, **kwargs):
 
         # set period
         assert isinstance(clock, Clock)
@@ -89,11 +133,14 @@ class Encoder(block.BufferBlock):
         # gear ratio
         self.ratio = ratio
 
+        # eqep
+        self.eqep = eqep
+
         # call super
         super().__init__(*vars, **kwargs)
         
         # output is in cycles/s
-        self.buffer = (self.clock.encoder1 / self.ratio, )
+        self.buffer = (self.clock.encoder[self.eqep] / self.ratio, )
 
     def set(self, **kwargs):
         
@@ -104,18 +151,18 @@ class Encoder(block.BufferBlock):
 
     def reset(self):
 
-        self.clock.set_encoder1(0)
+        self.clock.set_encoder(0, self.eqep)
 
     def write(self, *values):
 
-        self.clock.set_encoder1(int(values[0] * self.ratio))
+        self.clock.set_encoder(int(values[0] * self.ratio), self.eqep)
 
     def read(self):
 
         #print('> read')
         if self.enabled:
 
-            self.buffer = (self.clock.get_encoder1() / self.ratio, )
+            self.buffer = (self.clock.get_encoder[self.eqep]() / self.ratio, )
         
         return self.buffer
 
