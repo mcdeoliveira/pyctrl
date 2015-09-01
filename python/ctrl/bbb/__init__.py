@@ -103,7 +103,7 @@ class Encoder(block.BufferBlock):
 
         self.clock.set_encoder1(0)
 
-    def write(self, values):
+    def write(self, *values):
 
         self.clock.set_encoder1(int(values[0] * self.ratio))
 
@@ -198,7 +198,7 @@ class Motor(block.Block):
             # and write 0 to motor
             PWM.set_duty_cycle(self.pwm_pin, 0)
 
-    def write(self, values):
+    def write(self, *values):
 
         #print('> write to motor')
         if self.enabled:

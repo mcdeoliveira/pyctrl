@@ -67,7 +67,7 @@ def set_controller(_controller = ctrl.Controller()):
         'G': ('S', '', controller.remove_signal,
               'Remove signal'),
 
-        'H': ('SPP', '', controller.add_source,
+        'H': ('SPPI', '', controller.add_source,
               'Add source'),
         'I': ('SK', '', controller.set_source,
               'Set source'),
@@ -82,7 +82,7 @@ def set_controller(_controller = ctrl.Controller()):
         'M': ('S', 'P', controller.read_source,
               'Read source'),
 
-        'N': ('SPP', '', controller.add_sink,
+        'N': ('SPPI', '', controller.add_sink,
               'Add sink'),
         'O': ('SK', '', controller.set_sink,
               'Set sink'),
@@ -97,7 +97,7 @@ def set_controller(_controller = ctrl.Controller()):
         'S': ('S', 'P', controller.read_sink,
               'Read sink'),
 
-        'T': ('SPPP', '', controller.add_filter,
+        'T': ('SPPPI', '', controller.add_filter,
               'Add filter'),
         'U': ('SK', '', controller.set_filter,
               'Set filter'),

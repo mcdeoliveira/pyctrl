@@ -119,7 +119,7 @@ class Controller:
             result += '> signals\n  ' + \
                       '\n  '.join('{}. {}'.format(k+1,key) 
                                   for k,key in 
-                                  sorted(enumerate(self.signals.keys()))) + '\n'
+                                  enumerate(sorted(self.signals.keys()))) + '\n'
 
         elif options == 'period':
 
@@ -169,7 +169,7 @@ class Controller:
         return list(self.signals.keys())
 
     # sources
-    def add_source(self, label, source, signals):
+    def add_source(self, label, source, signals, order = -1):
         assert isinstance(label, str)
         if label in self.sources:
             warnings.warn("Source '{}' already exists and is been replaced".format(label),
@@ -182,7 +182,10 @@ class Controller:
             'block': source,
             'outputs': signals
         }
-        self.sources_order.append(label)
+        if order < 0:
+            self.sources_order.append(label)
+        else:
+            self.sources_order.insert(order, label)
 
     def remove_source(self, label):
         self.sources_order.remove(label)
@@ -218,7 +221,7 @@ class Controller:
 
 
     # sinks
-    def add_sink(self, label, sink, signals):
+    def add_sink(self, label, sink, signals, order = -1):
         assert isinstance(label, str)
         if label in self.sinks:
             warnings.warn("Sink '{}' already exists and is been replaced".format(label), 
@@ -231,7 +234,10 @@ class Controller:
             'block': sink,
             'inputs': signals
         }
-        self.sinks_order.append(label)
+        if order < 0:
+            self.sinks_order.append(label)
+        else:
+            self.sinks_order.insert(order, label)
 
     def remove_sink(self, label):
         self.sinks_order.remove(label)
@@ -267,7 +273,8 @@ class Controller:
 
     # filters
     def add_filter(self, label, 
-                       filter_, input_signals, output_signals):
+                   filter_, input_signals, output_signals, 
+                   order = -1):
         assert isinstance(label, str)
         if label in self.filters:
             warnings.warn("Filter '{}' already exists and is been replaced".format(label),
@@ -282,7 +289,10 @@ class Controller:
             'inputs': input_signals,
             'outputs': output_signals
         }
-        self.filters_order.append(label)
+        if order < 0:
+            self.filters_order.append(label)
+        else:
+            self.filters_order.insert(order, label)
 
     def remove_filter(self, label):
         self.filters_order.remove(label)
