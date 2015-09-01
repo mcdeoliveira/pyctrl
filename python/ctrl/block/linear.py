@@ -3,7 +3,7 @@ import numpy
 from .. import block
 from ctrl.system.tf import DTTF, SISOSystem
 from ctrl.system.ss import DTSS, MIMOSystem
-from ctrl.system.ode import TVSystem
+from ctrl.system.tv import TVSystem
 
 # Blocks
 

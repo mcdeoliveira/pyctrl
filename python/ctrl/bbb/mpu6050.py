@@ -129,7 +129,8 @@ class Accelerometer(block.Block):
         self.i2c = I2C.Adafruit_I2C(self.address, debug = self.debug_I2C)
 
         # Enable low pass filter
-        self.i2c.write8(CONFIG, self.dlp_cfg)
+        if self.i2c.write8(CONFIG, self.dlp_cfg) is not None:
+            raise
 
         # Set sample rate
         self.i2c.write8(SMPRT_DIV, self.smprt_div)

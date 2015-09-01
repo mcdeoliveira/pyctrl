@@ -1,13 +1,10 @@
 import numpy
 import scipy.integrate
 
-from .. import system
+from . import tv
 
 def identity(t, x, u, *pars):
     return x
-
-class TVSystem:
-    pass
 
 class ODEBase(TVSystem):
     """ODE(f, state)

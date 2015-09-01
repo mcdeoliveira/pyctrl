@@ -93,7 +93,8 @@ class Printer(Block):
                 yield 
                 numpy.set_printoptions(**original)
 
-            with printoptions(formatter = {'float': self.frmt.format}):
+            #with printoptions(formatter = {'float': self.frmt.format}):
+            with printoptions(precision = 12):
                 print(str(numpy.hstack(values))[1:-1], end=self.endln)
 
 class BufferBlock(Block):
