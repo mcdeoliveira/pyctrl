@@ -76,7 +76,7 @@ class Clock(clock.Clock):
         # set period on BBB eQEP
         self.eqep2.set_period(int(self.period * 1e9))
 
-        self.encoder = (0, 0, 0)
+        self.encoder = [0, 0, 0]
 
     def set_period(self, period):
         
@@ -112,11 +112,11 @@ class Clock(clock.Clock):
             self.counter += 1
 
             # Read encoder0 (non-blocking)
-            if eqep0 is not None:
+            if self.eqep0 is not None:
                 self.encoder[0] = self.eqep0.get_position()
 
             # Read encoder1 (non-blocking)
-            if eqep1 is not None:
+            if self.eqep1 is not None:
                 self.encoder[1] = self.eqep1.get_position()
 
         return (self.time - self.time_origin, )
