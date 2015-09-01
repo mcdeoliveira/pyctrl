@@ -15,7 +15,7 @@ import ctrl.block as block
 import ctrl.block.logger as logger
 
 # initialize controller
-controller = Controller(period = 0.01)
+controller = Controller()
 controller.add_sink('logger', 
                     logger.Logger(), 
                     ['clock','encoder1'])
