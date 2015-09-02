@@ -37,6 +37,8 @@ class Clock(clock.Clock):
         
         if 'EQEP0' in eqeps:
 
+            print('Initializing EQEP0')
+
             # ENC0 PINS
             # eQEP0A_in(P9_42)
             # eQEP0B_in(P9_27)
@@ -50,6 +52,8 @@ class Clock(clock.Clock):
             self.eqep0 = None
 
         if 'EQEP1' in eqeps:
+
+            print('Initializing EQEP1')
 
             # ENC1 PINS
             # eQEP1A_in(P8_35)
@@ -286,7 +290,8 @@ class Controller(ctrl.Controller):
         super().__reset()
 
         # add source: clock
-        self.clock = Clock(period = self.period)
+        self.clock = Clock(period = self.period,
+                           eqeps = ['EQEP2', 'EQEP0'])
         self.add_source('clock', self.clock, ['clock'])
         self.signals['clock'] = self.clock.time
         self.time_origin = self.clock.time_origin
@@ -295,8 +300,15 @@ class Controller(ctrl.Controller):
         self.add_signals('motor1', 'encoder1', 'pot1')
 
         # add source: encoder1
-        self.encoder1 = Encoder(clock = self.clock)
+        self.encoder1 = Encoder(clock = self.clock, 
+                                eqep = 2, ratio = 48 * 172)
         self.add_source('encoder1', self.encoder1, ['encoder1'])
+
+        # add source: encoder2
+        self.encoder2 = Encoder(clock = self.clock, 
+                                eqep = 0, ratio = 4 * 1024)
+        self.add_signal('encoder2')
+        self.add_source('encoder2', self.encoder2, ['encoder2'])
 
         # add source: pot1
         self.pot1 = Potentiometer()

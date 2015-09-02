@@ -94,8 +94,11 @@ class Printer(Block):
                 numpy.set_printoptions(**original)
 
             #with printoptions(formatter = {'float': self.frmt.format}):
-            with printoptions(precision = 12):
-                print(str(numpy.hstack(values))[1:-1], end=self.endln)
+            #with printoptions(precision = 12):
+            #    print(str(numpy.hstack(values))[1:-1], end=self.endln)
+            row = numpy.hstack(values)
+            print(self.sep.join(self.frmt.format(val) for val in row), 
+                  end=self.endln)
 
 class BufferBlock(Block):
 
