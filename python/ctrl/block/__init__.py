@@ -136,3 +136,55 @@ class Condition(BufferBlock):
         if self.enabled:
 
             self.buffer = (self.test(values[0]), )
+
+class Signal(Block):
+
+    def __init__(self, x, repeat = False, *vars, **kwargs):
+        """Block with signal
+        """
+
+        # signal
+        assert isinstance(x, numpy.ndarray)
+        self.x = x
+
+        # repeat?
+        self.repeat = repeat
+
+        # index
+        self.k = 0
+       
+        super().__init__(*vars, **kwargs)
+
+    def reset(self):
+
+        self.k = 0
+
+    def set(self, **kwargs):
+
+        if 'x' in kwargs:
+            self.x = kwargs.pop('x')
+            self.reset()
+        
+        super().set(**kwargs)
+
+    def read(self, *values):
+
+        # return 0 if over the edge
+        if self.k >= len(self.x):
+
+            xk = 0 * self.x[0]
+
+        else:
+
+            # get entry
+            xk = self.x[self.k]
+            
+            # increment
+            self.k += 1
+            
+            if self.repeat and self.k == len(self.x):
+
+                # reset
+                self.k = 0
+        
+        return (xk, )

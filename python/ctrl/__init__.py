@@ -120,16 +120,19 @@ class Controller:
         elif options == 'all':
             
             result = ''.join(map(lambda x: self.info(x), 
-                                 ['summary', 'period', 'signals', 'sources', 
+                                 ['summary', 'signals', 'sources', 
                                   'filters', 'sinks']))
             
-        else: # options == 'summary':
+        elif options == 'summary':
         
             result += '> Controller with {} signal(s), {} source(s), {} sink(s), and {} filter(s)' \
                 .format(len(self.signals),
                         len(self.sources), 
                         len(self.sinks), 
                         len(self.filters)) + '\n'
+
+        else:
+            warnings.warn("Unknown option '{}'".format(options))
 
         return result
 

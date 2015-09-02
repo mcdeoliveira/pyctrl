@@ -123,8 +123,82 @@ def test_condition():
     (y,) = obj.read()
     assert y == False
 
+def test_signal():
+
+    import numpy as np
+
+    x = np.array([1,2,3])
+    obj = block.Signal(x = x, repeat = True)
+    
+    k = 0
+    (y,) = obj.read(0)
+    assert y == x[k]
+    k += 1
+
+    (y,) = obj.read(0)
+    assert y == x[k]
+    k += 1
+
+    (y,) = obj.read(0)
+    assert y == x[k]
+
+    k = 0
+    (y,) = obj.read(0)
+    assert y == x[k]
+    k += 1
+
+    (y,) = obj.read(0)
+    assert y == x[k]
+    k += 1
+
+    (y,) = obj.read(0)
+    assert y == x[k]
+
+    x = np.array([1,2,3])
+    obj = block.Signal(x = x, repeat = False)
+    
+    k = 0
+    (y,) = obj.read(0)
+    assert y == x[k]
+    k += 1
+
+    (y,) = obj.read(0)
+    assert y == x[k]
+    k += 1
+
+    (y,) = obj.read(0)
+    assert y == x[k]
+
+    (y,) = obj.read(0)
+    assert y == 0
+
+    (y,) = obj.read(0)
+    assert y == 0
+
+    (y,) = obj.read(0)
+    assert y == 0
+
+    x = np.array([1,2,3])
+    obj = block.Signal(x = x, repeat = True)
+    
+    k = 0
+    (y,) = obj.read(0)
+    assert y == x[k]
+    k += 1
+
+    (y,) = obj.read(0)
+    assert y == x[k]
+    k += 1
+
+    obj.reset()
+    
+    k = 0
+    (y,) = obj.read(0)
+    assert y == x[0]
+
 if __name__ == "__main__":
 
     test_printer()
     test_set()
     test_logger()
+    test_signal()
