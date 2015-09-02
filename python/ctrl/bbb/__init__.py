@@ -25,6 +25,32 @@ else:
     import time
     perf_counter = time.perf_counter
 
+
+import glob
+
+def load_device_tree(name):
+
+    slots = glob.glob("/sys/devices/bone_capemgr.?/slots")[0]
+    #print('name = {}'.format(name))
+    #print('slots = {}'.format(slots))
+    
+    retval = -1
+    with open(slots, 'r+') as file:
+        for line in file:
+            #print('line = {}'.format(line))
+            if line.find(name) >= 0:
+                # return true if device is already loaded
+                return 0
+
+        # reached end of file: device is not loaded
+        file.write(name)
+        retval = 1
+        
+    # take a break
+    time.sleep(1)
+
+    return retval
+
 class Clock(clock.Clock):
 
     def __init__(self, eqeps = ['EQEP2'], *vars, **kwargs):
@@ -37,7 +63,7 @@ class Clock(clock.Clock):
         
         if 'EQEP0' in eqeps:
 
-            print('Initializing EQEP0')
+            print('> Initializing EQEP0')
 
             # ENC0 PINS
             # eQEP0A_in(P9_42)
@@ -54,7 +80,10 @@ class Clock(clock.Clock):
 
         if 'EQEP1' in eqeps:
 
-            print('Initializing EQEP1')
+            print('> Initializing EQEP1')
+
+            # Load device tree
+            load_device_tree('bone_eqep1')
 
             # ENC1 PINS
             # eQEP1A_in(P8_35)
