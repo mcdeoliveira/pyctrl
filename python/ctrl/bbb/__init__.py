@@ -65,6 +65,9 @@ class Clock(clock.Clock):
 
             print('> Initializing EQEP0')
 
+            # Load device tree
+            load_device_tree('bone_eqep0')
+
             # ENC0 PINS
             # eQEP0A_in(P9_42)
             # eQEP0B_in(P9_27)
@@ -99,6 +102,9 @@ class Clock(clock.Clock):
             self.eqep1 = None
 
         # Always use EQEP2 as clock    
+
+        # Load device tree
+        load_device_tree('bone_eqep2b')
 
         # ENC2b PINS
         # eQEP2bA_in(P8_12)
