@@ -44,9 +44,10 @@ class Clock(clock.Clock):
             # eQEP0B_in(P9_27)
             eQEP0 = "/sys/devices/ocp.3/48300000.epwmss/48300180.eqep"
 
-            # initialize eqep2
+            # initialize eqep0
             self.eqep0 = eQEP(eQEP0, eQEP.MODE_ABSOLUTE)
             self.eqep0.set_period(int(self.period * 1e9))
+            self.set_encoder(0, 0)
 
         else:
             self.eqep0 = None
@@ -63,6 +64,7 @@ class Clock(clock.Clock):
             # initialize eqep2
             self.eqep1 = eQEP(eQEP1, eQEP.MODE_ABSOLUTE)
             self.eqep1.set_period(int(self.period * 1e9))
+            self.set_encoder(0, 1)
 
         else:
             self.eqep1 = None
@@ -79,6 +81,7 @@ class Clock(clock.Clock):
 
         # set period on BBB eQEP
         self.eqep2.set_period(int(self.period * 1e9))
+        self.set_encoder(0, 2)
 
         self.encoder = [0, 0, 0]
 
@@ -291,7 +294,7 @@ class Controller(ctrl.Controller):
 
         # add source: clock
         self.clock = Clock(period = self.period,
-                           eqeps = ['EQEP2', 'EQEP0'])
+                           eqeps = ['EQEP2', 'EQEP1'])
         self.add_source('clock', self.clock, ['clock'])
         self.signals['clock'] = self.clock.time
         self.time_origin = self.clock.time_origin
@@ -306,7 +309,7 @@ class Controller(ctrl.Controller):
 
         # add source: encoder2
         self.encoder2 = Encoder(clock = self.clock, 
-                                eqep = 0, ratio = 4 * 1024)
+                                eqep = 1, ratio = 4 * 1024)
         self.add_signal('encoder2')
         self.add_source('encoder2', self.encoder2, ['encoder2'])
 
