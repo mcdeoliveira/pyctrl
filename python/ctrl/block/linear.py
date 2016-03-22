@@ -226,6 +226,10 @@ class Feedback(block.BufferBlock):
 
         super().__init__(*vars, **kwargs)
     
+    def reset(self):
+
+        self.block.reset()
+
     def set(self, **kwargs):
         
         if 'block' in kwargs:

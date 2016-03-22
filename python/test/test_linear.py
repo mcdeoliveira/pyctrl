@@ -403,6 +403,12 @@ def test1():
 
     assert np.all(np.array(yk1) == yk2)
 
+    # Reset feedback
+    assert blktf.block.model.state == (6.5,)
+
+    blktf.reset()
+    assert blktf.block.model.state == (0,)
+
     # Sum
     blk = linear.Sum()
     

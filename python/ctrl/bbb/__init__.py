@@ -136,10 +136,13 @@ class Clock(clock.Clock):
 
         if index == 0:
             self.eqep0.set_position(int(value))
+            self.encoder[0] = value
         elif index == 1:
             self.eqep1.set_position(int(value))
+            self.encoder[1] = value
         elif index == 2:
             self.eqep2.set_position(int(value))
+            self.encoder[2] = value
         
     def read(self):
 
