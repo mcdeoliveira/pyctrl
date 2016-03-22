@@ -1,7 +1,7 @@
 if __name__ == "__main__":
 
     import sys
-    sys.path.append('.')
+    sys.path.append('..')
 
 import ctrl.block as block
 
