@@ -212,110 +212,6 @@ class Encoder(block.BufferBlock):
             self.buffer = (self.clock.get_encoder()[self.eqep] / self.ratio, )
         
         return self.buffer
-
-
-class Potentiometer(block.BufferBlock):
-        
-    def __init__(self, 
-                 pin = 'AIN0', 
-                 full_scale = 0.85, 
-                 invert = True,
-                 *vars, **kwargs):
-
-        # set pin
-        self.pin = pin
-
-        # set full_scale
-        self.full_scale = full_scale
-
-        # set invert
-        self.invert = invert
-
-        # call super
-        super().__init__(*vars, **kwargs)
-
-        # initialize adc
-        ADC.setup()
-        
-    def set(self, **kwargs):
-        
-        if 'full_scale' in kwargs:
-            self.full_scale = kwargs.pop('full_scale')
-
-        if 'invert' in kwargs:
-            self.invert = kwargs.pop('invert')
-
-        super().set(**kwargs)
-
-    def read(self):
-
-        #print('> read')
-        if self.enabled:
-
-            # read analog pin
-            measure = min(100, 
-                          100 * ADC.read(self.pin) / self.full_scale)
-
-            # invert?
-            if self.invert:
-                measure = 100 - measure
-
-            self.buffer = (measure, )
-        
-        return self.buffer
-
-        
-class Motor(block.Block):
-        
-    def __init__(self, *vars, **kwargs):
-
-        # PWM1 PINS
-        self.dir_A   = kwargs.pop('dir_A', 'P9_15')
-        self.dir_B   = kwargs.pop('dir_B', 'P9_23')
-        self.pwm_pin = kwargs.pop('pwm_pin', 'P9_14')
-
-        # call super
-        super().__init__(*vars, **kwargs)
-
-        # initialize pwm1
-        PWM.start(self.pwm_pin)
-        GPIO.setup(self.dir_A, GPIO.OUT)
-        GPIO.setup(self.dir_B, GPIO.OUT)
-
-    def set_enabled(self, enabled = True):
-
-        # call super
-        super().set_enabled(enabled)
-
-        if not enabled:
-
-            # wait
-            time.sleep(0.1)
-
-            # and write 0 to motor
-            PWM.set_duty_cycle(self.pwm_pin, 0)
-
-    def write(self, *values):
-
-        #print('> write to motor')
-        if self.enabled:
-
-            pwm = values[0]
-            if pwm >= 0:
-
-                pwm = min(100, pwm)
-                GPIO.output(self.dir_A, 1)
-                GPIO.output(self.dir_B, 0)
-
-            else:
-
-                pwm = min(100, -pwm)
-                GPIO.output(self.dir_A, 0)
-                GPIO.output(self.dir_B, 1)
-
-            #print('> pwm = {}'.format(pwm))
-            PWM.set_duty_cycle(self.pwm_pin, pwm)
-
         
 class Controller(ctrl.Controller):
 
@@ -332,9 +228,6 @@ class Controller(ctrl.Controller):
         # call super
         super().__reset()
 
-        # create device dictionary
-        self.devices = {}
-
         # add source: clock
         self.clock = Clock(period = self.period,
                            eqeps = ['EQEP2', 'EQEP1'])
@@ -343,7 +236,7 @@ class Controller(ctrl.Controller):
         self.time_origin = self.clock.time_origin
 
         # add signals
-        self.add_signals('motor1', 'encoder1', 'pot1')
+        self.add_signals('motor1', 'encoder1', 'analog1')
 
         # add source: encoder1
         self.encoder1 = Encoder(clock = self.clock, 
@@ -356,13 +249,16 @@ class Controller(ctrl.Controller):
         self.add_signal('encoder2')
         self.add_source('encoder2', self.encoder2, ['encoder2'])
 
-        # add source: pot1
-        #self.pot1 = Potentiometer()
-        #self.add_source('pot1', self.pot1, ['pot1'])
-
-        # add source: pot1
-        self.add_device('pot1', 'ctrl.bbb.analog', 'Analog',
-                        signals = ['pot1']) 
+        # add source: analog1
+        #self.analog1 = Potentiometer()
+        #self.add_source('analog1', self.analog1, ['analog1'])
+        self.add_device('analog1', 
+                        'ctrl.bbb.analog', 'Analog',
+                        type = 'source',
+                        signals = ['analog1'],
+                        pin = 'AIN0',
+                        full_scale = 0.85,
+                        invert = Ture) 
 
         # add source: incl1
         try:
@@ -375,26 +271,38 @@ class Controller(ctrl.Controller):
             self.incl = None
 
         # add sink: motor1
-        self.motor1 = Motor()
-        self.add_sink('motor1', self.motor1, ['motor1'])
+        #self.motor1 = Motor()
+        #self.add_sink('motor1', self.motor1, ['motor1'])
+        self.add_device('motor1', 
+                        'ctrl.bbb.motor', 'Motor',
+                        type = 'source',
+                        signals = ['motor1'],
+                        pwm_pin = 'P9_14',
+                        dir_A = 'P9_15',
+                        dir_B = 'P9_23') 
+
 
     def add_device(self, 
                    label, device_module, device_class, 
                    **kwargs):
 
-        # TODO: HANDLE EXCEPTIONS, CHECK UNIQUE NAME
-
         # period
         device_type = kwargs.pop('type', 'source')
         device_signals = kwargs.pop('signals', [])
 
+        try:
+
+            # create device
+            obj_class = getattr(importlib.import_module(device_module), 
+                                device_class)
+            instance = obj_class(**kwargs)
+
+        except:
+
+            # rethrow
+            raise 
+
         # create device
-        obj_class = getattr(importlib.import_module(device_module), device_class)
-        instance = obj_class(**kwargs)
-
-        # store device
-        self.devices['device_name'] = instance
-
         if device_type == 'source':
 
             # add device as source
@@ -405,7 +313,9 @@ class Controller(ctrl.Controller):
             # add device as source
             self.add_sink(label, instance, device_signals)
 
-        # else: TODO COMPLAIN ABOUT WRONG TYPE
+        else:
+            
+            raise NameError("Unknown device type '{}'. Must be sink, source or filter.".format(device_type))
 
     def stop(self):
 
