@@ -223,6 +223,10 @@ class Controller(ctrl.Controller):
     def read_filter(self, label):
         return self.send('Y', 'S', label)
 
+    # devices
+    def add_device(self, label, device_module, device_class, **kwargs):
+        self.send('z', 'S', label, 'S', device_module, 'S', device_class, 'K', kwargs)
+
     # def set_period(self, value):
     #     return self.send('a', 'D', value)
 

@@ -394,6 +394,11 @@ class Controller:
 
         # update is_running
         self.is_running = self.signals['is_running']
+        
+    def add_device(self, 
+                   label, device_module, device_class, 
+                   **kwargs):
+        pass
                 
     def start(self):
         """Start controller loop

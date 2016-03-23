@@ -1,13 +1,16 @@
+import Adafruit_BBIO.ADC as ADC
+
 if __name__ == "__main__":
 
     import sys
-    sys.path.append('..')
+    sys.path.append('.')
 
 import ctrl.block as block
 
-class ADC(block.BufferBlock):
+class Analog(block.BufferBlock):
 
     # initialize adc
+    print('INITIALIZING')
     ADC.setup()
         
     def __init__(self, 
@@ -15,6 +18,8 @@ class ADC(block.BufferBlock):
                  full_scale = 1., 
                  invert = False,
                  *vars, **kwargs):
+
+        print('INIT')
 
         # set pin
         self.pin = pin
@@ -55,17 +60,16 @@ class ADC(block.BufferBlock):
         
         return self.buffer
 
-
 if __name__ == "__main__":
 
     import time, math
 
     T = 0.1
-    K = 10
+    K = 1000
 
     print("> Testing ADC")
     
-    adc = ADC()
+    adc = Analog(pin='AIN2')
 
     k = 0
     while k < K:
@@ -73,7 +77,7 @@ if __name__ == "__main__":
         # read accelerometer
         (x,) = adc.read()
 
-        print('\r> ADC = {:5.3f}'.format(x), end='')
+        print('\r> ADC {} = {:5.3f}'.format(adc.pin, x), end='')
 
         time.sleep(T)
         k += 1

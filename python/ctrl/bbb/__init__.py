@@ -1,6 +1,7 @@
 import warnings
 import time
 import math
+import importlib
 
 from .. import block
 from ..block import clock
@@ -60,7 +61,10 @@ class Clock(clock.Clock):
 
         # call super
         super().__init__(*vars, **kwargs)
-        
+
+        # initialize encoders
+        self.encoder = [0, 0, 0]
+
         if 'EQEP0' in eqeps:
 
             print('> Initializing EQEP0')
@@ -117,8 +121,6 @@ class Clock(clock.Clock):
         # set period on BBB eQEP
         self.eqep2.set_period(int(self.period * 1e9))
         self.set_encoder(0, 2)
-
-        self.encoder = [0, 0, 0]
 
     def set_period(self, period):
         
@@ -330,6 +332,9 @@ class Controller(ctrl.Controller):
         # call super
         super().__reset()
 
+        # create device dictionary
+        self.devices = {}
+
         # add source: clock
         self.clock = Clock(period = self.period,
                            eqeps = ['EQEP2', 'EQEP1'])
@@ -352,8 +357,12 @@ class Controller(ctrl.Controller):
         self.add_source('encoder2', self.encoder2, ['encoder2'])
 
         # add source: pot1
-        self.pot1 = Potentiometer()
-        self.add_source('pot1', self.pot1, ['pot1'])
+        #self.pot1 = Potentiometer()
+        #self.add_source('pot1', self.pot1, ['pot1'])
+
+        # add source: pot1
+        self.add_device('pot1', 'ctrl.bbb.analog', 'Analog',
+                        signals = ['pot1']) 
 
         # add source: incl1
         try:
@@ -368,6 +377,35 @@ class Controller(ctrl.Controller):
         # add sink: motor1
         self.motor1 = Motor()
         self.add_sink('motor1', self.motor1, ['motor1'])
+
+    def add_device(self, 
+                   label, device_module, device_class, 
+                   **kwargs):
+
+        # TODO: HANDLE EXCEPTIONS, CHECK UNIQUE NAME
+
+        # period
+        device_type = kwargs.pop('type', 'source')
+        device_signals = kwargs.pop('signals', [])
+
+        # create device
+        obj_class = getattr(importlib.import_module(device_module), device_class)
+        instance = obj_class(**kwargs)
+
+        # store device
+        self.devices['device_name'] = instance
+
+        if device_type == 'source':
+
+            # add device as source
+            self.add_source(label, instance, device_signals)
+
+        elif device_type == 'sink':
+
+            # add device as source
+            self.add_sink(label, instance, device_signals)
+
+        # else: TODO COMPLAIN ABOUT WRONG TYPE
 
     def stop(self):
 

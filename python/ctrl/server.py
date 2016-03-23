@@ -112,6 +112,9 @@ def set_controller(_controller = ctrl.Controller()):
         'Y': ('S', 'P', controller.read_filter,
               'Read filter'),
 
+        'z': ('SSSK', '', controller.add_device,
+              'Add device'),
+
         # 'a': ('D',  '', controller.set_period,
         #       'Set period'),
 
