@@ -10,7 +10,6 @@ import ctrl.block as block
 class Analog(block.BufferBlock):
 
     # initialize adc
-    print('INITIALIZING')
     ADC.setup()
         
     def __init__(self, 
@@ -18,8 +17,6 @@ class Analog(block.BufferBlock):
                  full_scale = 1., 
                  invert = False,
                  *vars, **kwargs):
-
-        print('INIT')
 
         # set pin
         self.pin = pin
