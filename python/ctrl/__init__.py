@@ -65,7 +65,17 @@ class Controller:
         options = options.lower()
         result = ''
 
-        if options == 'sources':
+        if options == 'devices':
+
+            result += '> devices\n'
+            k = 1
+            for label, device in self.devices.items():
+                result += '  {}. '.format(k) + \
+                          label + '[' + \
+                          device['type'] + ']\n'
+                k += 1
+            
+        elif options == 'sources':
 
             result += '> sources\n'
             for (k, label) in enumerate(self.sources_order):
@@ -327,7 +337,6 @@ class Controller:
         return list(self.filters.keys())
 
     # devices
-
     def add_device(self, 
                    label, device_module, device_class, 
                    **kwargs):
@@ -366,6 +375,11 @@ class Controller:
 
             # add device as source
             self.add_sink(label, instance, outputs)
+
+        elif devtype == 'filter':
+
+            # add device as filter
+            self.add_filter(label, instance, inputs, outputs)
 
         else:
             
