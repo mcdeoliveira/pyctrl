@@ -130,8 +130,8 @@ class Controller:
         elif options == 'all':
             
             result = ''.join(map(lambda x: self.info(x), 
-                                 ['summary', 'signals', 'sources', 
-                                  'filters', 'sinks']))
+                                 ['summary', 'devices', 'signals', 
+                                  'sources', 'filters', 'sinks']))
             
         elif options == 'summary':
         
