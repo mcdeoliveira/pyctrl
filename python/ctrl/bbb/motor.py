@@ -1,13 +1,14 @@
 import Adafruit_BBIO.GPIO as GPIO
 import Adafruit_BBIO.PWM as PWM
 
+import time
+
 if __name__ == "__main__":
 
     import sys
     sys.path.append('.')
 
 import ctrl.block as block
-import time
 
 class Motor(block.Block):
         

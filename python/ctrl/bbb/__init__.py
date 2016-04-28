@@ -218,7 +218,7 @@ class Controller(ctrl.Controller):
     def __init__(self, *vargs, **kwargs):
 
         # period
-        self.period = kwargs.pop('period', 0.01) # deadzone
+        self.period = kwargs.pop('period', 0.01)
 
         # Initialize controller
         super().__init__(*vargs, **kwargs)
@@ -279,7 +279,7 @@ class Controller(ctrl.Controller):
         self.add_device('motor1', 
                         'ctrl.bbb.motor', 'Motor',
                         type = 'sink',
-                        strtstp = True,
+                        enable = True,
                         signals = ['motor1'],
                         pwm_pin = 'P9_14',
                         dir_A = 'P9_15',
@@ -293,7 +293,10 @@ class Controller(ctrl.Controller):
         # period
         device_type = kwargs.pop('type', 'source')
         device_signals = kwargs.pop('signals', [])
-        device_strtstp = kwargs.pop('strtstp', False)
+        device_enable = kwargs.pop('enable', False)
+
+        # Install device
+        print('> Installing device {}'.format(label));
 
         try:
 
@@ -306,14 +309,6 @@ class Controller(ctrl.Controller):
 
             # rethrow
             raise 
-
-        # store device
-        self.devices[label] = {
-            'instance': instance,
-            'devtype': device_type,
-            'signals': device_signals,
-            'strtstp': device_strtstp
-        }
 
         # create device
         if device_type == 'source':
@@ -330,6 +325,14 @@ class Controller(ctrl.Controller):
             
             raise NameError("Unknown device type '{}'. Must be sink, source or filter.".format(device_type))
 
+        # store device
+        self.devices[label] = {
+            'instance': instance,
+            'devtype': device_type,
+            'signals': device_signals,
+            'enable': device_enable
+        }
+
     def stop(self):
 
         # stop
@@ -337,7 +340,7 @@ class Controller(ctrl.Controller):
 
         # then disable devices
         for label, device in self.devices.items():
-            if device['strtstp']:
+            if device['enable']:
                 device['instance'].set_enabled(False)
 
         # then disable motor
@@ -347,7 +350,7 @@ class Controller(ctrl.Controller):
 
         # enable devices
         for label, device in self.devices.items():
-            if device['strtstp']:
+            if device['enable']:
                 device['instance'].set_enabled(True)
 
         # enable motor
