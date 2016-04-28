@@ -14,6 +14,7 @@ import Adafruit_BBIO.ADC as ADC
 from .eqep import eQEP
 
 from . import mpu6050
+from . import util
 
 # alternative perf_counter
 import sys
@@ -25,32 +26,6 @@ if sys.version_info < (3, 3):
 else:
     import time
     perf_counter = time.perf_counter
-
-
-import glob
-
-def load_device_tree(name):
-
-    slots = glob.glob("/sys/devices/bone_capemgr.?/slots")[0]
-    #print('name = {}'.format(name))
-    #print('slots = {}'.format(slots))
-    
-    retval = -1
-    with open(slots, 'r+') as file:
-        for line in file:
-            #print('line = {}'.format(line))
-            if line.find(name) >= 0:
-                # return true if device is already loaded
-                return 0
-
-        # reached end of file: device is not loaded
-        file.write(name)
-        retval = 1
-        
-    # take a break
-    time.sleep(1)
-
-    return retval
 
 class Clock(clock.Clock):
 
@@ -70,7 +45,7 @@ class Clock(clock.Clock):
             print('> Initializing EQEP0')
 
             # Load device tree
-            load_device_tree('bone_eqep0')
+            util.load_device_tree('bone_eqep0')
 
             # ENC0 PINS
             # eQEP0A_in(P9_42)
@@ -90,7 +65,7 @@ class Clock(clock.Clock):
             print('> Initializing EQEP1')
 
             # Load device tree
-            load_device_tree('bone_eqep1')
+            util.load_device_tree('bone_eqep1')
 
             # ENC1 PINS
             # eQEP1A_in(P8_35)
@@ -108,7 +83,7 @@ class Clock(clock.Clock):
         # Always use EQEP2 as clock    
 
         # Load device tree
-        load_device_tree('bone_eqep2b')
+        util.load_device_tree('bone_eqep2b')
 
         # ENC2b PINS
         # eQEP2bA_in(P8_12)
@@ -281,32 +256,6 @@ class Controller(ctrl.Controller):
                         pwm_pin = 'P9_14',
                         dir_A = 'P9_15',
                         dir_B = 'P9_23') 
-
-    # def stop(self):
-
-    #     # stop
-    #     super().stop()
-
-    #     # # then disable devices
-    #     # for label, device in self.devices.items():
-    #     #     if device['enable']:
-    #     #         device['instance'].set_enabled(False)
-
-    #     # then disable motor
-    #     #self.motor1.set_enabled(False)
-
-    # def start(self):
-
-    #     # # enable devices
-    #     # for label, device in self.devices.items():
-    #     #     if device['enable']:
-    #     #         device['instance'].set_enabled(True)
-
-    #     # enable motor
-    #     #self.motor1.set_enabled(True)
-
-    #     # then start
-    #     super().start()
 
     # period
     def set_period(self, value):
