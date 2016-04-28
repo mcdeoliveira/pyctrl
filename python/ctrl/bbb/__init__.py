@@ -228,9 +228,6 @@ class Controller(ctrl.Controller):
         # call super
         super().__reset()
 
-        # create device dictionary
-        self.devices = {}
-
         # add source: clock
         self.clock = Clock(period = self.period,
                            eqeps = ['EQEP2', 'EQEP1'])
@@ -258,7 +255,7 @@ class Controller(ctrl.Controller):
         self.add_device('analog1', 
                         'ctrl.bbb.analog', 'Analog',
                         type = 'source',
-                        signals = ['analog1'],
+                        outputs = ['analog1'],
                         pin = 'AIN0',
                         full_scale = 0.85,
                         invert = True) 
@@ -280,84 +277,36 @@ class Controller(ctrl.Controller):
                         'ctrl.bbb.motor', 'Motor',
                         type = 'sink',
                         enable = True,
-                        signals = ['motor1'],
+                        inputs = ['motor1'],
                         pwm_pin = 'P9_14',
                         dir_A = 'P9_15',
                         dir_B = 'P9_23') 
 
+    # def stop(self):
 
-    def add_device(self, 
-                   label, device_module, device_class, 
-                   **kwargs):
+    #     # stop
+    #     super().stop()
 
-        # period
-        device_type = kwargs.pop('type', 'source')
-        device_signals = kwargs.pop('signals', [])
-        device_enable = kwargs.pop('enable', False)
+    #     # # then disable devices
+    #     # for label, device in self.devices.items():
+    #     #     if device['enable']:
+    #     #         device['instance'].set_enabled(False)
 
-        # Install device
-        print('> Installing device {}'.format(label));
+    #     # then disable motor
+    #     #self.motor1.set_enabled(False)
 
-        try:
+    # def start(self):
 
-            # create device
-            obj_class = getattr(importlib.import_module(device_module), 
-                                device_class)
-            instance = obj_class(**kwargs)
+    #     # # enable devices
+    #     # for label, device in self.devices.items():
+    #     #     if device['enable']:
+    #     #         device['instance'].set_enabled(True)
 
-        except:
+    #     # enable motor
+    #     #self.motor1.set_enabled(True)
 
-            # rethrow
-            raise 
-
-        # create device
-        if device_type == 'source':
-
-            # add device as source
-            self.add_source(label, instance, device_signals)
-
-        elif device_type == 'sink':
-
-            # add device as source
-            self.add_sink(label, instance, device_signals)
-
-        else:
-            
-            raise NameError("Unknown device type '{}'. Must be sink, source or filter.".format(device_type))
-
-        # store device
-        self.devices[label] = {
-            'instance': instance,
-            'devtype': device_type,
-            'signals': device_signals,
-            'enable': device_enable
-        }
-
-    def stop(self):
-
-        # stop
-        super().stop()
-
-        # then disable devices
-        for label, device in self.devices.items():
-            if device['enable']:
-                device['instance'].set_enabled(False)
-
-        # then disable motor
-        #self.motor1.set_enabled(False)
-
-    def start(self):
-
-        # enable devices
-        for label, device in self.devices.items():
-            if device['enable']:
-                device['instance'].set_enabled(True)
-
-        # enable motor
-        #self.motor1.set_enabled(True)
-
-        # then start
-        super().start()
+    #     # then start
+    #     super().start()
 
     # period
     def set_period(self, value):

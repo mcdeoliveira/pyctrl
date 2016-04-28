@@ -1,6 +1,7 @@
 import warnings
 from threading import Thread
 import numpy
+import importlib
 
 from . import block
 
@@ -12,13 +13,12 @@ class ControllerException(Exception):
 
 class Controller:
 
-    def __init__(self): #, period = .01):
+    def __init__(self):
 
         # debug
         self.debug = 0
 
         # real-time loop
-        #self.period = period
         self.is_running = False
 
         # call __reset
@@ -28,6 +28,9 @@ class Controller:
 
         # signals
         self.signals = { 'clock': 0, 'is_running': self.is_running }
+
+        # devices
+        self.devices = { }
 
         # sources
         self.sources = { }
@@ -114,9 +117,6 @@ class Controller:
                                   for k,key in 
                                   enumerate(sorted(self.signals.keys()))) + '\n'
 
-        #elif options == 'period':
-        #result += '> period = {}s\n'.format(self.period)
-
         elif options == 'all':
             
             result = ''.join(map(lambda x: self.info(x), 
@@ -164,7 +164,7 @@ class Controller:
         return list(self.signals.keys())
 
     # sources
-    def add_source(self, label, source, signals, order = -1):
+    def add_source(self, label, source, outputs, order = -1):
         assert isinstance(label, str)
         if label in self.sources:
             warnings.warn("Source '{}' already exists and is been replaced".format(label),
@@ -172,10 +172,10 @@ class Controller:
             self.remove_source(label)
 
         assert isinstance(source, block.Block)
-        assert isinstance(signals, (list, tuple))
+        assert isinstance(outputs, (list, tuple))
         self.sources[label] = {
             'block': source,
-            'outputs': signals
+            'outputs': outputs
         }
         if order < 0:
             self.sources_order.append(label)
@@ -216,7 +216,7 @@ class Controller:
 
 
     # sinks
-    def add_sink(self, label, sink, signals, order = -1):
+    def add_sink(self, label, sink, inputs, order = -1):
         assert isinstance(label, str)
         if label in self.sinks:
             warnings.warn("Sink '{}' already exists and is been replaced".format(label), 
@@ -224,10 +224,10 @@ class Controller:
             self.remove_sink(label)
 
         assert isinstance(sink, block.Block)
-        assert signals == '*' or isinstance(signals, (list, tuple))
+        assert inputs == '*' or isinstance(inputs, (list, tuple))
         self.sinks[label] = {
             'block': sink,
-            'inputs': signals
+            'inputs': inputs
         }
         if order < 0:
             self.sinks_order.append(label)
@@ -268,7 +268,7 @@ class Controller:
 
     # filters
     def add_filter(self, label, 
-                   filter_, input_signals, output_signals, 
+                   filter_, inputs, outputs, 
                    order = -1):
         assert isinstance(label, str)
         if label in self.filters:
@@ -277,12 +277,12 @@ class Controller:
             self.remove_filter(label)
 
         assert isinstance(filter_, block.Block)
-        assert isinstance(input_signals, (list, tuple))
-        assert isinstance(output_signals, (list, tuple))
+        assert isinstance(inputs, (list, tuple))
+        assert isinstance(outputs, (list, tuple))
         self.filters[label] = { 
             'block': filter_,  
-            'inputs': input_signals,
-            'outputs': output_signals
+            'inputs': inputs,
+            'outputs': outputs
         }
         if order < 0:
             self.filters_order.append(label)
@@ -326,6 +326,61 @@ class Controller:
     def list_filters(self):
         return list(self.filters.keys())
 
+    # devices
+
+    def add_device(self, 
+                   label, device_module, device_class, 
+                   **kwargs):
+
+        # parameters
+        devtype = kwargs.pop('type', 'source')
+        enable = kwargs.pop('enable', False)
+
+        inputs = kwargs.pop('inputs', [])
+        outputs = kwargs.pop('outputs', [])
+
+        # Install device
+        print("> Installing device '{}'".format(label));
+
+        try:
+
+            # create device
+            obj_class = getattr(importlib.import_module(device_module), 
+                                device_class)
+            instance = obj_class(**kwargs)
+
+        except:
+
+            print("> Failed to install device '{}'".format(label));
+
+            # rethrow
+            raise 
+
+        # create device
+        if devtype == 'source':
+
+            # add device as source
+            self.add_source(label, instance, inputs)
+
+        elif devtype == 'sink':
+
+            # add device as source
+            self.add_sink(label, instance, outputs)
+
+        else:
+            
+            raise NameError("Unknown device type '{}'. Must be sink, source or filter.".format(devtype))
+
+        # store device
+        self.devices[label] = {
+            'instance': instance,
+            'type': devtype,
+            'inputs': inputs,
+            'outputs': outputs,
+            'enable': enable,
+            'params': kwargs
+        }
+                
     # clock
 
     def get_time(self):
@@ -395,14 +450,14 @@ class Controller:
         # update is_running
         self.is_running = self.signals['is_running']
         
-    def add_device(self, 
-                   label, device_module, device_class, 
-                   **kwargs):
-        pass
-                
     def start(self):
         """Start controller loop
         """
+
+        # enable devices
+        for label, device in self.devices.items():
+            if device['enable']:
+                device['instance'].set_enabled(True)
 
         # Start thread
         self.thread = Thread(target = self.run)
@@ -411,6 +466,14 @@ class Controller:
     def stop(self):
         """Stop controller loop
         """
+
+        # Stop thread
         if self.is_running:
             self.is_running = False
             self.signals['is_running'] = self.is_running
+
+        # then disable devices
+        for label, device in self.devices.items():
+            if device['enable']:
+                device['instance'].set_enabled(False)
+
