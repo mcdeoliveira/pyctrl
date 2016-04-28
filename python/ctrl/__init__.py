@@ -369,12 +369,12 @@ class Controller:
         if devtype == 'source':
 
             # add device as source
-            self.add_source(label, instance, inputs)
+            self.add_source(label, instance, outputs)
 
         elif devtype == 'sink':
 
             # add device as source
-            self.add_sink(label, instance, outputs)
+            self.add_sink(label, instance, inputs)
 
         elif devtype == 'filter':
 
