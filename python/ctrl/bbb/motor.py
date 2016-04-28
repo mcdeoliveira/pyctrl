@@ -1,3 +1,4 @@
+import Adafruit_BBIO.GPIO as GPIO
 import Adafruit_BBIO.PWM as PWM
 
 if __name__ == "__main__":
@@ -6,6 +7,7 @@ if __name__ == "__main__":
     sys.path.append('.')
 
 import ctrl.block as block
+import time
 
 class Motor(block.Block):
         
@@ -63,29 +65,44 @@ if __name__ == "__main__":
 
     import time, math
 
-    T = 1
-
-    print("> Testing motor")
+    print("> Testing Motor1")
     
-    motor = Motor()
+    motor1 = Motor(dir_A='P9_15',
+                   dir_B='P9_23',
+                   pwm_pin='P9_14')
 
-    % step motor
-    pwm = 100
-    print('\r> MOTOR @ {:5.3f}'.format(pwm), end='')
-    motor.write((pwm,))
-    time.sleep(T)
+    # run motor forward
+    motor1.write(100)
+    time.sleep(1)
 
-    pwm = 50
-    print('\r> MOTOR @ {:5.3f}'.format(pwm), end='')
-    motor.write((pwm,))
-    time.sleep(T)
+    # stop motor
+    motor1.write(0)
+    time.sleep(1)
 
-    pwm = -50
-    print('\r> MOTOR @ {:5.3f}'.format(pwm), end='')
-    motor.write((pwm,))
-    time.sleep(T)
+    # run back
+    motor1.write(-100)
+    time.sleep(1)
 
-    pwm = -100
-    print('\r> MOTOR @ {:5.3f}'.format(pwm), end='')
-    motor.write((pwm,))
-    time.sleep(T)
+    # stop motor
+    motor1.write(0)
+
+    print("> Testing Motor2")
+
+    motor2 = Motor(dir_A='P9_12',
+                   dir_B='P9_27',
+                   pwm_pin='P9_16')
+
+    # run motor forward
+    motor2.write(100)
+    time.sleep(1)
+
+    # stop motor
+    motor2.write(0)
+    time.sleep(1)
+
+    # run back
+    motor2.write(-100)
+    time.sleep(1)
+
+    # stop motor
+    motor2.write(0)

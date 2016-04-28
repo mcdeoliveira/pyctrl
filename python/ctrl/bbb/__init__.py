@@ -228,6 +228,9 @@ class Controller(ctrl.Controller):
         # call super
         super().__reset()
 
+        # create device dictionary
+        self.devices = {}
+
         # add source: clock
         self.clock = Clock(period = self.period,
                            eqeps = ['EQEP2', 'EQEP1'])
@@ -258,7 +261,7 @@ class Controller(ctrl.Controller):
                         signals = ['analog1'],
                         pin = 'AIN0',
                         full_scale = 0.85,
-                        invert = Ture) 
+                        invert = True) 
 
         # add source: incl1
         try:
@@ -275,7 +278,8 @@ class Controller(ctrl.Controller):
         #self.add_sink('motor1', self.motor1, ['motor1'])
         self.add_device('motor1', 
                         'ctrl.bbb.motor', 'Motor',
-                        type = 'source',
+                        type = 'sink',
+                        strtstp = True,
                         signals = ['motor1'],
                         pwm_pin = 'P9_14',
                         dir_A = 'P9_15',
@@ -289,6 +293,7 @@ class Controller(ctrl.Controller):
         # period
         device_type = kwargs.pop('type', 'source')
         device_signals = kwargs.pop('signals', [])
+        device_strtstp = kwargs.pop('strtstp', False)
 
         try:
 
@@ -301,6 +306,14 @@ class Controller(ctrl.Controller):
 
             # rethrow
             raise 
+
+        # store device
+        self.devices[label] = {
+            'instance': instance,
+            'devtype': device_type,
+            'signals': device_signals,
+            'strtstp': device_strtstp
+        }
 
         # create device
         if device_type == 'source':
@@ -322,13 +335,23 @@ class Controller(ctrl.Controller):
         # stop
         super().stop()
 
+        # then disable devices
+        for label, device in self.devices.items():
+            if device['strtstp']:
+                device['instance'].set_enabled(False)
+
         # then disable motor
-        self.motor1.set_enabled(False)
+        #self.motor1.set_enabled(False)
 
     def start(self):
 
+        # enable devices
+        for label, device in self.devices.items():
+            if device['strtstp']:
+                device['instance'].set_enabled(True)
+
         # enable motor
-        self.motor1.set_enabled(True)
+        #self.motor1.set_enabled(True)
 
         # then start
         super().start()
