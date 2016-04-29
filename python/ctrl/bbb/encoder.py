@@ -16,6 +16,7 @@ from .. import block
 from ..block import clock
 
 from . import util
+from .eqep import eQEP
 
 class Clock(clock.Clock):
 
