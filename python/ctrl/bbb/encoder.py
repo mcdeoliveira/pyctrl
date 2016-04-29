@@ -35,6 +35,9 @@ class Clock(clock.Clock):
             eqeps.append('EQEP2B')
 
         # initialize eqeps
+        self.eqep0 = None
+        self.eqep1 = None
+        self.eqep2b = None
         self.initialize_eqep(eqeps)
 
     def initialize_eqep(self, eqeps = ['EQEP2']):
@@ -56,9 +59,6 @@ class Clock(clock.Clock):
             self.eqep0.set_period(int(self.period * 1e9))
             self.set_encoder(0, 0)
 
-        else:
-            self.eqep0 = None
-
         if not self.eqep1 and 'EQEP1' in eqeps:
 
             print('> Initializing EQEP1')
@@ -76,9 +76,6 @@ class Clock(clock.Clock):
             self.eqep1.set_period(int(self.period * 1e9))
             self.set_encoder(0, 1)
 
-        else:
-            self.eqep1 = None
-
         if not self.eqep2b and 'EQEP2B' in eqeps:
 
             print('> Initializing EQEP2B')
@@ -95,9 +92,6 @@ class Clock(clock.Clock):
             self.eqep2b = eQEP(eQEP2b, eQEP.MODE_ABSOLUTE)
             self.eqep2b.set_period(int(self.period * 1e9))
             self.set_encoder(0, 2)
-
-        else:
-            self.eqep2b = None
 
     def set_period(self, period):
         
