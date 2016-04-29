@@ -12,6 +12,7 @@ else:
     import time
     perf_counter = time.perf_counter
 
+from .. import block
 from ..block import clock
 
 from . import util
