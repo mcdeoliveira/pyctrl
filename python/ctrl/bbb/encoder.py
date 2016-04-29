@@ -1,3 +1,4 @@
+import warnings
 import time
 
 # alternative perf_counter
@@ -10,6 +11,8 @@ if sys.version_info < (3, 3):
 else:
     import time
     perf_counter = time.perf_counter
+
+from ..block import clock
 
 from . import util
 
