@@ -1,3 +1,4 @@
+import time
 import glob
 
 def load_device_tree(name):
