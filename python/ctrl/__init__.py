@@ -395,17 +395,17 @@ class Controller:
             'params': kwargs
         }
                 
-    # clock
+    # # clock
 
-    def get_time(self):
+    # def get_time(self):
 
-        device = self.sources['clock']
-        source = device['block']
-        if source.is_enabled():
-            self.signals.update(dict(zip(device['outputs'], 
-                                         source.read())))
+    #     device = self.sources['clock']
+    #     source = device['block']
+    #     if source.is_enabled():
+    #         self.signals.update(dict(zip(device['outputs'], 
+    #                                      source.read())))
 
-        return self.signals['clock']
+    #     return self.signals['clock']
 
     def __enter__(self):
         if self.debug > 0:
