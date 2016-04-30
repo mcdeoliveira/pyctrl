@@ -130,7 +130,7 @@ class Accelerometer(block.Block):
 
         # Enable low pass filter
         if self.i2c.write8(CONFIG, self.dlp_cfg) is not None:
-            raise
+            raise Exception('Failed to connect to i2c device.')
 
         # Set sample rate
         self.i2c.write8(SMPRT_DIV, self.smprt_div)

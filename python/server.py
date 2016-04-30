@@ -2,6 +2,7 @@ import socketserver
 import platform
 import warnings
 import getopt, sys
+import importlib
 
 import ctrl.server
 import math
@@ -12,10 +13,11 @@ def usage():
     print("""usage: python server [option] ...
 Options are:
 -c     : skip simulated controller calibration
--f     : force simulated controller
+-C arg : controller class             (default 'Controller')
 -h     : print this help message and exit
 -H arg : set hostname                 (default 'localhost')
 -l arg : set log size in seconds      (default 120s)
+-m arg : controller module            (default 'ctrl.bbb')
 -p arg : set port                     (default 9999)
 -t arg : set sampling rate in second  (default 0.01s)
 -v arg : set verbose level            (default 1)""")
@@ -24,7 +26,7 @@ def main():
 
     # Parse command line
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "cfhH:l:p:t:v:", ["help"])
+        opts, args = getopt.getopt(sys.argv[1:], "cC:fhH:l:m:p:t:v:", ["help"])
 
     except getopt.GetoptError as err:
         # print help information and exit:
@@ -41,8 +43,12 @@ def main():
     # verbose_level
     verbose_level = 1
 
-    # simulate, calibrate
-    simulate, calibrate = 0, 1
+    # calibrate
+    calibrate = 1
+
+    # default module
+    module = 'ctrl.bbb'
+    ctrl_class = 'Controller'
 
     for o, a in opts:
         if o in ("-h", "--help"):
@@ -58,56 +64,20 @@ def main():
             Ts = float(a)
         elif o in "-v":
             verbose_level = int(a)
-        elif o == "-f":
-            simulate = 1
         elif o == "-c":
             calibrate = 0
+        elif o == "-m":
+            module = a
+        elif o == "-C":
+            ctrl_class = a
         else:
-            assert False, "unhandled option"
+            assert False, "Unhandled option"
 
-    # Setup controller
-    if 'bone' in platform.uname()[2]:
+    # Create controller
 
-        if simulate:
-
-            warnings.warn('Forcing simulated controller on the BBB')
-            
-        else:
-
-            # We're on the beaglebone, run the real thing
-            import ctrl.bbb as bbb
-            controller = bbb.Controller(period = Ts)
-
-    else:
-
-        simulate = 1
-
-    if simulate:
-
-        # We're not on the beaglebone, simulate
-        warnings.warn('Not on the BBB. Simulating controller')
-
-        # Setup simulated controller
-
-        import ctrl.sim as sim
-        controller = sim.Controller(period = Ts)
-
-        # a = 17                 # 1/s
-        # k = 0.11               # cycles/s duty
-        # c = math.exp(-a * Ts)  # adimensional
-
-        # controller.set_model1( numpy.array((0, (k*Ts)*(1-c)/2, (k*Ts)*(1-c)/2)), 
-        #                        numpy.array((1, -(1 + c), c)),
-        #                        numpy.array((0,0)) )
-
-        # # Calibrate
-        # if calibrate:
-        #     controller.calibrate()
-        # else:
-        #     warnings.warn('> Skipping calibration')
-
-    # Finish setup
-    #controller.set_logger(log_size)
+    obj_class = getattr(importlib.import_module(module),
+                        ctrl_class)
+    controller = obj_class(period = Ts)
     ctrl.server.set_controller(controller)
     ctrl.server.verbose(verbose_level)
 

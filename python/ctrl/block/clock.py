@@ -1,17 +1,14 @@
 import warnings
+import time
 
 from .. import block
 
 # alternative perf_counter
 import sys
 if sys.version_info < (3, 3):
-    from .. import gettime
-    perf_counter = gettime.gettime
-    warnings.warn('Using gettime instead of perf_counter',
-                  RuntimeWarning)
+    from ..gettime import gettime as perf_counter
 else:
-    import time
-    perf_counter = time.perf_counter
+    from time import perf_counter
 
 class Clock(block.Block):
 

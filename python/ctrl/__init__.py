@@ -27,7 +27,7 @@ class Controller:
     def __reset(self):
 
         # signals
-        self.signals = { 'clock': 0, 'is_running': self.is_running }
+        self.signals = { 'is_running': self.is_running }
 
         # devices
         self.devices = { }
@@ -142,7 +142,7 @@ class Controller:
                         len(self.filters)) + '\n'
 
         else:
-            warnings.warn("Unknown option '{}'".format(options))
+            warnings.warn("Unknown option '{}'.".format(options))
 
         return result
 
@@ -150,7 +150,7 @@ class Controller:
     def add_signal(self, label):
         assert isinstance(label, str)
         if label in self.signals:
-            warnings.warn("Signal '{}' already present".format(label),
+            warnings.warn("Signal '{}' already present.".format(label),
                           ControllerWarning)
         else:
             self.signals[label] = 0
@@ -177,7 +177,7 @@ class Controller:
     def add_source(self, label, source, outputs, order = -1):
         assert isinstance(label, str)
         if label in self.sources:
-            warnings.warn("Source '{}' already exists and is been replaced".format(label),
+            warnings.warn("Source '{}' already exists and is been replaced.".format(label),
                           ControllerWarning)
             self.remove_source(label)
 
@@ -229,7 +229,7 @@ class Controller:
     def add_sink(self, label, sink, inputs, order = -1):
         assert isinstance(label, str)
         if label in self.sinks:
-            warnings.warn("Sink '{}' already exists and is been replaced".format(label), 
+            warnings.warn("Sink '{}' already exists and is been replaced.".format(label), 
                           ControllerWarning)
             self.remove_sink(label)
 
@@ -282,7 +282,7 @@ class Controller:
                    order = -1):
         assert isinstance(label, str)
         if label in self.filters:
-            warnings.warn("Filter '{}' already exists and is been replaced".format(label),
+            warnings.warn("Filter '{}' already exists and is been replaced.".format(label),
                           ControllerWarning)
             self.remove_filter(label)
 
@@ -358,20 +358,29 @@ class Controller:
                                 device_class)
             instance = obj_class(**kwargs)
 
-        except:
+        except Exception as e:
 
-            print("> Failed to install device '{}'".format(label));
+            print("> Exception raised:\n  {}".format(e))
+            print("> Failed to install device '{}'".format(label))
+            return None
 
-            # rethrow
-            raise 
-
-        # create device
+        # add device to controller
         if devtype == 'source':
+
+            # warn if inputs are defined
+            if inputs:
+                warnings.warn("Sources do not have inputs. Inputs ignored.",
+                              ControllerWarning)
 
             # add device as source
             self.add_source(label, instance, outputs)
-
+            
         elif devtype == 'sink':
+
+            # warn if inputs are defined
+            if outputs:
+                warnings.warn("Sinks do not have outputs. Outputs ignored.",
+                              ControllerWarning)
 
             # add device as source
             self.add_sink(label, instance, inputs)
@@ -385,6 +394,10 @@ class Controller:
             
             raise NameError("Unknown device type '{}'. Must be sink, source or filter.".format(devtype))
 
+        # add signals
+        self.add_signals(*outputs)
+        self.add_signals(*inputs)
+
         # store device
         self.devices[label] = {
             'instance': instance,
@@ -394,19 +407,9 @@ class Controller:
             'enable': enable,
             'params': kwargs
         }
+
+        return instance
                 
-    # # clock
-
-    # def get_time(self):
-
-    #     device = self.sources['clock']
-    #     source = device['block']
-    #     if source.is_enabled():
-    #         self.signals.update(dict(zip(device['outputs'], 
-    #                                      source.read())))
-
-    #     return self.signals['clock']
-
     def __enter__(self):
         if self.debug > 0:
             print('> Starting controller')

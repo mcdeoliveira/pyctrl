@@ -4,13 +4,10 @@ import time
 # alternative perf_counter
 import sys
 if sys.version_info < (3, 3):
-    from .. import gettime
-    perf_counter = gettime.gettime
-    warnings.warn('Using gettime instead of perf_counter',
-                  RuntimeWarning)
+    from ..gettime import gettime as perf_counter
+    #perf_counter = gettime.gettime
 else:
-    import time
-    perf_counter = time.perf_counter
+    from time import perf_counter
 
 from .. import block
 from ..block import clock
@@ -143,7 +140,7 @@ class Clock(clock.Clock):
 
 class Encoder(block.BufferBlock):
         
-    def __init__(self, clock, ratio = 48 * 172, eqep = 2, *vars, **kwargs):
+    def __init__(self, clock, ratio = 48 * 172, encoder = 2, *vars, **kwargs):
 
         # set period
         assert isinstance(clock, Clock)
@@ -152,14 +149,25 @@ class Encoder(block.BufferBlock):
         # gear ratio
         self.ratio = ratio
 
-        # eqep
-        self.eqep = eqep
+        # encoder
+        self.encoder = encoder
+
+        # initialize eqep
+        if encoder == 0:
+            self.eqep = 'EQEP0'
+        elif encoder == 1:
+            self.eqep = 'EQEP1'
+        elif encoder == 2:
+            self.eqep = 'EQEP2B'
+        else:
+            raise NameException("Encoder '{}' is not defined".format(self.eqep))
+        self.clock.initialize_eqep([self.eqep])
 
         # call super
         super().__init__(*vars, **kwargs)
         
         # output is in cycles/s
-        self.buffer = (self.clock.encoder[self.eqep] / self.ratio, )
+        self.buffer = (self.clock.encoder[self.encoder] / self.ratio, )
 
     def set(self, **kwargs):
         
@@ -170,17 +178,17 @@ class Encoder(block.BufferBlock):
 
     def reset(self):
 
-        self.clock.set_encoder(0, self.eqep)
+        self.clock.set_encoder(0, self.encoder)
 
     def write(self, *values):
 
-        self.clock.set_encoder(int(values[0] * self.ratio), self.eqep)
+        self.clock.set_encoder(int(values[0] * self.ratio), self.encoder)
 
     def read(self):
 
         #print('> read')
         if self.enabled:
 
-            self.buffer = (self.clock.get_encoder()[self.eqep] / self.ratio, )
+            self.buffer = (self.clock.get_encoder()[self.encoder] / self.ratio, )
         
         return self.buffer
