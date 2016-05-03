@@ -240,7 +240,7 @@ def main():
         k = numpy.mean(velocity[ind:])
 
         print('> period = {}'.format(Ts))
-        print('> max velocity = {}'.format(max_velocity))
+        print('> max velocity = {:5.3f}'.format(max_velocity))
 
         print('> gain      = {:5.3f}'.format(k))
         
