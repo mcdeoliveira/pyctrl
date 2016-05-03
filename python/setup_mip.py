@@ -157,14 +157,29 @@ def main():
 
     k = 1
     position1, position2 \
-        = test('{}: MOTOR FORWARD'.format(k), 
+        = test('{}: MOTOR 1 FORWARD'.format(k), 
                ('motor1','encoder1'),
                'Did the motor spin clockwise for two seconds?', 
                'motor1 not working',
                test_motor_forward)
   
+    # k += 1
+    # test('{}: ENCODER 1 FORWARD'.format(k), 
+    #      (position1, position2),
+    #      '',
+    #      '',
+    #      test_encoder)
+
     k += 1
-    test('{}: ENCODER FORWARD'.format(k), 
+    position1, position2 \
+        = test('{}: MOTOR 2 FORWARD'.format(k), 
+               ('motor2','encoder2'),
+               'Did the motor spin clockwise for two seconds?', 
+               'motor1 not working',
+               test_motor_forward)
+  
+    k += 1
+    test('{}: ENCODER 2 FORWARD'.format(k), 
          (position1, position2),
          '',
          '',
