@@ -9,7 +9,7 @@ import ctrl.block.logger as logger
 
 # initialize controller
 HOST, PORT = "192.168.10.105", 9999
-controller = Controller(HOST, PORT)
+controller = Controller(host = HOST, port = PORT)
 controller.add_sink('logger', 
                     logger.Logger(), 
                     ['clock','encoder1'])
