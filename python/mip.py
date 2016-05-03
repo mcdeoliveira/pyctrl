@@ -42,7 +42,7 @@ class Controller(ctrl.Controller):
                         'ctrl.bbb.motor', 'Motor',
                         type = 'sink',
                         enable = True,
-                        inputs = ['motor1'],
+                        inputs = ['motor2'],
                         pwm_pin = 'P9_16',
                         dir_A = 'P9_15',
                         dir_B = 'P8_38') 
