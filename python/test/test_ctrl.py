@@ -19,6 +19,7 @@ def test_clock():
     print(controller.info('all'))
 
     period = 0.01
+    controller.add_signal('clock')
     controller.add_source('clock', Clock(period), ['clock'])
     K = 10
     k = 0
@@ -67,7 +68,10 @@ def test_client_server():
         print('> Starting server')
 
         import subprocess
-        server = subprocess.Popen(["python3", "./server.py"], 
+        server = subprocess.Popen(["python3", 
+                                   "./server.py",
+                                   "-m",
+                                   "ctrl.sim"], 
                                   stdout = subprocess.PIPE)
 
         time.sleep(1)
@@ -104,7 +108,7 @@ def run(controller):
     #assert controller.get_period() == 0.1
 
     # test signals
-    assert 'clock' in controller.list_signals() # clock is default
+    #assert 'clock' in controller.list_signals() # clock is default
 
     controller.add_signal('_test_')
     assert '_test_' in controller.list_signals()
@@ -133,6 +137,8 @@ def run(controller):
     assert '_test2_' not in controller.list_signals()
 
     # test sink
+
+    controller.add_signal('clock')
 
     controller.add_sink('_logger_', logger.Logger(), ['_test_'])
     assert '_logger_' in controller.list_sinks()
