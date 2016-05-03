@@ -223,7 +223,6 @@ def main():
         
         clock = controller.get_source('clock', 'period')
         Ts = clock['period']
-        print('> period = {}'.format(Ts))
 
         log = controller.read_sink('logger')
         t = log[:,0]
@@ -231,7 +230,6 @@ def main():
         velocity = numpy.zeros(t.shape, float)
         velocity[1:] = (position[1:]-position[:-1])/(t[1:]-t[:-1])
         
-        #print('>> max  = {}'.format(max_velocity))
         max_velocity = numpy.max(velocity)
         ind = numpy.argwhere(velocity > .5*max_velocity)[0]
         
@@ -240,7 +238,11 @@ def main():
         #print('>> len = {}'.format(len(velocity)))
         #print('>> ind = {}'.format(ind))
         k = numpy.mean(velocity[ind:])
-        print('\n> gain      = {:5.3f}'.format(k))
+
+        print('> period = {}'.format(Ts))
+        print('> max velocity = {}'.format(max_velocity))
+
+        print('> gain      = {:5.3f}'.format(k))
         
         ind = numpy.argwhere( (velocity > 0.1*k ) & 
                               (velocity < 0.9*k ) )
