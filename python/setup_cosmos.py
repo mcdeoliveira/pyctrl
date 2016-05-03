@@ -88,13 +88,13 @@ def test_reset_encoder(args):
 
     with controller:
         controller.set_signal('motor1',0)
-        time.sleep(10*controller.period) # sleep to make sure it is stoped
+        time.sleep(.1) # sleep to make sure it is stoped
         position1 = controller.get_signal('encoder1')
         if not simulated:
             controller.set_source('encoder1', reset = True)
         else:
             controller.set_filter('model1', reset = True)
-        time.sleep(10*controller.period) # sleep to make sure it did not move
+        time.sleep(.1) # sleep to make sure it did not move
         position2 = controller.get_signal('encoder1')
 
     if position2 != 0:
@@ -227,7 +227,7 @@ def main():
         controller.set_signal('motor1',100)
         time.sleep(5)
         
-        Ts = controller.get_period()
+        Ts = controller.get_source('clock', 'period')
         log = controller.read_sink('logger')
         t = log[:,0]
         position = log[:,1]
