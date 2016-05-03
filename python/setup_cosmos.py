@@ -90,10 +90,7 @@ def test_reset_encoder(args):
         controller.set_signal('motor1',0)
         time.sleep(.1) # sleep to make sure it is stoped
         position1 = controller.get_signal('encoder1')
-        if not simulated:
-            controller.set_source('encoder1', reset = True)
-        else:
-            controller.set_filter('model1', reset = True)
+        controller.set_source('encoder1', reset = True)
         time.sleep(.1) # sleep to make sure it did not move
         position2 = controller.get_signal('encoder1')
 
