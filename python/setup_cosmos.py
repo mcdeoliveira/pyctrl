@@ -216,10 +216,7 @@ def main():
     print('> Identifying motor parameters...')
     with controller:
         controller.set_signal('motor1',0)
-        if not simulated:
-            controller.set_source('encoder1', reset = True)
-        else:
-            controller.set_filter('model1', reset = True)
+        controller.set_source('encoder1', reset = True)
 
         controller.set_sink('logger', reset = True)
         controller.set_source('clock', reset = True)
@@ -228,6 +225,8 @@ def main():
         time.sleep(5)
         
         Ts = controller.get_source('clock', 'period')
+        print('> period = {}'.format(Ts))
+
         log = controller.read_sink('logger')
         t = log[:,0]
         position = log[:,1]
