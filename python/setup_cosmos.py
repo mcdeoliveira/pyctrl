@@ -221,7 +221,8 @@ def main():
         controller.set_signal('motor1',100)
         time.sleep(5)
         
-        Ts = controller.get_source('clock', 'period')
+        clock = controller.get_source('clock', 'period')
+        Ts = clock.period
         print('> period = {}'.format(Ts))
 
         log = controller.read_sink('logger')
