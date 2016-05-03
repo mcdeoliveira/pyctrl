@@ -222,7 +222,7 @@ def main():
         time.sleep(5)
         
         clock = controller.get_source('clock', 'period')
-        Ts = clock.period
+        Ts = clock['period']
         print('> period = {}'.format(Ts))
 
         log = controller.read_sink('logger')
