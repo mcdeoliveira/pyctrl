@@ -161,7 +161,7 @@ def main():
                ('motor1','encoder1'),
                'Did the motor spin clockwise for two seconds?', 
                'motor1 not working',
-               test_motor_forward())
+               test_motor_forward)
   
     k += 1
     test('{}: ENCODER FORWARD'.format(k), 
