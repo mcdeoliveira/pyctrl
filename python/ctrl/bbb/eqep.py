@@ -122,5 +122,3 @@ class eQEP(object):
         # Cleanup polling system
         self.poller.unregister(self.fd)
         os.close(self.fd)   
-        
-        

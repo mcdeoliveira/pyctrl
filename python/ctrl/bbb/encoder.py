@@ -10,17 +10,29 @@ else:
     from time import perf_counter
 
 from .. import block
-from ..block import clock
+from ..block import clock as clk
 
 from . import util
 from .eqep import eQEP
 
-class Clock(clock.Clock):
+# Uses Alex Martelli's Borg for making Clock a singleton
+
+class Clock(clk.Clock):
+
+    _shared_state = {}
 
     def __init__(self, eqeps = ['EQEP2B'], *vars, **kwargs):
 
+        # Makes sure clock is a singleton
+        self.__dict__ = self._shared_state
+
+        # Do not initialize if already initialized
+        if not self.__dict__ == {}:
+            warnings.warn('> Clock is already initialized. Skipping call to __init')
+            return
+
         # period
-        self.period = kwargs.pop('period', 0.01) # deadzone
+        self.period = kwargs.pop('period', 0.01)
 
         # call super
         super().__init__(*vars, **kwargs)
@@ -42,7 +54,7 @@ class Clock(clock.Clock):
 
         if not self.eqep0 and 'EQEP0' in eqeps:
 
-            print('> Initializing EQEP0')
+            warnings.warn('> Initializing EQEP0')
 
             # Load device tree
             util.load_device_tree('bone_eqep0')
@@ -59,7 +71,7 @@ class Clock(clock.Clock):
 
         if not self.eqep1 and 'EQEP1' in eqeps:
 
-            print('> Initializing EQEP1')
+            warnings.warn('> Initializing EQEP1')
 
             # Load device tree
             util.load_device_tree('bone_eqep1')
@@ -76,7 +88,7 @@ class Clock(clock.Clock):
 
         if not self.eqep2b and 'EQEP2B' in eqeps:
 
-            print('> Initializing EQEP2B')
+            warnings.warn('> Initializing EQEP2B')
 
             # Load device tree
             util.load_device_tree('bone_eqep2b')
@@ -140,7 +152,10 @@ class Clock(clock.Clock):
 
 class Encoder(block.BufferBlock):
         
-    def __init__(self, clock, ratio = 48 * 172, encoder = 2, *vars, **kwargs):
+    def __init__(self, 
+                 clock = Clock(), # is a singleton
+                 ratio = 48 * 172, 
+                 encoder = 2, *vars, **kwargs):
 
         # set period
         assert isinstance(clock, Clock)

@@ -17,7 +17,6 @@ class Controller(ctrl.Controller):
                         'ctrl.bbb.encoder', 'Encoder',
                         type = 'source',
                         outputs = ['encoder1'],
-                        clock = self.clock, 
                         encoder = 2, 
                         ratio = 48 * 172)
 

@@ -349,7 +349,7 @@ class Controller:
         outputs = kwargs.pop('outputs', [])
 
         # Install device
-        print("> Installing device '{}'".format(label));
+        warnings.warn("> Installing device '{}'".format(label))
 
         try:
 
@@ -360,8 +360,8 @@ class Controller:
 
         except Exception as e:
 
-            print("> Exception raised:\n  {}".format(e))
-            print("> Failed to install device '{}'".format(label))
+            warnings.warn("> Exception raised:\n  {}".format(e))
+            warnings.warn("> Failed to install device '{}'".format(label))
             return None
 
         # add device to controller
