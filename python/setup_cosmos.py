@@ -3,7 +3,7 @@ import math
 import numpy
 import platform, sys, select
 
-from import ctrl.client import Controller
+from ctrl.client import Controller
 import ctrl.block as block
 import ctrl.block.logger as logger
 
