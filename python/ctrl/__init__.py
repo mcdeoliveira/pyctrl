@@ -135,8 +135,9 @@ class Controller:
             
         elif options == 'summary':
         
-            result += '> Controller with {} signal(s), {} source(s), {} sink(s), and {} filter(s)' \
-                .format(len(self.signals),
+            result += '> Controller with {} device(s), {} signal(s), {} source(s), {} sink(s), and {} filter(s)' \
+                .format(len(self.devices),
+                        len(self.signals),
                         len(self.sources), 
                         len(self.sinks), 
                         len(self.filters)) + '\n'

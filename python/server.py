@@ -10,7 +10,7 @@ def one_line_warning(message, category, filename, lineno, line=None):
     return " {}:{}: {}:{}\n".format(filename, lineno, category.__name__, message)
 
 def brief_warning(message, category, filename, lineno, line=None):
-    return ">{}\n".format(message)
+    return "*{}\n".format(message)
 
 def usage():
     print('Controller Server (version {})'.format(ctrl.server.version()))
