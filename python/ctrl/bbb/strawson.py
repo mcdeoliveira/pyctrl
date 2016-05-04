@@ -93,46 +93,53 @@ class SimplePWM:
 
 if __name__ == "__main__":
 
+    import Adafruit_BBIO.GPIO as GPIO
     import time, math
 
     print("> Testing Motor1")
     
-    motor1 = SimplePWM(dir_A='P9_15',
-                       dir_B='P9_23',
-                       pwm_pin='P9_14')
+    pwm_pin = 'P9_14'
+    dir_A = 'P9_15'
+    dir_B = 'P9_23'
+    PWM.start(pwm_pin)
+    GPIO.setup(dir_A, GPIO.OUT)
+    GPIO.setup(dir_B, GPIO.OUT)
 
-    # run motor forward
-    motor1.write(100)
-    time.sleep(1)
+    freq = 25000
+    motor1 = SimplePWM(1, freq)
 
-    # stop motor
-    motor1.write(0)
-    time.sleep(1)
+    # # run motor forward
+    # motor1.write(100)
+    # time.sleep(1)
 
-    # run back
-    motor1.write(-100)
-    time.sleep(1)
+    # # stop motor
+    # motor1.write(0)
+    # time.sleep(1)
 
-    # stop motor
-    motor1.write(0)
+    # # run back
+    # motor1.write(-100)
+    # time.sleep(1)
 
-    print("> Testing Motor2")
+    # # stop motor
+    # motor1.write(0)
 
-    motor2 = Motor(dir_A='P9_12',
-                   dir_B='P9_27',
-                   pwm_pin='P9_16')
+    # print("> Testing Motor2")
 
-    # run motor forward
-    motor2.write(100)
-    time.sleep(1)
+    # motor2 = Motor(dir_A='P9_12',
+    #                dir_B='P9_27',
+    #                pwm_pin='P9_16')
 
-    # stop motor
-    motor2.write(0)
-    time.sleep(1)
+    # # run motor forward
+    # motor2.write(100)
+    # time.sleep(1)
 
-    # run back
-    motor2.write(-100)
-    time.sleep(1)
+    # # stop motor
+    # motor2.write(0)
+    # time.sleep(1)
 
-    # stop motor
-    motor2.write(0)
+    # # run back
+    # motor2.write(-100)
+    # time.sleep(1)
+
+    # # stop motor
+    # motor2.write(0)
