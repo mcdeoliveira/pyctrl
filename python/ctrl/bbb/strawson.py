@@ -29,8 +29,8 @@ def init_pwm(subsystem, period_ns):
 def uninit_pwm(subsystem):
 
     with open(SYSFS_PWM_DIR + "/unexport", 'w') as fd:
-        fd.write("{}".format((2*subsystem))
-        fd.write("{}".format((2*subsystem)+1)
+        fd.write("{}".format((2*subsystem)))
+        fd.write("{}".format((2*subsystem)+1))
 
 class SimplePWM:
 
