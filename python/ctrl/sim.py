@@ -91,8 +91,15 @@ class Controller(ctrl.Controller):
         super().__reset()
 
         # add source: clock
-        self.clock = clock.TimerClock(self.period)
-        self.add_source('clock', self.clock, ['clock'])
+        # self.clock = clock.TimerClock(self.period)
+        # self.add_source('clock', self.clock, ['clock'])
+        # self.signals['clock'] = self.clock.time
+        # self.time_origin = self.clock.time_origin
+        self.clock = self.add_device('clock',
+                                     'ctrl.block.clock', 'TimerClock',
+                                     type = 'source', 
+                                     outputs = ['clock'],
+                                     period = self.period)
         self.signals['clock'] = self.clock.time
         self.time_origin = self.clock.time_origin
 

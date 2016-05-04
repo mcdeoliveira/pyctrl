@@ -24,7 +24,7 @@ class Controller(ctrl.Controller):
                         'ctrl.bbb.encoder', 'Encoder',
                         type = 'source',
                         outputs = ['encoder2'],
-                        encoder = 0, 
+                        encoder = 1, 
                         ratio = 48)
 
         # add sink: motor1
