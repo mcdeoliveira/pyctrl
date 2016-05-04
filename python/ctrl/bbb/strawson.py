@@ -46,7 +46,7 @@ class SimplePWM:
         with open(SYSFS_PWM_DIR + "/export", 'w') as export:
 
             # export just the A channel for that subsystem
-            export.write("{}".format(2*subsystem)))
+            export.write("{}".format(2*subsystem))
 
             # len = snprintf(buf, sizeof(buf), "%d", period_ns[subsystem]);
             # write(periodA_fd, buf, len);
