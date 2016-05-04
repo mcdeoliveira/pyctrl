@@ -91,3 +91,48 @@ class SimplePWM:
         else:
             raise SimplePWMException("channel must be 'A' or 'B'")
 
+if __name__ == "__main__":
+
+    import time, math
+
+    print("> Testing Motor1")
+    
+    motor1 = SimplePWM(dir_A='P9_15',
+                       dir_B='P9_23',
+                       pwm_pin='P9_14')
+
+    # run motor forward
+    motor1.write(100)
+    time.sleep(1)
+
+    # stop motor
+    motor1.write(0)
+    time.sleep(1)
+
+    # run back
+    motor1.write(-100)
+    time.sleep(1)
+
+    # stop motor
+    motor1.write(0)
+
+    print("> Testing Motor2")
+
+    motor2 = Motor(dir_A='P9_12',
+                   dir_B='P9_27',
+                   pwm_pin='P9_16')
+
+    # run motor forward
+    motor2.write(100)
+    time.sleep(1)
+
+    # stop motor
+    motor2.write(0)
+    time.sleep(1)
+
+    # run back
+    motor2.write(-100)
+    time.sleep(1)
+
+    # stop motor
+    motor2.write(0)
