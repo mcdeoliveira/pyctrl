@@ -94,6 +94,7 @@ class SimplePWM:
 if __name__ == "__main__":
 
     import Adafruit_BBIO.GPIO as GPIO
+    import Adafruit_BBIO.PWM as PWM
     import time, math
 
     print("> Testing Motor1")
