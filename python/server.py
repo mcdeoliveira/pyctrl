@@ -1,12 +1,16 @@
+import warnings
 import socketserver
 import platform
-import warnings
 import getopt, sys
 import importlib
 
 import ctrl.server
-import math
-import numpy
+
+def one_line_warning(message, category, filename, lineno, line=None):
+    return " {}:{}: {}:{}\n".format(filename, lineno, category.__name__, message)
+
+def brief_warning(message, category, filename, lineno, line=None):
+    return ">{}\n".format(message)
 
 def usage():
     print('Controller Server (version {})'.format(ctrl.server.version()))
@@ -73,8 +77,17 @@ def main():
         else:
             assert False, "Unhandled option"
 
-    # Create controller
+    # Modify warnings
+    if verbose_level > 2:
+        pass # standard formating
+    elif verbose_level > 1:
+        # one liner
+        warnings.formatwarning = one_line_warning
+    else:
+        # brief
+        warnings.formatwarning = brief_warning
 
+    # Create controller
     obj_class = getattr(importlib.import_module(module),
                         ctrl_class)
     controller = obj_class(period = Ts)
