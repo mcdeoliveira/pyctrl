@@ -46,7 +46,7 @@ class SimplePWM:
         with open(SYSFS_PWM_DIR + "/export", 'w') as export:
 
             # export just the A channel for that subsystem
-            export.write("{}".format(2*subsystem))
+            export.write("{}".format(2*subsystem)))
 
             # len = snprintf(buf, sizeof(buf), "%d", period_ns[subsystem]);
             # write(periodA_fd, buf, len);
@@ -57,7 +57,7 @@ class SimplePWM:
             # the driver will not let you change the period when both are exported
 	
             # export the B channel
-            export.write("{}".format((2*subsystem) + 1)
+            export.write("{}".format((2*subsystem) + 1))
 
             # set duty
             init_pwm((2*subsystem) + 1, self.period)
