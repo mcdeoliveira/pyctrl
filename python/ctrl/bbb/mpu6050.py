@@ -309,8 +309,18 @@ class ComplementaryFilter(IMU):
                          int_enable = DATA_RDY_EN,
                          *vars, **kwargs)
 
-        self.calibrate()
-        
+        # calibrate filter
+        self.gy_bias, self.theta = self.calibrate()
+        warnings.warn('> ComplementaryFilter: gy bias = {}, theta = {}'.format(self.agy, self.theta))
+
+        # initialize filter
+
+        self.DT = 0.01 
+        self.THETA_MIX_TC = 2
+        self.HP_CONST = THETA_MIX_TC/(THETA_MIX_TC + DT)
+        self.LP_CONST = DT/(THETA_MIX_TC + DT)
+        self.accLP = self.theta
+
     def calibrate(self, nbr_of_samples = 10):
 
         ax, az, agy = (0, 0, 0)
@@ -328,10 +338,7 @@ class ComplementaryFilter(IMU):
         ax /= nbr_of_samples
         az /= nbr_of_samples
 
-        theta = math.atan2(az, -ax)
-
-        print('> gy bias = {}'.format(agy))
-        print('> theta = {}'.format(theta))
+        return (agy, math.atan2(az, -ax))
             
     def reset(self):
 
@@ -355,14 +362,14 @@ class ComplementaryFilter(IMU):
 
         xAccel = x
         zAccel = z
-        yGyro = -gy
+        yGyro = -(gy - self.gy_bias)
 
 	# first order filters
-        #accLP += LP_CONST * (atan2(zAccel, -xAccel) - accLP)
-        #gyroHP = HP_CONST*(gyroHP + (DT*yGyro*gyro_to_rad_per_sec))
-        #theta = gyroHP + accLP
+        self.accLP += self.LP_CONST * (math.atan2(zAccel, -xAccel) - self.accLP)
+        self.gyroHP = self.HP_CONST * (self.gyroHP + (self.DT * yGyro * math.pi / 180))
+        self.theta = self.gyroHP + self.accLP
 
-        return (theta, )
+        return (self.theta, )
 
 if __name__ == "__main__":
 
