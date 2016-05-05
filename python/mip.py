@@ -18,14 +18,14 @@ class Controller(ctrl.Controller):
                         type = 'source',
                         outputs = ['encoder1'],
                         encoder = 2, 
-                        ratio = 48)
+                        ratio = 60)
 
         self.add_device('encoder2',
                         'ctrl.bbb.encoder', 'Encoder',
                         type = 'source',
                         outputs = ['encoder2'],
                         encoder = 1, 
-                        ratio = 48)
+                        ratio = 60)
 
         # add sink: motor1
         self.add_device('motor1', 
