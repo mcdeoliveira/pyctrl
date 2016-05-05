@@ -18,6 +18,7 @@ class Motor(block.Block):
         self.pwm_pin = kwargs.pop('pwm_pin', 'P9_14')
         self.dir_A   = kwargs.pop('dir_A', 'P9_15')
         self.dir_B   = kwargs.pop('dir_B', 'P9_23')
+        self.enable_pin = kwargs.pop('enable_pin', None)
 
         # call super
         super().__init__(*vars, **kwargs)
@@ -26,8 +27,17 @@ class Motor(block.Block):
         PWM.start(self.pwm_pin)
         GPIO.setup(self.dir_A, GPIO.OUT)
         GPIO.setup(self.dir_B, GPIO.OUT)
+        if self.enable_pin:
+            GPIO.setup(self.enable_pin, GPIO.OUT)
 
     def set_enabled(self, enabled = True):
+
+        # turn on first?
+        if (not self.enabled) and enabled:
+
+            # raise enable pint
+            if self.enable_pin:
+                GPIO.output(self.enable_pin, 1)
 
         # call super
         super().set_enabled(enabled)
@@ -39,6 +49,10 @@ class Motor(block.Block):
 
             # and write 0 to motor
             PWM.set_duty_cycle(self.pwm_pin, 0)
+
+            # lower enable pint
+            if self.enable_pin:
+                GPIO.output(self.enable_pin, 0)
 
     def write(self, *values):
 
