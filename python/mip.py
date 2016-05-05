@@ -36,7 +36,7 @@ class Controller(ctrl.Controller):
                         pwm_pin = 'P9_14',
                         dir_A = 'P9_12',
                         dir_B = 'P9_13',
-                        enable_pin = 'P9_42') 
+                        enable_pin = 'P9_41') 
 
         # add sink: motor2
         self.add_device('motor2', 
@@ -44,7 +44,7 @@ class Controller(ctrl.Controller):
                         type = 'sink',
                         enable = True,
                         inputs = ['motor2'],
-                        pwm_pin = 'P9_16',
-                        dir_A = 'P9_15',
-                        dir_B = 'P8_38',
-                        enable_pin = 'P9_42')
+                        pwm_pin = 'P8_13',
+                        dir_A = 'P8_45',
+                        dir_B = 'P8_46',
+                        enable_pin = 'P9_41')
