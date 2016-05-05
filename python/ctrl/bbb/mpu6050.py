@@ -367,7 +367,6 @@ class ComplementaryFilter(IMU):
         # integrate gyro
         self.theta += self.DT * yGyro * math.pi / 180
         k = 0.98
-        k = 0.2
         self.theta = k * self.theta + (1 - k) * thetaAcc
 
         return (self.theta, )
@@ -376,8 +375,8 @@ if __name__ == "__main__":
 
     import time, math
 
-    T = 0.1
-    K = 100
+    T = 0.01
+    K = 1000
 
     print("> Complementary filter")
 
