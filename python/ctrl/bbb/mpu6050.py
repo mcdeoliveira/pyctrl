@@ -362,7 +362,7 @@ class ComplementaryFilter(IMU):
         (x, y, z, gx, gy, gz) = super().read()
 
         thetaAcc = math.atan2(z, -x)
-        yGyro = -(gy - self.gy_bias)
+        yGyro = (gy - self.gy_bias)
 
         # integrate gyro
         self.theta += self.DT * yGyro * math.pi / 180
