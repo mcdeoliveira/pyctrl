@@ -40,7 +40,7 @@ def test_motor_forward(args):
     with controller:
         position1 = controller.get_signal(encoder)
         controller.set_signal(motor,100)
-        time.sleep(20)
+        time.sleep(2)
         position2 = controller.get_signal(encoder)
     return True, (position1, position2)
 
