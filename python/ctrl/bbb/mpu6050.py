@@ -311,14 +311,27 @@ class ComplementaryFilter(IMU):
 
         self.calibrate()
         
-    def calibrate(self):
+    def calibrate(self, nbr_of_samples = 10):
 
-        for k in range(10):
+        ax, az, agy = (0, 0, 0)
+        for k in range(nbr_of_samples):
             # wait for data
             while not self.i2c.readU8(INT_STATUS) & DATA_RDY_INT:
                 pass
             # read register
             (x, y, z, gx, gy, gz) = super().read()
+            ax += x
+            az += z
+            agy += gy
+
+        agy /= nbr_of_samples
+        ax /= nbr_of_samples
+        az /= nbr_of_samples
+
+        theta = atan2(az, -ax)
+
+        print('> gy bias = {}'.format(agy))
+        print('> theta = {}'.format(theta))
             
     def reset(self):
 
