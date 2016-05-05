@@ -311,7 +311,7 @@ class ComplementaryFilter(IMU):
 
         # calibrate filter
         self.gy_bias, self.theta = self.calibrate()
-        warnings.warn('> ComplementaryFilter: gy bias = {}, theta = {}'.format(self.agy, self.theta))
+        warnings.warn('> ComplementaryFilter: gy bias = {}, theta = {}'.format(self.gy_bias, self.theta))
 
         # initialize filter
 
