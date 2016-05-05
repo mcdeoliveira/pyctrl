@@ -42,6 +42,7 @@ def test_motor_forward(args):
         controller.set_signal(motor,100)
         time.sleep(2)
         position2 = controller.get_signal(encoder)
+        controller.set_signal(motor,0)
     return True, (position1, position2)
 
 def test_encoder(args):
@@ -73,6 +74,7 @@ def test_motor_backward(args):
         controller.set_signal('motor1',-100)
         time.sleep(2)
         position2 = controller.get_signal('encoder1')
+        controller.set_signal(motor,0)
     return True, (position1, position2)
 
 def test_motor_speeds(args):
@@ -83,6 +85,7 @@ def test_motor_speeds(args):
         time.sleep(1)
         controller.set_signal('motor1',50)
         time.sleep(1)
+        controller.set_signal(motor,0)
     return True, []
 
 def test_reset_encoder(args):
