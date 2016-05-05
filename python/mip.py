@@ -20,12 +20,19 @@ class Controller(ctrl.Controller):
                         encoder = 2, 
                         ratio = 60 * 35.557)
 
+        # add source: encoder2
         self.add_device('encoder2',
                         'ctrl.bbb.encoder', 'Encoder',
                         type = 'source',
                         outputs = ['encoder2'],
                         encoder = 1, 
                         ratio = 60 * 35.557)
+
+        # add source: imu
+        self.add_device('imu',
+                        'ctrl.bbb.mpu6050', 'IMU',
+                        type = 'source',
+                        outputs = ['imu'])
 
         # add sink: motor1
         self.add_device('motor1', 
@@ -48,3 +55,4 @@ class Controller(ctrl.Controller):
                         dir_A = 'P8_45',
                         dir_B = 'P8_46',
                         enable_pin = 'P9_41')
+

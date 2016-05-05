@@ -93,7 +93,7 @@ STDB_XG = 0x01 << 2
 STDB_YG = 0x01 << 1
 STDB_ZG = 0x01 << 0
 
-class Accelerometer(block.Block):
+class IMU(block.Block):
 
     def __init__(self, *vars, **kwargs):
 
@@ -212,7 +212,7 @@ class Accelerometer(block.Block):
         
         return self.output
 
-class Inclinometer(Accelerometer):
+class Inclinometer(IMU):
 
     def __init__(self, *vars, **kwargs):
 
@@ -286,7 +286,7 @@ if __name__ == "__main__":
 
     print("> Testing accelerometer")
     
-    accel = Accelerometer()
+    accel = IMU()
 
     k = 0
     while k < K:
