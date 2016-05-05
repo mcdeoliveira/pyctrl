@@ -10,9 +10,10 @@ import ctrl.block.logger as logger
 # initialize controller
 HOST, PORT = "192.168.10.102", 9999
 controller = Controller(host = HOST, port = PORT)
+logger_signals = ['clock','encoder1','encoder2']
 controller.add_sink('logger', 
                     logger.Logger(), 
-                    ['clock','encoder1','encoder2'])
+                    logger_signals)
 controller.add_sink('printer', block.Printer(endln = '\r'), 
                     ['clock','motor1', 'encoder1','motor2', 'encoder2'])
     
@@ -169,33 +170,38 @@ def identify_motor(motor, encoder, T = 2):
         time.sleep(1)
         controller.set_signal(motor,100)
         time.sleep(T)
+
+        controller.set_signal(motor,0)
         
-        clock = controller.get_source('clock', 'period')
-        Ts = clock['period']
-        print('> controller period = {}'.format(Ts))
+    clock = controller.get_source('clock', 'period')
+    Ts = clock['period']
+    print('> controller period = {}'.format(Ts))
      
-        log = controller.read_sink('logger')
-        t = log[:,0]
-        position = log[:,1]
-        velocity = numpy.zeros(t.shape, float)
-        velocity[1:] = (position[1:]-position[:-1])/(t[1:]-t[:-1])
+    log = controller.read_sink('logger')
+    tind = logger_signals.index('clock')
+    eind = logger_signals.index(encoder)
+
+    t = log[:,tind]
+    position = log[:,eind]
+    velocity = numpy.zeros(t.shape, float)
+    velocity[1:] = (position[1:]-position[:-1])/(t[1:]-t[:-1])
         
-        max_velocity = numpy.max(velocity)
-        print('> max velocity = {:5.3f}'.format(max_velocity))
+    max_velocity = numpy.max(velocity)
+    print('> max velocity = {:5.3f}'.format(max_velocity))
 
-        ind = numpy.argwhere(velocity > .5*max_velocity)[0]
-        ind += int(2/Ts)
-        mean_velocity = numpy.mean(velocity[ind:])
-        print('> average terminal velocity = {:5.3f}'.format(mean_velocity))
+    ind = numpy.argwhere(velocity > .5*max_velocity)[0]
+    ind += int(2/Ts)
+    mean_velocity = numpy.mean(velocity[ind:])
+    print('> average terminal velocity = {:5.3f}'.format(mean_velocity))
 
-        ind = numpy.argwhere( (velocity > 0.1*mean_velocity ) & 
-                              (velocity < 0.9*mean_velocity ) )
-        t10 = float(t[ind[0]])
-        t90 = float(t[ind[-1]])
-        tau = (t90 - t10) / 2.2
-        print('> rise time = {:5.3f}'.format(t90 - t10))
-
-        print('> lambda    = {:5.3f}'.format(1/tau))
+    ind = numpy.argwhere( (velocity > 0.1*mean_velocity ) & 
+                          (velocity < 0.9*mean_velocity ) )
+    t10 = float(t[ind[0]])
+    t90 = float(t[ind[-1]])
+    tau = (t90 - t10) / 2.2
+    print('> rise time = {:5.3f}'.format(t90 - t10))
+    
+    print('> lambda    = {:5.3f}'.format(1/tau))
 
 def main():
 
