@@ -155,6 +155,48 @@ def test_potentiometer(args):
 
     return True, [pot_min, pot_max]
 
+def identify_motor(motor, encoder, T = 2):
+
+    # Identify motors
+    print("> Identifying motor '{}' parameters...".format(motor))
+    with controller:
+
+        controller.set_signal(motor,0)
+        controller.set_source(encoder, reset = True)
+
+        controller.set_sink('logger', reset = True)
+        controller.set_source('clock', reset = True)
+        time.sleep(1)
+        controller.set_signal(motor,100)
+        time.sleep(T)
+        
+        clock = controller.get_source('clock', 'period')
+        Ts = clock['period']
+        print('> controller period = {}'.format(Ts))
+     
+        log = controller.read_sink('logger')
+        t = log[:,0]
+        position = log[:,1]
+        velocity = numpy.zeros(t.shape, float)
+        velocity[1:] = (position[1:]-position[:-1])/(t[1:]-t[:-1])
+        
+        max_velocity = numpy.max(velocity)
+        print('> max velocity = {:5.3f}'.format(max_velocity))
+
+        ind = numpy.argwhere(velocity > .5*max_velocity)[0]
+        ind += int(2/Ts)
+        mean_velocity = numpy.mean(velocity[ind:])
+        print('> average terminal velocity = {:5.3f}'.format(mean_velocity))
+
+        ind = numpy.argwhere( (velocity > 0.1*mean_velocity ) & 
+                              (velocity < 0.9*mean_velocity ) )
+        t10 = float(t[ind[0]])
+        t90 = float(t[ind[-1]])
+        tau = (t90 - t10) / 2.2
+        print('> rise time = {:5.3f}'.format(t90 - t10))
+
+        print('> lambda    = {:5.3f}'.format(1/tau))
+
 def main():
 
     print('Controller Test Routine')
@@ -255,50 +297,9 @@ def main():
                '',
                test_reset_encoder)
     
-        
-    # Identify motors
-    print('> Identifying motor parameters...')
-    with controller:
-        controller.set_signal('motor1',0)
-        controller.set_source('encoder1', reset = True)
-
-        controller.set_sink('logger', reset = True)
-        controller.set_source('clock', reset = True)
-        time.sleep(1)
-        controller.set_signal('motor1',100)
-        time.sleep(5)
-        
-        clock = controller.get_source('clock', 'period')
-        Ts = clock['period']
-
-        log = controller.read_sink('logger')
-        t = log[:,0]
-        position = log[:,1]
-        velocity = numpy.zeros(t.shape, float)
-        velocity[1:] = (position[1:]-position[:-1])/(t[1:]-t[:-1])
-        
-        max_velocity = numpy.max(velocity)
-        ind = numpy.argwhere(velocity > .5*max_velocity)[0]
-        
-        #print('ind = {}'.format(ind))
-        ind += int(2/Ts)
-        #print('>> len = {}'.format(len(velocity)))
-        #print('>> ind = {}'.format(ind))
-        k = numpy.mean(velocity[ind:])
-
-        print('> period = {}'.format(Ts))
-        print('> max velocity = {:5.3f}'.format(max_velocity))
-
-        print('> gain      = {:5.3f}'.format(k))
-        
-        ind = numpy.argwhere( (velocity > 0.1*k ) & 
-                              (velocity < 0.9*k ) )
-        t10 = float(t[ind[0]])
-        t90 = float(t[ind[-1]])
-        tau = (t90 - t10) / 2.2
-        print('> rise time = {:5.3f}'.format(t90 - t10))
-        print('> lambda    = {:5.3f}'.format(1/tau))
-        
+    T = 2
+    identify_motor('motor1', 'encoder1', T)
+    identify_motor('motor2', 'encoder2', T)
     
 if __name__ == "__main__":
     main()
