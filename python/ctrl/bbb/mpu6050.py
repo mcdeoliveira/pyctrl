@@ -277,7 +277,6 @@ class Inclinometer(IMU):
 
         return (self.turns + theta, )
 
-
 class ComplementaryFilter(IMU):
 
     def __init__(self, *vars, **kwargs):
@@ -310,9 +309,9 @@ class ComplementaryFilter(IMU):
         yGyro = -gy
 
 	# first order filters
-	#accLP += LP_CONST * (atan2(zAccel, -xAccel) - accLP)
-	#gyroHP = HP_CONST*(gyroHP + (DT*yGyro*gyro_to_rad_per_sec))
-	#theta = gyroHP + accLP
+        #accLP += LP_CONST * (atan2(zAccel, -xAccel) - accLP)
+        #gyroHP = HP_CONST*(gyroHP + (DT*yGyro*gyro_to_rad_per_sec))
+        #theta = gyroHP + accLP
 
         return (theta, )
 
