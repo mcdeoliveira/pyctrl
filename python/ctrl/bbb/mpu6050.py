@@ -282,7 +282,7 @@ if __name__ == "__main__":
     import time, math
 
     T = 0.1
-    K = 10
+    K = 100
 
     print("> Testing accelerometer")
     
@@ -299,7 +299,6 @@ if __name__ == "__main__":
         time.sleep(T)
         k += 1
 
-    K = 100
     print("\n> Testing inclinometer")
 
     accel = Inclinometer()
