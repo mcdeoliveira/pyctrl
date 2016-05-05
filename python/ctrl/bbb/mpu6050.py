@@ -360,8 +360,9 @@ class ComplementaryFilter(IMU):
         yGyro = (gy - self.gy_bias)
 
         # integrate gyro
-        self.theta += self.dt * yGyro * math.pi / 180
-        self.theta = self.k * self.theta + (1 - self.k) * thetaAcc
+        self.theta = self.k * self.theta + \
+                     self.k * self.dt * yGyro * math.pi / 180 + \
+                     (1 - self.k) * thetaAcc
 
         return (self.theta, )
 
