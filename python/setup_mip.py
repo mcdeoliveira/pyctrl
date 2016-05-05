@@ -58,7 +58,6 @@ def test_reset_clock(args):
 
     t1 = controller.get_signal('clock')
     controller.set_source('clock', reset = True)
-    controller.set_signal('motor1',0)
     with controller:
         time.sleep(.1)
     t2 = controller.get_signal('clock')
@@ -68,35 +67,37 @@ def test_reset_clock(args):
 
 def test_motor_backward(args):
 
+    motor, encoder = args[0], args[1]
     with controller:
         controller.set_source('clock', reset = True)
-        position1 = controller.get_signal('encoder1')
-        controller.set_signal('motor1',-100)
+        position1 = controller.get_signal(encoder)
+        controller.set_signal(motor,-100)
         time.sleep(2)
-        position2 = controller.get_signal('encoder1')
+        position2 = controller.get_signal(encoder)
         controller.set_signal(motor,0)
     return True, (position1, position2)
 
 def test_motor_speeds(args):
 
+    motor, encoder = args[0], args[1]
     with controller:
         controller.set_source('clock', reset = True)
-        controller.set_signal('motor1',100)
+        controller.set_signal(motor,100)
         time.sleep(1)
-        controller.set_signal('motor1',50)
+        controller.set_signal(motor,50)
         time.sleep(1)
         controller.set_signal(motor,0)
     return True, []
 
 def test_reset_encoder(args):
 
+    encoder = args[0]
     with controller:
-        controller.set_signal('motor1',0)
         time.sleep(.1) # sleep to make sure it is stoped
-        position1 = controller.get_signal('encoder1')
-        controller.set_source('encoder1', reset = True)
+        position1 = controller.get_signal(encoder)
+        controller.set_source(encoder, reset = True)
         time.sleep(.1) # sleep to make sure it did not move
-        position2 = controller.get_signal('encoder1')
+        position2 = controller.get_signal(encoder)
 
     if position2 != 0:
         return False, 'could not reset encoder1 ({} != 0)'.format(position2)
@@ -166,13 +167,13 @@ def main():
                'motor1 not working',
                test_motor_forward)
   
-    # k += 1
-    # test('{}: ENCODER 1 FORWARD'.format(k), 
-    #      (position1, position2),
-    #      '',
-    #      '',
-    #      test_encoder)
-
+    k += 1
+    test('{}: ENCODER 1 FORWARD'.format(k), 
+         (position1, position2),
+         '',
+         '',
+         test_encoder)
+    
     k += 1
     position1, position2 \
         = test('{}: MOTOR 2 FORWARD'.format(k), 
@@ -180,46 +181,79 @@ def main():
                'Did the motor spin clockwise for two seconds?', 
                'motor1 not working',
                test_motor_forward)
-  
+    
     k += 1
     test('{}: ENCODER 2 FORWARD'.format(k), 
          (position1, position2),
          '',
          '',
          test_encoder)
-
+    
     k += 1
     test('{}: CLOCK RESET'.format(k), (), 
          '',
          '',
          test_reset_clock)
-
+    
     k += 1
     position1, position2 \
-        = test('{}: MOTOR BACKWARD'.format(k), (),
+        = test('{}: MOTOR 1 BACKWARD'.format(k),
+               ('motor1','encoder1'),
                'Did the motor spin counter-clockwise for two seconds?', 
                'motor1 not working',
                test_motor_backward)
 
     k += 1
-    test('{}: ENCODER BACKWARD'.format(k), (position2, position1),
+    test('{}: ENCODER 1 BACKWARD'.format(k), 
+         (position2, position1),
          '',
          '',
          test_encoder)
 
     k += 1
-    test('{}: MOTOR TWO SPEEDS'.format(k), (),
+    position1, position2 \
+        = test('{}: MOTOR 2 BACKWARD'.format(k),
+               ('motor2','encoder2'),
+               'Did the motor spin counter-clockwise for two seconds?', 
+               'motor1 not working',
+               test_motor_backward)
+    
+    k += 1
+    test('{}: ENCODER 2 BACKWARD'.format(k), 
+         (position2, position1),
+         '',
+         '',
+         test_encoder)
+    
+    k += 1
+    test('{}: MOTOR 1 TWO SPEEDS'.format(k),
+         ('motor1','encoder1'),
+         'Did the motor spin at full speed then slowed down to half speed?', 
+         'motor1 not working',
+         test_motor_speeds)
+
+    k += 1
+    test('{}: MOTOR 2 TWO SPEEDS'.format(k),
+         ('motor2','encoder2'),
          'Did the motor spin at full speed then slowed down to half speed?', 
          'motor1 not working',
          test_motor_speeds)
 
     k += 1
     position1, position2 \
-        = test('{}: ENCODER RESET'.format(k), (),
+        = test('{}: ENCODER 1 RESET'.format(k), 
+               ('encoder1'),
                '', 
                '',
                test_reset_encoder)
         
+    k += 1
+    position1, position2 \
+        = test('{}: ENCODER 2 RESET'.format(k), 
+               ('encoder2'),
+               '', 
+               '',
+               test_reset_encoder)
     
         
     if 'pot1' in controller.list_sources():
