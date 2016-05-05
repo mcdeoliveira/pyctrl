@@ -309,18 +309,13 @@ class ComplementaryFilter(IMU):
                          int_enable = DATA_RDY_EN,
                          *vars, **kwargs)
 
+        # filter parameters
+        self.k = kwargs.pop('k', 0.98)
+        self.dt = kwargs.pop('dt', 0.01)
+
         # calibrate filter
         self.gy_bias, self.theta = self.calibrate()
         warnings.warn('> ComplementaryFilter: gy bias = {}, theta = {}'.format(self.gy_bias, self.theta))
-
-        # initialize filter
-
-        self.DT = 0.01 
-        THETA_MIX_TC = 2
-        self.HP_CONST = THETA_MIX_TC/(THETA_MIX_TC + self.DT)
-        self.LP_CONST = self.DT/(THETA_MIX_TC + self.DT)
-        self.accLP = self.theta
-        self.gyroHP = self.theta
 
     def calibrate(self, nbr_of_samples = 10):
 
@@ -365,9 +360,8 @@ class ComplementaryFilter(IMU):
         yGyro = (gy - self.gy_bias)
 
         # integrate gyro
-        self.theta += self.DT * yGyro * math.pi / 180
-        k = 0.98
-        self.theta = k * self.theta + (1 - k) * thetaAcc
+        self.theta += self.dt * yGyro * math.pi / 180
+        self.theta = self.k * self.theta + (1 - self.k) * thetaAcc
 
         return (self.theta, )
 
