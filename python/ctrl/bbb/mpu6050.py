@@ -140,8 +140,8 @@ class IMU(block.Block):
 
         if self.gyro_enabled:
 
-            # TO DO: Configure gyroscope
-            pass
+            # Enable accelerometer + gyroscope
+            self.i2c.write8(PWR_MGMT_2, 0)
 
         else:
             
