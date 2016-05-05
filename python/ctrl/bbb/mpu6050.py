@@ -277,6 +277,66 @@ class Inclinometer(IMU):
 
         return (self.turns + theta, )
 
+
+class ComplementaryFilter(IMU):
+
+    def __init__(self, *vars, **kwargs):
+
+        # call super
+        super().__init__(*vars, **kwargs)
+
+    def reset(self):
+
+        # call super
+        super().reset()
+
+        self.turns = 0
+        self.quadrant = 0
+
+    def set(self, **kwargs):
+        
+        if 'zero' in kwargs:
+            self.zero = kwargs.pop('zero')
+
+        super().set(**kwargs)
+
+    def read(self):
+
+        # read accelerometer
+        (x, y, z) = super().read()
+
+        # calculate angle
+        theta = math.atan2(y, x) / (2 * math.pi)
+
+        # calculate quadrant
+        if x >= 0:
+            if y >= 0:
+                quadrant = 1
+            else:
+                quadrant = 4
+        elif y >= 0:
+            quadrant = 2
+        else:
+            quadrant = 3
+
+        if not self.quadrant:
+            self.quadrant = quadrant
+
+        else:
+
+            if quadrant == 3 and self.quadrant == 2:
+                self.turns += 1
+            elif quadrant == 2 and self.quadrant == 3:
+                self.turns -= 1
+
+        #print('quadrant = {}, last = {}, turns = {}'.format(quadrant,
+        #                                                    self.quadrant,
+        #                                                    self.turns))
+
+        self.quadrant = quadrant
+
+        return (self.turns + theta, )
+
 if __name__ == "__main__":
 
     import time, math
@@ -295,6 +355,21 @@ if __name__ == "__main__":
         (x, y, z) = accel.read()
 
         print('\r> (x, y, z) = ({:5.3f}, {:5.3f}, {:5.3f})g'.format(x, y, z), end='')
+
+        time.sleep(T)
+        k += 1
+
+    print("> Testing accelerometer + gyro")
+    
+    accel = IMU(gyro_enabled = True)
+
+    k = 0
+    while k < K:
+
+        # read accelerometer
+        (x, y, z, gx, gy, gz) = accel.read()
+
+        print('\r> (x, y, z) = ({:5.3f}, {:5.3f}, {:5.3f})g\t(gx, gy, gz) = ({:5.3f}, {:5.3f}, {:5.3f})g'.format(x, y, z, gx, gy, gz), end='')
 
         time.sleep(T)
         k += 1
