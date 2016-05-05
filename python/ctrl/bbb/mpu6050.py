@@ -102,7 +102,7 @@ class IMU(block.Block):
         self.address = kwargs.pop('address', 0x68)
 
         # set low pass filter
-        self.dlp_cfg = kwargs.pop('dlp_cfg', DLP_CFG_44)
+        self.dlp_cfg = kwargs.pop('dlp_cfg', DLP_CFG_184)
 
         # sample rate divider
         # default = 1kHz / (1 + 9) = 100Hz
@@ -116,7 +116,7 @@ class IMU(block.Block):
         self.gyro_enabled = kwargs.pop('gyro_enabled', False)
 
         # gyro sensitivity
-        self.gyro_sensitivity = kwargs.pop('accel_sensitivity', GFS_SEL_250)
+        self.gyro_sensitivity = kwargs.pop('gyro_sensitivity', GFS_SEL_250)
         self.gfs_scale = GFS_SCALE[self.gyro_sensitivity]
 
         # debug_I2C?
@@ -135,10 +135,13 @@ class IMU(block.Block):
         # Set sample rate
         self.i2c.write8(SMPRT_DIV, self.smprt_div)
         
-        # Set sensitivity
+        # Set accelerometer sensitivity
         self.i2c.write8(ACCEL_CONFIG, self.accel_sensitivity)
 
         if self.gyro_enabled:
+
+            # Set gyroscope sensitivity
+            self.i2c.write8(GYRO_CONFIG, self.gyro_sensitivity)
 
             # Enable accelerometer + gyroscope
             self.i2c.write8(PWR_MGMT_2, 0)
