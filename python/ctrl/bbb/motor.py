@@ -38,7 +38,7 @@ class Motor(block.Block):
 
             # raise enable pint
             if self.enable_pin:
-                warnings.warn('Raising enable_pin')
+                warnings.warn('Raising enable_pin\n')
                 GPIO.output(self.enable_pin, 1)
 
         # call super
@@ -54,7 +54,7 @@ class Motor(block.Block):
 
             # lower enable pint
             if self.enable_pin:
-                warnings.warn('Lowering enable_pin')
+                warnings.warn('Lowering enable_pin\n')
                 GPIO.output(self.enable_pin, 0)
 
     def write(self, *values):
