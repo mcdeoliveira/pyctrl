@@ -159,7 +159,7 @@ def test_potentiometer(args):
 def identify_motor(motor, encoder, T = 2):
 
     # Identify motors
-    print("> Identifying motor '{}' parameters...".format(motor))
+    print("\n> Identifying motor '{}' parameters...".format(motor))
     with controller:
 
         controller.set_signal(motor,0)
@@ -180,8 +180,6 @@ def identify_motor(motor, encoder, T = 2):
     log = controller.read_sink('logger')
     tind = logger_signals.index('clock')
     eind = logger_signals.index(encoder)
-    print('tind = {}'.format(tind))
-    print('eind = {}'.format(eind))
 
     t = log[:,tind]
     position = log[:,eind]
@@ -189,21 +187,21 @@ def identify_motor(motor, encoder, T = 2):
     velocity[1:] = (position[1:]-position[:-1])/(t[1:]-t[:-1])
         
     max_velocity = numpy.max(velocity)
-    print('> max velocity = {:5.3f}'.format(max_velocity))
+    print('>> max velocity = {:5.3f}'.format(max_velocity))
 
     ind = numpy.argwhere(velocity > .5*max_velocity)[0]
     ind = int((t.size + ind)/2)
     mean_velocity = numpy.mean(velocity[ind:])
-    print('> average terminal velocity = {:5.3f}'.format(mean_velocity))
+    print('>> average terminal velocity = {:5.3f}'.format(mean_velocity))
 
     ind = numpy.argwhere( (velocity > 0.1*mean_velocity ) & 
                           (velocity < 0.9*mean_velocity ) )
     t10 = float(t[ind[0]])
     t90 = float(t[ind[-1]])
     tau = (t90 - t10) / 2.2
-    print('> rise time = {:5.3f}'.format(t90 - t10))
+    print('>> rise time = {:5.3f}'.format(t90 - t10))
     
-    print('> lambda    = {:5.3f}'.format(1/tau))
+    print('>> lambda    = {:5.3f}'.format(1/tau))
 
 def main():
 
