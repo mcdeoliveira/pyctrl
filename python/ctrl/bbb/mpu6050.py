@@ -313,6 +313,8 @@ class ComplementaryFilter(IMU):
         self.k = kwargs.pop('k', 0.98)
         self.dt = kwargs.pop('dt', 0.01)
 
+        self.k = 0.5
+
         # calibrate filter
         self.gy_bias, self.theta = self.calibrate()
         warnings.warn('> ComplementaryFilter: gy bias = {}, theta = {}'.format(self.gy_bias, self.theta))
