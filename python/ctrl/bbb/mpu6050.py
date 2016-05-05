@@ -10,8 +10,8 @@ import struct
 
 import ctrl.block as block
 
-# SAMPLE RATE = GIRO_RATE / (1 + SMPLRT_DIV[7:0])
-# GIRO_RATE = 1kHz if 0 < DLP_CFG < 7
+# SAMPLE RATE = GYRO_RATE / (1 + SMPLRT_DIV[7:0])
+# GYRO_RATE = 1kHz if 0 < DLP_CFG < 7
 #           = 8kHz if DLP_CFG = 0 or DLP_CFG = 7
 SMPRT_DIV = 0x19
 
@@ -43,7 +43,7 @@ AFS_SCALE = {
 }
 
 # ACCEL_CONFIG
-GIRO_CONFIG = 0x1c
+GYRO_CONFIG = 0x1c
 # GFS_SEL
 GFS_SEL_250  = 0x00 << 3
 GFS_SEL_500  = 0x01 << 3
@@ -70,13 +70,13 @@ ACCEL_ZOUT_L = 0x40
 TEMP_OUT_H = 0x41
 TEMP_OUT_L = 0x42
 
-# GIRO_OUT
-GIRO_XOUT_H = 0x43
-GIRO_XOUT_L = 0x44
-GIRO_YOUT_H = 0x45
-GIRO_YOUT_L = 0x46
-GIRO_ZOUT_H = 0x47
-GIRO_ZOUT_L = 0x48
+# GYRO_OUT
+GYRO_XOUT_H = 0x43
+GYRO_XOUT_L = 0x44
+GYRO_YOUT_H = 0x45
+GYRO_YOUT_L = 0x46
+GYRO_ZOUT_H = 0x47
+GYRO_ZOUT_L = 0x48
 
 # PWR_MGMT_1
 PWR_MGMT_1 = 0x6b
@@ -112,12 +112,12 @@ class IMU(block.Block):
         self.accel_sensitivity = kwargs.pop('accel_sensitivity', AFS_SEL_2)
         self.afs_scale = AFS_SCALE[self.accel_sensitivity]
 
-        # giro enabled (default is False)
-        self.giro_enabled = kwargs.pop('giro_enabled', False)
+        # gyro enabled (default is False)
+        self.gyro_enabled = kwargs.pop('gyro_enabled', False)
 
-        # giro sensitivity
-        self.giro_sensitivity = kwargs.pop('accel_sensitivity', GFS_SEL_250)
-        self.gfs_scale = GFS_SCALE[self.giro_sensitivity]
+        # gyro sensitivity
+        self.gyro_sensitivity = kwargs.pop('accel_sensitivity', GFS_SEL_250)
+        self.gfs_scale = GFS_SCALE[self.gyro_sensitivity]
 
         # debug_I2C?
         self.debug_I2C = kwargs.pop('debug_I2C', False)
@@ -138,14 +138,14 @@ class IMU(block.Block):
         # Set sensitivity
         self.i2c.write8(ACCEL_CONFIG, self.accel_sensitivity)
 
-        if self.giro_enabled:
+        if self.gyro_enabled:
 
-            # TO DO: Configure giroscope
+            # TO DO: Configure gyroscope
             pass
 
         else:
             
-            # Disable giroscope
+            # Disable gyroscope
             self.i2c.write8(PWR_MGMT_2, STDB_XG + STDB_YG + STDB_ZG)
 
         # enable
@@ -171,9 +171,9 @@ class IMU(block.Block):
         #print('> read')
         if self.enabled:
 
-            if self.giro_enabled:
+            if self.gyro_enabled:
 
-                # Burst-read accelerometer, temp and giro registers
+                # Burst-read accelerometer, temp and gyro registers
                 xh, xl, yh, yl, zh, zl, \
                     th, tl, \
                     gxh, gxl, gyh, gyl, gzh, gzl = \
@@ -196,7 +196,7 @@ class IMU(block.Block):
                                gy / self.gfs_scale, 
                                gz / self.gfs_scale)
 
-            else: # no giro
+            else: # no gyro
 
                 # Burst-read accelerometer registers
                 xh, xl, yh, yl, zh, zl = self.i2c.readList(ACCEL_XOUT_H, 6)
