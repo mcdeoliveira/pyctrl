@@ -316,9 +316,9 @@ class ComplementaryFilter(IMU):
         # initialize filter
 
         self.DT = 0.01 
-        self.THETA_MIX_TC = 2
-        self.HP_CONST = THETA_MIX_TC/(THETA_MIX_TC + DT)
-        self.LP_CONST = DT/(THETA_MIX_TC + DT)
+        THETA_MIX_TC = 2
+        self.HP_CONST = THETA_MIX_TC/(THETA_MIX_TC + self.DT)
+        self.LP_CONST = self.DT/(THETA_MIX_TC + self.DT)
         self.accLP = self.theta
 
     def calibrate(self, nbr_of_samples = 10):
