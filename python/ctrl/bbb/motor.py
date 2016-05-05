@@ -1,7 +1,8 @@
+import warnings
+import time
+
 import Adafruit_BBIO.GPIO as GPIO
 import Adafruit_BBIO.PWM as PWM
-
-import time
 
 if __name__ == "__main__":
 
@@ -37,6 +38,7 @@ class Motor(block.Block):
 
             # raise enable pint
             if self.enable_pin:
+                warnings.warn('Raising enable_pin')
                 GPIO.output(self.enable_pin, 1)
 
         # call super
@@ -52,6 +54,7 @@ class Motor(block.Block):
 
             # lower enable pint
             if self.enable_pin:
+                warnings.warn('Lowering enable_pin')
                 GPIO.output(self.enable_pin, 0)
 
     def write(self, *values):
