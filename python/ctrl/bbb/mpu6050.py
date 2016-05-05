@@ -93,6 +93,20 @@ STDB_XG = 0x01 << 2
 STDB_YG = 0x01 << 1
 STDB_ZG = 0x01 << 0
 
+# INT_ENABLE
+INT_ENABLE = 0x38
+MOT_EN = 0x01 << 6
+FIFO_OFLOW_EN = 0x01 << 4
+I2C_MST_INT_EN = 0x01 << 3
+DATA_RDY_EN = 0x01 << 0
+
+# INT_STATUS
+INT_STATUS = 0x3a
+MOT_INT = 0x01 << 6
+FIFO_OFLOW_INT = 0x01 << 4
+I2C_MST_INT_INT = 0x01 << 3
+DATA_RDY_INT = 0x01 << 0
+
 class IMU(block.Block):
 
     def __init__(self, *vars, **kwargs):
@@ -103,6 +117,9 @@ class IMU(block.Block):
 
         # set low pass filter
         self.dlp_cfg = kwargs.pop('dlp_cfg', DLP_CFG_184)
+
+        # set interrupts
+        self.int_enable = kwargs.pop('int_enable', 0)
 
         # sample rate divider
         # default = 1kHz / (1 + 9) = 100Hz
@@ -150,6 +167,9 @@ class IMU(block.Block):
             
             # Disable gyroscope
             self.i2c.write8(PWR_MGMT_2, STDB_XG + STDB_YG + STDB_ZG)
+
+        # set interrupts
+        self.i2c.write8(INT_ENABLE, self.int_enable)
 
         # enable
         self.set_enabled(True)
@@ -285,8 +305,21 @@ class ComplementaryFilter(IMU):
     def __init__(self, *vars, **kwargs):
 
         # call super
-        super().__init__(gyro_enabled = True, *vars, **kwargs)
+        super().__init__(gyro_enabled = True, 
+                         int_enable = DATA_RDY_EN,
+                         *vars, **kwargs)
 
+        self.calibrate()
+        
+    def calibrate(self):
+
+        for k in range(10):
+            # wait for data
+            while not self.i2c.read(INT_STATUS):
+                pass
+            # read register
+            (x, y, z, gx, gy, gz) = self.read()
+            
     def reset(self):
 
         # call super
@@ -350,7 +383,7 @@ if __name__ == "__main__":
         # read accelerometer
         (x, y, z, gx, gy, gz) = accel.read()
 
-        print('\r> (x, y, z) = ({:5.3f}, {:5.3f}, {:5.3f})g\t(gx, gy, gz) = ({:5.3f}, {:5.3f}, {:5.3f})g'.format(x, y, z, gx, gy, gz), end='')
+        print('\r> (x, y, z) = ({:5.3f}, {:5.3f}, {:5.3f})g\t(gx, gy, gz) = ({:5.3f}, {:5.3f}, {:5.3f})^o/s'.format(x, y, z, gx, gy, gz), end='')
 
         time.sleep(T)
         k += 1
