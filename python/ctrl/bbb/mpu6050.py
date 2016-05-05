@@ -382,6 +382,17 @@ if __name__ == "__main__":
 
     cfilter = ComplementaryFilter()
 
+    k = 0
+    while k < K:
+
+        # read filter
+        (theta,) = cfilter.read()
+
+        print('\r> theta = {:5.3f}'.format(theta * 180 / math.pi), end='')
+
+        time.sleep(T)
+        k += 1
+
     print("> Testing accelerometer")
     
     accel = IMU()
