@@ -283,7 +283,7 @@ class ComplementaryFilter(IMU):
     def __init__(self, *vars, **kwargs):
 
         # call super
-        super().__init__(*vars, **kwargs)
+        super().__init__(gyro_enabled = True, *vars, **kwargs)
 
     def reset(self):
 
@@ -303,39 +303,18 @@ class ComplementaryFilter(IMU):
     def read(self):
 
         # read accelerometer
-        (x, y, z) = super().read()
+        (x, y, z, gx, gy, gz) = super().read()
 
-        # calculate angle
-        theta = math.atan2(y, x) / (2 * math.pi)
+        xAccel = x
+        zAccel = z
+        yGyro = -gy
 
-        # calculate quadrant
-        if x >= 0:
-            if y >= 0:
-                quadrant = 1
-            else:
-                quadrant = 4
-        elif y >= 0:
-            quadrant = 2
-        else:
-            quadrant = 3
+	# first order filters
+	accLP += LP_CONST * (atan2(zAccel,-xAccel) - accLP)
+	gyroHP = HP_CONST*(gyroHP + (DT*yGyro*gyro_to_rad_per_sec))
+	theta = gyroHP + accLP;
 
-        if not self.quadrant:
-            self.quadrant = quadrant
-
-        else:
-
-            if quadrant == 3 and self.quadrant == 2:
-                self.turns += 1
-            elif quadrant == 2 and self.quadrant == 3:
-                self.turns -= 1
-
-        #print('quadrant = {}, last = {}, turns = {}'.format(quadrant,
-        #                                                    self.quadrant,
-        #                                                    self.turns))
-
-        self.quadrant = quadrant
-
-        return (self.turns + theta, )
+        return (theta, )
 
 if __name__ == "__main__":
 
