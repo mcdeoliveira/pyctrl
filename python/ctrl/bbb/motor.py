@@ -38,7 +38,7 @@ class Motor(block.Block):
 
         # raise enable pin?
         if enabled and self.enable_pin:
-            print('> Raising enable_pin\n')
+            #print('> Raising enable_pin')
             GPIO.output(self.enable_pin, 1)
 
         if not enabled:
@@ -51,7 +51,7 @@ class Motor(block.Block):
 
             # lower enable pin?
             if self.enable_pin:
-                print('> Lowering enable_pin\n')
+                #print('> Lowering enable_pin')
                 GPIO.output(self.enable_pin, 0)
 
     def write(self, *values):

@@ -242,7 +242,7 @@ def main():
     k += 1
     position1, position2 \
         = test('{}: ENCODER 1 RESET'.format(k), 
-               ('encoder1'),
+               ('encoder1',),
                '', 
                '',
                test_reset_encoder)
@@ -250,21 +250,13 @@ def main():
     k += 1
     position1, position2 \
         = test('{}: ENCODER 2 RESET'.format(k), 
-               ('encoder2'),
+               ('encoder2',),
                '', 
                '',
                test_reset_encoder)
     
         
-    if 'pot1' in controller.list_sources():
-        k += 1
-        position1, position2 \
-            = test('{}: POTENTIOMETER RANGE'.format(k), (),
-                   '', 
-                   '',
-                   test_potentiometer)
-
-    # Identify motor
+    # Identify motors
     print('> Identifying motor parameters...')
     with controller:
         controller.set_signal('motor1',0)
