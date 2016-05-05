@@ -180,6 +180,8 @@ def identify_motor(motor, encoder, T = 2):
     log = controller.read_sink('logger')
     tind = logger_signals.index('clock')
     eind = logger_signals.index(encoder)
+    print('tind = {}'.format(tind))
+    print('eind = {}'.format(eind))
 
     t = log[:,tind]
     position = log[:,eind]
@@ -190,7 +192,7 @@ def identify_motor(motor, encoder, T = 2):
     print('> max velocity = {:5.3f}'.format(max_velocity))
 
     ind = numpy.argwhere(velocity > .5*max_velocity)[0]
-    ind += int(2/Ts)
+    ind = int((t.size + ind)/2)
     mean_velocity = numpy.mean(velocity[ind:])
     print('> average terminal velocity = {:5.3f}'.format(mean_velocity))
 
