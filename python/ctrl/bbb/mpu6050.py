@@ -359,7 +359,7 @@ if __name__ == "__main__":
         time.sleep(T)
         k += 1
 
-    print("> Testing accelerometer + gyro")
+    print("\n> Testing accelerometer + gyro")
     
     accel = IMU(gyro_enabled = True)
 
