@@ -328,7 +328,7 @@ class ComplementaryFilter(IMU):
         ax /= nbr_of_samples
         az /= nbr_of_samples
 
-        theta = atan2(az, -ax)
+        theta = math.atan2(az, -ax)
 
         print('> gy bias = {}'.format(agy))
         print('> theta = {}'.format(theta))
