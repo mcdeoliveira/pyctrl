@@ -26,7 +26,7 @@ class Controller(ctrl.Controller):
                         type = 'source',
                         outputs = ['encoder2'],
                         encoder = 1, 
-                        ratio = 60 * 35.557)
+                        ratio = - 60 * 35.557)
 
         # add source: imu
         self.add_device('imu',
