@@ -361,14 +361,12 @@ class ComplementaryFilter(IMU):
         # read accelerometer
         (x, y, z, gx, gy, gz) = super().read()
 
-        xAccel = x
-        zAccel = z
+        thetaAcc = math.atan2(z, -x)
         yGyro = -(gy - self.gy_bias)
 
-	# first order filters
-        self.accLP += self.LP_CONST * (math.atan2(zAccel, -xAccel) - self.accLP)
-        self.gyroHP = self.HP_CONST * (self.gyroHP + (self.DT * yGyro * math.pi / 180))
-        self.theta = self.gyroHP + self.accLP
+        # integrate gyro
+        self.theta += self.DT * yGyro * math.pi / 180
+        self.theta = 0.98 * self.theta + 0.02 * thetaAcc
 
         return (self.theta, )
 
