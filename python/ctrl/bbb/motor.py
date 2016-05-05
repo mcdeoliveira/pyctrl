@@ -33,16 +33,13 @@ class Motor(block.Block):
 
     def set_enabled(self, enabled = True):
 
-        # turn on first?
-        if (not self.enabled) and enabled:
-
-            # raise enable pint
-            if self.enable_pin:
-                warnings.warn('Raising enable_pin\n')
-                GPIO.output(self.enable_pin, 1)
-
         # call super
         super().set_enabled(enabled)
+
+        # raise enable pin?
+        if enabled and self.enable_pin:
+            warnings.warn('Raising enable_pin\n')
+            GPIO.output(self.enable_pin, 1)
 
         if not enabled:
 
@@ -52,7 +49,7 @@ class Motor(block.Block):
             # and write 0 to motor
             PWM.set_duty_cycle(self.pwm_pin, 0)
 
-            # lower enable pint
+            # lower enable pin?
             if self.enable_pin:
                 warnings.warn('Lowering enable_pin\n')
                 GPIO.output(self.enable_pin, 0)
