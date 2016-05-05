@@ -366,7 +366,9 @@ class ComplementaryFilter(IMU):
 
         # integrate gyro
         self.theta += self.DT * yGyro * math.pi / 180
-        self.theta = 0.98 * self.theta + 0.02 * thetaAcc
+        k = 0.98
+        k = 0.2
+        self.theta = k * self.theta + (1 - k) * thetaAcc
 
         return (self.theta, )
 
