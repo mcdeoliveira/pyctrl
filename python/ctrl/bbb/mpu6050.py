@@ -1,12 +1,12 @@
+import warnings
+import math
+import struct
 import Adafruit_I2C as I2C 
 
 if __name__ == "__main__":
 
     import sys
     sys.path.append('.')
-
-import math
-import struct
 
 import ctrl.block as block
 
