@@ -315,7 +315,7 @@ class ComplementaryFilter(IMU):
 
         for k in range(10):
             # wait for data
-            while not self.i2c.read(INT_STATUS):
+            while not self.i2c.readU8(INT_STATUS) & DATA_RDY_INT:
                 pass
             # read register
             (x, y, z, gx, gy, gz) = self.read()
@@ -357,6 +357,10 @@ if __name__ == "__main__":
 
     T = 0.1
     K = 100
+
+    print("> Complementary filter")
+
+    cfilter = ComplementaryFilter()
 
     print("> Testing accelerometer")
     
@@ -402,5 +406,4 @@ if __name__ == "__main__":
         time.sleep(T)
         k += 1
 
-    accel = ComplementaryFilter()
 
