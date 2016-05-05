@@ -175,7 +175,8 @@ def identify_motor(motor, encoder, T = 2):
         
     clock = controller.get_source('clock', 'period')
     Ts = clock['period']
-    print('> controller period = {}'.format(Ts))
+    print('>> controller period = {}'.format(Ts))
+    print('>> test time = {}'.format(T))
      
     log = controller.read_sink('logger')
     tind = logger_signals.index('clock')
