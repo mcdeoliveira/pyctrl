@@ -401,3 +401,6 @@ if __name__ == "__main__":
 
         time.sleep(T)
         k += 1
+
+    accel = ComplementaryFilter()
+
