@@ -318,7 +318,7 @@ class ComplementaryFilter(IMU):
             while not self.i2c.readU8(INT_STATUS) & DATA_RDY_INT:
                 pass
             # read register
-            (x, y, z, gx, gy, gz) = self.read()
+            (x, y, z, gx, gy, gz) = super().read()
             
     def reset(self):
 
