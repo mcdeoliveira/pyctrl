@@ -52,7 +52,7 @@ class Controller(ctrl.Controller):
                         enable = True,
                         inputs = ['motor2'],
                         pwm_pin = 'P8_13',
-                        dir_A = 'P8_45',
-                        dir_B = 'P8_46',
+                        dir_B = 'P8_45',
+                        dir_A = 'P8_46',
                         enable_pin = 'P9_41')
 
