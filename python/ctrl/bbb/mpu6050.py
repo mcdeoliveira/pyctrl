@@ -363,7 +363,7 @@ class ComplementaryFilter(IMU):
         # implement filter
         self.x = self.k * self.x + yGyro + \
                      2 * self.fs * (1 - self.k)/(1 + self.k) * thetaAcc
-        theta = (1 + self.k)^2/4/self.fs * self.x + \
+        theta = (1 + self.k)**2/4/self.fs * self.x + \
                 (1 + self.k)/4/self.fs * yGyro + \
                 (1 - self.k)/2 * thetaAcc
 
