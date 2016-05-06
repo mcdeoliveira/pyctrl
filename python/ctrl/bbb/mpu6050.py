@@ -310,14 +310,13 @@ class ComplementaryFilter(IMU):
                          *vars, **kwargs)
 
         # filter parameters
-        self.k = kwargs.pop('k', 0.98)
-        self.dt = kwargs.pop('dt', 0.01)
-
-        self.k = 0.5
+        self.fc = kwargs.pop('fc', 20)
+        self.fs = kwargs.pop('fs', 100)
+        self.k = (1 - math.pi * self.fc/self.fs) / (1 + math.pi * self.fc/self.fs)
 
         # calibrate filter
-        self.gy_bias, self.theta = self.calibrate()
-        warnings.warn('> ComplementaryFilter: gy bias = {}, theta = {}'.format(self.gy_bias, self.theta))
+        self.gy_bias, self.x = self.calibrate()
+        warnings.warn('> ComplementaryFilter: gy bias = {}, theta = {}'.format(self.gy_bias, self.x))
 
     def calibrate(self, nbr_of_samples = 10):
 
@@ -359,12 +358,14 @@ class ComplementaryFilter(IMU):
         (x, y, z, gx, gy, gz) = super().read()
 
         thetaAcc = math.atan2(z, -x)
-        yGyro = (gy - self.gy_bias)
+        yGyro = (gy - self.gy_bias) * math.pi / 180
 
-        # integrate gyro
-        self.theta = self.k * self.theta + \
-                     self.k * self.dt * yGyro * math.pi / 180 + \
-                     (1 - self.k) * thetaAcc
+        # implement filter
+        self.x = self.k * self.x + yGyro + \
+                     2 * self.fs * (1 - self.k)/(1 + self.k) * thetaAcc
+        theta = (1 + self.k)^2/4/self.fs * self.x + \
+                (1 + self.k)/4/self.fs * yGyro + \
+                (1 - self.k)/2 * thetaAcc
 
         return (self.theta, )
 
