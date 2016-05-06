@@ -367,7 +367,7 @@ class ComplementaryFilter(IMU):
                 (1 + self.k)/4/self.fs * yGyro + \
                 (1 - self.k)/2 * thetaAcc
 
-        return (self.theta, )
+        return (theta, )
 
 if __name__ == "__main__":
 
