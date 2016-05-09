@@ -1539,7 +1539,9 @@ class MPU6050:
             # pitch: (nose up/down, about Y axis)
             'pitch' : atan(g['x'] / sqrt(g['y'] * g['y'] + g['z'] * g['z'])),
             # roll: (tilt left/right, about X axis)
-            'roll' : atan(g['y'] / sqrt(g['x'] * g['x'] + g['z'] * g['z']))}
+            #'roll' : atan(g['y'] / sqrt(g['x'] * g['x'] + g['z'] * g['z']))
+            'roll' : atan(g['z'] / sqrt(g['x'] * g['x'] + g['y'] * g['y']))}
+        }
             
         return data 
 
