@@ -1596,8 +1596,8 @@ class MPU6050:
         self.setExternalFrameSync(self.MPU6050_EXT_SYNC_TEMP_OUT_L)
         
         # Setting DLPF bandwidth to 42Hz
-        #self.setDLPFMode(self.MPU6050_DLPF_BW_5)
-        self.setDLPFMode(self.MPU6050_DLPF_BW_42)
+        #self.setDLPFMode(self.MPU6050_DLPF_BW_42)
+        self.setDLPFMode(self.MPU6050_DLPF_BW_5)
         
         # Setting gyro sensitivity to +/- 2000 deg/sec
         self.setFullScaleGyroRange(self.MPU6050_GYRO_FS_2000)
