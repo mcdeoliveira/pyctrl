@@ -8,14 +8,14 @@ import ctrl.block as block
 import ctrl.block.logger as logger
 
 # initialize controller
-HOST, PORT = "192.168.10.102", 9999
+HOST, PORT = "192.168.10.101", 9999
 controller = Controller(host = HOST, port = PORT)
 logger_signals = ['clock','encoder1','encoder2']
 controller.add_sink('logger', 
                     logger.Logger(), 
                     logger_signals)
 controller.add_sink('printer', block.Printer(endln = '\r'), 
-                    ['clock','motor1', 'encoder1','motor2', 'encoder2'])
+                    ['clock','motor1', 'encoder1','motor2', 'encoder2', 'imu'])
     
 print(controller.info('all'))
 

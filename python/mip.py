@@ -30,8 +30,9 @@ class Controller(ctrl.Controller):
 
         # add source: imu
         self.add_device('imu',
-                        'ctrl.bbb.mpu6050', 'IMU',
+                        'ctrl.bbb.mpu6050', 'Inclinometer',
                         type = 'source',
+                        enable = True,
                         outputs = ['imu'])
 
         # add sink: motor1

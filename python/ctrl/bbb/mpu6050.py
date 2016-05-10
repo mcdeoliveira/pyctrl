@@ -17,13 +17,23 @@ class IMU(block.Block):
         # Sensor initialization
         self.mpu = mpu6050.MPU6050()
         self.mpu.dmpInitialize()
-        self.mpu.setDMPEnabled(True)
 
         # get expected DMP packet size for later comparison
         self.packetSize = self.mpu.dmpGetFIFOPacketSize() 
 
         # call super
         super().__init__(*vars, **kwargs)
+
+    def set_enabled(self, enabled = True):
+
+        super().set_enabled(enabled)
+        
+        if enabled:
+            self.mpu.setDMPEnabled(True)
+            warnings.warn('> imu enabled')
+        else:
+            self.mpu.setDMPEnabled(False)
+            warnings.warn('> imu disabled')
 
     def read(self):
 
@@ -32,20 +42,25 @@ class IMU(block.Block):
 
             # get current FIFO count
             fifoCount = self.mpu.getFIFOCount()
+            #print('> fifoCount1 = {}'.format(fifoCount))
+
             if fifoCount == 1024:
                 # reset so we can continue cleanly
                 self.mpu.resetFIFO()
                 print('FIFO overflow!')
             
             fifoCount = self.mpu.getFIFOCount()
+            #print('> fifoCount2 = {}'.format(fifoCount))
             while fifoCount < self.packetSize:
                 fifoCount = self.mpu.getFIFOCount()
+                #print('> fifoCount3 = {}'.format(fifoCount))
 
             result = self.mpu.getFIFOBytes(self.packetSize)
             q = self.mpu.dmpGetQuaternion(result)
 
             self.output = (q['w'], q['x'], q['y'], q['z'])
         
+        #print('< read')
         return self.output
 
 class Inclinometer(IMU):
