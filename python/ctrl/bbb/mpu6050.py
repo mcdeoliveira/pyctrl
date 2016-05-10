@@ -48,7 +48,7 @@ class Inclinometer(IMU):
                         float(w * w - x * x - y * y + z * z))
 
         # calculate angle
-        theta = math.atan(gz/sqrt(gx**2+gy**2)) / (2 * math.pi)
+        theta = math.atan(gz/math.sqrt(gx**2+gy**2)) / (2 * math.pi)
 
         return (theta, )
 
@@ -69,7 +69,7 @@ if __name__ == "__main__":
         # read accelerometer
         (w, x, y, z) = accel.read()
 
-        print('\r> (w, x, y, z) = ({:5.3f}, {:5.3f}, {:5.3f}, {:5.3f})g'.format(w, x, y, z), end='')
+        print('\r> (w, x, y, z) = ({:+5.3f}, {:+5.3f}, {:+5.3f}, {:+5.3f})g'.format(w, x, y, z), end='')
 
         time.sleep(T)
         k += 1
@@ -83,7 +83,7 @@ if __name__ == "__main__":
 
         # read inclinometer
         (theta, ) = accel.read()
-        print('\r> theta = {:5.3f}deg'.format(360*theta), end='')
+        print('\r> theta = {:+5.3f}deg'.format(360*theta), end='')
 
         time.sleep(T)
         k += 1
