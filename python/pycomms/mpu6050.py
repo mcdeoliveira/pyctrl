@@ -10,7 +10,7 @@ if __name__ == "__main__":
 # External Imports
 
 # Custom Imports
-from . import PyComms
+import pycomms
 
 class MPU6050:
     # Register map based on Jeff Rowberg <jeff@rowberg.net> source code at
@@ -587,7 +587,7 @@ class MPU6050:
     
     # construct a new object with the I2C address of the MPU6050
     def __init__(self, address = MPU6050_DEFAULT_ADDRESS):
-        self.i2c = PyComms(address)
+        self.i2c = pycomms.PyComms(address)
         self.address = address
         
     def initialize(self):
@@ -1596,8 +1596,7 @@ class MPU6050:
         self.setExternalFrameSync(self.MPU6050_EXT_SYNC_TEMP_OUT_L)
         
         # Setting DLPF bandwidth to 42Hz
-        #self.setDLPFMode(self.MPU6050_DLPF_BW_42)
-        self.setDLPFMode(self.MPU6050_DLPF_BW_5)
+        self.setDLPFMode(self.MPU6050_DLPF_BW_42)
         
         # Setting gyro sensitivity to +/- 2000 deg/sec
         self.setFullScaleGyroRange(self.MPU6050_GYRO_FS_2000)

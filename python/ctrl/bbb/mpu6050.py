@@ -30,7 +30,20 @@ class IMU(block.Block):
         #print('> read')
         if self.enabled:
 
-            q = self.mpu.dmpGetQuaternion(self.mpu.getFIFOBytes(self.packetSize))
+            # get current FIFO count
+            fifoCount = self.mpu.getFIFOCount()
+            if fifoCount == 1024:
+                # reset so we can continue cleanly
+                self.mpu.resetFIFO()
+                print('FIFO overflow!')
+            
+            fifoCount = self.mpu.getFIFOCount()
+            while fifoCount < self.packetSize:
+                fifoCount = self.mpu.getFIFOCount()
+
+            result = self.mpu.getFIFOBytes(self.packetSize)
+            q = self.mpu.dmpGetQuaternion(result)
+
             self.output = (q['w'], q['x'], q['y'], q['z'])
         
         return self.output
@@ -57,7 +70,7 @@ if __name__ == "__main__":
     import time, math
 
     T = 0.01
-    K = 1000
+    K = 100
 
     print("> Testing accelerometer")
     
@@ -78,6 +91,7 @@ if __name__ == "__main__":
 
     accel = Inclinometer()
 
+    K = 1000
     k = 0
     while k < K:
 
