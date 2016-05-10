@@ -10,7 +10,7 @@ if __name__ == "__main__":
 # External Imports
 
 # Custom Imports
-from pycomms import PyComms
+from . import PyComms
 
 class MPU6050:
     # Register map based on Jeff Rowberg <jeff@rowberg.net> source code at
@@ -1539,8 +1539,8 @@ class MPU6050:
             # pitch: (nose up/down, about Y axis)
             'pitch' : atan(g['x'] / sqrt(g['y'] * g['y'] + g['z'] * g['z'])),
             # roll: (tilt left/right, about X axis)
-            #'roll' : atan(g['y'] / sqrt(g['x'] * g['x'] + g['z'] * g['z']))
-            'roll' : atan(g['z'] / sqrt(g['x'] * g['x'] + g['y'] * g['y']))
+            'roll' : atan(g['y'] / sqrt(g['x'] * g['x'] + g['z'] * g['z']))
+            #'roll' : atan(g['z'] / sqrt(g['x'] * g['x'] + g['y'] * g['y']))
         }
             
         return data 

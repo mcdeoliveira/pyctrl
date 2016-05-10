@@ -1,7 +1,6 @@
 import warnings
 import math
 import struct
-from pycomms.mpu6050 import MPU6050
 
 if __name__ == "__main__":
 
@@ -9,13 +8,14 @@ if __name__ == "__main__":
     sys.path.append('.')
 
 import ctrl.block as block
+import pycomms.mpu6050 as mpu6050
 
 class IMU(block.Block):
 
     def __init__(self, *vars, **kwargs):
 
         # Sensor initialization
-        self.mpu = MPU6050()
+        self.mpu = mpu6050.MPU6050()
         self.mpu.dmpInitialize()
         self.mpu.setDMPEnabled(True)
 
