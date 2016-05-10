@@ -48,7 +48,7 @@ class Inclinometer(IMU):
                         float(w * w - x * x - y * y + z * z))
 
         # calculate angle
-        theta = math.atan(gz/math.sqrt(gx**2+gy**2)) / (2 * math.pi)
+        theta = math.atan2(gz, math.sqrt(gx**2+gy**2)) / (2 * math.pi)
 
         return (theta, )
 
