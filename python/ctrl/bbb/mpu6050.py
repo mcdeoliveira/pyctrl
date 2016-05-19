@@ -10,6 +10,31 @@ if __name__ == "__main__":
 import ctrl.block as block
 import pycomms.mpu6050 as mpu6050
 
+class Raw(block.Block):
+
+    def __init__(self, *vars, **kwargs):
+
+        # Sensor initialization
+        self.mpu = mpu6050.MPU6050()
+        self.mpu.initialize()
+
+        # call super
+        super().__init__(*vars, **kwargs)
+
+    def set_enabled(self, enabled = True):
+
+        super().set_enabled(enabled)
+        
+    def read(self):
+
+        #print('> read')
+        if self.enabled:
+
+            self.output = (1,1,1)
+        
+        #print('< read')
+        return self.output
+
 class IMU(block.Block):
 
     def __init__(self, *vars, **kwargs):
@@ -86,6 +111,21 @@ if __name__ == "__main__":
 
     T = 0.01
     K = 100
+
+    print("> Testing Raw")
+    
+    accel = Raw()
+
+    k = 0
+    while k < K:
+
+        # read accelerometer
+        (x, y, z) = accel.read()
+
+        print('\r> (w, x, y) = ({:+5.3f}, {:+5.3f}, {:+5.3f})g'.format(x, y, z), end='')
+
+        time.sleep(T)
+        k += 1
 
     print("> Testing accelerometer")
     
