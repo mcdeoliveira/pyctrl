@@ -30,7 +30,7 @@ class Raw(block.Block):
         #print('> read')
         if self.enabled:
 
-            self.output = (1,1,1)
+            self.output = self.mpu.getMotion6()
         
         #print('< read')
         return self.output
@@ -110,7 +110,7 @@ if __name__ == "__main__":
     import time, math
 
     T = 0.01
-    K = 100
+    K = 1000
 
     print("> Testing Raw")
     
@@ -120,41 +120,43 @@ if __name__ == "__main__":
     while k < K:
 
         # read accelerometer
-        (x, y, z) = accel.read()
+        (ax, ay, az, gx, gy, gz) = accel.read()
 
-        print('\r> (w, x, y) = ({:+5.3f}, {:+5.3f}, {:+5.3f})g'.format(x, y, z), end='')
+        print('\r> (ax, ay, az, gx, gy, gz) = ({:+5.3f}, {:+5.3f}, {:+5.3f}, {:+5.3f}, {:+5.3f}, {:+5.3f})'.format(ax, ay, az, gx, gy, gz), end='')
 
         time.sleep(T)
         k += 1
 
     print("> Testing accelerometer")
     
-    accel = IMU()
+    if 0:
 
-    k = 0
-    while k < K:
+        accel = IMU()
 
-        # read accelerometer
-        (w, x, y, z) = accel.read()
+        k = 0
+        while k < K:
 
-        print('\r> (w, x, y, z) = ({:+5.3f}, {:+5.3f}, {:+5.3f}, {:+5.3f})g'.format(w, x, y, z), end='')
+            # read accelerometer
+            (w, x, y, z) = accel.read()
 
-        time.sleep(T)
-        k += 1
+            print('\r> (w, x, y, z) = ({:+5.3f}, {:+5.3f}, {:+5.3f}, {:+5.3f})g'.format(w, x, y, z), end='')
 
-    print("\n> Testing inclinometer")
+            time.sleep(T)
+            k += 1
 
-    accel = Inclinometer()
+        print("\n> Testing inclinometer")
+    
+        accel = Inclinometer()
 
-    K = 1000
-    k = 0
-    while k < K:
+        K = 1000
+        k = 0
+        while k < K:
 
-        # read inclinometer
-        (theta, ) = accel.read()
-        print('\r> theta = {:+05.3f}deg'.format(360*theta), end='')
+            # read inclinometer
+            (theta, ) = accel.read()
+            print('\r> theta = {:+05.3f}deg'.format(360*theta), end='')
 
-        time.sleep(T)
-        k += 1
+            time.sleep(T)
+            k += 1
 
 

@@ -2,6 +2,8 @@
 from time import sleep
 from math import atan, atan2, sqrt
 
+import struct
+
 if __name__ == "__main__":
 
     import sys
@@ -15,7 +17,23 @@ import pycomms
 class MPU6050:
     # Register map based on Jeff Rowberg <jeff@rowberg.net> source code at
     # https://github.com/jrowberg/i2cdevlib/blob/master/Arduino/MPU6050/MPU6050.h
-    
+
+    # BEGIN ADDITIONS
+
+    # ACCEL SENSITIVITY (G)
+    MPU6050_AFS_SEL_2  = 16384
+    MPU6050_AFS_SEL_4  = 8192
+    MPU6050_AFS_SEL_8  = 4096
+    MPU6050_AFS_SEL_16 = 2048
+
+    # GYRO SENSIVITY (LSB/^o/s)
+    MPU6050_GFS_SEL_250  = 131
+    MPU6050_GFS_SEL_500  = 65.5
+    MPU6050_GFS_SEL_1000 = 32.8
+    MPU6050_GFS_SEL_2000 = 16.4
+
+    # END ADDITIONS
+
     MPU6050_ADDRESS_AD0_LOW       = 0x68 # address pin low (GND), default for InvenSense evaluation board
     MPU6050_ADDRESS_AD0_HIGH      = 0x69 # address pin high (VCC)
     MPU6050_DEFAULT_ADDRESS       = MPU6050_ADDRESS_AD0_LOW
@@ -589,7 +607,7 @@ class MPU6050:
     def __init__(self, address = MPU6050_DEFAULT_ADDRESS):
         self.i2c = pycomms.PyComms(address)
         self.address = address
-        
+
     def initialize(self):
         self.setClockSource(self.MPU6050_CLOCK_PLL_XGYRO)
         self.setFullScaleGyroRange(self.MPU6050_GYRO_FS_250)
@@ -628,6 +646,14 @@ class MPU6050:
 
     def setFullScaleGyroRange(self, range):
         self.i2c.writeBits(self.MPU6050_RA_GYRO_CONFIG, self.MPU6050_GCONFIG_FS_SEL_BIT, self.MPU6050_GCONFIG_FS_SEL_LENGTH, range)        
+        if range == self.MPU6050_GYRO_FS_250:
+            self.gyro_range = self.MPU6050_GFS_SEL_250
+        elif range == self.MPU6050_GYRO_FS_500:
+            self.gyro_range = self.MPU6050_GFS_SEL_500
+        elif range == self.MPU6050_GYRO_FS_100:
+            self.gyro_range = self.MPU6050_GFS_SEL_1000
+        elif range == self.MPU6050_GYRO_FS_2000:
+            self.gyro_range = self.MPU6050_GFS_SEL_2000
     
     def getAccelXSelfTest(self):
         return self.i2c.readBit(self.MPU6050_RA_ACCEL_CONFIG, self.MPU6050_ACONFIG_XA_ST_BIT)
@@ -650,8 +676,16 @@ class MPU6050:
     def getFullScaleAccelRange(self):
         return self.i2c.readBits(self.MPU6050_RA_ACCEL_CONFIG, self.MPU6050_ACONFIG_AFS_SEL_BIT, self.MPU6050_ACONFIG_AFS_SEL_LENGTH)
         
-    def setFullScaleAccelRange(self, value):
-        self.i2c.writeBits(self.MPU6050_RA_ACCEL_CONFIG, self.MPU6050_ACONFIG_AFS_SEL_BIT, self.MPU6050_ACONFIG_AFS_SEL_LENGTH, value)
+    def setFullScaleAccelRange(self, range):
+        self.i2c.writeBits(self.MPU6050_RA_ACCEL_CONFIG, self.MPU6050_ACONFIG_AFS_SEL_BIT, self.MPU6050_ACONFIG_AFS_SEL_LENGTH, range)
+        if range == self.MPU6050_ACCEL_FS_2:
+            self.accel_range = self.MPU6050_AFS_SEL_2
+        elif range == self.MPU6050_ACCEL_FS_4:
+            self.accel_range = self.MPU6050_AFS_SEL_4
+        elif range == self.MPU6050_ACCEL_FS_8:
+            self.accel_range = self.MPU6050_AFS_SEL_8
+        elif range == self.MPU6050_ACCEL_FS_16:
+            self.accel_range = self.MPU6050_AFS_SEL_16
             
     def getDHPFMode(self):
         return self.i2c.readBits(self.MPU6050_RA_ACCEL_CONFIG, self.MPU6050_ACONFIG_ACCEL_HPF_BIT, self.MPU6050_ACONFIG_ACCEL_HPF_LENGTH)
@@ -1026,39 +1060,126 @@ class MPU6050:
         return self.i2c.readBit(self.MPU6050_RA_INT_STATUS, self.MPU6050_INTERRUPT_DATA_RDY_BIT)
 
     def getMotion9(self):
-        # unknown
-        pass
+        return self.getMotion6()
+        # TODO: magnetometer integration
 
     def getMotion6(self):
-        pass
+
+        # Burst-read accelerometer, temp and giro registers
+        axh, axl, ayh, ayl, azh, azl, \
+            th, tl, \
+            gxh, gxl, gyh, gyl, gzh, gzl = \
+            self.i2c.readList(self.MPU6050_RA_ACCEL_XOUT_H, 14)
+
+        # convert 8 bit words into a 16 bit signed "raw" value
+        (ax,) = struct.unpack('<h', bytes([axl, axh]))
+        (ay,) = struct.unpack('<h', bytes([ayl, ayh]))
+        (az,) = struct.unpack('<h', bytes([azl, azh]))
+
+        # convert 8 bit words into a 16 bit signed "raw" value
+        (gx,) = struct.unpack('<h', bytes([gxl, gxh]))
+        (gy,) = struct.unpack('<h', bytes([gyl, gyh]))
+        (gz,) = struct.unpack('<h', bytes([gzl, gzh]))
+
+        return (ax / self.accel_range, ay / self.accel_range, az / self.accel_range, 
+                gx / self.gyro_range, gy / self.gyro_range, gz / self.gyro_range)
 
     def getAcceleration(self):
-        pass
+
+        # Burst-read accelerometer, temp and giro registers
+        axh, axl, ayh, ayl, azh, azl = \
+            self.i2c.readList(self.MPU6050_RA_ACCEL_XOUT_H, 6)
+
+        # convert 8 bit words into a 16 bit signed "raw" value
+        (ax,) = struct.unpack('<h', bytes([axl, axh]))
+        (ay,) = struct.unpack('<h', bytes([ayl, ayh]))
+        (az,) = struct.unpack('<h', bytes([azl, azh]))
+
+        return (ax / self.accel_range, ay / self.accel_range, az / self.accel_range)
         
     def getAccelerationX(self):
-        pass
+
+        # Read accelerometer
+        ah, al = self.i2c.readBytes(self.MPU6050_RA_ACCEL_XOUT_H, 2)
+
+        # convert 8 bit words into a 16 bit signed "raw" value
+        (a,) = struct.unpack('<h', bytes([al, ah]))
+
+        return a / self.accel_range
         
     def getAccelerationY(self):
-        pass
+
+        # Read accelerometer
+        ah, al = self.i2c.readBytes(self.MPU6050_RA_ACCEL_YOUT_H, 2)
+
+        # convert 8 bit words into a 16 bit signed "raw" value
+        (a,) = struct.unpack('<h', bytes([al, ah]))
+
+        return a / self.accel_range
         
     def getAccelerationZ(self):
-        pass
+
+        # Read accelerometer
+        ah, al = self.i2c.readBytes(self.MPU6050_RA_ACCEL_ZOUT_H, 2)
+
+        # convert 8 bit words into a 16 bit signed "raw" value
+        (a,) = struct.unpack('<h', bytes([al, ah]))
+
+        return a / self.accel_range
         
     def getTemperature(self):
-        pass
+
+        # Read temperature
+        th, tl = self.i2c.readBytes(self.MPU6050_RA_TEMP_OUT_H, 2)
+
+        # convert 8 bit words into a 16 bit signed "raw" value
+        (t,) = struct.unpack('<h', bytes([tl, th]))
+
+        return t
         
     def getRotation(self):
-        pass
+
+        # Burst-read gyro, temp and giro registers
+        gxh, gxl, gyh, gyl, gzh, gzl = \
+            self.i2c.readList(self.MPU6050_RA_GYRO_XOUT_H, 6)
+
+        # convert 8 bit words into a 16 bit signed "raw" value
+        (gx,) = struct.unpack('<h', bytes([gxl, gxh]))
+        (gy,) = struct.unpack('<h', bytes([gyl, gyh]))
+        (gz,) = struct.unpack('<h', bytes([gzl, gzh]))
+
+        return (gx / self.gyro_range, gy / self.gyro_range, gz / self.gyro_range)
         
     def getRotationX(self):
-        pass
+
+        # Read accelerometer
+        gh, gl = self.i2c.readBytes(self.MPU6050_RA_GYRO_XOUT_H, 2)
+
+        # convert 8 bit words into a 16 bit signed "raw" value
+        (g,) = struct.unpack('<h', bytes([gl, gh]))
+
+        return g / self.gyro_range
         
     def getRotationY(self):
-        pass
+
+        # Read accelerometer
+        gh, gl = self.i2c.readBytes(self.MPU6050_RA_GYRO_YOUT_H, 2)
+
+        # convert 8 bit words into a 16 bit signed "raw" value
+        (g,) = struct.unpack('<h', bytes([gl, gh]))
      
+        return g / self.gyro_range
+
     def getRotationZ(self):
-        pass
+
+        # Read accelerometer
+        gh, gl = self.i2c.readBytes(self.MPU6050_RA_GYRO_ZOUT_H, 2)
+
+        # convert 8 bit words into a 16 bit signed "raw" value
+        (g,) = struct.unpack('<h', bytes([gl, gh]))
       
+        return g / self.gyro_range
+
     def getExternalSensorByte(self, position):
         return self.i2c.readU8(self.MPU6050_RA_EXT_SENS_DATA_00 + position)
 
