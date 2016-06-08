@@ -171,7 +171,7 @@ class Controller:
     def get_signal(self, label):
         return self.signals[label]
 
-    def get_signals(self, labels):
+    def get_signals(self, *labels):
         return [self.signals[label] for label in labels]
 
     def list_signals(self):
