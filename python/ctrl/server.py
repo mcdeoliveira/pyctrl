@@ -62,7 +62,7 @@ def set_controller(_controller = ctrl.Controller()):
               'Set signal'),
         'E': ('S', 'D', controller.get_signal,
               'Get signal'),
-        'e': ('P', 'P', controller.get_signals,
+        'e': ('R', 'R', controller.get_signals,
               'Get signal'),
         'F': ('', 'P', controller.list_signals,
               'List signals'),
