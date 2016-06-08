@@ -144,6 +144,9 @@ class Controller(ctrl.Controller):
     def get_signal(self, label):
         return self.send('E', 'S', label)
 
+    def get_signals(self, *labels):
+        return self.send('e', 'P', labels)
+
     def list_signals(self):
         return self.send('F')
 
