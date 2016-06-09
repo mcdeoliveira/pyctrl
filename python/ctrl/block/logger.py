@@ -50,6 +50,7 @@ class Logger(block.Block):
 
         # reset after read?
         if self.auto_reset:
+            print('Logger::auto_reset')
             self.reset()
     
     read = get_log
