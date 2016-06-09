@@ -650,7 +650,7 @@ class MPU6050:
             self.gyro_range = self.MPU6050_GFS_SEL_250
         elif range == self.MPU6050_GYRO_FS_500:
             self.gyro_range = self.MPU6050_GFS_SEL_500
-        elif range == self.MPU6050_GYRO_FS_100:
+        elif range == self.MPU6050_GYRO_FS_1000:
             self.gyro_range = self.MPU6050_GFS_SEL_1000
         elif range == self.MPU6050_GYRO_FS_2000:
             self.gyro_range = self.MPU6050_GFS_SEL_2000

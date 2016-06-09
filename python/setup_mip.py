@@ -3,13 +3,14 @@ import math
 import numpy
 import platform, sys, select
 
-from ctrl.client import Controller
+from mip import Controller
 import ctrl.block as block
 import ctrl.block.logger as logger
 
 # initialize controller
-HOST, PORT = "192.168.10.101", 9999
-controller = Controller(host = HOST, port = PORT)
+#HOST, PORT = "192.168.10.101", 9999
+#controller = Controller(host = HOST, port = PORT)
+controller = Controller()
 logger_signals = ['clock','encoder1','encoder2']
 controller.add_sink('logger', 
                     logger.Logger(), 

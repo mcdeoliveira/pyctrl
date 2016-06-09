@@ -101,7 +101,8 @@ class Inclinometer(IMU):
                         float(w * w - x * x - y * y + z * z))
 
         # calculate angle
-        theta = math.atan2(gz, math.sqrt(gx**2+gy**2)) / (2 * math.pi)
+        # TODO: FIX FRAME
+        theta = - math.atan2(gz, math.sqrt(gx**2+gy**2)) / (2 * math.pi)
 
         return (theta, )
 
@@ -112,51 +113,46 @@ if __name__ == "__main__":
     T = 0.01
     K = 1000
 
-    print("> Testing Raw")
+    # print("> Testing Raw")
     
-    accel = Raw()
+    # accel = Raw()
+
+    # k = 0
+    # while k < K:
+
+    #     # read accelerometer
+    #     (ax, ay, az, gx, gy, gz) = accel.read()
+
+    #     print('\r> (ax, ay, az, gx, gy, gz) = ({:+5.3f}, {:+5.3f}, {:+5.3f}, {:+5.3f}, {:+5.3f}, {:+5.3f})'.format(ax, ay, az, gx, gy, gz), end='')
+
+    #     time.sleep(T)
+    #     k += 1
+
+    # print("> Testing accelerometer")
+    
+    # accel = IMU()
+
+    # k = 0
+    # while k < K:
+
+    #     # read accelerometer
+    #     (w, x, y, z) = accel.read()
+
+    #     print('\r> (w, x, y, z) = ({:+5.3f}, {:+5.3f}, {:+5.3f}, {:+5.3f})g'.format(w, x, y, z), end='')
+
+    #     time.sleep(T)
+    #     k += 1
+
+    # print("\n> Testing inclinometer")
+    
+    accel = Inclinometer()
 
     k = 0
     while k < K:
 
-        # read accelerometer
-        (ax, ay, az, gx, gy, gz) = accel.read()
-
-        print('\r> (ax, ay, az, gx, gy, gz) = ({:+5.3f}, {:+5.3f}, {:+5.3f}, {:+5.3f}, {:+5.3f}, {:+5.3f})'.format(ax, ay, az, gx, gy, gz), end='')
-
+        # read inclinometer
+        (theta, ) = accel.read()
+        print('\r> theta = {:+05.3f}deg'.format(360*theta), end='')
+        
         time.sleep(T)
         k += 1
-
-    print("> Testing accelerometer")
-    
-    if 0:
-
-        accel = IMU()
-
-        k = 0
-        while k < K:
-
-            # read accelerometer
-            (w, x, y, z) = accel.read()
-
-            print('\r> (w, x, y, z) = ({:+5.3f}, {:+5.3f}, {:+5.3f}, {:+5.3f})g'.format(w, x, y, z), end='')
-
-            time.sleep(T)
-            k += 1
-
-        print("\n> Testing inclinometer")
-    
-        accel = Inclinometer()
-
-        K = 1000
-        k = 0
-        while k < K:
-
-            # read inclinometer
-            (theta, ) = accel.read()
-            print('\r> theta = {:+05.3f}deg'.format(360*theta), end='')
-
-            time.sleep(T)
-            k += 1
-
-
