@@ -41,17 +41,20 @@ class Logger(block.Block):
 
     def get_log(self):
 
+        # set return value
         if self.page == 0:
-            return self.data[:self.current,:]
+            retval = self.data[:self.current,:]
 
         else:
-            return numpy.vstack((self.data[self.current:,:],
-                                 self.data[:self.current,:]))
+            retval =  numpy.vstack((self.data[self.current:,:],
+                                    self.data[:self.current,:]))
 
         # reset after read?
         if self.auto_reset:
-            print('Logger::auto_reset')
             self.reset()
+
+        # return values
+        return retval
     
     read = get_log
         
