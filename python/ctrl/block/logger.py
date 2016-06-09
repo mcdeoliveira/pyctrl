@@ -10,7 +10,11 @@ class Logger(block.Block):
     def __init__(self, number_of_rows = 12000, number_of_columns = 0, 
                  *vars, **kwargs):
 
+        # reshape
         self.reshape(number_of_rows, number_of_columns)
+
+        # auto reset
+        self.auto_reset = kwargs.pop('auto_reset', False)
 
         super().__init__(*vars, **kwargs)
 
@@ -39,9 +43,14 @@ class Logger(block.Block):
 
         if self.page == 0:
             return self.data[:self.current,:]
+
         else:
             return numpy.vstack((self.data[self.current:,:],
                                  self.data[:self.current,:]))
+
+        # reset after read?
+        if self.auto_reset:
+            self.reset()
     
     read = get_log
         
@@ -49,7 +58,7 @@ class Logger(block.Block):
 
         #print('values = {}'.format(values))
 
-        # stack first first
+        # stack first
         values = numpy.hstack(values)
 
         # reshape?
