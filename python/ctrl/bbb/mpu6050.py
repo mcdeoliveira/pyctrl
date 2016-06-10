@@ -55,6 +55,7 @@ class IMU(block.Block):
         
         if enabled:
             self.mpu.setDMPEnabled(True)
+            self.mpu.resetFIFO()
             warnings.warn('> imu enabled')
         else:
             self.mpu.setDMPEnabled(False)

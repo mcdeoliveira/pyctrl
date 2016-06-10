@@ -1711,7 +1711,8 @@ class MPU6050:
         self.setIntEnabled(0x12)
         
         # Setting sample rate to 200Hz
-        self.setRate(4) # 1khz / (1 + 4) = 200 Hz [9 = 100 Hz]
+        #self.setRate(4) # 1khz / (1 + 4) = 200 Hz [9 = 100 Hz]
+        self.setRate(9) # 1khz / (1 + 4) = 200 Hz [9 = 100 Hz]
         
         # Setting external frame sync to TEMP_OUT_L[0]
         self.setExternalFrameSync(self.MPU6050_EXT_SYNC_TEMP_OUT_L)
