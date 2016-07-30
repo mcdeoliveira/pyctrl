@@ -100,7 +100,7 @@ class Controller:
                 result += '  {}. '.format(k+1) + \
                           ', '.join(device['inputs']) + \
                           ' >> ' + label + '[' + \
-                          type(filter).__name__ + ', '
+                          type(filter_).__name__ + ', '
                 if filter_.is_enabled():
                     result += 'enabled'
                 else:
