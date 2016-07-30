@@ -83,7 +83,7 @@ class Controller:
                 source = device['block']
                 result += '  {}. '.format(k+1) + \
                           label + '[' + \
-                          device.__name__ + ', '
+                          source.__name__ + ', '
                 if source.is_enabled():
                     result += 'enabled'
                 else:
@@ -100,7 +100,7 @@ class Controller:
                 result += '  {}. '.format(k+1) + \
                           ', '.join(device['inputs']) + \
                           ' >> ' + label + '[' + \
-                          device.__name__ + ', '
+                          filter.__name__ + ', '
                 if filter_.is_enabled():
                     result += 'enabled'
                 else:
@@ -116,7 +116,7 @@ class Controller:
                 result += '  {}. '.format(k+1) + \
                           ', '.join(device['inputs']) + \
                           ' >> ' + label + '[' + \
-                          device.__name__ + ', '
+                          sink.__name__ + ', '
                 if sink.is_enabled():
                     result += 'enabled'
                 else:
