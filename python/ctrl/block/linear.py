@@ -150,6 +150,36 @@ class Gain(block.BufferBlock):
 
         self.buffer = tuple(v*self.gain for v in values)
 
+class Affine(block.BufferBlock):
+
+    #
+    # output = gain * input + offset
+    #
+
+    def __init__(self, gain = 1, offset = 0, *vars, **kwargs):
+
+        assert isinstance(gain, (int, float))
+        self.gain = gain
+
+        assert isinstance(offset, (int, float))
+        self.offset = offset
+
+        super().__init__(*vars, **kwargs)
+    
+    def set(self, **kwargs):
+        
+        if 'gain' in kwargs:
+            self.gain = kwargs.pop('gain')
+
+        if 'offset' in kwargs:
+            self.gain = kwargs.pop('offset')
+
+        super().set(**kwargs)
+
+    def write(self, *values):
+
+        self.buffer = tuple(v*self.gain + self.offset for v in values)
+
 class ShortCircuit(block.BufferBlock):
 
     def write(self, *values):
