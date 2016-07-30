@@ -9,14 +9,27 @@ import ctrl.block.logger as logger
 
 # initialize controller
 HOST, PORT = "192.168.10.105", 9999
-controller = Controller(host = HOST, port = PORT)
-controller.add_sink('logger', 
+
+print(72 * '*')
+print('*' + 29 * ' ' + 'COSMOS SETUP' + 29 * ' ' + '*')
+print(72 * '*')
+print('> Confirm parameters:')
+host = input('  HOST[{}] = '.format(HOST))
+if host:
+    HOST = host
+port = input('  PORT[{}] = '.format(PORT))
+if port:
+    PORT = int(port)
+print('> Conecting to {}({})...'.format(HOST, PORT))
+
+device = Controller(host = HOST, port = PORT)
+device.add_sink('logger', 
                     logger.Logger(), 
                     ['clock','encoder1'])
-controller.add_sink('printer', block.Printer(endln = '\r'), 
+device.add_sink('printer', block.Printer(endln = '\r'), 
                     ['clock', 'motor1', 'encoder1'])
     
-print(controller.info('all'))
+print(device.info('all'))
 
 # define tests
 
@@ -36,11 +49,12 @@ def test(k, args, query_msg, failed_msg, test_function):
 
 def test_motor_forward(args):
 
-    with controller:
-        position1 = controller.get_signal('encoder1')
-        controller.set_signal('motor1',100)
+    with device:
+        position1 = device.get_signal('encoder1')
+        device.set_signal('motor1',100)
         time.sleep(2)
-        position2 = controller.get_signal('encoder1')
+        position2 = device.get_signal('encoder1')
+    device.set_signal('motor1',0)
     return True, (position1, position2)
 
 def test_encoder(args):
@@ -54,45 +68,47 @@ def test_encoder(args):
 
 def test_reset_clock(args):
 
-    t1 = controller.get_signal('clock')
-    controller.set_source('clock', reset = True)
-    controller.set_signal('motor1',0)
-    with controller:
+    t1 = device.get_signal('clock')
+    device.set_source('clock', reset = True)
+    device.set_signal('motor1',0)
+    with device:
         time.sleep(.1)
-    t2 = controller.get_signal('clock')
+    t2 = device.get_signal('clock')
     if t2 > t1:
         return False, 'clock did not reset ({} > {})'.format(t2,t1)
     return True, []
 
 def test_motor_backward(args):
 
-    with controller:
-        controller.set_source('clock', reset = True)
-        position1 = controller.get_signal('encoder1')
-        controller.set_signal('motor1',-100)
+    with device:
+        device.set_source('clock', reset = True)
+        position1 = device.get_signal('encoder1')
+        device.set_signal('motor1',-100)
         time.sleep(2)
-        position2 = controller.get_signal('encoder1')
+        position2 = device.get_signal('encoder1')
+    device.set_signal('motor1',0)
     return True, (position1, position2)
 
 def test_motor_speeds(args):
 
-    with controller:
-        controller.set_source('clock', reset = True)
-        controller.set_signal('motor1',100)
-        time.sleep(1)
-        controller.set_signal('motor1',50)
-        time.sleep(1)
+    with device:
+        device.set_source('clock', reset = True)
+        device.set_signal('motor1',100)
+        time.sleep(2)
+        device.set_signal('motor1',50)
+        time.sleep(2)
+    device.set_signal('motor1',0)
     return True, []
 
 def test_reset_encoder(args):
 
-    with controller:
-        controller.set_signal('motor1',0)
+    with device:
+        device.set_signal('motor1',0)
         time.sleep(.1) # sleep to make sure it is stoped
-        position1 = controller.get_signal('encoder1')
-        controller.set_source('encoder1', reset = True)
+        position1 = device.get_signal('encoder1')
+        device.set_source('encoder1', reset = True)
         time.sleep(.1) # sleep to make sure it did not move
-        position2 = controller.get_signal('encoder1')
+        position2 = device.get_signal('encoder1')
 
     if position2 != 0:
         return False, 'could not reset encoder1 ({} != 0)'.format(position2)
@@ -103,14 +119,14 @@ def test_potentiometer(args):
     # Calibrate potentiometer
     KMAX = 600 
     TOL = 2
-    #controller.get_source('pot1', ['full_scale', 'invert'])
-    controller.set_source('pot1', full_scale = 1, invert = False)
+    #device.get_source('analog1', ['full_scale', 'invert'])
+    device.set_source('analog1', full_scale = 1, invert = False)
     inverted = False
     full_scale = 100
     print("> Set the potentiometer to the minimum position and hit <ENTER>") 
     k = 0
     while k < KMAX:
-        pot_min, = controller.read_source('pot1')
+        pot_min, = device.read_source('analog1')
         print('\r  reading = {:4.1f}'.format(pot_min), end='')
         time.sleep(.1)
         if select.select([sys.stdin], [], [], 0)[0]:
@@ -128,7 +144,7 @@ def test_potentiometer(args):
     k = 0
     pot_max = 0
     while k < KMAX:
-        pot_max, = controller.read_source('pot1')
+        pot_max, = device.read_source('analog1')
         print('\r  reading = {:4.1f}'.format(pot_max), end='')
         time.sleep(.1)
         if select.select([sys.stdin], [], [], 0)[0]:
@@ -143,16 +159,16 @@ def test_potentiometer(args):
     #    return (False, 'potentiometer did not reach maximum')
 
     if inverted:
-        print('> Potentiometer is INVERTED')
+        print('> Potentiometer is INVERTED [CORRECT]')
     else:
-        print('> Potentiometer IS NOT inverted')
+        print('> Potentiometer IS NOT inverted [INCORRECT]')
     print('> Full scale is {}'.format(full_scale))
 
     return True, [pot_min, pot_max]
 
 def main():
 
-    print('Controller Test Routine')
+    print('> Initiating Tests...')
 
     k = 1
     position1, position2 \
@@ -201,7 +217,7 @@ def main():
         
     
         
-    if 'pot1' in controller.list_sources():
+    if 'analog1' in device.list_sources():
         k += 1
         position1, position2 \
             = test('{}: POTENTIOMETER RANGE'.format(k), (),
@@ -210,21 +226,21 @@ def main():
                    test_potentiometer)
 
     # Identify motor
-    print('> Identifying motor parameters...')
-    with controller:
-        controller.set_signal('motor1',0)
-        controller.set_source('encoder1', reset = True)
+    print('> Identifying parameters...')
+    with device:
+        device.set_signal('motor1',0)
+        device.set_source('encoder1', reset = True)
 
-        controller.set_sink('logger', reset = True)
-        controller.set_source('clock', reset = True)
+        device.set_sink('logger', reset = True)
+        device.set_source('clock', reset = True)
         time.sleep(1)
-        controller.set_signal('motor1',100)
+        device.set_signal('motor1',100)
         time.sleep(5)
         
-        clock = controller.get_source('clock', 'period')
+        clock = device.get_source('clock', 'period')
         Ts = clock['period']
 
-        log = controller.read_sink('logger')
+        log = device.read_sink('logger')
         t = log[:,0]
         position = log[:,1]
         velocity = numpy.zeros(t.shape, float)
@@ -239,18 +255,18 @@ def main():
         #print('>> ind = {}'.format(ind))
         k = numpy.mean(velocity[ind:])
 
-        print('> period = {}'.format(Ts))
-        print('> max velocity = {:5.3f}'.format(max_velocity))
+        print('  period = {}'.format(Ts))
+        print('  max velocity = {:5.3f}'.format(max_velocity))
 
-        print('> gain      = {:5.3f}'.format(k))
+        print('  gain      = {:5.3f}'.format(k))
         
         ind = numpy.argwhere( (velocity > 0.1*k ) & 
                               (velocity < 0.9*k ) )
         t10 = float(t[ind[0]])
         t90 = float(t[ind[-1]])
         tau = (t90 - t10) / 2.2
-        print('> rise time = {:5.3f}'.format(t90 - t10))
-        print('> lambda    = {:5.3f}'.format(1/tau))
+        print('  rise time = {:5.3f}'.format(t90 - t10))
+        print('  lambda    = {:5.3f}'.format(1/tau))
         
     
 if __name__ == "__main__":
