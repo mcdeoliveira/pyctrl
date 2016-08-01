@@ -18,7 +18,7 @@ class Controller(ctrl.Controller):
                         type = 'source',
                         outputs = ['encoder1'],
                         encoder = 2, 
-                        ratio = 48 * 172)
+                        ratio = 48 * 9.7)
 
         # add source: analog1
         self.add_device('analog1', 
