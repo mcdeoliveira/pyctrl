@@ -5,6 +5,13 @@ import importlib
 
 from . import block
 
+# alternative perf_counter
+import sys
+if sys.version_info < (3, 3):
+    from ..gettime import gettime as perf_counter
+else:
+    from time import perf_counter
+
 class ControllerWarning(Warning):
     pass
 
@@ -21,13 +28,17 @@ class Controller:
         # real-time loop
         self.is_running = False
 
+        # duty
+        self.duty = 0
+
         # call __reset
         self.__reset()
 
     def __reset(self):
 
         # signals
-        self.signals = { 'is_running': self.is_running }
+        self.signals = { 'is_running': self.is_running, 
+                         'duty': self.duty }
 
         # devices
         self.devices = { }
@@ -433,6 +444,10 @@ class Controller:
         # Loop
         self.is_running = True
         self.signals['is_running'] = self.is_running
+
+        self.duty = 0
+        self.signals['duty'] = self.duty
+
         while self.is_running:
 
             # Call run
@@ -440,6 +455,9 @@ class Controller:
 
     def _run(self):
         # Run the loop
+
+        # Begin profiling
+        t0 = perf_counter()
 
         # Read all sources
         for label in self.sources_order:
@@ -473,7 +491,11 @@ class Controller:
 
         # update is_running
         self.is_running = self.signals['is_running']
-        
+
+        # update duty
+        self.duty = max(self.duty, perf_counter() - t0)
+        self.signals['duty'] = self.duty
+
     def start(self):
         """Start controller loop
         """

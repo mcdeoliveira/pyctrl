@@ -109,7 +109,7 @@ def test_logger():
     log = _logger.read()
     assert np.all(log == [[1,2,2,3,5]])
 
-    assert _logger.get() == { 'enabled': True, 'current': 1, 'page': 0 }
+    assert _logger.get() == { 'auto_reset': False, 'enabled': True, 'current': 1, 'page': 0 }
 
 def test_condition():
 
