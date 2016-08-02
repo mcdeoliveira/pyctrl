@@ -456,10 +456,9 @@ class Controller:
     def _run(self):
         # Run the loop
 
-        # Begin profiling
-        t0 = perf_counter()
-
         # Read all sources
+        first = True
+        t0 = 0
         for label in self.sources_order:
             device = self.sources[label]
             source = device['block']
@@ -467,6 +466,10 @@ class Controller:
                 # retrieve outputs
                 self.signals.update(dict(zip(device['outputs'], 
                                              source.read())))
+                # Begin profiling
+                if first:
+                    t0 = perf_counter()
+                    first = False
 
         # Process all filters
         for label in self.filters_order:
@@ -493,8 +496,9 @@ class Controller:
         self.is_running = self.signals['is_running']
 
         # update duty
-        self.duty = max(self.duty, perf_counter() - t0)
-        self.signals['duty'] = self.duty
+        duty = perf_counter() - t0
+        self.signals['duty'] = duty
+        self.duty = max(self.duty, duty)
 
     def start(self):
         """Start controller loop
