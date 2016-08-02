@@ -8,7 +8,7 @@ from . import block
 # alternative perf_counter
 import sys
 if sys.version_info < (3, 3):
-    from ..gettime import gettime as perf_counter
+    from .gettime import gettime as perf_counter
 else:
     from time import perf_counter
 
