@@ -580,7 +580,7 @@ class MPU6050:
         0x07,   0x46,   0x01,   0x9A,                     # CFG_GYRO_SOURCE inv_send_gyro
         0x07,   0x47,   0x04,   0xF1, 0x28, 0x30, 0x38,   # CFG_9 inv_send_gyro -> inv_construct3_fifo
         0x07,   0x6C,   0x04,   0xF1, 0x28, 0x30, 0x38,   # CFG_12 inv_send_accel -> inv_construct3_fifo
-        0x02,   0x16,   0x02,   0x00, 0x01                # D_0_22 inv_set_fifo_rate
+        0x02,   0x16,   0x02,   0x00, 0x07                # D_0_22 inv_set_fifo_rate
 
         
         # This very last 0x01 WAS a 0x09, which drops the FIFO rate down to 20 Hz. 0x07 is 25 Hz,
@@ -1711,8 +1711,8 @@ class MPU6050:
         self.setIntEnabled(0x12)
         
         # Setting sample rate to 200Hz
-        #self.setRate(4) # 1khz / (1 + 4) = 200 Hz [9 = 100 Hz]
-        self.setRate(9) # 1khz / (1 + 4) = 200 Hz [9 = 100 Hz]
+        self.setRate(4) # 1khz / (1 + 4) = 200 Hz [9 = 100 Hz]
+        #self.setRate(9) # 1khz / (1 + 9) = 200 Hz [9 = 100 Hz]
         
         # Setting external frame sync to TEMP_OUT_L[0]
         self.setExternalFrameSync(self.MPU6050_EXT_SYNC_TEMP_OUT_L)
