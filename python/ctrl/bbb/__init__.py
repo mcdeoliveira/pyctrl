@@ -5,7 +5,7 @@ class Controller(ctrl.Controller):
     def __init__(self, *vargs, **kwargs):
 
         # period (25Hz)
-        self.period = kwargs.pop('period', 0.04)
+        self.period = kwargs.pop('period', 0.01)
 
         # Initialize controller
         super().__init__(*vargs, **kwargs)
