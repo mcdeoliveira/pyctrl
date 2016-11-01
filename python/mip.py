@@ -5,7 +5,7 @@ class Controller(ctrl.Controller):
     def __init__(self, *vargs, **kwargs):
 
         # Initialize controller
-        super().__init__(*vargs, **kwargs)
+        super().__init__(period = 0.04, *vargs, **kwargs)
 
     def __reset(self):
 
