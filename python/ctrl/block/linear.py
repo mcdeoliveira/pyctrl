@@ -63,7 +63,7 @@ class MIMO(block.BufferBlock):
 
         # convert input to array
         if numpy.isscalar(values[0]):
-            uk = numpy.array([values[0]])
+            uk = numpy.array([*values])
         else:
             uk = numpy.array(values[0])
         #print('uk = {}'.format(uk))

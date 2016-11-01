@@ -200,6 +200,39 @@ def test1():
     assert np.all(sys.state == np.array([10,-15]))
     assert np.all(y2 == np.array([-15,8]))
 
+    # Test to work with multiple signals
+
+    # reset state
+    blk.reset()
+    
+    # u1 = 1   =>  y1 = 1
+
+    blk.write(1,1)
+    y2 = blk.read()
+    assert np.all(sys.state == np.array([0,1]))
+    assert np.all(y2 == np.array([1,0]))
+
+    # u2 = -1  =>  y2 = -2 y1 + u2 = -2 - 1 = -3
+
+    blk.write(-1,0)
+    y2 = blk.read()
+    assert np.all(sys.state == np.array([0,-3]))
+    assert np.all(y2 == np.array([-3,2]))
+
+    # u3 = 3   =>  y3 = -2 y2 + y1 + u3 = 6 + 1 + 3 = 10
+
+    blk.write(3,-1)
+    y2 = blk.read()
+    assert np.all(sys.state == np.array([1,9]))
+    assert np.all(y2 == np.array([9,-7]))
+
+    # u4 = 0   =>  y4 = -2 y3 + y2 + u4 = - 20 - 3 + 0 = -23
+
+    blk.write(2,1)
+    y2 = blk.read()
+    assert np.all(sys.state == np.array([10,-15]))
+    assert np.all(y2 == np.array([-15,8]))
+   
 
     # Gain
 
@@ -483,7 +516,6 @@ def test2():
     blk.write(tk, uk)
     yk = blk.read()
     assert np.all(np.abs(yk - yk3) < 1e-4)
-
 
 if __name__ == "__main__":
 
