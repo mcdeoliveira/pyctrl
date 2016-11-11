@@ -10,7 +10,8 @@ import ctrl.block.logger as logger
 # initialize controller
 #HOST, PORT = "192.168.10.101", 9999
 #controller = Controller(host = HOST, port = PORT)
-controller = Controller()
+Ts = 0.04;
+controller = Controller(period = Ts)
 logger_signals = ['clock','encoder1','encoder2']
 controller.add_sink('logger', 
                     logger.Logger(), 
@@ -105,57 +106,33 @@ def test_reset_encoder(args):
         return False, 'could not reset encoder1 ({} != 0)'.format(position2)
     return True, [position1, position2]
 
-def test_potentiometer(args):
-    
-    # Calibrate potentiometer
-    KMAX = 600 
-    TOL = 2
-    #controller.get_source('pot1', ['full_scale', 'invert'])
-    controller.set_source('pot1', full_scale = 1, invert = False)
-    inverted = False
-    full_scale = 100
-    print("> Set the potentiometer to the minimum position and hit <ENTER>") 
-    k = 0
-    while k < KMAX:
-        pot_min, = controller.read_source('pot1')
-        print('\r  reading = {:4.1f}'.format(pot_min), end='')
-        time.sleep(.1)
-        if select.select([sys.stdin], [], [], 0)[0]:
-            line = sys.stdin.readline()
-            if pot_min > TOL:
-                inverted = True
-                full_scale = pot_min
-            break
-        k += 1
+def test_theta(args):
 
-    #if pot_min > TOL:
-    #    return (False, 'potentiometer did not reach minimum')
+    with controller:
 
-    print("\n> Set the potentiometer to the maximum position and hit <ENTER>") 
-    k = 0
-    pot_max = 0
-    while k < KMAX:
-        pot_max, = controller.read_source('pot1')
-        print('\r  reading = {:4.1f}'.format(pot_max), end='')
-        time.sleep(.1)
-        if select.select([sys.stdin], [], [], 0)[0]:
-            line = sys.stdin.readline()
-            if pot_max > TOL:
-                inverted = False
-                full_scale = pot_max
-            break
-        k += 1
+        # Test IMU
+        print("> Rotate the MIP 90 degrees <ENTER>") 
+        KMAX = 30 
+        k = 0
+        while k < KMAX:
+            theta, = controller.read_source('imu')
+            time.sleep(.1)
+            k += 1
 
-    #if pot_max < 100 - TOL:
-    #    return (False, 'potentiometer did not reach maximum')
+        if theta < 0:
+            return (False, 'inverted IMU')
 
-    if inverted:
-        print('> Potentiometer is INVERTED')
-    else:
-        print('> Potentiometer IS NOT inverted')
-    print('> Full scale is {}'.format(full_scale))
+        print("> Rotate the MIP -90 degrees <ENTER>") 
+        k = 0
+        while k < KMAX:
+            theta, = controller.read_source('imu')
+            time.sleep(.1)
+            k += 1
 
-    return True, [pot_min, pot_max]
+        if theta > 0:
+            return (False, 'inverted IMU')
+
+    return True, []
 
 def identify_motor(motor, encoder, T = 2):
 
@@ -305,6 +282,13 @@ def main():
                '',
                test_reset_encoder)
     
+    k += 1
+    test('{}: TEST THETA'.format(k), 
+         ('imu',),
+         '', 
+         '',
+         test_theta)
+
     T = 2
     identify_motor('motor1', 'encoder1', T)
     identify_motor('motor2', 'encoder2', T)
