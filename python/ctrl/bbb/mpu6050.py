@@ -128,7 +128,7 @@ class Inclinometer(IMU):
         # construct quaternion
         q = Quaternion(w,x,y,z)
         ez = q.rotation()[:,2]
-        theta = math.atan2(ez[2], math.sqrt(ez[0]**2+ez[1]**2)) / (2 * math.pi)
+        theta = -math.atan2(ez[2], math.sqrt(ez[0]**2+ez[1]**2)) / (2 * math.pi)
 
         print('\r {} {}'.format(ez, theta), end='')
         
