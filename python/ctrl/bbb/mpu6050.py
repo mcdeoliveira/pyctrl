@@ -127,7 +127,10 @@ class Inclinometer(IMU):
 
         # construct quaternion
         q = Quaternion(w,x,y,z)
-        print('\r {}'.format(q.rotation()[:,2]), end='')
+        ez = q.rotation()[:,2]
+        theta = math.atan2(ez[2], math.sqrt(ez[0]**2+ez[1]**2)) / (2 * math.pi)
+
+        print('\r {} {}'.format(ez, theta), end='')
         
         # from quaternion to vector
         (gx, gy, gz) = (float(2 * (x * z - w * y)),
