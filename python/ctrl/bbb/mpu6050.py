@@ -145,7 +145,7 @@ if __name__ == "__main__":
 
     import time, math
 
-    T = 0.01
+    T = 0.04
     K = 1000
 
     # print("> Testing Raw")
@@ -181,6 +181,7 @@ if __name__ == "__main__":
     print("\n> Testing inclinometer")
     
     accel = Inclinometer()
+    print("\n> ")
     accel.set_enabled(enabled = True)
 
     k = 0
