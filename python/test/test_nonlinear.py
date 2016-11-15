@@ -71,6 +71,27 @@ def test1():
     (yk,) = blk.read()
     assert yk == 10 + 45
 
+def test2():
+
+    blk = nonlinear.Abs()
+    
+    blk.write(-1)
+    answer = blk.read()
+    assert answer == (1, )
+
+    blk.write(1)
+    answer = blk.read()
+    assert answer == (1, )
+
+    blk.write(0)
+    answer = blk.read()
+    assert answer == (0, )
+
+    blk.write(-1,1,-2,2)
+    answer = blk.read()
+    assert answer == (1,1,2,2)
+    
 if __name__ == "__main__":
 
     test1()
+    test2()

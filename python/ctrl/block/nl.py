@@ -1,8 +1,16 @@
 import numpy
+import math
 
 from .. import block
 
 # Blocks
+
+class Abs(block.BufferBlock):
+
+    def write(self, *values):
+
+        self.buffer = tuple(map(math.fabs, values))
+        
 
 class DeadZone(block.BufferBlock):
 
