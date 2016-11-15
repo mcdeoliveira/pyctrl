@@ -191,7 +191,7 @@ if __name__ == "__main__":
 
         # read inclinometer
         (theta, ) = accel.read()
-        #print('\r> theta = {:+05.3f}deg'.format(360*theta), end='')
+        print('\r> theta = {:+05.3f}deg'.format(360*theta), end='')
         
         #time.sleep(T)
         k += 1
