@@ -1,4 +1,5 @@
 import numpy
+import math
 
 from .. import block
 
@@ -6,9 +7,24 @@ from .. import block
 
 class Compare(block.BufferBlock):
 
+    def __init__(self, abs = False, threshold = 0, *vars, **kwargs):
+        """
+        Wrapper for state-space model as a Block
+        """
+
+        self.abs = abs
+        self.threshold = threshold
+
+        super().__init__(*vars, **kwargs)
+
     def write(self, *values):
 
-        if values[1] >= values[0]:
+        if self.abs:
+            test = math.fabs(values[1] - values[0]) >= self.threshold
+        else:
+            test = values[1] - values[0] >= self.threshold
+
+        if test:
             self.buffer = (1, )
         else:
             self.buffer = (0, )
