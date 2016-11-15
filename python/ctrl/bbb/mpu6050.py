@@ -178,7 +178,7 @@ if __name__ == "__main__":
     #     time.sleep(T)
     #     k += 1
 
-    # print("\n> Testing inclinometer")
+    print("\n> Testing inclinometer")
     
     accel = Inclinometer()
 
