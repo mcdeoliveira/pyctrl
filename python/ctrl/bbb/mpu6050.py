@@ -130,16 +130,16 @@ class Inclinometer(IMU):
               2*(y * z - x * w),
               1 - 2*(x * x + y * y)]
         theta = -math.atan2(ez[2], math.sqrt(ez[0]**2+ez[1]**2)) / (2 * math.pi)
-        print('\r {} {}'.format(ez, theta), end='')
+        #print('\r {} {}'.format(ez, theta), end='')
         
-        # from quaternion to vector
-        (gx, gy, gz) = (float(2 * (x * z - w * y)),
-                        float(2 * (w * x + y * z)),
-                        float(w * w - x * x - y * y + z * z))
+        # # from quaternion to vector
+        # (gx, gy, gz) = (float(2 * (x * z - w * y)),
+        #                 float(2 * (w * x + y * z)),
+        #                 float(w * w - x * x - y * y + z * z))
 
-        # calculate angle
-        # TODO: FIX FRAME
-        theta = - math.atan2(gz, math.sqrt(gx**2+gy**2)) / (2 * math.pi)
+        # # calculate angle
+        # # TODO: FIX FRAME
+        # theta = - math.atan2(gz, math.sqrt(gx**2+gy**2)) / (2 * math.pi)
 
         return (theta, )
 
