@@ -181,6 +181,7 @@ if __name__ == "__main__":
     print("\n> Testing inclinometer")
     
     accel = Inclinometer()
+    accel.set_enabled(enabled = True)
 
     k = 0
     while k < K:
