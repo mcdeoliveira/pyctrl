@@ -10,6 +10,35 @@ if __name__ == "__main__":
 import ctrl.block as block
 import pycomms.mpu6050 as mpu6050
 
+import numpy
+
+class Quaternion:
+
+    def __init__(self, w = 0, x = 0, y = 0, z = 1):
+        self.x = float(x);
+        self.y = float(y);
+        self.z = float(z);
+        self.w = float(w);
+
+    def rotation(self):
+
+        R = numpy.array(
+            [[1 - 2*(self.y * self.y + self.z * self.z),
+              2*(self.x * self.y - self.z * self.w),
+              2*(self.x * self.z + self.y * self.w)],
+             [2*(self.x * self.y + self.z * self.w),
+              1 - 2*(self.x * self.x + self.z * self.z),
+              2*(self.y * self.z - self.x * self.w)],
+             [2*(self.x * self.z - self.y * self.w),
+              2*(self.y * self.z + self.x * self.w),
+              1 - 2*(self.x * self.x + self.y * self.y)]])
+
+        return R
+
+    def __str__(self):
+        return "x:{:+5.4f} y:{:+5.4f} z:{:+5.4f} w:{:+5.4f}".format(self.x,self.y,self.z,self.w)
+
+
 class Raw(block.Block):
 
     def __init__(self, *vars, **kwargs):
@@ -96,6 +125,11 @@ class Inclinometer(IMU):
         # read imu
         (w, x, y, z) = super().read()
 
+        # construct quaternion
+        q = Quaternion(w,x,y,z)
+
+        q.rotation()
+        
         # from quaternion to vector
         (gx, gy, gz) = (float(2 * (x * z - w * y)),
                         float(2 * (w * x + y * z)),
