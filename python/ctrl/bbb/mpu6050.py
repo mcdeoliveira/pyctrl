@@ -184,7 +184,7 @@ if __name__ == "__main__":
     accel.set_enabled(enabled = True)
 
     k = 0
-    while k < K:
+    while True:
 
         # read inclinometer
         (theta, ) = accel.read()
