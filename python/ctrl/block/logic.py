@@ -20,7 +20,7 @@ class Compare(block.BufferBlock):
     def write(self, *values):
 
         if self.abs:
-            test = math.fabs(values[1] - values[0]) >= self.threshold
+            test = math.fabs(values[1] - values[0]) <= self.threshold
         else:
             test = values[1] - values[0] >= self.threshold
 
