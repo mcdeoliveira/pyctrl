@@ -86,6 +86,7 @@ class IMU(block.Block):
             self.mpu.setDMPEnabled(True)
             self.mpu.resetFIFO()
             warnings.warn('> imu enabled')
+            print('> resetFIFO, count = {}'.format(self.mpu.getFIFOCount()))
         else:
             self.mpu.setDMPEnabled(False)
             warnings.warn('> imu disabled')
