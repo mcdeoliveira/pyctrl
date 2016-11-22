@@ -7,28 +7,40 @@ from .. import block
 
 class Compare(block.BufferBlock):
 
-    def __init__(self, abs = False, threshold = 0, *vars, **kwargs):
+    def __init__(self, threshold = 0, *vars, **kwargs):
         """
         Wrapper for state-space model as a Block
         """
 
-        self.abs = abs
         self.threshold = threshold
 
         super().__init__(*vars, **kwargs)
 
     def write(self, *values):
 
-        if self.abs:
-            test = math.fabs(values[1] - values[0]) <= self.threshold
-        else:
-            test = values[1] - values[0] >= self.threshold
-
-        if test:
+        if values[1] - values[0] >= self.threshold:
             self.buffer = (1, )
         else:
             self.buffer = (0, )
 
+class CompareAbs(block.BufferBlock):
+
+    def __init__(self, threshold = 0, *vars, **kwargs):
+        """
+        Wrapper for state-space model as a Block
+        """
+
+        self.threshold = threshold
+
+        super().__init__(*vars, **kwargs)
+
+    def write(self, *values):
+
+        if math.fabs(values[1] - values[0]) <= self.threshold:
+            self.buffer = (1, )
+        else:
+            self.buffer = (0, )
+            
 class Trigger(block.BufferBlock):
 
     def __init__(self, threshold = 0, state = False, *vars, **kwargs):
