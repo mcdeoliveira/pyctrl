@@ -295,3 +295,21 @@ class Sum(block.BufferBlock):
 
         #(sum(v) for v in values)
         self.buffer = (sum(map(numpy.array, values)), )
+
+class Subtract(block.BufferBlock):
+
+    def __init__(self, *vars, **kwargs):
+        """
+        Sum:
+            y = u[1] - u[0]
+        
+        inputs = u
+        output = y
+        """
+
+        super().__init__(*vars, **kwargs)
+    
+    def write(self, *values):
+
+        self.buffer = (values[1]-values[0], )
+        

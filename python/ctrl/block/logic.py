@@ -36,7 +36,7 @@ class CompareAbs(block.BufferBlock):
 
     def write(self, *values):
 
-        if math.fabs(values[1] - values[0]) <= self.threshold:
+        if math.fabs(values[0]) <= self.threshold:
             self.buffer = (1, )
         else:
             self.buffer = (0, )
@@ -68,6 +68,9 @@ class Trigger(block.BufferBlock):
         self.state = False
     
     def write(self, *values):
+
+        if self.state:
+            self.buffer = values[1:]
 
         if values[0] >= self.threshold:
             self.state = True
