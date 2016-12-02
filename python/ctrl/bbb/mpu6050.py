@@ -114,6 +114,9 @@ class IMU(block.Block):
             result = self.mpu.getFIFOBytes(self.packetSize)
             q = self.mpu.dmpGetQuaternion(result)
 
+            # reset fifo every time
+            self.mpu.resetFIFO()
+                
             self.output = (q['w'], q['x'], q['y'], q['z'])
         
         #print('< read')
