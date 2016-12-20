@@ -3,7 +3,7 @@ import math
 import numpy
 import platform, sys, select
 
-from mip import Controller
+from mip2 import Controller
 import ctrl.block as block
 import ctrl.block.logger as logger
 
