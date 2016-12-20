@@ -196,18 +196,35 @@ if __name__ == "__main__":
     #     time.sleep(T)
     #     k += 1
 
-    print("\n> Testing inclinometer")
+    print("\n> Testing inclinometer raw")
     
-    accel = Inclinometer()
+    giro = InclinometerRaw()
     print("\n> ")
-    accel.set_enabled(enabled = True)
+    giro.set_enabled(enabled = True)
 
     k = 0
     while True:
 
         # read inclinometer
-        (theta, ) = accel.read()
-        print('\r> theta = {:+05.3f}deg'.format(360*theta), end='')
+        (theta, ) = giro.read()
+        print('\r> theta dot = {:+05.3f}deg'.format(theta), end='')
         
         #time.sleep(T)
         k += 1
+
+    # print("\n> Testing inclinometer")
+    
+    # accel = Inclinometer()
+    # print("\n> ")
+    # accel.set_enabled(enabled = True)
+
+    # k = 0
+    # while True:
+
+    #     # read inclinometer
+    #     (theta, ) = accel.read()
+    #     print('\r> theta = {:+05.3f}deg'.format(360*theta), end='')
+        
+    #     #time.sleep(T)
+    #     k += 1
+        
