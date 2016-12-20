@@ -465,6 +465,21 @@ def test1():
     (yk, ) = blk.read()
     assert np.all(yk == [1, .4])
 
+    # Subtract
+    blk = linear.Subtract()
+    
+    blk.write(1,2)
+    (yk, ) = blk.read()
+    assert yk == 1
+
+    blk.write(2,1)
+    (yk, ) = blk.read()
+    assert yk == -1
+
+    blk.write(0,0)
+    (yk, ) = blk.read()
+    assert yk == 0
+
 def test2():
 
     a = np.array([[-1, 1],[0, -2]])

@@ -147,6 +147,18 @@ class Inclinometer(IMU):
 
         return (theta, )
 
+class InclinometerRaw(Raw):
+
+    def read(self):
+
+        #print('> read')
+        if self.enabled:
+
+            self.output = self.mpu.getRotationY()
+        
+        #print('< read')
+        return self.output
+    
 if __name__ == "__main__":
 
     import time, math
