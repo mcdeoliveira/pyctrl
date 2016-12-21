@@ -154,7 +154,7 @@ class InclinometerRaw(Raw):
         #print('> read')
         if self.enabled:
 
-            self.output = self.mpu.getRotationY()
+            self.output = (self.mpu.getRotationY(), )
         
         #print('< read')
         return self.output
