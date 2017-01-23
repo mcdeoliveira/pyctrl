@@ -180,7 +180,8 @@ def identify_motor(motor, encoder, T = 2):
     k = 0
     tau = 0;
     while k < KMAX:
-        
+
+        k += 1
         print('>> TEST {} out of {}'.format(k, KMAX))
         
         with controller:
@@ -209,7 +210,7 @@ def identify_motor(motor, encoder, T = 2):
             tau += (t90 - t10) / 2.2 / KMAX
 
             time.sleep(0.1)
-            
+
     print('>> lambda    = {:5.3f}'.format(1/tau))
 
 def main():
