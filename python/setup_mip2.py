@@ -141,7 +141,7 @@ def identify_motor(motor, encoder, T = 2):
         controller.set_source('clock', reset = True)
         time.sleep(1)
         controller.set_signal(motor,100)
-        time.sleep(T)
+        time.sleep(2*T)
 
         controller.set_signal(motor,0)
         
@@ -174,6 +174,42 @@ def identify_motor(motor, encoder, T = 2):
     tau = (t90 - t10) / 2.2
     print('>> rise time = {:5.3f}'.format(t90 - t10))
     
+    print('>> lambda    = {:5.3f}'.format(1/tau))
+
+    KMAX = 10 
+    k = 0
+    tau = 0;
+    while k < KMAX:
+        
+        print('>> TEST {} out of {}'.format(k, KMAX))
+        
+        with controller:
+
+            controller.set_source(encoder, reset = True)
+            controller.set_source('clock', reset = True)
+            controller.set_sink('logger', reset = True)
+            
+            controller.set_signal(motor,100)
+            time.sleep(T)
+            controller.set_signal(motor,0)
+
+            log = controller.read_sink('logger')
+            tind = logger_signals.index('clock')
+            eind = logger_signals.index(encoder)
+
+            t = log[:,tind]
+            position = log[:,eind]
+            velocity = numpy.zeros(t.shape, float)
+            velocity[1:] = (position[1:]-position[:-1])/(t[1:]-t[:-1])
+            
+            ind = numpy.argwhere( (velocity > 0.1*mean_velocity ) & 
+                                  (velocity < 0.9*mean_velocity ) )
+            t10 = float(t[ind[0]])
+            t90 = float(t[ind[-1]])
+            tau += (t90 - t10) / 2.2 / KMAX
+
+            time.sleep(0.1)
+            
     print('>> lambda    = {:5.3f}'.format(1/tau))
 
 def main():
