@@ -7,6 +7,8 @@ class Controller(ctrl.Controller):
         # period (default 100Hz)
         self.period = kwargs.pop('period', 0.01)
 
+        print('period = {}'.format(self.period));
+
         # Initialize controller
         super().__init__(*vargs, **kwargs)
 
