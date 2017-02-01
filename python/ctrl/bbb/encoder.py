@@ -33,7 +33,7 @@ class Clock(clk.Clock):
 
         # period
         self.period = kwargs.pop('period', 0.01)
-        print('period = {}'.format(period));
+        print('period = {}'.format(self.period));
 
         
         # call super
