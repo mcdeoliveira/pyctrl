@@ -236,9 +236,10 @@ if __name__ == "__main__":
     while True:
 
         # read inclinometer
-        (theta, thetadot) = giro.read()
+        (theta, thetadot, ax, ay, az) = giro.read()
         print('\r> theta = {:+05.3f}\ttheta dot = {:+05.3f} 1/s'.format(theta, thetadot), end='')
-        
+        print('\tax = {:+05.3f}\tay = {:+05.3f} \taz = {:+05.3f}'.format(ax, ay, az), end='')
+
         #time.sleep(T)
         k += 1
         
