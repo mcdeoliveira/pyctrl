@@ -158,6 +158,19 @@ class InclinometerRaw(Raw):
         
         #print('< read')
         return self.output
+
+class InclinometerRaw2(Raw):
+
+    def read(self):
+
+        #print('> read')
+        if self.enabled:
+            ax, ay, az, gx, gy, gz = self.mpu.getMotion6()
+            self.output = (math.atan2(az, ax) / (2 * math.pi), gy / 360)
+        
+        #print('< read')
+        return self.output
+
     
 if __name__ == "__main__":
 
@@ -196,9 +209,25 @@ if __name__ == "__main__":
     #     time.sleep(T)
     #     k += 1
 
-    print("\n> Testing inclinometer raw")
+    # print("\n> Testing inclinometer raw")
     
-    giro = InclinometerRaw()
+    # giro = InclinometerRaw()
+    # print("\n> ")
+    # giro.set_enabled(enabled = True)
+
+    # k = 0
+    # while True:
+
+    #     # read inclinometer
+    #     (theta, ) = giro.read()
+    #     print('\r> theta dot = {:+05.3f} 1/s'.format(theta), end='')
+        
+    #     #time.sleep(T)
+    #     k += 1
+
+    print("\n> Testing inclinometer raw 2")
+    
+    giro = InclinometerRaw2()
     print("\n> ")
     giro.set_enabled(enabled = True)
 
@@ -206,12 +235,12 @@ if __name__ == "__main__":
     while True:
 
         # read inclinometer
-        (theta, ) = giro.read()
-        print('\r> theta dot = {:+05.3f}deg'.format(theta), end='')
+        (theta, thetadot) = giro.read()
+        print('\r> theta = {:+05.3f}\ttheta dot = {:+05.3f} 1/s'.format(theta, thetadot), end='')
         
         #time.sleep(T)
         k += 1
-
+        
     # print("\n> Testing inclinometer")
     
     # accel = Inclinometer()
