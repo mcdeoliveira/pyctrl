@@ -4,7 +4,7 @@ class Controller(ctrl.Controller):
 
     def __init__(self, *vargs, **kwargs):
 
-        # period (25Hz)
+        # period (default 100Hz)
         self.period = kwargs.pop('period', 0.01)
 
         # Initialize controller
