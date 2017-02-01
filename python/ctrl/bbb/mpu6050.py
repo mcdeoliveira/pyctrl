@@ -165,8 +165,9 @@ class InclinometerRaw2(Raw):
 
         #print('> read')
         if self.enabled:
+            
             ax, ay, az, gx, gy, gz = self.mpu.getMotion6()
-            self.output = (-math.atan2(az, ay) / (2 * math.pi), gx / 360, ax,ay,az)
+            self.output = (-math.atan2(az, ay) / (2 * math.pi), gx / 360)
         
         #print('< read')
         return self.output
@@ -235,9 +236,8 @@ if __name__ == "__main__":
     while True:
 
         # read inclinometer
-        (theta, thetadot, ax, ay, az) = giro.read()
+        (theta, thetadot) = giro.read()
         print('\r> theta = {:+05.3f}\ttheta dot = {:+05.3f} 1/s'.format(theta, thetadot), end='')
-        print('\tax = {:+05.3f}\tay = {:+05.3f} \taz = {:+05.3f}'.format(ax, ay, az), end='')
 
         #time.sleep(T)
         k += 1
