@@ -166,8 +166,7 @@ class InclinometerRaw2(Raw):
         #print('> read')
         if self.enabled:
             ax, ay, az, gx, gy, gz = self.mpu.getMotion6()
-            self.output = (-math.atan2(az, ax) / (2 * math.pi), gy / 360,
-                            ax,ay,az)
+            self.output = (-math.atan2(az, ax) / (2 * math.pi), gy / 360, ax,ay,az)
         
         #print('< read')
         return self.output
