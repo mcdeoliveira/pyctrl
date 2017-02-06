@@ -165,7 +165,7 @@ class InclinometerRaw2(Raw):
 
         # turns initialization
         self.turns = 0
-        self.last_theta = 0
+        self.theta = 0
         self.threshold = 0.25
 
         # call super
