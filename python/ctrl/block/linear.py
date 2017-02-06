@@ -66,7 +66,7 @@ class MIMO(block.BufferBlock):
             uk = numpy.array(list(values))
         else:
             uk = numpy.hstack(*values)
-        print('uk = {}'.format(uk))
+        #print('uk = {}'.format(uk))
 
         # convert output to list
         yk = self.model.update(uk)
