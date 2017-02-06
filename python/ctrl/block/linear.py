@@ -65,7 +65,7 @@ class MIMO(block.BufferBlock):
         if numpy.isscalar(values[0]):
             uk = numpy.array(list(values))
         else:
-            uk = numpy.hstack(values)
+            uk = numpy.hstack(*values)
         print('uk = {}'.format(uk))
 
         # convert output to list
