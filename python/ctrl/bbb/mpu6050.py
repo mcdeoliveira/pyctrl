@@ -183,7 +183,7 @@ class InclinometerRaw2(Raw):
             if (theta < 0 and self.theta > 0):
                 if (self.theta - theta > self.threshold):
                     self.turns += 1
-            elif (theta > 0 and last_theta < 0):
+            elif (theta > 0 and self.theta < 0):
                 if (theta - self.theta > self.threshold):
                     self.turns -= 1
             self.theta = theta
