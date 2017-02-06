@@ -161,13 +161,34 @@ class InclinometerRaw(Raw):
 
 class InclinometerRaw2(Raw):
 
+    def __init__(self, *vars, **kwargs):
+
+        # turns initialization
+        self.turns = 0
+        self.last_theta = 0
+        self.threshold = 0.25
+
+        # call super
+        super().__init__(*vars, **kwargs)
+
     def read(self):
 
         #print('> read')
         if self.enabled:
             
             ax, ay, az, gx, gy, gz = self.mpu.getMotion6()
-            self.output = (-math.atan2(az, ay) / (2 * math.pi), gx / 360)
+
+            # compensate for turns
+            theta = -math.atan2(az, ay) / (2 * math.pi)
+            if (theta < 0 and self.theta > 0):
+                if (self.theta - theta > self.threshold):
+                    self.turns += 1
+            elif (theta > 0 and last_theta < 0):
+                if (theta - self.theta > self.threshold):
+                    self.turns -= 1
+            self.theta = theta
+                    
+            self.output = (self.turns + theta, gx / 360)
         
         #print('< read')
         return self.output
