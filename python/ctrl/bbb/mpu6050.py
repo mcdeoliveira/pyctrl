@@ -171,6 +171,9 @@ class InclinometerRaw2(Raw):
         # call super
         super().__init__(*vars, **kwargs)
 
+        # setup giro
+        self.mpu.setFullScaleGyroRange(self.mpu.MPU6050_GYRO_FS_500)
+        
     def read(self):
 
         #print('> read')
