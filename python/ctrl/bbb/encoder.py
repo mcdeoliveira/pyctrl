@@ -31,11 +31,6 @@ class Clock(clk.Clock):
             warnings.warn('> Clock is already initialized. Skipping call to __init')
             return
 
-        # period
-        # WARNING OVERRIDING PERIOD BY HAND
-        self.period = kwargs.pop('period', 0.015)
-        #self.period = kwargs.pop('period', 0.01)
-       
         # call super
         super().__init__(*vars, **kwargs)
 
@@ -54,6 +49,8 @@ class Clock(clk.Clock):
 
     def initialize_eqep(self, eqeps = ['EQEP2']):
 
+        print("initialize_eqep: PERIOD = {}".format(self.period))
+        
         if not self.eqep0 and 'EQEP0' in eqeps:
 
             warnings.warn('> Initializing EQEP0')
@@ -110,6 +107,8 @@ class Clock(clk.Clock):
         # call supper
         super().set_period(period)
 
+        print("set_period: PERIOD = {}".format(self.period))
+        
         # set period on BBB eQEP
         self.eqep2b.set_period(int(self.period * 1e9))
 
