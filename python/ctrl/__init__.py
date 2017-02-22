@@ -371,7 +371,7 @@ class Controller:
 
         try:
 
-            vars = {}
+            vars = ()
             print("ctrl.add_device: VARS = {}".format(vars))
             print("ctrl.add_device: KWARGS = {}".format(kwargs))
             
