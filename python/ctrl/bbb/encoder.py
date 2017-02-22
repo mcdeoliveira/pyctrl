@@ -31,6 +31,9 @@ class Clock(clk.Clock):
             warnings.warn('> Clock is already initialized. Skipping call to __init')
             return
 
+        print("encoder.Clock.__init__: vars {}".format(vars))
+        print("encoder.Clock.__init__: kwargs {}".format(kwargs))
+        
         # call super
         super().__init__(*vars, **kwargs)
 
