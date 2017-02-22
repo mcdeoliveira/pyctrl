@@ -26,14 +26,14 @@ class Clock(clk.Clock):
         # Makes sure clock is a singleton
         self.__dict__ = self._shared_state
 
+        print("encoder.Clock.__init__: vars {}".format(vars))
+        print("encoder.Clock.__init__: kwargs {}".format(kwargs))
+        
         # Do not initialize if already initialized
         if not self.__dict__ == {}:
             warnings.warn('> Clock is already initialized. Skipping call to __init')
             return
 
-        print("encoder.Clock.__init__: vars {}".format(vars))
-        print("encoder.Clock.__init__: kwargs {}".format(kwargs))
-        
         # call super
         super().__init__(*vars, **kwargs)
 
