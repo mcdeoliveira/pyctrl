@@ -14,6 +14,9 @@ class Clock(block.Block):
 
     def __init__(self, *pars, **kpars):
 
+        print("Clock.__init__: pars {}".format(pars))
+        print("Clock.__init__: kpars {}".format(kpars))
+        
         self.period = kpars.pop('period', 0.01)
 
         super().__init__(*pars, **kpars)
