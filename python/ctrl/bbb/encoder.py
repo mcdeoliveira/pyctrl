@@ -33,6 +33,8 @@ class Clock(clk.Clock):
 
         # period
         self.period = kwargs.pop('period', 0.01)
+
+        print("====> PERIOD = {}".format(self.period))
         
         # call super
         super().__init__(*vars, **kwargs)
