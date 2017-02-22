@@ -32,10 +32,10 @@ class Clock(clk.Clock):
             return
 
         # period
-        self.period = kwargs.pop('period', 0.01)
-
-        print("====> PERIOD = {}".format(self.period))
-        
+        # WARNING OVERRIDING PERIOD BY HAND
+        self.period = kwargs.pop('period', 0.015)
+        #self.period = kwargs.pop('period', 0.01)
+       
         # call super
         super().__init__(*vars, **kwargs)
 
