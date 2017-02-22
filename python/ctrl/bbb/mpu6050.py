@@ -184,10 +184,11 @@ class InclinometerRaw2(Raw):
         if self.enabled:
             
             #ax, ay, az, gx, gy, gz = self.mpu.getMotion6()
-
+            #ay, az = self.mpu.getAcceleration()
+            
             gx = self.mpu.getRotationX()
-            # ax, ay, az = self.mpu.getAcceleration()
-            ay, az = (1, 1)
+            ay = self.mpu.getAccelerationY()
+            az = self.mpu.getAccelerationZ()
             
             # compensate for turns
             theta = -math.atan2(az, ay) / (2 * math.pi)
