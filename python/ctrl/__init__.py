@@ -371,6 +371,8 @@ class Controller:
 
         try:
 
+            vars = {}
+            print("ctrl.add_device: VARS = {}".format(vars))
             print("ctrl.add_device: KWARGS = {}".format(kwargs))
             
             # create device
@@ -379,7 +381,7 @@ class Controller:
 
             print("ctrl.add_device: obj_class = {}".format(obj_class))
 
-            instance = obj_class(**kwargs)
+            instance = obj_class(*vars, **kwargs)
 
         except Exception as e:
 
