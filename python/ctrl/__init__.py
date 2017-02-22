@@ -371,6 +371,8 @@ class Controller:
 
         try:
 
+            print("ctrl.add_device: KWARGS = {}".format(kwargs))
+            
             # create device
             obj_class = getattr(importlib.import_module(device_module), 
                                 device_class)
