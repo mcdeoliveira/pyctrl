@@ -91,6 +91,8 @@ def main():
     obj_class = getattr(importlib.import_module(module),
                         ctrl_class)
     controller = obj_class(period = Ts)
+    controller.set_period(Ts)
+    controller.reset()
     ctrl.server.set_controller(controller)
     ctrl.server.verbose(verbose_level)
 
