@@ -173,14 +173,21 @@ class InclinometerRaw2(Raw):
 
         # setup giro
         self.mpu.setFullScaleGyroRange(self.mpu.MPU6050_GYRO_FS_1000)
+
+    def reset(self):
+
+        self.turns = 0
         
     def read(self):
 
         #print('> read')
         if self.enabled:
             
-            ax, ay, az, gx, gy, gz = self.mpu.getMotion6()
+            #ax, ay, az, gx, gy, gz = self.mpu.getMotion6()
 
+            gx = self.mpu.getRotationX()
+            ax, ay, az = self.mpu.getAcceleration()
+            
             # compensate for turns
             theta = -math.atan2(az, ay) / (2 * math.pi)
             if (theta < 0 and self.theta > 0):
