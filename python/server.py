@@ -110,7 +110,7 @@ def main():
         if verbose_level > 0:
             print('> Options:')
             print('    Hostname[port]: {}[{}]'.format(HOST, PORT))
-            print('    Sampling rate : {}s'.format(Ts))
+            print('    Sampling rate : {}s'.format(controller.get_period()))
             print('    Log size      : {}s'.format(log_size))
             print('    Verbose level : {}'.format(verbose_level))
             print(controller.info('all'))
