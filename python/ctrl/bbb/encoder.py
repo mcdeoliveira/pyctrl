@@ -32,6 +32,11 @@ class Clock(clk.Clock):
         # Do not initialize if already initialized
         if not self.__dict__ == {}:
             warnings.warn('> Clock is already initialized. Skipping call to __init')
+            
+            # make sure to call super if need to reset period
+            period = kwargs.pop('period', 0.01)
+            super().set_period(period)
+            
             return
 
         # call super
