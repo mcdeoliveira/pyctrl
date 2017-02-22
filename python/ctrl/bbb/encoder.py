@@ -35,7 +35,7 @@ class Clock(clk.Clock):
             
             # make sure to call super if need to reset period
             period = kwargs.pop('period', 0.01)
-            super().set_period(period)
+            self.set_period(period)
             
             return
 
