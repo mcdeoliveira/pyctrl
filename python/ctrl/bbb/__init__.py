@@ -7,6 +7,8 @@ class Controller(ctrl.Controller):
         # period (default 100Hz)
         self.period = kwargs.pop('period', 0.01)
 
+        print("ctrl.bbb: PERIOD = {}".format(self.period))
+
         # Initialize controller
         super().__init__(*vargs, **kwargs)
 
@@ -14,7 +16,9 @@ class Controller(ctrl.Controller):
 
         # call super
         super().__reset()
-
+      
+        print("ctrl.bbb.reset: PERIOD = {}".format(self.period))
+        
         # add source: clock
         self.clock = self.add_device('clock',
                                      'ctrl.bbb.encoder', 'Clock',
