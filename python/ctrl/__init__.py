@@ -371,17 +371,10 @@ class Controller:
 
         try:
 
-            vars = ()
-            print("ctrl.add_device: VARS = {}".format(vars))
-            print("ctrl.add_device: KWARGS = {}".format(kwargs))
-            
             # create device
             obj_class = getattr(importlib.import_module(device_module), 
                                 device_class)
-
-            print("ctrl.add_device: obj_class = {}".format(obj_class))
-
-            instance = obj_class(*vars, **kwargs)
+            instance = obj_class(**kwargs)
 
         except Exception as e:
 

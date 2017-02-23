@@ -26,17 +26,12 @@ class Clock(clk.Clock):
         # Makes sure clock is a singleton
         self.__dict__ = self._shared_state
 
-        print("encoder.Clock.__init__: vars {}".format(vars))
-        print("encoder.Clock.__init__: kwargs {}".format(kwargs))
+        #print("encoder.Clock.__init__: vars {}".format(vars))
+        #print("encoder.Clock.__init__: kwargs {}".format(kwargs))
         
         # Do not initialize if already initialized
         if not self.__dict__ == {}:
             warnings.warn('> Clock is already initialized. Skipping call to __init')
-            
-            # make sure to call super if need to reset period
-            period = kwargs.pop('period', 0.01)
-            self.set_period(period)
-            
             return
 
         # call super
@@ -115,7 +110,7 @@ class Clock(clk.Clock):
         # call supper
         super().set_period(period)
 
-        print("set_period: PERIOD = {}".format(self.period))
+        # print("set_period: PERIOD = {}".format(self.period))
         
         # set period on BBB eQEP
         self.eqep2b.set_period(int(self.period * 1e9))
