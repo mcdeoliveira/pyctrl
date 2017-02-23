@@ -107,11 +107,11 @@ class Clock(clk.Clock):
 
     def set_period(self, period):
         
+        warnings.warn('> Setting clock period to {}s'.format(period))
+            
         # call supper
         super().set_period(period)
 
-        # print("set_period: PERIOD = {}".format(self.period))
-        
         # set period on BBB eQEP
         self.eqep2b.set_period(int(self.period * 1e9))
 
