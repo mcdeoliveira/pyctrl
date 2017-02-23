@@ -52,7 +52,7 @@ class Clock(clk.Clock):
 
     def initialize_eqep(self, eqeps = ['EQEP2']):
 
-        print("initialize_eqep: PERIOD = {}".format(self.period))
+        # print("initialize_eqep: PERIOD = {}".format(self.period))
         
         if not self.eqep0 and 'EQEP0' in eqeps:
 
