@@ -97,3 +97,8 @@ aed/settings.py
 
 # Emacs backup
 *~
+
+# Object files
+*.o
+
+python/source/mpu9150/test

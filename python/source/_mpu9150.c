@@ -1,6 +1,6 @@
 #include <Python.h>
-#include "imu.h"
-#include "inv_mpu.h"
+#include "mpu9150/imu.h"
+#include "mpu9150/inv_mpu.h"
 
 static char module_docstring[] =
   "This module provides an interface for mpu9150.";
@@ -10,7 +10,7 @@ static char mpu9150_docstring[] =
 static PyObject *mpu9150_read(PyObject *self, PyObject *args);
 
 static PyMethodDef module_methods[] = {
-  {"mpu9150", mpu9150_read, METH_VARARGS, mpu9150_docstring},
+  {"read", mpu9150_read, METH_VARARGS, mpu9150_docstring},
   {NULL, NULL, 0, NULL}
 };
 
