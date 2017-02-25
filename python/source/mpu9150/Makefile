@@ -8,12 +8,14 @@ LFLAGS	:= -lm -lrt -lpthread -shared -lprussdrvd
 CLFLAGS	:= -lm -lrt -lmpu9150
 
 # add -DI2C_DEBUG for debugging
-DEFS = -DEMPL_TARGET_LINUX -DMPU9150 #-DAK8975_SECONDARY
+DEFS = -DEMPL_TARGET_LINUX -DMPU9150 -DAK8975_SECONDARY
 
 SOURCES  := $(wildcard *.c)
 INCLUDES := $(wildcard *.h)
 OBJECTS  := $(SOURCES:$%.c=$%.o)
-OBJECTS  := vector3d.o quaternion.o linux_glue.o c_i2c.o inv_mpu.o inv_mpu_dmp_motion_driver.o mpu9150.o imu.o
+OBJECTS  := vector3d.o quaternion.o linux_glue.o c_i2c.o SimpleGPIO.o \
+            inv_mpu.o inv_mpu_dmp_motion_driver.o mpu9150.o \
+	    imu_int.o
 RM := rm -f
 CP := cp
 INSTALL_DIR = /usr/lib/
@@ -31,13 +33,12 @@ $(TARGET): $(OBJECTS)
 	@echo "Linking Complete"
 
 $(OBJECTS): %.o : %.c
-# @$(TOUCH)
 	@$(CC) $(CFLAGS) $(DEFS) -c $< -o $(@)
 	@echo "Compiled "$<" successfully!"
 
 # install to /usr/bin
 $(phony all) : $(TARGET)
-.PHONY: install
+.PHONY: install test
 
 install:
 	$(MAKE)

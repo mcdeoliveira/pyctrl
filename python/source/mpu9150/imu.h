@@ -1,9 +1,6 @@
 #ifndef IMU_H
 #define IMU_H
 
-#define SAMPLE_RATE 200	      // inner loop sample frequency
-#define DT 0.01       		  // sample time
-
 #define DEG_TO_RAD 		0.0174532925199
 #define RAD_TO_DEG 	 	57.295779513
 #define PI				3.141592653
@@ -16,13 +13,26 @@
 //// MPU-9150 defs
 #define MPU_ADDR 0x68
 
+#define POLL_TIMEOUT (3 * 1000) /* 3 seconds */
+#define INTERRUPT_PIN 117  //gpio3.21 P9.25
+
+//// Program Flow and State Control ////
+typedef enum state_t {
+	UNINITIALIZED,
+	RUNNING,
+	PAUSED,
+	EXITING
+} state_t;
+
 // Calibration File Locations
 #define CONFIG_DIRECTORY "/root/robot_config/"
 #define DSM2_CAL_FILE	"dsm2.cal"
 #define GYRO_CAL_FILE 	"gyro.cal"
 #define IMU_CAL_FILE	"imu.cal"
 
+int set_imu_interrupt_func(int (*func)(void));
 int initialize_imu(int sample_rate, signed char orientation[9]);
+int stop_imu(void);
 
 #endif /* MPU9150_H */
 
