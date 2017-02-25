@@ -206,6 +206,11 @@ if __name__ == "__main__":
 
     import time, math
 
+    if sys.version_info < (3, 3):
+        from ctrl.gettime import gettime as perf_counter
+    else:
+        from time import perf_counter
+
     T = 0.04
     K = 1000
 
@@ -261,29 +266,14 @@ if __name__ == "__main__":
     print("\n> ")
     giro.set_enabled(enabled = True)
 
-    k = 0
+    N = 10
     while True:
 
-        # read inclinometer
-        (theta, thetadot) = giro.read()
-        print('\r> theta = {:+05.3f}\ttheta dot = {:+05.3f} 1/s'.format(theta, thetadot), end='')
+        t0 = perf_counter()
+        for k in range(N):
+            # read inclinometer
+            (theta, thetadot) = giro.read()
+        t1 = perf_counter() - t0
+        period = t1 / N
 
-        #time.sleep(T)
-        k += 1
-        
-    # print("\n> Testing inclinometer")
-    
-    # accel = Inclinometer()
-    # print("\n> ")
-    # accel.set_enabled(enabled = True)
-
-    # k = 0
-    # while True:
-
-    #     # read inclinometer
-    #     (theta, ) = accel.read()
-    #     print('\r> theta = {:+05.3f}deg'.format(360*theta), end='')
-        
-    #     #time.sleep(T)
-    #     k += 1
-        
+        print('\r> theta = {:+05.3f}  theta dot = {:+05.3f} 1/s  period = {:+07.5f}'.format(theta, thetadot, period), end='')

@@ -1,7 +1,7 @@
 #ifndef IMU_H
 #define IMU_H
 
-#define SAMPLE_RATE 100	      // inner loop sample frequency
+#define SAMPLE_RATE 200	      // inner loop sample frequency
 #define DT 0.01       		  // sample time
 
 #define DEG_TO_RAD 		0.0174532925199
