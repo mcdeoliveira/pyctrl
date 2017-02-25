@@ -32,7 +32,7 @@ class Controller(ctrl.Controller):
         self.add_device('imu',
                         'ctrl.bbb.imu', 'Inclinometer',
                         type = 'source',
-                        enable = True,
+                        enable = False,
                         outputs = ['theta','theta_dot'])
 
         # add sink: motor1

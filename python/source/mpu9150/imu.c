@@ -16,15 +16,14 @@ int initialize_imu(int sample_rate, signed char orientation[9]){
   printf("Initializing IMU\n");
 
   linux_set_i2c_bus(1);
-
 	
   if (mpu_init(NULL)) {
     printf("\nmpu_init() failed\n");
     return -1;
   }
  
-  //mpu_set_sensors(INV_XYZ_GYRO | INV_XYZ_ACCEL | INV_XYZ_COMPASS);
-  mpu_set_sensors(INV_XYZ_GYRO | INV_XYZ_ACCEL);
+  mpu_set_sensors(INV_XYZ_GYRO | INV_XYZ_ACCEL | INV_XYZ_COMPASS);
+  //mpu_set_sensors(INV_XYZ_GYRO | INV_XYZ_ACCEL);
   mpu_set_sample_rate(sample_rate);
 	
   // compass run at 100hz max. 

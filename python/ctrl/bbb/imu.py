@@ -8,7 +8,7 @@ if __name__ == "__main__":
     sys.path.append('.')
 
 import ctrl.block as block
-import mpu9150 as mpu9150
+import ctrl.bbb.mpu9150 as mpu9150
 
 import numpy
 

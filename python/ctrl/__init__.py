@@ -450,55 +450,51 @@ class Controller:
 
         while self.is_running:
 
-            # Call run
-            self._run()
+            # Run the loop
 
-    def _run(self):
-        # Run the loop
+            # Read all sources
+            first = True
+            t0 = 0
+            for label in self.sources_order:
+                device = self.sources[label]
+                source = device['block']
+                if source.is_enabled():
+                    # retrieve outputs
+                    self.signals.update(dict(zip(device['outputs'], 
+                                                 source.read())))
+                    # Begin profiling
+                    if first:
+                        t0 = perf_counter()
+                        first = False
 
-        # Read all sources
-        first = True
-        t0 = 0
-        for label in self.sources_order:
-            device = self.sources[label]
-            source = device['block']
-            if source.is_enabled():
-                # retrieve outputs
-                self.signals.update(dict(zip(device['outputs'], 
-                                             source.read())))
-                # Begin profiling
-                if first:
-                    t0 = perf_counter()
-                    first = False
+            # Process all filters
+            for label in self.filters_order:
+                device = self.filters[label]
+                fltr = device['block']
+                if fltr.is_enabled():
+                    # write signals to inputs
+                    fltr.write(*[self.signals[label] 
+                                 for label in device['inputs']])
+                    # retrieve outputs
+                    self.signals.update(dict(zip(device['outputs'], 
+                                                 fltr.read())))
 
-        # Process all filters
-        for label in self.filters_order:
-            device = self.filters[label]
-            fltr = device['block']
-            if fltr.is_enabled():
-                # write signals to inputs
-                fltr.write(*[self.signals[label] 
-                             for label in device['inputs']])
-                # retrieve outputs
-                self.signals.update(dict(zip(device['outputs'], 
-                                             fltr.read())))
+            # Write to all sinks
+            for label in self.sinks_order:
+                device = self.sinks[label]
+                sink = device['block']
+                if sink.is_enabled():
+                    # write inputs
+                    sink.write(*[self.signals[label]
+                                 for label in device['inputs']])
 
-        # Write to all sinks
-        for label in self.sinks_order:
-            device = self.sinks[label]
-            sink = device['block']
-            if sink.is_enabled():
-                # write inputs
-                sink.write(*[self.signals[label]
-                             for label in device['inputs']])
+            # update is_running
+            self.is_running = self.signals['is_running']
 
-        # update is_running
-        self.is_running = self.signals['is_running']
-
-        # update duty
-        duty = perf_counter() - t0
-        self.signals['duty'] = duty
-        self.duty = max(self.duty, duty)
+            # update duty
+            duty = perf_counter() - t0
+            self.signals['duty'] = duty
+            self.duty = max(self.duty, duty)
 
     def start(self):
         """Start controller loop

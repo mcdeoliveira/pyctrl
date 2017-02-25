@@ -119,6 +119,10 @@ class Clock(clk.Clock):
 
         return self.encoder
         
+    def get_encoder(self, index):
+
+        return self.encoder[index]
+
     def set_encoder(self, value, index = 2):
 
         if index == 0:
@@ -208,6 +212,6 @@ class Encoder(block.BufferBlock):
         #print('> read')
         if self.enabled:
 
-            self.buffer = (self.clock.get_encoder()[self.encoder] / self.ratio, )
+            self.buffer = (self.clock.get_encoder(self.encoder) / self.ratio, )
         
         return self.buffer
