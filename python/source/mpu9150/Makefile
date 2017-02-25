@@ -8,7 +8,7 @@ LFLAGS	:= -lm -lrt -lpthread -shared -lprussdrvd
 CLFLAGS	:= -lm -lrt -lmpu9150
 
 # add -DI2C_DEBUG for debugging
-DEFS = -DEMPL_TARGET_LINUX -DMPU9150 -DAK8975_SECONDARY
+DEFS = -DEMPL_TARGET_LINUX -DMPU9150 #-DAK8975_SECONDARY
 
 SOURCES  := $(wildcard *.c)
 INCLUDES := $(wildcard *.h)

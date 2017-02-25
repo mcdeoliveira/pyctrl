@@ -22,18 +22,19 @@ int initialize_imu(int sample_rate, signed char orientation[9]){
     return -1;
   }
  
-  mpu_set_sensors(INV_XYZ_GYRO | INV_XYZ_ACCEL | INV_XYZ_COMPASS);
-  //mpu_set_sensors(INV_XYZ_GYRO | INV_XYZ_ACCEL);
+  //mpu_set_sensors(INV_XYZ_GYRO | INV_XYZ_ACCEL | INV_XYZ_COMPASS);
+  mpu_set_sensors(INV_XYZ_GYRO | INV_XYZ_ACCEL);
   mpu_set_sample_rate(sample_rate);
 	
-  // compass run at 100hz max. 
-  if(sample_rate > 100){
-    // best to sample at a fraction of the gyro/accel
-    mpu_set_compass_sample_rate(sample_rate/2);
-  }
-  else{
-    mpu_set_compass_sample_rate(sample_rate);
-  }
+  /* // compass run at 100hz max.  */
+  /* if(sample_rate > 100){ */
+  /*   // best to sample at a fraction of the gyro/accel */
+  /*   mpu_set_compass_sample_rate(sample_rate/2); */
+  /* } */
+  /* else{ */
+  /*   mpu_set_compass_sample_rate(sample_rate); */
+  /* } */
+
   mpu_set_lpf(188); //as little filtering as possible
 
   // set fsrs

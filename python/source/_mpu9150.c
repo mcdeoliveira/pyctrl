@@ -5,7 +5,7 @@
 static char module_docstring[] =
   "This module provides an interface for mpu9150.";
 static char mpu9150_docstring[] =
-  "Calculate the current time in nanoseconds.";
+  "Read accelerometer and gyroscope data.";
 
 static PyObject *mpu9150_read(PyObject *self, PyObject *args);
 
