@@ -31,7 +31,9 @@ typedef enum state_t {
 #define IMU_CAL_FILE	"imu.cal"
 
 int set_imu_interrupt_func(int (*func)(void));
-int initialize_imu(int sample_rate, signed char orientation[9]);
+int initialize_imu(int sample_rate, 
+		   signed char orientation[9], 
+		   int intercept_ctrl_c);
 int stop_imu(void);
 
 #endif /* MPU9150_H */

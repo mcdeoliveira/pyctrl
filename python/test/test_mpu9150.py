@@ -1,4 +1,5 @@
 import pytest
+import time
 
 import sys
 if sys.version_info < (3, 3):
@@ -10,15 +11,26 @@ import ctrl.bbb.mpu9150 as mpu
 
 def test1():
 
-    N = 1000
-    t0 = perf_counter()
-    for k in range(N):
-        (ax,ay,az,gx,gy,gz) = mpu.read()
-    t1 = perf_counter() - t0
-    print("period = {})".format(t1 / N))
+    # reset stats
+    mpu.reset_stats()
 
-    answer = 1
-    assert answer == 1
+    # sleep for 10 s
+    time.sleep(10)
+
+    # get stats
+    (count, avg_duty, max_duty) = mpu.get_stats()
+
+    # read sensor
+    (ax,ay,az,gx,gy,gz) = mpu.read()
+
+    print("\ncount = {}, avg_duty = {:+06.4f}, max_duty = {:+06.4f}".format(count, avg_duty, max_duty))
+
+    print("ax = {:+06.4f}, ay = {:+06.4f}, az = {:+06.4f}".format(ax,ay,az))
+    print("gx = {:+06.4f}, gy = {:+06.4f}, gz = {:+06.4f}".format(gx,gy,gz))
+
+    assert avg_duty < 0.01
+    assert max_duty < 0.02
+    assert count > 10*avg_duty
 
 if __name__ == "__main__":
 

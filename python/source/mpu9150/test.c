@@ -36,7 +36,7 @@ int test_func(){
 int main(int argc, char* argv[]){
 
   signed char orientation[9] = ORIENTATION_UPRIGHT;
-  initialize_imu(SAMPLE_RATE, orientation);
+  initialize_imu(SAMPLE_RATE, orientation, 1);
 
   /* float gs, as; */
   /* mpu_get_gyro_sens(&gs); */

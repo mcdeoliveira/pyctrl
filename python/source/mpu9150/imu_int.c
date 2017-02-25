@@ -73,7 +73,9 @@ void* imu_interrupt_handler(void* ptr){
 }
 
 //// MPU9150 IMU ////
-int initialize_imu(int sample_rate, signed char orientation[9]){
+int initialize_imu(int sample_rate, 
+		   signed char orientation[9],
+		   int intercept_ctrl_c){
   printf("> Initializing IMU... ");
   //set up gpio interrupt pin connected to imu
   if(gpio_export(INTERRUPT_PIN)){
@@ -130,8 +132,9 @@ int initialize_imu(int sample_rate, signed char orientation[9]){
   params.sched_priority = sched_get_priority_max(SCHED_FIFO);
   pthread_setschedparam(imu_interrupt_thread, SCHED_FIFO, &params);
 
-  // Start signal handler
-  signal(SIGINT, ctrl_c);	
+  if (intercept_ctrl_c)
+    // Start signal handler
+    signal(SIGINT, ctrl_c);	
 	
   printf("done.\n");
 

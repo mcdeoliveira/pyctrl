@@ -82,14 +82,12 @@ if __name__ == "__main__":
     print("\n> ")
     giro.set_enabled(enabled = True)
 
-    N = 10
-    while True:
+    N = 100
+    for k in range(N):
+        
+        # read inclinometer
+        (theta, thetadot) = giro.read()
 
-        t0 = perf_counter()
-        for k in range(N):
-            # read inclinometer
-            (theta, thetadot) = giro.read()
-        t1 = perf_counter() - t0
-        period = t1 / N
+        time.sleep(.1)
 
-        print('\r> theta = {:+05.3f}  theta dot = {:+05.3f} 1/s  period = {:+07.5f}'.format(theta, thetadot, period), end='')
+        print('\r> theta = {:+05.3f}  theta dot = {:+05.3f} 1/s'.format(theta, thetadot), end='')
