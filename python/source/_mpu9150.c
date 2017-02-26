@@ -76,9 +76,9 @@ int mpu9150_initialize(void) {
   /* Initialize IMU */
   signed char orientation[9] = ORIENTATION_UPRIGHT;
   int ret;
-  if (ret = initialize_imu(sample_rate,
-			   orientation,
-			   0))
+  if ((ret = initialize_imu(sample_rate,
+			    orientation,
+			    0)))
     return ret;
   
   /* setup gyro and accel resolutions */
