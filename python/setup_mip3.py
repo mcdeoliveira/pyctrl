@@ -118,14 +118,14 @@ def test_theta(args):
         KMAX = 30 
         k = 0
         while k < KMAX:
-            thetaDot, = controller.read_source('imu')
+            (theta, thetaDot) = controller.read_source('imu')
             time.sleep(.1)
             k += 1
 
         print("> Rotate the MIP counter-clockwise <ENTER>") 
         k = 0
         while k < KMAX:
-            theta, = controller.read_source('imu')
+            (theta, thetaDot) = controller.read_source('imu')
             time.sleep(.1)
             k += 1
 
