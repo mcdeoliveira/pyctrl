@@ -71,7 +71,7 @@ static unsigned short gyro_fsr = 1000;
 static unsigned char accel_fsr = 2;
 
 static
-int mpu9150_intialize(void) {
+int mpu9150_initialize(void) {
   
   /* Initialize IMU */
   signed char orientation[9] = ORIENTATION_UPRIGHT;
@@ -120,7 +120,7 @@ PyObject *mpu9150_pyread(PyObject *self, PyObject *args)
 
   /* initialize */
   if (!flag_initialized)
-    mpu9150_intialize();
+    mpu9150_initialize();
   
   /* Build the output tuple */
   PyObject *ret = 
@@ -149,7 +149,7 @@ static PyObject *mpu9150_get_stats(PyObject *self, PyObject *args)
 {
   /* initialize */
   if (!flag_initialized)
-    mpu9150_intialize();
+    mpu9150_initialize();
   
   /* Build the output tuple */
   return Py_BuildValue("(Iff)", count, avg_duty, max_duty);
