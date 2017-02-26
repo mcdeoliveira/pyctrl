@@ -74,14 +74,14 @@ typedef struct {
 
 void mpu9150_set_debug(int on);
 int mpu9150_init(int i2c_bus, int sample_rate, int yaw_mixing_factor);
-void mpu9150_exit();
+void mpu9150_exit(void);
 int mpu9150_read(mpudata_t *mpu);
 int mpu9150_read_dmp(mpudata_t *mpu);
 int mpu9150_read_mag(mpudata_t *mpu);
 void mpu9150_set_accel_cal(caldata_t *cal);
 void mpu9150_set_mag_cal(caldata_t *cal);
 
-int data_ready();
+int data_ready(void);
 void calibrate_data(mpudata_t *mpu);
 void tilt_compensate(quaternion_t magQ, quaternion_t unfusedQ);
 int data_fusion(mpudata_t *mpu);

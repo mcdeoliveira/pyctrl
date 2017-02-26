@@ -150,7 +150,7 @@ int mpu9150_init(int i2c_bus, int sample_rate, int mix_factor)
 	return 0;
 }
 
-void mpu9150_exit()
+void mpu9150_exit(void)
 {
 	// turn off the DMP on exit 
 	if (mpu_set_dmp_state(0))
@@ -272,7 +272,7 @@ int mpu9150_read(mpudata_t *mpu)
 	return data_fusion(mpu);
 }
 
-int data_ready()
+int data_ready(void)
 {
 	short status;
 
