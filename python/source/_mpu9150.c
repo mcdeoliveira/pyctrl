@@ -99,11 +99,11 @@ int mpu9150_intialize(void) {
 
 PyMODINIT_FUNC PyInit_mpu9150(void)
 {
-  PyObject *module;
+  PyObject *m;
 
   /* create module */
-  module = PyModule_Create(&module);
-  if (module == NULL)
+  m = PyModule_Create(&module);
+  if (m == NULL)
     return NULL;
 
   /* create exception */
@@ -111,7 +111,7 @@ PyMODINIT_FUNC PyInit_mpu9150(void)
   Py_INCREF(mpu9150Error);
   PyModule_AddObject(module, "error", mpu9150Error);
   
-  return module;
+  return m;
 }
 
 static
