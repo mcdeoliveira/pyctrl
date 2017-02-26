@@ -88,6 +88,4 @@ int data_fusion(mpudata_t *mpu);
 unsigned short inv_row_2_scale(const signed char *row);
 unsigned short inv_orientation_matrix_to_scalar(const signed char *mtx);
 
-
 #endif /* MPU9150_H */
-
