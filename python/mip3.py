@@ -1,3 +1,5 @@
+import warnings
+import time
 import ctrl.bbb as ctrl
 
 class Controller(ctrl.Controller):
@@ -57,3 +59,9 @@ class Controller(ctrl.Controller):
                         dir_A = 'P8_46',
                         enable_pin = 'P9_41')
 
+        # Initializing devices
+        warnings.warn("> Initializing devices ...")
+        self.start()
+        time.sleep(2)
+        self.stop()
+        warnings.warn("> Done.")
