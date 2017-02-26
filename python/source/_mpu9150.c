@@ -109,7 +109,7 @@ PyMODINIT_FUNC PyInit_mpu9150(void)
   /* create exception */
   mpu9150Error = PyErr_NewException("mpu9150.error", NULL, NULL);
   Py_INCREF(mpu9150Error);
-  PyModule_AddObject(module, "error", mpu9150Error);
+  PyModule_AddObject(m, "error", mpu9150Error);
   
   return m;
 }
