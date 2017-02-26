@@ -73,16 +73,23 @@ static unsigned char accel_fsr = 2;
 static
 int mpu9150_initialize(void) {
   
+  printf("*> Initializing IMU...\n");
+
   /* Initialize IMU */
   signed char orientation[9] = ORIENTATION_UPRIGHT;
   int ret;
   if ((ret = initialize_imu(sample_rate,
 			    orientation,
-			    0)))
+			    0))) {
+    printf("*> Failed to initialize IMU. ret = %d\n", ret);
     return ret;
+  }
   
   /* setup gyro and accel resolutions */
+  printf("*> Setting gyro resolution = %u\n", gyro_fsr);
   mpu_set_gyro_fsr(gyro_fsr);
+  
+  printf("*> Setting accel resolution = %u\n", accel_fsr);
   mpu_set_accel_fsr(accel_fsr);
   
   /* retrive scaling factor */
@@ -90,6 +97,9 @@ int mpu9150_initialize(void) {
   unsigned short _as;
   mpu_get_accel_sens(&_as);
   as = (float) _as;
+
+  printf("*> Getting gyro scaling = %f\n", gs);
+  printf("*> Getting accell scaling = %f\n", as);
 
   set_imu_interrupt_func(&read_func);
 
