@@ -220,6 +220,11 @@ def main():
 
     print('Controller Test Routine')
 
+    # dummy test
+    with controller:
+        print('> Initializing...');
+        time.sleep(2)
+    
     k = 1
     position1, position2 \
         = test('{}: MOTOR 1 FORWARD'.format(k), 
