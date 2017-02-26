@@ -66,7 +66,7 @@ int read_func(void) {
 static float gs, as;
 static int flag_initialized = 0;
 
-static int sample_rate = 100;
+static int sample_rate = 200;
 static unsigned short gyro_fsr = 1000;
 static unsigned char accel_fsr = 2;
 
