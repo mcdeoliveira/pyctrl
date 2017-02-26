@@ -75,9 +75,11 @@ int mpu9150_initialize(void) {
   
   /* Initialize IMU */
   signed char orientation[9] = ORIENTATION_UPRIGHT;
-  initialize_imu(sample_rate,
-		 orientation,
-		 0);
+  int ret;
+  if (ret = initialize_imu(sample_rate,
+			   orientation,
+			   0))
+    return ret;
   
   /* setup gyro and accel resolutions */
   mpu_set_gyro_fsr(gyro_fsr);
@@ -120,7 +122,10 @@ PyObject *mpu9150_pyread(PyObject *self, PyObject *args)
 
   /* initialize */
   if (!flag_initialized)
-    mpu9150_initialize();
+    if (mpu9150_initialize()) {
+      PyErr_SetString(mpu9150Error, "Failed to initialize IMU");
+      return NULL;
+    }
   
   /* Build the output tuple */
   PyObject *ret = 
@@ -140,7 +145,10 @@ PyObject *mpu9150_reset_stats(PyObject *self, PyObject *args)
 {
   /* initialize */
   if (!flag_initialized)
-    mpu9150_initialize();
+    if (mpu9150_initialize()) {
+      PyErr_SetString(mpu9150Error, "Failed to initialize IMU");
+      return NULL;
+    }
 
   count = 0;
   avg_duty = max_duty = 0;
@@ -153,7 +161,10 @@ static PyObject *mpu9150_get_stats(PyObject *self, PyObject *args)
 {
   /* initialize */
   if (!flag_initialized)
-    mpu9150_initialize();
+    if (mpu9150_initialize()) {
+      PyErr_SetString(mpu9150Error, "Failed to initialize IMU");
+      return NULL;
+    }
   
   /* Build the output tuple */
   return Py_BuildValue("(Iff)", count, avg_duty, max_duty);
