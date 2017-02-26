@@ -13,6 +13,9 @@ static char mpu9150_get_stats_docstring[] =
   "Read MPU performance statistics.";
 
 static int read_func(void);
+static int mpu9150_initialize(void);
+static PyObject *mpu9150Error;
+
 static PyObject *mpu9150_pyread(PyObject *self, PyObject *args);
 static PyObject *mpu9150_reset_stats(PyObject *self, PyObject *args);
 static PyObject *mpu9150_get_stats(PyObject *self, PyObject *args);
@@ -33,15 +36,14 @@ static struct PyModuleDef module = {
    module_methods
 };
 
-//float gs, as;
+static mpudata_t mpu; //struct to read IMU data into
+static unsigned int count = 0;
+static unsigned long timestamp;
+static float max_duty = 0;
+static float avg_duty = 0;
+static int debug_imu = 0;
 
-mpudata_t mpu; //struct to read IMU data into
-unsigned int count = 0;
-unsigned long timestamp;
-float max_duty = 0;
-float avg_duty = 0;
-int debug_imu = 0;
-
+static
 int read_func(void) {
 
   if (mpu9150_read(&mpu) != 0){
@@ -61,18 +63,27 @@ int read_func(void) {
   return 0;
 }
 
-float gs, as;
+static float gs, as;
+static int flag_intialized = 0;
 
-PyMODINIT_FUNC PyInit_mpu9150(void)
-{
+static int sample_rate = 200;
+static unsigned short gyro_fsr = 1000;
+static unsigned char accel_fsr = 2;
 
+static
+int mpu9150_intialize(void) {
+  
   /* Initialize IMU */
   signed char orientation[9] = ORIENTATION_UPRIGHT;
-  initialize_imu(200, orientation, 0);
-
-  mpu_set_gyro_fsr(1000);
-  mpu_set_accel_fsr(2);
-
+  initialize_imu(sample_rate,
+		 orientation,
+		 0);
+  
+  /* setup gyro and accel resolutions */
+  mpu_set_gyro_fsr(gyro_fsr);
+  mpu_set_accel_fsr(accel_fsr);
+  
+  /* retrive scaling factor */
   mpu_get_gyro_sens(&gs);
   unsigned short _as;
   mpu_get_accel_sens(&_as);
@@ -80,11 +91,37 @@ PyMODINIT_FUNC PyInit_mpu9150(void)
 
   set_imu_interrupt_func(&read_func);
 
-  return PyModule_Create(&module);
+  /* set initialized flag */
+  flag_intialized = 1;
+
+  return 0;
 }
 
-static PyObject *mpu9150_pyread(PyObject *self, PyObject *args)
+PyMODINIT_FUNC PyInit_mpu9150(void)
 {
+  PyObject *module;
+
+  /* create module */
+  module = PyModule_Create(&module);
+  if (module == NULL)
+    return NULL;
+
+  /* create exception */
+  mpu9150Error = PyErr_NewException("mpu9150.error", NULL, NULL);
+  Py_INCREF(mpu9150Error);
+  PyModule_AddObject(module, "error", mpu9150Error);
+  
+  return module;
+}
+
+static
+PyObject *mpu9150_pyread(PyObject *self, PyObject *args)
+{
+
+  /* initialize */
+  if (!flag_initialized)
+    mpu9150_intialize();
+  
   /* Build the output tuple */
   PyObject *ret = 
     Py_BuildValue("(ffffff)", 
@@ -98,7 +135,8 @@ static PyObject *mpu9150_pyread(PyObject *self, PyObject *args)
   return ret;
 }
 
-static PyObject *mpu9150_reset_stats(PyObject *self, PyObject *args)
+static
+PyObject *mpu9150_reset_stats(PyObject *self, PyObject *args)
 {
   count = 0;
   avg_duty = max_duty = 0;
@@ -109,8 +147,10 @@ static PyObject *mpu9150_reset_stats(PyObject *self, PyObject *args)
 
 static PyObject *mpu9150_get_stats(PyObject *self, PyObject *args)
 {
-
+  /* initialize */
+  if (!flag_initialized)
+    mpu9150_intialize();
+  
   /* Build the output tuple */
   return Py_BuildValue("(Iff)", count, avg_duty, max_duty);
 }
-
