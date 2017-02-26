@@ -15,7 +15,7 @@ INCLUDES := $(wildcard *.h)
 OBJECTS  := $(SOURCES:$%.c=$%.o)
 OBJECTS  := vector3d.o quaternion.o linux_glue.o c_i2c.o SimpleGPIO.o \
             inv_mpu.o inv_mpu_dmp_motion_driver.o mpu9150.o \
-	    imu_int.o
+	    imu.o
 RM := rm -f
 CP := cp
 INSTALL_DIR = /usr/lib/
