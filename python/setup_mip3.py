@@ -224,6 +224,7 @@ def main():
     with controller:
         print('> Initializing...');
         time.sleep(2)
+        print('> Done.');
     
     k = 1
     position1, position2 \
