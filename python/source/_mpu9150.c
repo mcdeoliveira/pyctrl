@@ -64,7 +64,7 @@ int read_func(void) {
 }
 
 static float gs, as;
-static int flag_intialized = 0;
+static int flag_initialized = 0;
 
 static int sample_rate = 200;
 static unsigned short gyro_fsr = 1000;
@@ -92,7 +92,7 @@ int mpu9150_intialize(void) {
   set_imu_interrupt_func(&read_func);
 
   /* set initialized flag */
-  flag_intialized = 1;
+  flag_initialized = 1;
 
   return 0;
 }
