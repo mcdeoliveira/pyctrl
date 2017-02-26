@@ -138,6 +138,10 @@ PyObject *mpu9150_pyread(PyObject *self, PyObject *args)
 static
 PyObject *mpu9150_reset_stats(PyObject *self, PyObject *args)
 {
+  /* initialize */
+  if (!flag_initialized)
+    mpu9150_initialize();
+
   count = 0;
   avg_duty = max_duty = 0;
 
