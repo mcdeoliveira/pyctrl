@@ -280,7 +280,7 @@ class Feedback(block.BufferBlock):
 
 class Sum(block.BufferBlock):
 
-    def __init__(self, *vars, **kwargs):
+    def __init__(self, gain = 1., *vars, **kwargs):
         """
         Sum:
             y = \sum_{k = 1}^n u_k
@@ -289,12 +289,20 @@ class Sum(block.BufferBlock):
         output = y
         """
 
+        self.gain = gain
         super().__init__(*vars, **kwargs)
-    
+
+    def set(self, **kwargs):
+        
+        if 'gain' in kwargs:
+            self.gain = float(kwargs.pop('gain'))
+
+        super().set(**kwargs)
+
     def write(self, *values):
 
         #(sum(v) for v in values)
-        self.buffer = (sum(map(numpy.array, values)), )
+        self.buffer = (self.gain*sum(map(numpy.array, values)), )
 
 class Subtract(block.BufferBlock):
 
@@ -312,4 +320,3 @@ class Subtract(block.BufferBlock):
     def write(self, *values):
 
         self.buffer = (values[1]-values[0], )
-        
