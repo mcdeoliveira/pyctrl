@@ -5,12 +5,45 @@ from .. import block
 
 # Blocks
 
+class Combine(block.BufferBlock):
+
+    def __init__(self, gain = 1, *vars, **kwargs):
+
+        assert isinstance(gain, (int, float))
+        self.gain = gain
+
+        super().__init__(*vars, **kwargs)
+    
+    def set(self, **kwargs):
+        
+        if 'gain' in kwargs:
+            self.gain = kwargs.pop('gain')
+
+        super().set(**kwargs)
+
+    def write(self, *values):
+
+        assert len(values) > 2
+        alpha = values[0] / self.gain;
+        self.buffer = ((1-alpha)*values[1] + alpha*values[2],)
+
+class ControlledGain(block.BufferBlock):
+
+    def __init__(self, *vars, **kwargs):
+
+        super().__init__(*vars, **kwargs)
+    
+    def write(self, *values):
+
+        assert len(values) > 1
+        gain = values[0]
+        self.buffer = tuple(v*gain for v in values[1:])
+
 class Abs(block.BufferBlock):
 
     def write(self, *values):
 
         self.buffer = tuple(map(math.fabs, values))
-        
 
 class DeadZone(block.BufferBlock):
 

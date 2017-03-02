@@ -90,8 +90,65 @@ def test2():
     blk.write(-1,1,-2,2)
     answer = blk.read()
     assert answer == (1,1,2,2)
+
+def test3():
+
+    blk = nonlinear.ControlledGain()
     
+    blk.write(1, 2)
+    answer = blk.read()
+    assert answer == (2, )
+
+    blk.write(2, 2)
+    answer = blk.read()
+    assert answer == (4, )
+
+    blk.write(2, 2, 3)
+    answer = blk.read()
+    assert answer == (4, 6)
+
+    with pytest.raises(AssertionError):
+        blk.write(1)
+        answer = blk.read()
+
+def test4():
+
+    blk = nonlinear.Combine()
+    
+    blk.write(0, 2, 4)
+    answer = blk.read()
+    assert answer == (2, )
+
+    blk.write(1, 2, 4)
+    answer = blk.read()
+    assert answer == (4, )
+
+    blk.write(.5, 2, 4)
+    answer = blk.read()
+    assert answer == (3., )
+    
+    with pytest.raises(AssertionError):
+        blk.write(1)
+        answer = blk.read()
+
+    with pytest.raises(AssertionError):
+        blk.write(1, 2)
+        answer = blk.read()
+
+    blk = nonlinear.Combine(gain = 100)
+
+    blk.write(0, 2, 4)
+    answer = blk.read()
+    assert answer == (2, )
+
+    blk.write(100, 2, 4)
+    answer = blk.read()
+    assert answer == (4, )
+
+        
 if __name__ == "__main__":
 
     test1()
     test2()
+    test3()
+    test4()
