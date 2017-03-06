@@ -18,6 +18,11 @@ class ControllerWarning(Warning):
 class ControllerException(Exception):
     pass
 
+# state
+IDLE = 0
+RUNNING = 1
+EXITING = 2
+
 class Controller:
 
     def __init__(self):
@@ -25,6 +30,9 @@ class Controller:
         # debug
         self.debug = 0
 
+        # state
+        self.state = IDLE
+        
         # real-time loop
         self.is_running = False
 
@@ -70,6 +78,14 @@ class Controller:
         # call __reset
         self.__reset()
 
+    # get_state
+    def get_state(self):
+        return self.state
+
+    # set_state
+    def set_state(self, state):
+        self.state = state
+    
     # info
     def info(self, options = 'summary'):
 
@@ -509,6 +525,9 @@ class Controller:
         self.thread = Thread(target = self.run)
         self.thread.start()
 
+        # change state to running
+        self.state = RUNNING
+
     def stop(self):
         """Stop controller loop
         """
@@ -523,3 +542,5 @@ class Controller:
             if device['enable']:
                 device['instance'].set_enabled(False)
 
+        # change state to idle
+        self.state = IDLE

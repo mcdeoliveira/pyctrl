@@ -26,10 +26,12 @@ class Controller(ctrl.Controller):
         self.port = kwargs.pop('port', 9999)
 
         self.socket = None
-        self.debug = 1
+        self.shutdown_request = False
 
         # Initialize controller
         super().__init__(*vargs, **kwargs)
+
+        self.debug = 1
 
     def __enter__(self):
         if self.debug > 0:
@@ -240,49 +242,10 @@ class Controller(ctrl.Controller):
         self.send('c')
 
     def stop(self):
-        self.send('d')
+        if not self.shutdown_request:
+            self.send('d')
 
-if __name__ == "__main__":
+    def shutdown(self):
+        self.shutdown_request = True
+        self.send('0')
 
-    import time
-    import numpy
-    from ControlAlgorithm import ProportionalController
-
-    HOST, PORT = "localhost", 9999
-    
-    with ControllerClient(HOST, PORT) as controller:
-
-        print(controller.help())
-
-        print(controller.help('s'))
-        print(controller.help('S'))
-
-        controller.set_echo(0)
-
-        controller.reset_logger()
-
-        controller.start()
-        time.sleep(1)
-        controller.set_reference1(100)
-        time.sleep(1)
-        controller.set_reference1(-50)
-        time.sleep(1)
-        controller.set_reference1(0)
-        time.sleep(1)
-        controller.stop()
-
-        print(controller.get_log())
-
-        controller.set_logger(2)
-
-        controller.start()
-        time.sleep(1)
-        controller.set_reference1(100)
-        time.sleep(1)
-        controller.set_reference1(-100)
-        time.sleep(1)
-        controller.stop()
-
-        print(controller.get_log())
-
-        controller.set_controller1(ProportionalController(1, 1))

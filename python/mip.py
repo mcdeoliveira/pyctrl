@@ -2,9 +2,10 @@ import warnings
 import time
 
 import rc
-import rc.ctrl as ctrl
+import ctrl
+import rc.ctrl as rc_ctrl
 
-class Controller(ctrl.Controller):
+class Controller(rc_ctrl.Controller):
 
     def __reset(self):
 
@@ -16,16 +17,16 @@ class Controller(ctrl.Controller):
                         'rc.ctrl.encoder', 'Encoder',
                         type = 'source',
                         outputs = ['encoder1'],
-                        encoder = 2, 
-                        ratio = - 60 * 35.557)
+                        encoder = 3, 
+                        ratio = 60 * 35.557)
 
         # add source: encoder2
         self.add_device('encoder2',
                         'rc.ctrl.encoder', 'Encoder',
                         type = 'source',
                         outputs = ['encoder2'],
-                        encoder = 3, 
-                        ratio = 60 * 35.557)
+                        encoder = 2, 
+                        ratio = - 60 * 35.557)
 
         # add source: imu
         self.add_device('imu',
@@ -51,8 +52,11 @@ class Controller(ctrl.Controller):
                         motor = 2,
                         gain = -1/100) 
 
-        # Set state as RUNNING
+        # set state as RUNNING
         rc.set_state(rc.RUNNING)
+
+        # register cleanup function
+        rc.add_cleanup(self.set_state, (ctrl.EXITING,))
         
         # # Initializing devices
         # warnings.warn("> Initializing devices ...")

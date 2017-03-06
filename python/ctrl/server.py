@@ -1,5 +1,6 @@
 import warnings
 import socketserver
+import threading
 
 from . import packet
 import ctrl
@@ -128,45 +129,53 @@ def set_controller(_controller = ctrl.Controller()):
 
         'd': ('',  '',  controller.stop,
               'Stop control loop'),
-        
 
+        # '0': ('', '', server_shutdown, 'Shutdown server')
+        
     }
 
 # Initialize default controller
 set_controller(controller)
 
+# exit flag
+exiting = False
+
 class Handler(socketserver.StreamRequestHandler):
 
     #def __init__(self, request, client_address, server):
-    #    super().__init__(request, client_address, server)
-
+        #super().__init__(request, client_address, server)
+    
     def handle(self):
         
-        global verbose_level, controller, commands
+        global verbose_level, controller, commands, exiting
 
-        if verbose_level > 0:
+        if verbose_level > 1:
             print('> Connected to {}'.format(self.client_address))
 
         # Read command
         while True:
             
+            if verbose_level > 4:
+                print('>>> server::Handler::handle loop')
+                
             try:
                 (type, code) = packet.unpack_stream(self.rfile)
+                
             except NameError as e:
                 # TODO: Differentiate closed socket from error
-                if verbose_level > 0:
+                if verbose_level > 1:
                     print('> Closed connection to {}'.format(self.client_address))
                 break
             
             if type == 'C':
 
-                if verbose_level > 1:
+                if verbose_level > 2:
                     print(">> Got '{}'".format(code))
 
                 (argument_type, output_type, function,
                  short_help) = commands.get(code, ('', '', None, ''))
                 
-                if verbose_level > 2:
+                if verbose_level > 3:
                     print(">>> Will execute '{}({})'".format(code, argument_type))
                 
                 # Handle input arguments
@@ -181,31 +190,41 @@ class Handler(socketserver.StreamRequestHandler):
                     else:
                         vargs.append(arg)
 
-                if verbose_level > 2:
+                if verbose_level > 3:
                     print('>>> vargs = {}'.format(vargs))
                     print('>>> kwargs = {}'.format(kwargs))
 
-                try:
-
-                    # Call function
-                    message = function(*vargs, **kwargs)
-
-                except Exception as inst:
-                    
-                    # Something bad happen
-                    message = inst
-                    output_type = 'E'
-                    if verbose_level > 1:
-                        print('> **Exception**: ', inst)
-
-                # Wrap outupt 
-                if output_type == '':
+                # shutdown?
+                if code == '0':
+                    print('> Be patient, shutting down server...')
+                    # set exit flag
+                    controller.state = ctrl.EXITING
+                    # clear message
                     message = None
-                else:
-                    message = (output_type, message)
 
-                if verbose_level > 2:
-                    print('>>> Message = {}'.format(message))
+                else:
+                    
+                    try:
+
+                        # Call function
+                        message = function(*vargs, **kwargs)
+
+                    except Exception as inst:
+
+                        # Something bad happen
+                        message = inst
+                        output_type = 'E'
+                        if verbose_level > 1:
+                            print('> **Exception**: ', inst)
+
+                    # Wrap outupt 
+                    if output_type == '':
+                        message = None
+                    else:
+                        message = (output_type, message)
+
+                    if verbose_level > 3:
+                        print('>>> Message = {}'.format(message))
 
             else:
                 message = ('S', 
@@ -213,13 +232,16 @@ class Handler(socketserver.StreamRequestHandler):
 
             if message is not None:
                 # Send message back
-                if verbose_level > 2:
+                if verbose_level > 3:
                     print('>>> Sending message = ', *message)
-                    if verbose_level > 3:
+                    if verbose_level > 4:
                         print('>>>> Message content = ', packet.pack(*message))
                 self.wfile.write(packet.pack(*message))
 
             message = ('A', code)
-            if verbose_level > 2:
+            if verbose_level > 3:
                 print(">>> Acknowledge '{}'\n".format(code))
             self.wfile.write(packet.pack(*message))
+
+        if verbose_level > 4:
+            print('>>> Exiting server::handle loop')

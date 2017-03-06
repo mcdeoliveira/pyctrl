@@ -1,8 +1,13 @@
 import warnings
 import socketserver
 import platform
-import getopt, sys
+import getopt, sys, signal
 import importlib
+import threading
+import time
+
+# from hanging_threads import start_monitoring
+# monitoring_thread = start_monitoring()
 
 import ctrl.server
 
@@ -103,26 +108,39 @@ def main():
                                     ctrl.server.Handler)
 
     # Initiate server
-    try:
-        # Activate the server; this will keep running until you
-        # interrupt the program with Ctrl-C
-        print('Controller Server (version {})'.format(ctrl.server.version()))
-        if verbose_level > 0:
-            print('> Options:')
-            print('    Hostname[port]: {}[{}]'.format(HOST, PORT))
-            print('    Sampling rate : {}s'.format(controller.get_period()))
-            print('    Log size      : {}s'.format(log_size))
-            print('    Verbose level : {}'.format(verbose_level))
-            print(controller.info('all'))
-            print('> Server started...')
-        server.serve_forever()
 
-    except (KeyboardInterrupt, SystemExit):
-        pass
+    print('Controller Server (version {})'.format(ctrl.server.version()))
+    if verbose_level > 0:
+        print('> Options:')
+        print('    Hostname[port]: {}[{}]'.format(HOST, PORT))
+        print('    Sampling rate : {}s'.format(controller.get_period()))
+        print('    Log size      : {}s'.format(log_size))
+        print('    Verbose level : {}'.format(verbose_level))
+        print(controller.info('all'))
+        print('> Server started...')
+        
+    # run server in a separate thread
+    thread = threading.Thread(target=server.serve_forever)
+    # Exit the server thread when the main thread terminates
+    thread.daemon = True
+    thread.start()
+
+    try:
+
+        print("> Use 'python kill_server.py' to exit server")
+        
+        # keep running until state changes to ctrl.exiting
+        while controller.get_state() != ctrl.EXITING:
+            time.sleep(10)
 
     finally:
-        print('Exiting...')
+
+        # shutdown server
         server.shutdown()
+        thread.join()
+            
+        # say bye
+        print("\nBye Beaglebone!")
 
 if __name__ == "__main__":
     main()

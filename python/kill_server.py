@@ -1,0 +1,13 @@
+from ctrl.client import Controller
+
+def main():
+
+    HOST, PORT = "localhost", 9999
+    with Controller(host = HOST, port = PORT) as server:
+
+        print('> Sending shutdown request')
+        server.shutdown()
+
+if __name__ == "__main__":
+
+    main()
