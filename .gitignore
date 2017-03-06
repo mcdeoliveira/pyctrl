@@ -102,3 +102,6 @@ aed/settings.py
 *.o
 
 python/source/mpu9150/test
+
+# rc subdirectory
+python/rc

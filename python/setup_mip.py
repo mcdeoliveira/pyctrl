@@ -10,14 +10,17 @@ import ctrl.block.logger as logger
 # initialize controller
 #HOST, PORT = "192.168.10.101", 9999
 #controller = Controller(host = HOST, port = PORT)
-Ts = 0.04;
+Ts = 0.25;
 controller = Controller(period = Ts)
 logger_signals = ['clock','encoder1','encoder2']
 controller.add_sink('logger', 
                     logger.Logger(), 
                     logger_signals)
 controller.add_sink('printer', block.Printer(endln = '\r'), 
-                    ['clock','motor1', 'encoder1','motor2', 'encoder2', 'imu'])
+                    ['clock',
+                     'motor1','encoder1',
+                     'motor2','encoder2',
+                     'theta','theta_dot'])
     
 print(controller.info('all'))
 
@@ -111,26 +114,19 @@ def test_theta(args):
     with controller:
 
         # Test IMU
-        print("> Rotate the MIP 90 degrees <ENTER>") 
-        KMAX = 30 
-        k = 0
-        while k < KMAX:
-            theta, = controller.read_source('imu')
-            time.sleep(.1)
-            k += 1
-
+        answer = input('> Lean the MIP near the +90 deg position and hit <ENTER>').lower()
+        (theta, thetaDot) = controller.read_source('imu')
         if theta < 0:
-            return (False, 'inverted IMU')
-
-        print("> Rotate the MIP -90 degrees <ENTER>") 
-        k = 0
-        while k < KMAX:
-            theta, = controller.read_source('imu')
-            time.sleep(.1)
-            k += 1
-
+            return False, 'Motors are likely reversed'
+        if theta < .2:
+            return False, 'MIP does not seem to be leaning at +90 degree position'
+        
+        answer = input('> Lean the MIP near the -90 deg position and hit <ENTER>').lower()
+        (theta, thetaDot) = controller.read_source('imu')
         if theta > 0:
-            return (False, 'inverted IMU')
+            return False, 'Motors are likely reversed'
+        if theta > -.2:
+            return False, 'MIP does not seem to be leaning at -90 degree position'
 
     return True, []
 
@@ -147,7 +143,7 @@ def identify_motor(motor, encoder, T = 2):
         controller.set_source('clock', reset = True)
         time.sleep(1)
         controller.set_signal(motor,100)
-        time.sleep(T)
+        time.sleep(2*T)
 
         controller.set_signal(motor,0)
         
@@ -182,116 +178,181 @@ def identify_motor(motor, encoder, T = 2):
     
     print('>> lambda    = {:5.3f}'.format(1/tau))
 
+    KMAX = 10 
+    k = 0
+    tau = 0;
+    while k < KMAX:
+
+        k += 1
+        print('>> TEST {} out of {}'.format(k, KMAX))
+        
+        with controller:
+
+            controller.set_source(encoder, reset = True)
+            controller.set_source('clock', reset = True)
+            controller.set_sink('logger', reset = True)
+            
+            controller.set_signal(motor,100)
+            time.sleep(T)
+            controller.set_signal(motor,0)
+
+            log = controller.read_sink('logger')
+            tind = logger_signals.index('clock')
+            eind = logger_signals.index(encoder)
+
+            t = log[:,tind]
+            position = log[:,eind]
+            velocity = numpy.zeros(t.shape, float)
+            velocity[1:] = (position[1:]-position[:-1])/(t[1:]-t[:-1])
+            
+            ind = numpy.argwhere( (velocity > 0.1*mean_velocity ) & 
+                                  (velocity < 0.9*mean_velocity ) )
+            t10 = float(t[ind[0]])
+            t90 = float(t[ind[-1]])
+            tau += (t90 - t10) / 2.2 / KMAX
+
+            time.sleep(0.1)
+
+    print('>> lambda    = {:5.3f}'.format(1/tau))
+
 def main():
 
-    print('Controller Test Routine')
+    print('> MIP Test Routine')
 
-    k = 1
-    position1, position2 \
-        = test('{}: MOTOR 1 FORWARD'.format(k), 
-               ('motor1','encoder1'),
-               'Did the motor spin clockwise for two seconds?', 
-               'motor1 not working',
-               test_motor_forward)
-  
-    k += 1
-    test('{}: ENCODER 1 FORWARD'.format(k), 
-         (position1, position2),
-         '',
-         '',
-         test_encoder)
-    
-    k += 1
-    position1, position2 \
-        = test('{}: MOTOR 2 FORWARD'.format(k), 
-               ('motor2','encoder2'),
-               'Did the motor spin clockwise for two seconds?', 
-               'motor1 not working',
-               test_motor_forward)
-    
-    k += 1
-    test('{}: ENCODER 2 FORWARD'.format(k), 
-         (position1, position2),
-         '',
-         '',
-         test_encoder)
-    
-    k += 1
-    test('{}: CLOCK RESET'.format(k), (), 
-         '',
-         '',
-         test_reset_clock)
-    
-    k += 1
-    position1, position2 \
-        = test('{}: MOTOR 1 BACKWARD'.format(k),
-               ('motor1','encoder1'),
-               'Did the motor spin counter-clockwise for two seconds?', 
-               'motor1 not working',
-               test_motor_backward)
+    try:
 
-    k += 1
-    test('{}: ENCODER 1 BACKWARD'.format(k), 
-         (position2, position1),
-         '',
-         '',
-         test_encoder)
+        print("""
+* * * * * * * * * *
+* T E S T   M I P *
+* * * * * * * * * *
 
-    k += 1
-    position1, position2 \
-        = test('{}: MOTOR 2 BACKWARD'.format(k),
-               ('motor2','encoder2'),
-               'Did the motor spin counter-clockwise for two seconds?', 
-               'motor1 not working',
-               test_motor_backward)
-    
-    k += 1
-    test('{}: ENCODER 2 BACKWARD'.format(k), 
-         (position2, position1),
-         '',
-         '',
-         test_encoder)
-    
-    k += 1
-    test('{}: MOTOR 1 TWO SPEEDS'.format(k),
-         ('motor1','encoder1'),
-         'Did the motor spin at full speed then slowed down to half speed?', 
-         'motor1 not working',
-         test_motor_speeds)
+This test will help you make sure the MIP is wired correctly. The
+following tests are meant to be performed with the MIP oriented as
 
-    k += 1
-    test('{}: MOTOR 2 TWO SPEEDS'.format(k),
-         ('motor2','encoder2'),
-         'Did the motor spin at full speed then slowed down to half speed?', 
-         'motor1 not working',
-         test_motor_speeds)
+      /
+     /
+    O
+  ======
 
-    k += 1
-    position1, position2 \
-        = test('{}: ENCODER 1 RESET'.format(k), 
-               ('encoder1',),
-               '', 
-               '',
-               test_reset_encoder)
+The angle theta is measured relative to the vertical with zero being 
+above the wheels.
+
+""")
+
+        input('Hit <ENTER> to start the tests.')
         
-    k += 1
-    position1, position2 \
-        = test('{}: ENCODER 2 RESET'.format(k), 
-               ('encoder2',),
-               '', 
-               '',
-               test_reset_encoder)
-    
-    k += 1
-    test('{}: TEST THETA'.format(k), 
-         ('imu',),
-         '', 
-         '',
-         test_theta)
+        k = 1
+        position1, position2 \
+            = test('{}: MOTOR 1 COUNTER-CLOCKWISE'.format(k), 
+                   ('motor1','encoder1'),
+                   'Did the wheel nearest to you spin counter-clockwise for two seconds?', 
+                   'motor1 not working properly',
+                   test_motor_forward)
 
-    T = 2
-    identify_motor('motor1', 'encoder1', T)
-    identify_motor('motor2', 'encoder2', T)
+        k += 1
+        test('{}: ENCODER 1 COUNTER-CLOCKWISE'.format(k), 
+             (position1, position2),
+             '',
+             '',
+             test_encoder)
+
+        k += 1
+        position1, position2 \
+            = test('{}: MOTOR 2 COUNTER-CLOCKWISE'.format(k), 
+                   ('motor2','encoder2'),
+                   'Did the wheel farthest from you spin counter-clockwise for two seconds?', 
+                   'motor2 not working properly',
+                   test_motor_forward)
+
+        k += 1
+        test('{}: ENCODER 2 COUNTER-CLOCKWISE'.format(k), 
+             (position1, position2),
+             '',
+             '',
+             test_encoder)
+
+        k += 1
+        test('{}: CLOCK RESET'.format(k), (), 
+             '',
+             '',
+             test_reset_clock)
+
+        k += 1
+        position1, position2 \
+            = test('{}: MOTOR 1 CLOCKWISE'.format(k),
+                   ('motor1','encoder1'),
+                   'Did the wheel nearest to you spin clockwise for two seconds?', 
+                   'motor1 not working properly',
+                   test_motor_backward)
+
+        k += 1
+        test('{}: ENCODER 1 CLOCKWISE'.format(k), 
+             (position2, position1),
+             '',
+             '',
+             test_encoder)
+
+        k += 1
+        position1, position2 \
+            = test('{}: MOTOR 2 CLOCKWISE'.format(k),
+                   ('motor2','encoder2'),
+                   'Did the wheel farthest from you spin clockwise for two seconds?', 
+                   'motor2 not working properly',
+                   test_motor_backward)
+
+        k += 1
+        test('{}: ENCODER 2 CLOCKWISE'.format(k), 
+             (position2, position1),
+             '',
+             '',
+             test_encoder)
+
+        k += 1
+        test('{}: MOTOR 1 TWO SPEEDS'.format(k),
+             ('motor1','encoder1'),
+             'Did wheel nearest to you spin counter-clockwise at full speed then slowed down to half speed?', 
+             'motor1 not working properly',
+             test_motor_speeds)
+
+        k += 1
+        test('{}: MOTOR 2 TWO SPEEDS'.format(k),
+             ('motor2','encoder2'),
+             'Did the wheel farthest from you spin counter-clockwise at full speed then slowed down to half speed?', 
+             'motor2 not working properly',
+             test_motor_speeds)
+
+        k += 1
+        position1, position2 \
+            = test('{}: ENCODER 1 RESET'.format(k), 
+                   ('encoder1',),
+                   '', 
+                   '',
+                   test_reset_encoder)
+
+        k += 1
+        position1, position2 \
+            = test('{}: ENCODER 2 RESET'.format(k), 
+                   ('encoder2',),
+                   '', 
+                   '',
+                   test_reset_encoder)
+
+        k += 1
+        test('{}: TEST THETA'.format(k), 
+             ('imu',),
+             '', 
+             '',
+             test_theta)
+
+        T = 2
+        identify_motor('motor1', 'encoder1', T)
+        identify_motor('motor2', 'encoder2', T)
+
+    except (KeyboardInterrupt, SystemExit):
+        pass
+
+    finally:
+        print('Exiting...')
     
 if __name__ == "__main__":
     main()
