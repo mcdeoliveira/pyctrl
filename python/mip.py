@@ -3,7 +3,7 @@ import time
 
 import rc
 import ctrl
-import rc.ctrl as rc_ctrl
+import ctrl.rc as rc_ctrl
 
 class Controller(rc_ctrl.Controller):
 
@@ -14,7 +14,7 @@ class Controller(rc_ctrl.Controller):
 
         # add source: encoder1
         self.add_device('encoder1',
-                        'rc.ctrl.encoder', 'Encoder',
+                        'ctrl.rc.encoder', 'Encoder',
                         type = 'source',
                         outputs = ['encoder1'],
                         encoder = 3, 
@@ -22,7 +22,7 @@ class Controller(rc_ctrl.Controller):
 
         # add source: encoder2
         self.add_device('encoder2',
-                        'rc.ctrl.encoder', 'Encoder',
+                        'ctrl.rc.encoder', 'Encoder',
                         type = 'source',
                         outputs = ['encoder2'],
                         encoder = 2, 
@@ -30,14 +30,14 @@ class Controller(rc_ctrl.Controller):
 
         # add source: imu
         self.add_device('imu',
-                        'rc.ctrl.imu', 'Inclinometer',
+                        'ctrl.rc.imu', 'Inclinometer',
                         type = 'source',
                         enable = False,
                         outputs = ['theta','theta_dot'])
 
         # add sink: motor1
         self.add_device('motor1', 
-                        'rc.ctrl.motor', 'Motor',
+                        'ctrl.rc.motor', 'Motor',
                         type = 'sink',
                         enable = True,
                         inputs = ['motor1'],
@@ -45,7 +45,7 @@ class Controller(rc_ctrl.Controller):
 
         # add sink: motor2
         self.add_device('motor2', 
-                        'rc.ctrl.motor', 'Motor',
+                        'ctrl.rc.motor', 'Motor',
                         type = 'sink',
                         enable = True,
                         inputs = ['motor2'],

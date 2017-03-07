@@ -275,7 +275,7 @@ above the wheels. For example
 
     print("""
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-*                C O N G R A T U L A T I O N S ! ! !                *
+*            ! ! ! C O N G R A T U L A T I O N S ! ! !              *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
 Your MIP seems to be working and is wired correctly.
