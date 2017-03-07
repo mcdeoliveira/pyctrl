@@ -1,5 +1,5 @@
-import math
 import pytest
+import math
 
 import ctrl.block as block
 import ctrl.block.clock as clk
@@ -9,7 +9,7 @@ def test():
     N = 100
     Ts = 0.01
 
-    clock = clk.TimerClock(period = Ts)
+    clock = clk.TimerClock()
     k = 0
     while k < N:
         (t,) = clock.read()
