@@ -1,6 +1,3 @@
-import warnings
-import time
-
 import rc
 import ctrl
 import ctrl.rc as rc_ctrl
@@ -58,9 +55,3 @@ class Controller(rc_ctrl.Controller):
         # register cleanup function
         rc.add_cleanup(self.set_state, (ctrl.EXITING,))
         
-        # # Initializing devices
-        # warnings.warn("> Initializing devices ...")
-        # self.start()
-        # time.sleep(2)
-        # self.stop()
-        # warnings.warn("> Done.")
