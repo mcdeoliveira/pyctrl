@@ -9,6 +9,13 @@ class Controller(rc_ctrl.Controller):
         # call super
         super().__reset()
 
+        # add source: imu
+        self.add_device('inclinometer',
+                        'ctrl.rc.imu', 'Inclinometer',
+                        type = 'source',
+                        enable = False,
+                        outputs = ['theta','theta_dot'])
+
         # add source: encoder1
         self.add_device('encoder1',
                         'ctrl.rc.encoder', 'Encoder',
@@ -24,13 +31,6 @@ class Controller(rc_ctrl.Controller):
                         outputs = ['encoder2'],
                         encoder = 2, 
                         ratio = - 60 * 35.557)
-
-        # add source: imu
-        self.add_device('imu',
-                        'ctrl.rc.imu', 'Inclinometer',
-                        type = 'source',
-                        enable = False,
-                        outputs = ['theta','theta_dot'])
 
         # add sink: motor1
         self.add_device('motor1', 

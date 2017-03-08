@@ -9,6 +9,13 @@ import time
 import math
 import numpy
 import sys
+import warnings
+
+def brief_warning(message, category, filename, lineno, line=None):
+    return "*{}\n".format(message)
+
+warnings.formatwarning = brief_warning
+
 
 from ctrl.rc.mip import Controller
 import ctrl.block as block
@@ -20,6 +27,7 @@ mip = Controller(period = Ts)
 # define tests
 
 def test(k, args, query_msg, failed_msg, test_function):
+
     print('\n> TEST #{}'.format(k))
     passed, retval = test_function(args)
     if not passed:
@@ -107,15 +115,15 @@ def test_theta(args):
     with mip:
 
         # Test IMU
-        answer = input('> Lean the MIP near the +90 deg position and hit <ENTER>').lower()
-        (theta, thetaDot) = mip.read_source('imu')
+        answer = input('< Lean the MIP near the +90 deg position and hit <ENTER>').lower()
+        (theta, thetaDot) = mip.read_source('inclinometer')
         if theta < 0:
             return False, 'Motors are likely reversed'
         if theta < .2:
             return False, 'MIP does not seem to be leaning at +90 degree position'
         
-        answer = input('> Lean the MIP near the -90 deg position and hit <ENTER>').lower()
-        (theta, thetaDot) = mip.read_source('imu')
+        answer = input('< Lean the MIP near the -90 deg position and hit <ENTER>').lower()
+        (theta, thetaDot) = mip.read_source('inclinometer')
         if theta > 0:
             return False, 'Motors are likely reversed'
         if theta > -.2:
@@ -125,7 +133,9 @@ def test_theta(args):
 
 def main():
 
-    print("""
+    try:
+        
+        print("""
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *                         S E T U P   M I P                         *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -151,142 +161,145 @@ above the wheels. For example
      +90 deg       0 deg      -90 deg
 
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-""")
+    """)
 
-    input('> Hit <ENTER> to start')
+        input('< Hit <ENTER> to start')
 
-    verbose = False
-    if verbose:
-        mip.add_sink('printer', block.Printer(endln = '\r'), 
-                            ['clock',
-                             'motor1','encoder1',
-                             'motor2','encoder2',
-                             'theta','theta_dot'])
+        verbose = False
+        if verbose:
+            mip.add_sink('printer', block.Printer(endln = '\r'), 
+                                ['clock',
+                                 'motor1','encoder1',
+                                 'motor2','encoder2',
+                                 'theta','theta_dot'])
 
-        print(mip.info('all'))
+            print(mip.info('all'))
 
-    input('> We will spin the wheels. Lift your MIP up in the air and hit <ENTER>')
+        input('< We will spin the wheels. Lift your MIP up in the air and hit <ENTER>')
 
-    k = 1
-    position1, position2 \
-        = test('{}: MOTOR 1 COUNTER-CLOCKWISE'.format(k), 
-               ('motor1','encoder1'),
-               'Did the wheel nearest to you spin counter-clockwise for two seconds?', 
-               'motor1 not working properly',
-               test_motor_forward)
+        k = 1
+        position1, position2 \
+            = test('{}: MOTOR 1 COUNTER-CLOCKWISE'.format(k), 
+                   ('motor1','encoder1'),
+                   'Did the wheel nearest to you spin counter-clockwise for two seconds?', 
+                   'motor1 not working properly',
+                   test_motor_forward)
 
-    k += 1
-    test('{}: ENCODER 1 COUNTER-CLOCKWISE'.format(k), 
-         (position1, position2),
-         '',
-         '',
-         test_encoder)
+        k += 1
+        test('{}: ENCODER 1 COUNTER-CLOCKWISE'.format(k), 
+             (position1, position2),
+             '',
+             '',
+             test_encoder)
 
-    input('> We will spin the wheels. Lift your MIP up in the air and hit <ENTER>')
+        input('< We will spin the wheels. Lift your MIP up in the air and hit <ENTER>')
 
-    k += 1
-    position1, position2 \
-        = test('{}: MOTOR 2 COUNTER-CLOCKWISE'.format(k), 
-               ('motor2','encoder2'),
-               'Did the wheel farthest from you spin counter-clockwise for two seconds?', 
-               'motor2 not working properly',
-               test_motor_forward)
+        k += 1
+        position1, position2 \
+            = test('{}: MOTOR 2 COUNTER-CLOCKWISE'.format(k), 
+                   ('motor2','encoder2'),
+                   'Did the wheel farthest from you spin counter-clockwise for two seconds?', 
+                   'motor2 not working properly',
+                   test_motor_forward)
 
-    k += 1
-    test('{}: ENCODER 2 COUNTER-CLOCKWISE'.format(k), 
-         (position1, position2),
-         '',
-         '',
-         test_encoder)
+        k += 1
+        test('{}: ENCODER 2 COUNTER-CLOCKWISE'.format(k), 
+             (position1, position2),
+             '',
+             '',
+             test_encoder)
 
-    k += 1
-    test('{}: CLOCK RESET'.format(k), (), 
-         '',
-         '',
-         test_reset_clock)
+        k += 1
+        test('{}: CLOCK RESET'.format(k), (), 
+             '',
+             '',
+             test_reset_clock)
 
-    input('> We will spin the wheels. Lift your MIP up in the air and hit <ENTER>')
+        input('< We will spin the wheels. Lift your MIP up in the air and hit <ENTER>')
 
-    k += 1
-    position1, position2 \
-        = test('{}: MOTOR 1 CLOCKWISE'.format(k),
-               ('motor1','encoder1'),
-               'Did the wheel nearest to you spin clockwise for two seconds?', 
-               'motor1 not working properly',
-               test_motor_backward)
+        k += 1
+        position1, position2 \
+            = test('{}: MOTOR 1 CLOCKWISE'.format(k),
+                   ('motor1','encoder1'),
+                   'Did the wheel nearest to you spin clockwise for two seconds?', 
+                   'motor1 not working properly',
+                   test_motor_backward)
 
-    k += 1
-    test('{}: ENCODER 1 CLOCKWISE'.format(k), 
-         (position2, position1),
-         '',
-         '',
-         test_encoder)
+        k += 1
+        test('{}: ENCODER 1 CLOCKWISE'.format(k), 
+             (position2, position1),
+             '',
+             '',
+             test_encoder)
 
-    input('> We will spin the wheels. Lift your MIP up in the air and hit <ENTER>')
+        input('< We will spin the wheels. Lift your MIP up in the air and hit <ENTER>')
 
-    k += 1
-    position1, position2 \
-        = test('{}: MOTOR 2 CLOCKWISE'.format(k),
-               ('motor2','encoder2'),
-               'Did the wheel farthest from you spin clockwise for two seconds?', 
-               'motor2 not working properly',
-               test_motor_backward)
+        k += 1
+        position1, position2 \
+            = test('{}: MOTOR 2 CLOCKWISE'.format(k),
+                   ('motor2','encoder2'),
+                   'Did the wheel farthest from you spin clockwise for two seconds?', 
+                   'motor2 not working properly',
+                   test_motor_backward)
 
-    k += 1
-    test('{}: ENCODER 2 CLOCKWISE'.format(k), 
-         (position2, position1),
-         '',
-         '',
-         test_encoder)
+        k += 1
+        test('{}: ENCODER 2 CLOCKWISE'.format(k), 
+             (position2, position1),
+             '',
+             '',
+             test_encoder)
 
-    input('> We will spin the wheels. Lift your MIP up in the air and hit <ENTER>')
+        input('< We will spin the wheels. Lift your MIP up in the air and hit <ENTER>')
 
-    k += 1
-    test('{}: MOTOR 1 TWO SPEEDS'.format(k),
-         ('motor1','encoder1'),
-         'Did wheel nearest to you spin counter-clockwise at full speed then slowed down to half speed?', 
-         'motor1 not working properly',
-         test_motor_speeds)
+        k += 1
+        test('{}: MOTOR 1 TWO SPEEDS'.format(k),
+             ('motor1','encoder1'),
+             'Did wheel nearest to you spin counter-clockwise at full speed then slowed down to half speed?', 
+             'motor1 not working properly',
+             test_motor_speeds)
 
-    input('> We will spin the wheels. Lift your MIP up in the air and hit <ENTER>')
+        input('< We will spin the wheels. Lift your MIP up in the air and hit <ENTER>')
 
-    k += 1
-    test('{}: MOTOR 2 TWO SPEEDS'.format(k),
-         ('motor2','encoder2'),
-         'Did the wheel farthest from you spin counter-clockwise at full speed then slowed down to half speed?', 
-         'motor2 not working properly',
-         test_motor_speeds)
+        k += 1
+        test('{}: MOTOR 2 TWO SPEEDS'.format(k),
+             ('motor2','encoder2'),
+             'Did the wheel farthest from you spin counter-clockwise at full speed then slowed down to half speed?', 
+             'motor2 not working properly',
+             test_motor_speeds)
 
-    k += 1
-    position1, position2 \
-        = test('{}: ENCODER 1 RESET'.format(k), 
-               ('encoder1',),
-               '', 
-               '',
-               test_reset_encoder)
+        k += 1
+        position1, position2 \
+            = test('{}: ENCODER 1 RESET'.format(k), 
+                   ('encoder1',),
+                   '', 
+                   '',
+                   test_reset_encoder)
 
-    k += 1
-    position1, position2 \
-        = test('{}: ENCODER 2 RESET'.format(k), 
-               ('encoder2',),
-               '', 
-               '',
-               test_reset_encoder)
+        k += 1
+        position1, position2 \
+            = test('{}: ENCODER 2 RESET'.format(k), 
+                   ('encoder2',),
+                   '', 
+                   '',
+                   test_reset_encoder)
 
-    k += 1
-    test('{}: TEST THETA'.format(k), 
-         ('imu',),
-         '', 
-         '',
-         test_theta)
+        k += 1
+        test('{}: TEST THETA'.format(k), 
+             ('imu',),
+             '', 
+             '',
+             test_theta)
 
-    print("""
+        print("""
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 *            ! ! ! C O N G R A T U L A T I O N S ! ! !              *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
 Your MIP seems to be working and is wired correctly.
 """)
+
+    except KeyboardInterrupt:
+        print("> SETUP MIP aborted...")
         
 if __name__ == "__main__":
     main()

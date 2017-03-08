@@ -127,12 +127,16 @@ def main():
 
     try:
 
-        print("> Use 'python kill_server.py' to exit server")
+        print("> Hit Ctrl-C or Use 'python kill_server.py' to exit server")
         
         # keep running until state changes to ctrl.exiting
         while controller.get_state() != ctrl.EXITING:
             time.sleep(10)
 
+    except KeyboardInterrupt:
+        # Catch Ctrl-C
+        pass
+            
     finally:
 
         # shutdown server
