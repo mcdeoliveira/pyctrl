@@ -1,6 +1,7 @@
 import warnings
 import socketserver
 import threading
+import time
 
 from . import packet
 import ctrl
@@ -153,10 +154,12 @@ class Handler(socketserver.StreamRequestHandler):
             print('> Connected to {}'.format(self.client_address))
 
         # Read command
-        while True:
+        while controller.get_state() != ctrl.EXITING:
             
             if verbose_level > 4:
                 print('>>> server::Handler::handle loop')
+                print('>>> controller state = {}'.format(controller.get_state()))
+           
                 
             try:
                 (type, code) = packet.unpack_stream(self.rfile)
@@ -198,10 +201,17 @@ class Handler(socketserver.StreamRequestHandler):
                 if code == '0':
                     print('> Be patient, shutting down server...')
                     # set exit flag
-                    controller.state = ctrl.EXITING
+                    controller.set_state(ctrl.EXITING)
                     # clear message
                     message = None
-
+                    # start thread to shutdown server
+                    # from http://stackoverflow.com/questions/10085996/shutdown-socketserver-serve-forever-in-one-thread-python-application
+                    def kill_me_please(server):
+                        time.sleep(.5)
+                        server.shutdown()
+                    threading.Thread(target=kill_me_please,
+                                     args=(self.server,)).start()
+                    
                 else:
                     
                     try:
@@ -245,3 +255,5 @@ class Handler(socketserver.StreamRequestHandler):
 
         if verbose_level > 4:
             print('>>> Exiting server::handle loop')
+            print('>>> controller state = {}'.format(controller.get_state()))
+           

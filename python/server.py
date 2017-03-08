@@ -104,9 +104,10 @@ def main():
     # Start server
 
     # Create the server, binding to HOST and PORT
+    socketserver.ThreadingTCPServer.allow_reuse_address = True
     server = socketserver.TCPServer((HOST, PORT), 
                                     ctrl.server.Handler)
-
+    
     # Initiate server
 
     print('Controller Server (version {})'.format(ctrl.server.version()))
@@ -121,17 +122,14 @@ def main():
         
     # run server in a separate thread
     thread = threading.Thread(target=server.serve_forever)
-    # Exit the server thread when the main thread terminates
-    thread.daemon = True
     thread.start()
 
     try:
 
         print("> Hit Ctrl-C or Use 'python kill_server.py' to exit server")
         
-        # keep running until state changes to ctrl.exiting
-        while controller.get_state() != ctrl.EXITING:
-            time.sleep(10)
+        # Wait forever
+        thread.join()
 
     except KeyboardInterrupt:
         # Catch Ctrl-C

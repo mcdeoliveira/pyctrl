@@ -464,7 +464,7 @@ class Controller:
         self.duty = 0
         self.signals['duty'] = self.duty
 
-        while self.is_running:
+        while self.is_running and self.state != EXITING:
 
             # Run the loop
 
@@ -544,3 +544,8 @@ class Controller:
 
         # change state to idle
         self.state = IDLE
+
+    def join(self):
+
+        if self.thread:
+            self.thread.join()
