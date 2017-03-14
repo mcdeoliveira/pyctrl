@@ -35,6 +35,7 @@ def read_key():
     if ord(key) == 27:
         key = key + sys.stdin.read(2)
     elif ord(key) == 3:
+        print('Got ^C')
         raise KeyboardInterrupt    
 
     return key
