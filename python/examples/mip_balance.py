@@ -49,8 +49,9 @@ def get_arrows(mip, fd):
     while mip.get_state() != ctrl.EXITING:
         
         print('\rvelocity = {:+4.0f} deg/s'
-              '  steering = {:+3.1f}'
-              .format(360*phi_dot_reference, steer_reference),
+              '  steering = {:+3.1f} %'
+              .format(360*phi_dot_reference,
+                      100*(steer_reference-0.5)),
               end='')
         
         key = read_key()
