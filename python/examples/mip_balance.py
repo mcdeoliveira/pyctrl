@@ -55,11 +55,7 @@ def get_arrows(mip):
                   end='')
             
             key = read_key()
-            if key == chr(3):
-                # exit
-                print('GOT Ctrl-C')
-                break
-            elif key == ARROW_LEFT:
+            if key == ARROW_LEFT:
                 print('LEFT')
             elif key == ARROW_RIGHT:
                 print('RIGHT')
@@ -69,7 +65,11 @@ def get_arrows(mip):
             elif key == ARROW_DOWN:
                 phi_dot_reference = phi_dot_reference - 10/360
                 mip.set_signal('phi_dot_reference', phi_dot_reference)
-                
+
+    except KeyboadInterrrupt:
+
+        print('Got Ctrl-C')
+        
     finally:
         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
