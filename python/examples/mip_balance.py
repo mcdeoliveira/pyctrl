@@ -39,6 +39,8 @@ def read_key():
 
 def get_arrows(mip):
 
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
     try:
 
         tty.setcbreak(sys.stdin.fileno())
