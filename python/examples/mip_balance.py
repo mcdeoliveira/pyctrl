@@ -43,19 +43,23 @@ def read_key():
 def get_arrows(mip, fd):
 
     phi_dot_reference = 0
+    steer_reference = 0
     
     tty.setcbreak(fd)
     while mip.get_state() != ctrl.EXITING:
         
         print('\rforward velocity = {:+4.0f} deg/s'
-              .format(360*phi_dot_reference),
+              'steering = {:+3.1f}'
+              .format(360*phi_dot_reference, steer_reference),
               end='')
         
         key = read_key()
         if key == ARROW_LEFT:
-            print('LEFT')
+            steer_reference = max(steer_reference + 0.1, 1)
+            mip.set_signal('steer_reference', steer_reference)
         elif key == ARROW_RIGHT:
-            print('RIGHT')
+            steer_reference = min(steer_reference - 0.1, 0)
+            mip.set_signal('steer_reference', steer_reference)
         elif key == ARROW_UP:
             phi_dot_reference = phi_dot_reference + 10/360
             mip.set_signal('phi_dot_reference', - phi_dot_reference)
@@ -121,10 +125,10 @@ def main():
                    ['voltage'])
 
     # steering biasing
-    mip.add_signal('steer')
+    mip.add_signal('steer_reference')
     mip.add_filter('steer',
                    ControlledCombination(),
-                   ['steer', 'voltage','voltage'],
+                   ['steer_reference', 'voltage','voltage'],
                    ['motor1','motor2'])
 
     # connect controller to motors
@@ -140,7 +144,7 @@ def main():
     # set references
     mip.set_signal('theta_dot_reference', 0)
     mip.set_signal('phi_dot_reference',0)
-    mip.set_signal('steer',0.5)
+    mip.set_signal('steer_reference',0.5)
 
     # print controller
     print(mip.info('all'))
