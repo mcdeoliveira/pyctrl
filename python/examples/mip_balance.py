@@ -43,12 +43,12 @@ def read_key():
 def get_arrows(mip, fd):
 
     phi_dot_reference = 0
-    steer_reference = 0
+    steer_reference = 0.5
     
     tty.setcbreak(fd)
     while mip.get_state() != ctrl.EXITING:
         
-        print('\rforward velocity = {:+4.0f} deg/s'
+        print('\rvelocity = {:+4.0f} deg/s'
               '  steering = {:+3.1f}'
               .format(360*phi_dot_reference, steer_reference),
               end='')
