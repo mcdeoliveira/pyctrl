@@ -46,7 +46,7 @@ def get_arrows(mip, fd):
     tty.setcbreak(fd)
     while mip.get_state() != ctrl.EXITING:
         
-        print('\rforward velocity = {:3.0f} deg/s'
+        print('\rforward velocity = {:+4.0f} deg/s'
               .format(360*phi_dot_reference),
               end='')
         
@@ -99,10 +99,6 @@ def main():
                    ['phi_dot','phi_dot_reference'],
                    ['phi_dot_error'])
 
-    # set references
-    mip.set_signal('theta_dot_reference', 0)
-    mip.set_signal('phi_dot_reference',0)
-
     # state-space controller
     # Ts = 0.01
     Ac = np.array([[0.913134, 0.0363383],[-0.0692862, 0.994003]])
@@ -123,15 +119,32 @@ def main():
                    ['theta_dot_error','phi_dot_error'],
                    ['voltage'])
 
-    # connect controller to motors
-    mip.add_filter('cl1',
-                   ShortCircuit(),
-                   ['voltage'],
+    # steering biasing
+    mip.add_signal('steer')
+    mip.add_filter('right',
+                   ControlledGain(),
+                   ['steer', 'voltage'],
                    ['motor1'])
-    mip.add_filter('cl2',
-                   ShortCircuit(),
-                   ['voltage'],
+
+    mip.add_filter('left',
+                   ControlledGain(),
+                   ['steer', 'voltage'],
                    ['motor2'])
+    
+    # connect controller to motors
+    # mip.add_filter('cl1',
+    #                ShortCircuit(),
+    #                ['voltage'],
+    #                ['motor1'])
+    # mip.add_filter('cl2',
+    #                ShortCircuit(),
+    #                ['voltage'],
+    #                ['motor2'])
+
+    # set references
+    mip.set_signal('theta_dot_reference', 0)
+    mip.set_signal('phi_dot_reference',0)
+    mip.set_signal('steer',0)
 
     # print controller
     print(mip.info('all'))

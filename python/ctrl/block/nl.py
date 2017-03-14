@@ -5,6 +5,37 @@ from .. import block
 
 # Blocks
 
+class ControlledCombination(block.BufferBlock):
+
+    #
+    # Block ControlledCombination(gain = 1)
+    #
+    # input = (u0,u1,u2)
+    # output = ((1-a)*u1, a*u2)
+    #
+    # where a = u0/gain
+    #
+    
+    def __init__(self, gain = 1, *vars, **kwargs):
+
+        assert isinstance(gain, (int, float))
+        self.gain = gain
+
+        super().__init__(*vars, **kwargs)
+    
+    def set(self, **kwargs):
+        
+        if 'gain' in kwargs:
+            self.gain = kwargs.pop('gain')
+
+        super().set(**kwargs)
+
+    def write(self, *values):
+
+        assert len(values) > 2
+        alpha = values[0] / self.gain;
+        self.buffer = ((1-alpha)*values[1], alpha*values[2])
+
 class Combine(block.BufferBlock):
 
     #

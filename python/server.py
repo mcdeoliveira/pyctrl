@@ -56,7 +56,7 @@ def main():
     calibrate = 1
 
     # default module
-    module = 'ctrl.bbb'
+    module = 'ctrl'
     ctrl_class = 'Controller'
 
     for o, a in opts:
@@ -95,7 +95,7 @@ def main():
     # Create controller
     obj_class = getattr(importlib.import_module(module),
                         ctrl_class)
-    controller = obj_class(period = Ts)
+    controller = obj_class()
     controller.set_period(Ts)
     controller.reset()
     ctrl.server.set_controller(controller)
