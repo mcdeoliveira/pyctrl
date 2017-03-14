@@ -49,7 +49,7 @@ def get_arrows(mip, fd):
     while mip.get_state() != ctrl.EXITING:
         
         print('\rforward velocity = {:+4.0f} deg/s'
-              'steering = {:+3.1f}'
+              '  steering = {:+3.1f}'
               .format(360*phi_dot_reference, steer_reference),
               end='')
         
