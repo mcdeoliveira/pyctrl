@@ -41,21 +41,29 @@ def read_key():
 
 def get_arrows(mip):
 
+    phi_dot_reference = 0
+    
     fd = sys.stdin.fileno()
     old_settings = termios.tcgetattr(fd)
     try:
 
         tty.setcbreak(sys.stdin.fileno())
         while mip.get_state() != ctrl.EXITING:
+
+            print('\rforward velocity = {} deg/s'.format(360*phi_dot_reference,
+                                                         end='')
+            
             key = read_key()
             if key == ARROW_LEFT:
                 print('LEFT')
             elif key == ARROW_RIGHT:
                 print('RIGHT')
             elif key == ARROW_UP:
-                print('UP')
+                phi_dot_reference = phi_dot_reference + 10/360
+                mip.set_signal('phi_dot_reference', phi_dot_reference)
             elif key == ARROW_DOWN:
-                print('DOWN')
+                phi_dot_reference = phi_dot_reference - 10/360
+                mip.set_signal('phi_dot_reference', phi_dot_reference)
                 
     finally:
         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
