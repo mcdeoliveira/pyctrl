@@ -69,6 +69,8 @@ def get_arrows(mip):
     finally:
         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
+    print('EXITED FROM THREAD')
+        
 def main():
 
     # create mip
@@ -179,6 +181,7 @@ def main():
 
     finally:
 
+        thread.shutdown()
         thread.join()
         
 if __name__ == "__main__":
