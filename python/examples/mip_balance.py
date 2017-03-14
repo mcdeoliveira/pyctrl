@@ -187,7 +187,7 @@ def main():
 
     finally:
 
-        thread.join()
+        pass
         
 if __name__ == "__main__":
     main()
