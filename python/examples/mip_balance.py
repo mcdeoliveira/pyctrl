@@ -66,7 +66,7 @@ def get_arrows(mip):
                 phi_dot_reference = phi_dot_reference - 10/360
                 mip.set_signal('phi_dot_reference', phi_dot_reference)
 
-    except KeyboadInterrrupt:
+    except KeyboardInterrupt:
 
         print('Got Ctrl-C')
         
@@ -185,7 +185,6 @@ def main():
 
     finally:
 
-        thread.terminate()
         thread.join()
         
 if __name__ == "__main__":
