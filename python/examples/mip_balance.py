@@ -35,46 +35,33 @@ def read_key():
     if ord(key) == 27:
         key = key + sys.stdin.read(2)
     elif ord(key) == 3:
-        print('Got ^C')
         raise KeyboardInterrupt    
 
     return key
 
-def get_arrows(mip):
+def get_arrows(mip, fd):
 
     phi_dot_reference = 0
     
-    fd = sys.stdin.fileno()
-    old_settings = termios.tcgetattr(fd)
-    try:
-
-        tty.setcbreak(sys.stdin.fileno())
-        while mip.get_state() != ctrl.EXITING:
-
-            print('\rforward velocity = {:3.0f} deg/s'
-                  .format(360*phi_dot_reference),
-                  end='')
-            
-            key = read_key()
-            if key == ARROW_LEFT:
-                print('LEFT')
-            elif key == ARROW_RIGHT:
-                print('RIGHT')
-            elif key == ARROW_UP:
-                phi_dot_reference = phi_dot_reference + 10/360
-                mip.set_signal('phi_dot_reference', phi_dot_reference)
-            elif key == ARROW_DOWN:
-                phi_dot_reference = phi_dot_reference - 10/360
-                mip.set_signal('phi_dot_reference', phi_dot_reference)
-
-    except KeyboardInterrupt:
-
-        print('Got Ctrl-C')
+    tty.setcbreak(fd)
+    while mip.get_state() != ctrl.EXITING:
         
-    finally:
-        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-
-    print('EXITED FROM THREAD')
+        print('\rforward velocity = {:3.0f} deg/s'
+              .format(360*phi_dot_reference),
+              end='')
+        
+        key = read_key()
+        if key == ARROW_LEFT:
+            print('LEFT')
+        elif key == ARROW_RIGHT:
+            print('RIGHT')
+        elif key == ARROW_UP:
+            phi_dot_reference = phi_dot_reference + 10/360
+            mip.set_signal('phi_dot_reference', phi_dot_reference)
+        elif key == ARROW_DOWN:
+            phi_dot_reference = phi_dot_reference - 10/360
+            mip.set_signal('phi_dot_reference', phi_dot_reference)
+            
         
 def main():
 
@@ -149,6 +136,8 @@ def main():
     # print controller
     print(mip.info('all'))
 
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
     try:
 
         print("""
@@ -173,7 +162,7 @@ def main():
 
         # fire thread to update velocities
         thread = threading.Thread(target = get_arrows,
-                                  args = (mip, ))
+                                  args = (mip, fd))
         thread.daemon = True
         thread.start()
         
@@ -186,8 +175,7 @@ def main():
         mip.set_state(ctrl.EXITING)
 
     finally:
-
-        pass
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
         
 if __name__ == "__main__":
     main()
