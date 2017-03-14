@@ -55,7 +55,11 @@ def get_arrows(mip):
                   end='')
             
             key = read_key()
-            if key == ARROW_LEFT:
+            if key == chr(3):
+                # exit
+                print('GOT Ctrl-C')
+                break
+            elif key == ARROW_LEFT:
                 print('LEFT')
             elif key == ARROW_RIGHT:
                 print('RIGHT')
