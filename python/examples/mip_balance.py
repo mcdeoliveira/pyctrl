@@ -16,6 +16,8 @@ def brief_warning(message, category, filename, lineno, line=None):
 
 warnings.formatwarning = brief_warning
 
+import ctrl
+
 from ctrl.block.linear import MIMO, ShortCircuit, Subtract, Differentiator, Sum, Gain
 from ctrl.block.logger import Logger
 from ctrl.system.ss import DTSS
