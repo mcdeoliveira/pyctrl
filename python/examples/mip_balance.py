@@ -50,8 +50,9 @@ def get_arrows(mip):
         tty.setcbreak(sys.stdin.fileno())
         while mip.get_state() != ctrl.EXITING:
 
-            print('\rforward velocity = {} deg/s'.format(360*phi_dot_reference,
-                                                         end='')
+            print('\rforward velocity = {} deg/s'
+                  .format(360*phi_dot_reference),
+                  end='')
             
             key = read_key()
             if key == ARROW_LEFT:
