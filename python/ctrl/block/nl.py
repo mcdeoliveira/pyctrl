@@ -7,6 +7,15 @@ from .. import block
 
 class Combine(block.BufferBlock):
 
+    #
+    # Block Combine(gain = 1)
+    #
+    # input = (u0,u1,u2)
+    # output = ((1-a)*u1 + a*u2)
+    #
+    # where a = u0/gain
+    #
+    
     def __init__(self, gain = 1, *vars, **kwargs):
 
         assert isinstance(gain, (int, float))
@@ -28,6 +37,13 @@ class Combine(block.BufferBlock):
         self.buffer = ((1-alpha)*values[1] + alpha*values[2],)
 
 class ControlledGain(block.BufferBlock):
+
+    #
+    # Block ControlledGain()
+    #
+    # input = (u0,u1,u2,...)
+    # output = (u0*u1, u0*u2, ...)
+    #
 
     def __init__(self, *vars, **kwargs):
 

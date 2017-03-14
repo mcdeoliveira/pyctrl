@@ -8,6 +8,8 @@ import math
 import time
 import warnings
 import numpy as np
+import sys, tty, termios
+import threading
 
 def brief_warning(message, category, filename, lineno, line=None):
     return "*{}\n".format(message)
@@ -17,6 +19,42 @@ warnings.formatwarning = brief_warning
 from ctrl.block.linear import MIMO, ShortCircuit, Subtract, Differentiator, Sum, Gain
 from ctrl.block.logger import Logger
 from ctrl.system.ss import DTSS
+
+# read key stuff
+
+ARROW_UP = "\033[A"
+ARROW_DOWN = "\033[B"
+ARROW_RIGHT = "\033[C"
+ARROW_LEFT = "\033[D"
+
+def read_key():
+
+    key = sys.stdin.read(1)
+    if ord(key) == 27:
+        key = key + sys.stdin.read(2)
+    elif ord(key) == 3:
+        raise KeyboardInterrupt    
+
+    return key
+
+def get_arrows(mip):
+
+    try:
+
+        tty.setcbreak(sys.stdin.fileno())
+        while mip.get_state() != ctrl.EXITING:
+            key = read_key()
+            if key == ARROW_LEFT:
+                print('LEFT')
+            elif key == ARROW_RIGHT:
+                print('RIGHT')
+            elif key == ARROW_UP:
+                print('UP')
+            elif key == ARROW_DOWN:
+                print('DOWN')
+                
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
 def main():
 
@@ -113,6 +151,10 @@ def main():
         mip.start()
 
         print("Press Ctrl-C to exit")
+
+        # fire thread to update velocities
+        thread = threading.Thread(target = get_arrows,
+                                  args = (mip, ))
         
         # and wait until controller dies
         mip.join()
@@ -120,6 +162,11 @@ def main():
     except KeyboardInterrupt:
 
         print("> Balancing aborted")
+
+    finally:
+
+        thread.shutdown()
+        thread.join()
         
 if __name__ == "__main__":
     main()

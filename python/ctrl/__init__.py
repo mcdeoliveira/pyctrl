@@ -549,3 +549,10 @@ class Controller:
 
         if self.thread:
             self.thread.join()
+
+    def set_period(self,period):
+        pass
+
+    def get_period(self):
+        return None
+                
