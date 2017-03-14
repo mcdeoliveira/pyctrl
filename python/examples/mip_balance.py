@@ -19,6 +19,7 @@ warnings.formatwarning = brief_warning
 import ctrl
 
 from ctrl.block.linear import MIMO, ShortCircuit, Subtract, Differentiator, Sum, Gain
+from ctrl.block.nl import ControlledCombination
 from ctrl.block.logger import Logger
 from ctrl.system.ss import DTSS
 
@@ -121,16 +122,11 @@ def main():
 
     # steering biasing
     mip.add_signal('steer')
-    mip.add_filter('right',
-                   ControlledGain(),
-                   ['steer', 'voltage'],
-                   ['motor1'])
+    mip.add_filter('steer',
+                   ControlledCombination(),
+                   ['steer', 'voltage','voltage'],
+                   ['motor1','motor2'])
 
-    mip.add_filter('left',
-                   ControlledGain(),
-                   ['steer', 'voltage'],
-                   ['motor2'])
-    
     # connect controller to motors
     # mip.add_filter('cl1',
     #                ShortCircuit(),
@@ -144,7 +140,7 @@ def main():
     # set references
     mip.set_signal('theta_dot_reference', 0)
     mip.set_signal('phi_dot_reference',0)
-    mip.set_signal('steer',0)
+    mip.set_signal('steer',0.5)
 
     # print controller
     print(mip.info('all'))
