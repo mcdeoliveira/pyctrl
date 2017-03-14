@@ -57,10 +57,10 @@ def get_arrows(mip, fd):
             print('RIGHT')
         elif key == ARROW_UP:
             phi_dot_reference = phi_dot_reference + 10/360
-            mip.set_signal('phi_dot_reference', phi_dot_reference)
+            mip.set_signal('phi_dot_reference', - phi_dot_reference)
         elif key == ARROW_DOWN:
             phi_dot_reference = phi_dot_reference - 10/360
-            mip.set_signal('phi_dot_reference', phi_dot_reference)
+            mip.set_signal('phi_dot_reference', - phi_dot_reference)
             
         
 def main():
