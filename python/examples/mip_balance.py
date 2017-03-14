@@ -50,7 +50,7 @@ def get_arrows(mip):
         tty.setcbreak(sys.stdin.fileno())
         while mip.get_state() != ctrl.EXITING:
 
-            print('\rforward velocity = {} deg/s'
+            print('\rforward velocity = {:3.0f} deg/s'
                   .format(360*phi_dot_reference),
                   end='')
             
@@ -121,11 +121,11 @@ def main():
 
     K = 0.8
 
-    ctrl = DTSS(Ac,K*Bc,Cc,K*Dc)
+    ssctrl = DTSS(Ac,K*Bc,Cc,K*Dc)
 
     mip.add_signal('voltage')
     mip.add_filter('controller',
-                   MIMO(ctrl),
+                   MIMO(ssctrl),
                    ['theta_dot_error','phi_dot_error'],
                    ['voltage'])
 
