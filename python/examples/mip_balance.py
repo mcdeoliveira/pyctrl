@@ -56,10 +56,10 @@ def get_arrows(mip, fd):
         
         key = read_key()
         if key == ARROW_LEFT:
-            steer_reference = min(steer_reference + 0.1, 1)
+            steer_reference = min(steer_reference + 0.025, 1)
             mip.set_signal('steer_reference', steer_reference)
         elif key == ARROW_RIGHT:
-            steer_reference = max(steer_reference - 0.1, 0)
+            steer_reference = max(steer_reference - 0.025, 0)
             mip.set_signal('steer_reference', steer_reference)
         elif key == ARROW_UP:
             phi_dot_reference = phi_dot_reference + 10/360
@@ -115,7 +115,7 @@ def main():
     Bc = (100/7.4)*Bc
     Dc = (100/7.4)*Dc
 
-    K = 0.8
+    K = 1
 
     ssctrl = DTSS(Ac,K*Bc,Cc,K*Dc)
 
