@@ -174,6 +174,7 @@ def main():
         # fire thread to update velocities
         thread = threading.Thread(target = get_arrows,
                                   args = (mip, ))
+        thread.daemon = True
         thread.start()
         
         # and wait until controller dies
