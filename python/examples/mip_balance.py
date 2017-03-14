@@ -49,17 +49,17 @@ def get_arrows(mip, fd):
     while mip.get_state() != ctrl.EXITING:
         
         print('\rvelocity = {:+4.0f} deg/s'
-              '  steering = {:+3.1f} %'
+              '  steering = {:+4.2f} %'
               .format(360*phi_dot_reference,
                       100*(steer_reference-0.5)),
               end='')
         
         key = read_key()
         if key == ARROW_LEFT:
-            steer_reference = min(steer_reference - 0.01, 1)
+            steer_reference = max(steer_reference - 0.01, 0)
             mip.set_signal('steer_reference', steer_reference)
         elif key == ARROW_RIGHT:
-            steer_reference = max(steer_reference + 0.01, 0)
+            steer_reference = min(steer_reference + 0.01, 1)
             mip.set_signal('steer_reference', steer_reference)
         elif key == ARROW_UP:
             phi_dot_reference = phi_dot_reference + 10/360
