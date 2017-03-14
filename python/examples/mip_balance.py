@@ -175,6 +175,7 @@ def main():
     except KeyboardInterrupt:
 
         print("> Balancing aborted")
+        mip.set_state(ctrl.EXITING)
 
     finally:
 
