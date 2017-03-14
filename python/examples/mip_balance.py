@@ -181,7 +181,7 @@ def main():
 
     finally:
 
-        thread.shutdown()
+        thread.terminate()
         thread.join()
         
 if __name__ == "__main__":
