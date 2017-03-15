@@ -31,7 +31,7 @@ class Controller(ctrl.Controller):
         # Initialize controller
         super().__init__(*vargs, **kwargs)
 
-        self.debug = 1
+        self.debug = 0
 
     def __enter__(self):
         if self.debug > 0:
