@@ -4,6 +4,7 @@ This module provides the basic building blocks for implementing controllers.
 
 import contextlib
 import numpy
+import sys
 
 class BlockException(Exception):
     pass
@@ -11,18 +12,15 @@ class BlockException(Exception):
 class Block:
     """
     *Block* provides the basic functionality for all types of blocks.
+        
+    `Block` does not take any parameters other than *enable* and will raise
+    *BlockException* if any of the *vars* or *kwargs* is left
+    unprocessed.
+        
+    :param enable: set block as enabled (default True)
     """
     
     def __init__(self, *vars, **kwargs):
-        """
-        Constructs a new *Block* object.
-
-        It does not take any parameters other than *enable* and will
-        raise *BlockException* if any of the *vars* or *kwargs* is
-        left unprocessed.
-        
-        :param enable: set block as enabled (default True)
-        """
         
         self.enabled = kwargs.pop('enabled', True)
 
@@ -105,7 +103,7 @@ class Block:
 
     def read(self):
         """
-        Read from *Block*
+        Read from *Block*.
 
         Will raise *BlockException* if block does not support read.
         """
@@ -133,9 +131,7 @@ class BufferBlock(Block):
     """
 
     def __init__(self, *vars, **kwargs):
-        """
-        Constructs a new *BufferBlock* object.
-        """
+        
         self.buffer = ()
 
         super().__init__(*vars, **kwargs)
@@ -164,24 +160,33 @@ class BufferBlock(Block):
     
 class Printer(Block):
     """
-    A *Printer* blocks prints the values of signals to the screen.
-    """
-    def __init__(self, *vars, **kwargs):
-        """
-        Constructs a new *Printer* object.
+    A *Printer* block prints the values of signals to the screen.
 
-        :param endl: end-of-line character 
-        :param frmt: 
-        :param sep: 
-        """
+    :param endl: end-of-line character (default `'\\\\n'`)
+    :param frmt: format string (default `{: 12.4f}`)
+    :param sep: field separator (default `' '`)
+    :param file: file to print on (default `sys.stdout`)
+    """
+    
+    def __init__(self, *vars, **kwargs):
+        
         self.endln = kwargs.pop('endln', '\n')
         self.frmt = kwargs.pop('frmt', '{: 12.4f}')
         self.sep = kwargs.pop('sep', ' ')
+        self.file = kwargs.pop('sep', sys.stdout)
 
         super().__init__(*vars, **kwargs)
 
     def set(self, **kwargs):
+        """
+        Set properties of *Printer*.
 
+        :param endl: end-of-line character
+        :param frmt: format string
+        :param sep: field separator
+        :param file: file to print on
+        """
+        
         if 'endln' in kwargs:
             self.endln = kwargs.pop('endln')
         
@@ -191,10 +196,16 @@ class Printer(Block):
         if 'sep' in kwargs:
             self.sep = kwargs.pop('sep')
 
+        if 'file' in kwargs:
+            self.file = kwargs.pop('file')
+            
         super().set(**kwargs)
     
     def write(self, *values):
-
+        """
+        Write formated entries of `values` to `file`.
+        """
+        
         if self.enabled:
 
             @contextlib.contextmanager
@@ -205,75 +216,99 @@ class Printer(Block):
                 numpy.set_printoptions(**original)
 
             row = numpy.hstack(values)
-            print(self.sep.join(self.frmt.format(val) for val in row), 
-                  end=self.endln)
+            print(self.sep.join(self.frmt.format(val) for val in row),
+                  file=self.file, end=self.endln)
 
 
 class Signal(Block):
+    """
+    A *Signal* block outputs values of a vector `signal` sequentially
+    each time `read` is called.
 
-    def __init__(self, x, repeat = False, *vars, **kwargs):
-        """Block with signal
-        """
+    If `repeat` is True, signal repeats periodically.
+
+    :param signal: `numpy` vector with values
+    :param repeat: if `True` then signal repeats periodically
+    """
+
+    def __init__(self, signal, repeat = False, *vars, **kwargs):
 
         # signal
-        assert isinstance(x, numpy.ndarray)
-        self.x = x
+        self.signal = numpy.array(signal)
 
         # repeat?
         self.repeat = repeat
 
         # index
-        self.k = 0
+        self.index = 0
        
         super().__init__(*vars, **kwargs)
 
     def reset(self):
+        """
+        Reset *Signal* index back to `0`
+        """
 
-        self.k = 0
+        self.index = 0
 
     def set(self, **kwargs):
+        """
+        Set properties of *Signal*. 
 
-        if 'x' in kwargs:
-            self.x = kwargs.pop('x')
+        :param signal: `numpy` vector with values
+        :param index: current index
+        """
+
+        if 'signal' in kwargs:
+            self.signal = numpy.array(kwargs.pop('signal'))
             self.reset()
-        
+
+        if 'index' in kwargs:
+            index = kwargs.pop('index')
+            assert isinstance(index, int)
+            assert index >= 0 and index < len(self.signal)
+            self.index = index 
+            
         super().set(**kwargs)
 
     def read(self, *values):
+        """
+        Read from *Signal*.
+
+        Reading increments current `index`.
+
+        If `repeat` is True, `index` becomes `0` after end of `signal`.
+        """
 
         # return 0 if over the edge
-        if self.k >= len(self.x):
+        if self.index >= len(self.signal):
 
-            xk = 0 * self.x[0]
+            xk = 0 * self.signal[0]
 
         else:
 
             # get entry
-            xk = self.x[self.k]
+            xk = self.signal[self.index]
             
             # increment
-            self.k += 1
+            self.index += 1
             
-            if self.repeat and self.k == len(self.x):
+            if self.repeat and self.index == len(self.signal):
 
                 # reset
-                self.k = 0
+                self.index = 0
         
         return (xk, )
 
-
 class Map(BufferBlock):
     """
-    The Block Map applies 'function' to each input and returns tuple
+    A *Map* block applies 'function' to each input and returns tuple
     with results.
+
+    :param function: the function to be applied
     """
 
     def __init__(self, function = (lambda x: x), *vars, **kwargs):
-        """
-        Constructs a new *Map* object.
-
-        :param function: the function to be applied
-        """
 
         self.function = function
         super().__init__(*vars, **kwargs)
@@ -306,14 +341,11 @@ class Apply(BufferBlock):
     """
     The Block *Apply* applies *function* to all inputs and returns tuple
     with the result.
+
+    :param function: the function to be applied
     """
 
     def __init__(self, function = (lambda x: x), *vars, **kwargs):
-        """
-        Constructs a new *Apply* object.
-
-        :param function: the function to be applied
-        """
 
         self.function = function
         super().__init__(*vars, **kwargs)
@@ -340,5 +372,9 @@ class Apply(BufferBlock):
         """
 
         if self.enabled:
-            self.buffer = tuple(self.function(*values))
+            eval = self.function(*values)
+            if isinstance(eval, (list, tuple)):
+                self.buffer = tuple(eval)
+            else:
+                self.buffer = (eval,)
 

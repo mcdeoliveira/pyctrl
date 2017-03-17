@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to ctrl's documentation!
-================================
+Package `ctrl` Documentation
+============================
 
 .. toctree::
    :maxdepth: 2
@@ -14,18 +14,16 @@ Welcome to ctrl's documentation!
    :members:
    :show-inheritance:
 
-==============    
-Module `block`
-==============
+Module `ctrl.block`
+===================
       
 .. automodule:: ctrl.block
    :members:
    :show-inheritance:
    :inherited-members:
 
-==============     
-Module `logic`
-==============
+Module `ctrl.block.logic`
+=========================
       
 .. automodule:: ctrl.block.logic
    :members:

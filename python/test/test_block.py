@@ -1,9 +1,10 @@
 import pytest
+import sys
 
 import ctrl.block as block
 import ctrl.block.linear as linear
 
-def test_printer():
+def testPrinter():
 
     obj = block.Printer()
 
@@ -17,7 +18,7 @@ def test_printer():
 
     obj.write(*(1.5, 1.3))
 
-    assert obj.get() == { 'enabled': True, 'endln': '\n', 'frmt': '{: 12.4f}', 'sep': ' ' }
+    assert obj.get() == { 'enabled': True, 'endln': '\n', 'frmt': '{: 12.4f}', 'sep': ' ', 'file': sys.stdout }
 
     assert obj.get('enabled') == True
     print("-> '{}'".format(obj.get('endln', 'frmt')))
@@ -50,8 +51,10 @@ def test_set():
 
     blk = block.Printer()
 
-    assert blk.get() == {'endln': '\n', 'enabled': True, 'frmt': '{: 12.4f}', 'sep': ' '}
+    assert blk.get() == { 'enabled': True, 'endln': '\n', 'frmt': '{: 12.4f}', 'sep': ' ', 'file': sys.stdout }
+    
     assert blk.get(['enabled', 'frmt']) == {'frmt': '{: 12.4f}', 'enabled': True}
+    
     assert blk.get('enabled') == True
 
     with pytest.raises(KeyError):
@@ -111,24 +114,12 @@ def test_logger():
 
     assert _logger.get() == { 'auto_reset': False, 'enabled': True, 'current': 1, 'page': 0 }
 
-def test_condition():
-
-    obj = block.Condition(lambda x: x < 1)
-    
-    obj.write(0)
-    (y,) = obj.read()
-    assert y == True
-
-    obj.write(1)
-    (y,) = obj.read()
-    assert y == False
-
 def test_signal():
 
     import numpy as np
 
     x = np.array([1,2,3])
-    obj = block.Signal(x = x, repeat = True)
+    obj = block.Signal(signal = x, repeat = True)
     
     k = 0
     (y,) = obj.read(0)
@@ -155,7 +146,7 @@ def test_signal():
     assert y == x[k]
 
     x = np.array([1,2,3])
-    obj = block.Signal(x = x, repeat = False)
+    obj = block.Signal(signal = x, repeat = False)
     
     k = 0
     (y,) = obj.read(0)
@@ -179,7 +170,7 @@ def test_signal():
     assert y == 0
 
     x = np.array([1,2,3])
-    obj = block.Signal(x = x, repeat = True)
+    obj = block.Signal(signal = x, repeat = True)
     
     k = 0
     (y,) = obj.read(0)
@@ -196,9 +187,58 @@ def test_signal():
     (y,) = obj.read(0)
     assert y == x[0]
 
+def test_apply():
+
+    def f(*x):
+        return (x[0] < 1, )
+    
+    obj = block.Apply(function = f)
+    
+    obj.write(0)
+    (y,) = obj.read()
+    assert y == True
+
+    obj.write(1)
+    (y,) = obj.read()
+    assert y == False
+
+    def g(*x):
+        return all(map(lambda y : y < 1, x))
+    
+    obj = block.Apply(function = g)
+    
+    obj.write(0)
+    (y,) = obj.read()
+    assert y == True
+
+    obj.write(1)
+    (y,) = obj.read()
+    assert y == False
+
+    
+def test_map():
+
+    def f(i):
+        return i + 1
+
+    obj = block.Map(function = f)
+    
+    obj.write(0)
+    (y,) = obj.read()
+    assert y == 1
+
+    obj.write(0,2)
+    y = obj.read()
+    assert y == (1,3)
+
+    obj.write()
+    y = obj.read()
+    assert y == ()
+
+    
 if __name__ == "__main__":
 
-    test_printer()
+    testPrinter()
     test_set()
     test_logger()
     test_signal()
