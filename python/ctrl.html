@@ -1,0 +1,302 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: package ctrl</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>ctrl</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/mauricio/beaglebone/python/ctrl/__init__.py">/home/mauricio/beaglebone/python/ctrl/__init__.py</a></font></td></tr></table>
+    <p></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Package Contents</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="ctrl.bbb.html"><strong>bbb</strong>&nbsp;(package)</a><br>
+<a href="ctrl.block.html"><strong>block</strong>&nbsp;(package)</a><br>
+</td><td width="25%" valign=top><a href="ctrl.client.html">client</a><br>
+<a href="ctrl.packet.html">packet</a><br>
+</td><td width="25%" valign=top><a href="ctrl.rc.html"><strong>rc</strong>&nbsp;(package)</a><br>
+<a href="ctrl.server.html">server</a><br>
+</td><td width="25%" valign=top><a href="ctrl.sim.html">sim</a><br>
+<a href="ctrl.system.html"><strong>system</strong>&nbsp;(package)</a><br>
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="builtins.html#Exception">builtins.Exception</a>(<a href="builtins.html#BaseException">builtins.BaseException</a>)
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="ctrl.html#ControllerException">ControllerException</a>
+</font></dt></dl>
+</dd>
+<dt><font face="helvetica, arial"><a href="builtins.html#Warning">builtins.Warning</a>(<a href="builtins.html#Exception">builtins.Exception</a>)
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="ctrl.html#ControllerWarning">ControllerWarning</a>
+</font></dt></dl>
+</dd>
+<dt><font face="helvetica, arial"><a href="builtins.html#object">builtins.object</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="ctrl.html#Controller">Controller</a>
+</font></dt></dl>
+</dd>
+</dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="Controller">class <strong>Controller</strong></a>(<a href="builtins.html#object">builtins.object</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="Controller-__enter__"><strong>__enter__</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="Controller-__exit__"><strong>__exit__</strong></a>(self, type, value, traceback)</dt></dl>
+
+<dl><dt><a name="Controller-__init__"><strong>__init__</strong></a>(self)</dt><dd><tt>Initialize&nbsp;self.&nbsp;&nbsp;See&nbsp;help(type(self))&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
+
+<dl><dt><a name="Controller-__repr__"><strong>__repr__</strong></a> = <a href="#Controller-__str__">__str__</a>(self)</dt></dl>
+
+<dl><dt><a name="Controller-__str__"><strong>__str__</strong></a>(self)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+<dl><dt><a name="Controller-add_device"><strong>add_device</strong></a>(self, label, device_module, device_class, **kwargs)</dt><dd><tt>#&nbsp;devices</tt></dd></dl>
+
+<dl><dt><a name="Controller-add_filter"><strong>add_filter</strong></a>(self, label, filter_, inputs, outputs, order=-1)</dt><dd><tt>#&nbsp;filters</tt></dd></dl>
+
+<dl><dt><a name="Controller-add_signal"><strong>add_signal</strong></a>(self, label)</dt><dd><tt>#&nbsp;signals</tt></dd></dl>
+
+<dl><dt><a name="Controller-add_signals"><strong>add_signals</strong></a>(self, *labels)</dt></dl>
+
+<dl><dt><a name="Controller-add_sink"><strong>add_sink</strong></a>(self, label, sink, inputs, order=-1)</dt><dd><tt>#&nbsp;sinks</tt></dd></dl>
+
+<dl><dt><a name="Controller-add_source"><strong>add_source</strong></a>(self, label, source, outputs, order=-1)</dt><dd><tt>#&nbsp;sources</tt></dd></dl>
+
+<dl><dt><a name="Controller-get_filter"><strong>get_filter</strong></a>(self, label, *keys)</dt></dl>
+
+<dl><dt><a name="Controller-get_period"><strong>get_period</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="Controller-get_signal"><strong>get_signal</strong></a>(self, label)</dt></dl>
+
+<dl><dt><a name="Controller-get_signals"><strong>get_signals</strong></a>(self, *labels)</dt></dl>
+
+<dl><dt><a name="Controller-get_sink"><strong>get_sink</strong></a>(self, label, *keys)</dt></dl>
+
+<dl><dt><a name="Controller-get_source"><strong>get_source</strong></a>(self, label, *keys)</dt></dl>
+
+<dl><dt><a name="Controller-get_state"><strong>get_state</strong></a>(self)</dt><dd><tt>#&nbsp;get_state</tt></dd></dl>
+
+<dl><dt><a name="Controller-info"><strong>info</strong></a>(self, options='summary')</dt><dd><tt>#&nbsp;info</tt></dd></dl>
+
+<dl><dt><a name="Controller-join"><strong>join</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="Controller-list_filters"><strong>list_filters</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="Controller-list_signals"><strong>list_signals</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="Controller-list_sinks"><strong>list_sinks</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="Controller-list_sources"><strong>list_sources</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="Controller-read_filter"><strong>read_filter</strong></a>(self, label)</dt></dl>
+
+<dl><dt><a name="Controller-read_sink"><strong>read_sink</strong></a>(self, label)</dt></dl>
+
+<dl><dt><a name="Controller-read_source"><strong>read_source</strong></a>(self, label)</dt></dl>
+
+<dl><dt><a name="Controller-remove_filter"><strong>remove_filter</strong></a>(self, label)</dt></dl>
+
+<dl><dt><a name="Controller-remove_signal"><strong>remove_signal</strong></a>(self, label)</dt></dl>
+
+<dl><dt><a name="Controller-remove_sink"><strong>remove_sink</strong></a>(self, label)</dt></dl>
+
+<dl><dt><a name="Controller-remove_source"><strong>remove_source</strong></a>(self, label)</dt></dl>
+
+<dl><dt><a name="Controller-reset"><strong>reset</strong></a>(self)</dt><dd><tt>#&nbsp;reset</tt></dd></dl>
+
+<dl><dt><a name="Controller-run"><strong>run</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="Controller-set_filter"><strong>set_filter</strong></a>(self, label, **kwargs)</dt></dl>
+
+<dl><dt><a name="Controller-set_period"><strong>set_period</strong></a>(self, period)</dt></dl>
+
+<dl><dt><a name="Controller-set_signal"><strong>set_signal</strong></a>(self, label, value)</dt></dl>
+
+<dl><dt><a name="Controller-set_sink"><strong>set_sink</strong></a>(self, label, **kwargs)</dt></dl>
+
+<dl><dt><a name="Controller-set_source"><strong>set_source</strong></a>(self, label, **kwargs)</dt></dl>
+
+<dl><dt><a name="Controller-set_state"><strong>set_state</strong></a>(self, state)</dt><dd><tt>#&nbsp;set_state</tt></dd></dl>
+
+<dl><dt><a name="Controller-start"><strong>start</strong></a>(self)</dt><dd><tt>Start&nbsp;controller&nbsp;loop</tt></dd></dl>
+
+<dl><dt><a name="Controller-stop"><strong>stop</strong></a>(self)</dt><dd><tt>Stop&nbsp;controller&nbsp;loop</tt></dd></dl>
+
+<dl><dt><a name="Controller-write_filter"><strong>write_filter</strong></a>(self, label, *values)</dt></dl>
+
+<dl><dt><a name="Controller-write_sink"><strong>write_sink</strong></a>(self, label, *values)</dt></dl>
+
+<dl><dt><a name="Controller-write_source"><strong>write_source</strong></a>(self, label, *values)</dt></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="ControllerException">class <strong>ControllerException</strong></a>(<a href="builtins.html#Exception">builtins.Exception</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Common&nbsp;base&nbsp;class&nbsp;for&nbsp;all&nbsp;non-exit&nbsp;exceptions.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="ctrl.html#ControllerException">ControllerException</a></dd>
+<dd><a href="builtins.html#Exception">builtins.Exception</a></dd>
+<dd><a href="builtins.html#BaseException">builtins.BaseException</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<hr>
+Methods inherited from <a href="builtins.html#Exception">builtins.Exception</a>:<br>
+<dl><dt><a name="ControllerException-__init__"><strong>__init__</strong></a>(self, /, *args, **kwargs)</dt><dd><tt>Initialize&nbsp;self.&nbsp;&nbsp;See&nbsp;help(type(self))&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
+
+<dl><dt><a name="ControllerException-__new__"><strong>__new__</strong></a>(*args, **kwargs)<font color="#909090"><font face="helvetica, arial"> from <a href="builtins.html#type">builtins.type</a></font></font></dt><dd><tt>Create&nbsp;and&nbsp;return&nbsp;a&nbsp;new&nbsp;<a href="builtins.html#object">object</a>.&nbsp;&nbsp;See&nbsp;help(type)&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
+
+<hr>
+Methods inherited from <a href="builtins.html#BaseException">builtins.BaseException</a>:<br>
+<dl><dt><a name="ControllerException-__delattr__"><strong>__delattr__</strong></a>(self, name, /)</dt><dd><tt>Implement&nbsp;delattr(self,&nbsp;name).</tt></dd></dl>
+
+<dl><dt><a name="ControllerException-__getattribute__"><strong>__getattribute__</strong></a>(self, name, /)</dt><dd><tt>Return&nbsp;getattr(self,&nbsp;name).</tt></dd></dl>
+
+<dl><dt><a name="ControllerException-__reduce__"><strong>__reduce__</strong></a>(...)</dt><dd><tt>helper&nbsp;for&nbsp;pickle</tt></dd></dl>
+
+<dl><dt><a name="ControllerException-__repr__"><strong>__repr__</strong></a>(self, /)</dt><dd><tt>Return&nbsp;repr(self).</tt></dd></dl>
+
+<dl><dt><a name="ControllerException-__setattr__"><strong>__setattr__</strong></a>(self, name, value, /)</dt><dd><tt>Implement&nbsp;setattr(self,&nbsp;name,&nbsp;value).</tt></dd></dl>
+
+<dl><dt><a name="ControllerException-__setstate__"><strong>__setstate__</strong></a>(...)</dt></dl>
+
+<dl><dt><a name="ControllerException-__str__"><strong>__str__</strong></a>(self, /)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+<dl><dt><a name="ControllerException-with_traceback"><strong>with_traceback</strong></a>(...)</dt><dd><tt><a href="builtins.html#Exception">Exception</a>.<a href="#ControllerException-with_traceback">with_traceback</a>(tb)&nbsp;--<br>
+set&nbsp;self.<strong>__traceback__</strong>&nbsp;to&nbsp;tb&nbsp;and&nbsp;return&nbsp;self.</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="builtins.html#BaseException">builtins.BaseException</a>:<br>
+<dl><dt><strong>__cause__</strong></dt>
+<dd><tt>exception&nbsp;cause</tt></dd>
+</dl>
+<dl><dt><strong>__context__</strong></dt>
+<dd><tt>exception&nbsp;context</tt></dd>
+</dl>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__suppress_context__</strong></dt>
+</dl>
+<dl><dt><strong>__traceback__</strong></dt>
+</dl>
+<dl><dt><strong>args</strong></dt>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="ControllerWarning">class <strong>ControllerWarning</strong></a>(<a href="builtins.html#Warning">builtins.Warning</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Base&nbsp;class&nbsp;for&nbsp;warning&nbsp;categories.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="ctrl.html#ControllerWarning">ControllerWarning</a></dd>
+<dd><a href="builtins.html#Warning">builtins.Warning</a></dd>
+<dd><a href="builtins.html#Exception">builtins.Exception</a></dd>
+<dd><a href="builtins.html#BaseException">builtins.BaseException</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<hr>
+Methods inherited from <a href="builtins.html#Warning">builtins.Warning</a>:<br>
+<dl><dt><a name="ControllerWarning-__init__"><strong>__init__</strong></a>(self, /, *args, **kwargs)</dt><dd><tt>Initialize&nbsp;self.&nbsp;&nbsp;See&nbsp;help(type(self))&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
+
+<dl><dt><a name="ControllerWarning-__new__"><strong>__new__</strong></a>(*args, **kwargs)<font color="#909090"><font face="helvetica, arial"> from <a href="builtins.html#type">builtins.type</a></font></font></dt><dd><tt>Create&nbsp;and&nbsp;return&nbsp;a&nbsp;new&nbsp;<a href="builtins.html#object">object</a>.&nbsp;&nbsp;See&nbsp;help(type)&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
+
+<hr>
+Methods inherited from <a href="builtins.html#BaseException">builtins.BaseException</a>:<br>
+<dl><dt><a name="ControllerWarning-__delattr__"><strong>__delattr__</strong></a>(self, name, /)</dt><dd><tt>Implement&nbsp;delattr(self,&nbsp;name).</tt></dd></dl>
+
+<dl><dt><a name="ControllerWarning-__getattribute__"><strong>__getattribute__</strong></a>(self, name, /)</dt><dd><tt>Return&nbsp;getattr(self,&nbsp;name).</tt></dd></dl>
+
+<dl><dt><a name="ControllerWarning-__reduce__"><strong>__reduce__</strong></a>(...)</dt><dd><tt>helper&nbsp;for&nbsp;pickle</tt></dd></dl>
+
+<dl><dt><a name="ControllerWarning-__repr__"><strong>__repr__</strong></a>(self, /)</dt><dd><tt>Return&nbsp;repr(self).</tt></dd></dl>
+
+<dl><dt><a name="ControllerWarning-__setattr__"><strong>__setattr__</strong></a>(self, name, value, /)</dt><dd><tt>Implement&nbsp;setattr(self,&nbsp;name,&nbsp;value).</tt></dd></dl>
+
+<dl><dt><a name="ControllerWarning-__setstate__"><strong>__setstate__</strong></a>(...)</dt></dl>
+
+<dl><dt><a name="ControllerWarning-__str__"><strong>__str__</strong></a>(self, /)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+<dl><dt><a name="ControllerWarning-with_traceback"><strong>with_traceback</strong></a>(...)</dt><dd><tt><a href="builtins.html#Exception">Exception</a>.<a href="#ControllerWarning-with_traceback">with_traceback</a>(tb)&nbsp;--<br>
+set&nbsp;self.<strong>__traceback__</strong>&nbsp;to&nbsp;tb&nbsp;and&nbsp;return&nbsp;self.</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="builtins.html#BaseException">builtins.BaseException</a>:<br>
+<dl><dt><strong>__cause__</strong></dt>
+<dd><tt>exception&nbsp;cause</tt></dd>
+</dl>
+<dl><dt><strong>__context__</strong></dt>
+<dd><tt>exception&nbsp;context</tt></dd>
+</dl>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__suppress_context__</strong></dt>
+</dl>
+<dl><dt><strong>__traceback__</strong></dt>
+</dl>
+<dl><dt><strong>args</strong></dt>
+</dl>
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt><a name="-perf_counter"><strong>perf_counter</strong></a>(...)</dt><dd><tt><a href="#-perf_counter">perf_counter</a>()&nbsp;-&gt;&nbsp;float<br>
+&nbsp;<br>
+Performance&nbsp;counter&nbsp;for&nbsp;benchmarking.</tt></dd></dl>
+</td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#55aa55">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><strong>EXITING</strong> = 2<br>
+<strong>IDLE</strong> = 0<br>
+<strong>RUNNING</strong> = 1</td></tr></table>
+</body></html>

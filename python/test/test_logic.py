@@ -4,7 +4,7 @@ import numpy as np
 import ctrl.block as block
 import ctrl.block.logic as logic
 
-def test1():
+def testCompare():
 
     blk = logic.Compare()
 
@@ -33,8 +33,33 @@ def test1():
     blk.write(1,1)
     (answer,) = blk.read()
     assert answer == 0
+
+    blk = logic.Compare()
+
+    blk.set(threshold = 1)
     
-def test2():
+    blk.write(0,1)
+    (answer,) = blk.read()
+    assert answer == 1
+
+    blk.write(1,0)
+    (answer,) = blk.read()
+    assert answer == 0
+
+    blk.write(1,1)
+    (answer,) = blk.read()
+    assert answer == 0
+    
+    with pytest.raises(AssertionError):
+        blk.write()
+        
+    with pytest.raises(AssertionError):
+        blk.write(1)
+
+    with pytest.raises(AssertionError):
+        blk.write(1, 2, 3)
+        
+def testCompareAbs():
 
     blk = logic.CompareAbs(threshold = 1)
 
@@ -58,9 +83,64 @@ def test2():
     (answer,) = blk.read()
     assert answer == 1
 
-def test3():
+    blk = logic.CompareAbs(threshold = 1, invert = True)
 
-    blk = logic.Trigger()
+    blk.write(2)
+    (answer,) = blk.read()
+    assert answer == 1
+
+    blk.write(3)
+    (answer,) = blk.read()
+    assert answer == 1
+
+    blk.write(1)
+    (answer,) = blk.read()
+    assert answer == 0
+
+    blk.write(0)
+    (answer,) = blk.read()
+    assert answer == 0
+
+    blk.write(0.5)
+    (answer,) = blk.read()
+    assert answer == 0
+
+    blk = logic.CompareAbs(threshold = 0, invert = False)
+
+    blk.set(threshold = 1)
+    blk.set(invert = True)
+
+    blk.write(2)
+    (answer,) = blk.read()
+    assert answer == 1
+
+    blk.write(3)
+    (answer,) = blk.read()
+    assert answer == 1
+
+    blk.write(1)
+    (answer,) = blk.read()
+    assert answer == 0
+
+    blk.write(0)
+    (answer,) = blk.read()
+    assert answer == 0
+
+    blk.write(0.5)
+    (answer,) = blk.read()
+    assert answer == 0
+    
+    with pytest.raises(AssertionError):
+        blk.write()
+
+    with pytest.raises(AssertionError):
+        blk.write(1, 2)
+    
+def testTrigger():
+
+    import math
+    
+    blk = logic.Trigger(function = lambda x: x >= 0)
 
     blk.write(-1,1)
     answer = blk.read()
@@ -82,6 +162,10 @@ def test3():
 
     blk.reset()
     
+    blk.write(-1)
+    answer = blk.read()
+    assert answer == ()
+
     blk.write(-1,1,2,3)
     answer = blk.read()
     assert answer == (0,0,0)
@@ -94,7 +178,15 @@ def test3():
     answer = blk.read()
     assert answer == (1,2,3)
 
+    blk.write(-1)
+    answer = blk.read()
+    assert answer == ()
+    
+    with pytest.raises(AssertionError):
+        blk.write()
+    
 if __name__ == "__main__":
 
-    test1()
-    test2()
+    testCompare()
+    testCompareAbs()
+    testTrigger()
