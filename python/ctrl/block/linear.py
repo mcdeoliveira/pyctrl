@@ -1,3 +1,7 @@
+"""
+This module provides blocks for linear dynamic systems.
+"""
+
 import numpy
 
 from .. import block
@@ -8,26 +12,40 @@ from ctrl.system.tv import TVSystem
 # Blocks
 
 class SISO(block.BufferBlock):
+    """
+    *SISO* is a wrapper for a single-input-single-output dynamic
+    linear system model. 
 
+    :param model: an instance of `ctrl.system.SISOSystem`
+    """
+    
     def __init__(self, model = DTTF(), *vars, **kwargs):
-        """
-        Wrapper for transfer-function model as a Block
-        """
 
+        assert isinstance(model, SISOSystem)
         self.model = model
-        assert isinstance(self.model, SISOSystem)
 
         super().__init__(*vars, **kwargs)
 
     def set(self, **kwargs):
+        """
+        Set properties of `SISO` block.
+
+        :param model: an instance of `ctrl.system.SISOSystem`
+        """
         
         if 'model' in kwargs:
-            self.model = kwargs.pop('model')
-            assert isinstance(self.model, SISOSystem)
+            model = kwargs.pop('model')
+            assert isinstance(model, SISOSystem)
+            self.model = model
 
         super().set(**kwargs)
 
     def reset(self):
+        """
+        Reset `SISO` block.
+
+        Calls `model.set_output(0)`.
+        """
 
         self.model.set_output(0)
         

@@ -31,7 +31,7 @@ class Block:
 
     def is_enabled(self):
         """
-        Return *enabled* state
+        Return *enabled* state.
 
         :return: enabled
         """
@@ -39,7 +39,7 @@ class Block:
         
     def set_enabled(self, enabled  = True):
         """
-        Set *enabled* state
+        Set *enabled* state.
 
         :param enabled: True or False (default True)
         """
@@ -47,7 +47,7 @@ class Block:
 
     def reset(self):
         """
-        Reset block
+        Reset block.
 
         Does nothing here but allows another *Block* to reset itself.
         """
@@ -111,7 +111,7 @@ class Block:
 
     def write(self, *values):
         """
-        Write to *Block*
+        Write to *Block*.
 
         Will raise *BlockException* if block does not support write.
         """
@@ -246,7 +246,7 @@ class Signal(Block):
 
     def reset(self):
         """
-        Reset *Signal* index back to `0`
+        Reset *Signal* index back to `0`.
         """
 
         self.index = 0

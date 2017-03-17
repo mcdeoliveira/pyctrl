@@ -22,6 +22,14 @@ Module `ctrl.block`
    :show-inheritance:
    :inherited-members:
 
+Module `ctrl.block.linear`
+==========================
+      
+.. automodule:: ctrl.block.linear
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
 Module `ctrl.block.logic`
 =========================
       
