@@ -164,7 +164,7 @@ class BufferBlock(Block):
     
 class Printer(Block):
     """
-    A *Printer* blocks outputs the values of signals to the screen.
+    A *Printer* blocks prints the values of signals to the screen.
     """
     def __init__(self, *vars, **kwargs):
         """
