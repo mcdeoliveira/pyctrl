@@ -14,7 +14,7 @@ from ctrl.system.tv import TVSystem
 class SISO(block.BufferBlock):
     """
     *SISO* is a wrapper for a single-input-single-output dynamic
-    linear system model. 
+    system model. 
 
     :param model: an instance of `ctrl.system.SISOSystem`
     """
@@ -50,10 +50,23 @@ class SISO(block.BufferBlock):
         self.model.set_output(0)
         
     def write(self, *values):
+        """
+        Writes current output of `model` to the private `buffer`.
 
+        :param values: list of values of length equal to one
+        :return: tuple with current model output
+        """
+
+        assert len(values) == 1
         self.buffer = (self.model.update(values[0]), )
 
 class MIMO(block.BufferBlock):
+    """
+    *MIMO* is a wrapper for a multi-input-multi-output dynamic
+    system model. 
+
+    :param model: an instance of `ctrl.system.MIMOSystem`
+    """
 
     def __init__(self, model = DTSS(), *vars, **kwargs):
         """
@@ -66,90 +79,101 @@ class MIMO(block.BufferBlock):
         super().__init__(*vars, **kwargs)
 
     def set(self, **kwargs):
-        
+        """
+        Set properties of `MIMO` block.
+
+        :param model: an instance of `ctrl.system.MIMOSystem`
+        """
+
         if 'model' in kwargs:
-            self.model = kwargs.pop('model')
-            assert isinstance(self.model, MIMOSystem)
+            model = kwargs.pop('model')
+            assert isinstance(model, MIMOSystem)
+            self.model = model
 
         super().set(**kwargs)
 
     def reset(self):
+        """
+        Reset `MIMO` block.
 
-        self.model.state *= 0
+        Calls `model.set_state(0 * model.get_state())`.
+        """
+        self.model.set_state(0 * self.model.get_state())
         
     def write(self, *values):
+        """
+        Writes current output of `model` to the private `buffer`.
+
+        :param values: list of values
+        :return: tuple with current model output
+        """
 
         # convert input to array
-        if numpy.isscalar(values[0]):
-            uk = numpy.array(list(values))
-        else:
-            uk = numpy.hstack(*values)
-        #print('uk = {}'.format(uk))
+        uk = numpy.hstack(values)
 
-        # convert output to list
-        yk = self.model.update(uk)
-
-        self.buffer = (yk,)
+        # update model
+        self.buffer = self.model.update(uk).tolist()
 
 class TimeVarying(block.BufferBlock):
+    """
+    *TimeVarying* is a wrapper for a multi-input-multi-output dynamic
+    time-varying system model.
 
-    def __init__(self, model = DTSS(), *vars, **kwargs):
-        """
-        Wrapper for state-space model as a Block
-        """
+    :param model: an instance of `ctrl.system.TVSystem`
+    """
 
+    def __init__(self, model = TVSystem(), *vars, **kwargs):
+
+        assert isinstance(model, TVSystem)
         self.model = model
-        assert isinstance(self.model, TVSystem)
-
-        self.t = kwargs.pop('t', -1)
 
         super().__init__(*vars, **kwargs)
 
     def set(self, **kwargs):
-        
+        """
+        Set properties of `TimeVarying` block.
+
+        :param model: an instance of `ctrl.system.TVSystem`
+        """
+
         if 'model' in kwargs:
-            self.model = kwargs.pop('model')
-            assert isinstance(self.model, TVSystem)
+            model = kwargs.pop('model')
+            assert isinstance(model, TVSystem)
+            self.model = 'model'
 
         super().set(**kwargs)
 
     def reset(self):
+        """
+        Reset `TimeVarying` block.
 
-        self.t = -1
-        self.model.state *= 0
+        Calls `model.set_state(0 * model.get_state())`.
+        """
+        self.model.set_state(0 * self.model.get_state())
         
     def write(self, *values):
+        """
+        Writes current output of `model` to the private `buffer`.
 
-        #print('values = {}'.format(values))
+        :param values: list of values
+        :return: tuple with current model output
+        """
 
         # time comes first 
         tk = values[0]
-        #print('tk = {}'.format(tk))
 
         # convert input to array
-        if numpy.isscalar(values[1]):
-            uk = numpy.array([values[1]])
-        else:
-            uk = numpy.array(values[1])
-        #print('uk = {}'.format(uk))
-
-        # initialize model
-        if self.t < 0 or self.model.t0 >= tk:
-
-            self.model.t0 = tk
+        uk = numpy.hstack(values[1:])
 
         # update model
-        yk = self.model.update(tk, uk)
-        #print('yk = {}'.format(yk))
-
-        # save time
-        self.t = tk
-
-        # convert output to list
-        self.buffer = (yk, )
+        self.buffer = self.model.update(tk, uk).tolist()
 
 class Gain(block.BufferBlock):
+    """
+    *Gain* multiplies input by a constant gain.
 
+    :param gain: multiplier (default `1`)
+    """
     def __init__(self, gain = 1, *vars, **kwargs):
 
         assert isinstance(gain, (int, float))
@@ -158,6 +182,11 @@ class Gain(block.BufferBlock):
         super().__init__(*vars, **kwargs)
     
     def set(self, **kwargs):
+        """
+        Set properties of `Gain` block.
+
+        :param gain: multiplier
+        """
         
         if 'gain' in kwargs:
             self.gain = kwargs.pop('gain')
@@ -165,14 +194,22 @@ class Gain(block.BufferBlock):
         super().set(**kwargs)
 
     def write(self, *values):
+        """
+        Writes product of `gain` times current input to the private `buffer`.
+
+        :param values: list of values
+        :return: tuple with scaled input
+        """
 
         self.buffer = tuple(v*self.gain for v in values)
 
 class Affine(block.BufferBlock):
+    """
+    *Affine* offset and multiplies input by a constant gain.
 
-    #
-    # output = gain * input + offset
-    #
+    :param gain: multiplier (default `1`)
+    :param offset: offset (default `0`)
+    """
 
     def __init__(self, gain = 1, offset = 0, *vars, **kwargs):
 
@@ -185,6 +222,12 @@ class Affine(block.BufferBlock):
         super().__init__(*vars, **kwargs)
     
     def set(self, **kwargs):
+        """
+        Set properties of `Affine` block.
+
+        :param gain: multiplier (default `1`)
+        :param offset: offset (default `0`)
+        """
         
         if 'gain' in kwargs:
             self.gain = kwargs.pop('gain')
@@ -195,12 +238,28 @@ class Affine(block.BufferBlock):
         super().set(**kwargs)
 
     def write(self, *values):
+        """
+        Writes product of `gain` times current input plus `offset` to
+        the private `buffer`.
+
+        :param values: list of values
+        :return: tuple with scaled input
+        """
 
         self.buffer = tuple(v*self.gain + self.offset for v in values)
 
 class ShortCircuit(block.BufferBlock):
+    """
+    *ShortCircuit* copies input to the output.
+    """
 
     def write(self, *values):
+        """
+        Writes current input to the private `buffer`.
+
+        :param values: list of values
+        :return: copy of input
+        """
 
         self.buffer = values
 

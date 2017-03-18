@@ -37,7 +37,15 @@ Module `ctrl.block.logic`
    :members:
    :show-inheritance:
    :inherited-members:
+
+Module `ctrl.system`
+====================
       
+.. automodule:: ctrl.system
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   
       
 Indices and tables
 ==================

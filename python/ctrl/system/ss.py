@@ -53,6 +53,12 @@ class DTSS(MIMOSystem):
 
     def set_output(self, yk):
         raise Exception('Not implemented yet')
+
+    def get_state(self):
+        return self.state
+        
+    def set_state(self, xk):
+        self.state = xk
     
     def update(self, uk):
         # yk = C xk + D uk

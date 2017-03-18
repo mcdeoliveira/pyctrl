@@ -122,9 +122,9 @@ class BufferBlock(Block):
     *BufferBlock* provides the basic functionality for blocks that
     implement *read*. 
 
-    A *BufferBlock* has the property *buffer*.
+    A *BufferBlock* has the property `buffer`.
     
-    Reading from a *BufferBlock* reads the *buffer*.
+    Reading from a *BufferBlock* reads the `buffer`.
 
     An object that inherits from BufferBlock need not
     implement `read()` but simply write to `self.buffer`.
@@ -140,7 +140,7 @@ class BufferBlock(Block):
         """
         Get properties of a *BufferBlock*.
 
-        This method excludes *buffer* from the list of properties. 
+        This method excludes `buffer` from the list of properties. 
 
         :param keys: string or tuple of strings with property names
         :param exclude: tuple with list of keys never to be returned (Default ())
@@ -150,7 +150,7 @@ class BufferBlock(Block):
         
     def read(self):
         """
-        Returns the private *buffer* property.
+        Returns the private `buffer` property.
 
         :returns: `buffer`
         """
@@ -327,8 +327,8 @@ class Map(BufferBlock):
         
     def write(self, *values):
         """
-        Writes a tuple with the result of *function* applied to each
-        input to the private *buffer*.
+        Writes a tuple with the result of `function` applied to each
+        input to the private `buffer`.
 
         :param values: list of values of any length
         :return: tuple with results of map(function, values)
@@ -339,7 +339,7 @@ class Map(BufferBlock):
 
 class Apply(BufferBlock):
     """
-    The Block *Apply* applies *function* to all inputs and returns tuple
+    The Block *Apply* applies `function` to all inputs and returns tuple
     with the result.
 
     :param function: the function to be applied
@@ -364,8 +364,8 @@ class Apply(BufferBlock):
         
     def write(self, *values):
         """
-        Writes a tuple with the result of *function* applied to all
-        inputs to the private *buffer*.
+        Writes a tuple with the result of `function` applied to all
+        inputs to the private `buffer`.
 
         :param values: list of values of any length
         :return: tuple with results of `function(*values)`
