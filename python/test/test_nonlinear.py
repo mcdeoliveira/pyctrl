@@ -1,6 +1,7 @@
 import pytest
 
 import numpy as np
+import math
 import ctrl.block.nl as nonlinear
 import ctrl.block as block
 
@@ -8,52 +9,52 @@ def test1():
 
     # DeadZone
 
-    blk = nonlinear.DeadZone(10, 10)
+    blk = nonlinear.DeadZone(Y = 10, X = 10)
     assert blk.Y == 10
     assert blk.X == 10
     assert blk._pars == (1,0,1)
 
-    blk = nonlinear.DeadZone(0, 0)
+    blk = nonlinear.DeadZone(Y = 0, X = 0)
     assert blk.Y == 0
     assert blk.X == 0
     assert blk._pars == (1,0,1)
 
-    blk = nonlinear.DeadZone(0, 50)
+    blk = nonlinear.DeadZone(Y = 50, X = 0)
     assert blk.Y == 50
     assert blk.X == 0
     assert blk._pars == (.5,50,np.nan)
 
-    blk = nonlinear.DeadZone(50, 0)
+    blk = nonlinear.DeadZone(X = 50, Y = 0)
     assert blk.Y == 0
     assert blk.X == 50
     assert blk._pars == (2.0,-100,0)
 
-    blk = nonlinear.DeadZone(50)
+    blk = nonlinear.DeadZone(X = 50)
     assert blk.Y == 0
     assert blk.X == 50
     assert blk._pars == (2.0,-100,0)
 
-    blk = nonlinear.DeadZone(1, 10)
+    blk = nonlinear.DeadZone(X = 1, Y = 10)
     _pars = blk._pars
     assert blk.Y == 10
     assert blk.X == 1
     
-    blk.set('Y', 1)
+    blk.set(Y = 1)
     assert blk._pars == (1,0,1)
 
-    blk.set('Y', 10)
-    blk.set('X', 1)
+    blk.set(Y = 10)
+    blk.set(X = 1)
     assert blk._pars == _pars
 
     assert blk.get('Y') == 10
 
-    blk.set('X', 10)
+    blk.set(X = 10)
     assert blk._pars == (1,0,1)
 
-    blk = nonlinear.DeadZone(1, 10)
+    blk = nonlinear.DeadZone(X = 1, Y = 10)
     blk.write(100)
     (yk,) = blk.read()
-    assert yk == 100
+    assert math.fabs(yk - 100) < 1e-4
 
     blk.write(0)
     (yk,) = blk.read()
@@ -73,7 +74,7 @@ def test1():
 
 def test2():
 
-    blk = nonlinear.Abs()
+    blk = block.Map(function = np.fabs)
     
     blk.write(-1)
     answer = blk.read()
@@ -110,40 +111,6 @@ def test3():
     with pytest.raises(AssertionError):
         blk.write(1)
         answer = blk.read()
-
-def test4():
-
-    blk = nonlinear.Combine()
-    
-    blk.write(0, 2, 4)
-    answer = blk.read()
-    assert answer == (2, )
-
-    blk.write(1, 2, 4)
-    answer = blk.read()
-    assert answer == (4, )
-
-    blk.write(.5, 2, 4)
-    answer = blk.read()
-    assert answer == (3., )
-    
-    with pytest.raises(AssertionError):
-        blk.write(1)
-        answer = blk.read()
-
-    with pytest.raises(AssertionError):
-        blk.write(1, 2)
-        answer = blk.read()
-
-    blk = nonlinear.Combine(gain = 100)
-
-    blk.write(0, 2, 4)
-    answer = blk.read()
-    assert answer == (2, )
-
-    blk.write(100, 2, 4)
-    answer = blk.read()
-    assert answer == (4, )
 
 def test5():
 

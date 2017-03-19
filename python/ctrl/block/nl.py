@@ -6,121 +6,106 @@ from .. import block
 # Blocks
 
 class ControlledCombination(block.BufferBlock):
+    r"""
+    *ControlledCombination* implements the combination:
 
-    #
-    # Block ControlledCombination(gain = 1)
-    #
-    # input = (u0,u1,u2)
-    # output = ((1-a)*u1, a*u2)
-    #
-    # where a = u0/gain
-    #
+    .. math::
+
+        y = \alpha u[1:m+1] + (1 - \alpha) u[m+1:], \quad \alpha = \frac{u[0]}{K}
+
+    where :math:`K` is a gain multiplier.
     
-    def __init__(self, gain = 1, *vars, **kwargs):
+    :param gain: multiplier (default `1`)
+    :param m: number of inputs to combine (default `1`)
+    """
+    
+    def __init__(self, **kwargs):
 
-        assert isinstance(gain, (int, float))
-        self.gain = gain
+        self.gain = kwargs.pop('gain', 1)
+        self.m = kwargs.pop('m', 1)
 
-        super().__init__(*vars, **kwargs)
+        super().__init__(**kwargs)
     
     def set(self, **kwargs):
+        """
+        Set properties of `ControlledCombination` block.
+
+        :param gain: multiplier (default `1`)
+        :param m: number of inputs to combine
+        """
         
         if 'gain' in kwargs:
             self.gain = kwargs.pop('gain')
 
         super().set(**kwargs)
 
-    def write(self, *values):
-
-        assert len(values) > 2
-        alpha = values[0] / self.gain;
-        self.buffer = ((1-alpha)*values[1], alpha*values[2])
-
-class Combine(block.BufferBlock):
-
-    #
-    # Block Combine(gain = 1)
-    #
-    # input = (u0,u1,u2)
-    # output = ((1-a)*u1 + a*u2)
-    #
-    # where a = u0/gain
-    #
-    
-    def __init__(self, gain = 1, *vars, **kwargs):
-
-        assert isinstance(gain, (int, float))
-        self.gain = gain
-
-        super().__init__(*vars, **kwargs)
-    
-    def set(self, **kwargs):
-        
-        if 'gain' in kwargs:
-            self.gain = kwargs.pop('gain')
-
-        super().set(**kwargs)
-
-    def write(self, *values):
-
-        assert len(values) > 2
-        alpha = values[0] / self.gain;
-        self.buffer = ((1-alpha)*values[1] + alpha*values[2],)
-
-class ControlledGain(block.BufferBlock):
-
-    #
-    # Block ControlledGain()
-    #
-    # input = (u0,u1,u2,...)
-    # output = (u0*u1, u0*u2, ...)
-    #
-
-    def __init__(self, *vars, **kwargs):
-
-        super().__init__(*vars, **kwargs)
-    
-    def write(self, *values):
-
-        assert len(values) > 1
-        gain = values[0]
-        self.buffer = tuple(v*gain for v in values[1:])
-
-class Abs(block.BufferBlock):
-
-    def write(self, *values):
-
-        self.buffer = tuple(map(math.fabs, values))
-
-class DeadZone(block.BufferBlock):
-
-    def __init__(self, X = 1, Y = 0, *vars, **kwargs):
-        """Wrapper for the piecewise function:
-
-          f(x) = { a x + b , x > X,
-                 { a x - b , x < -X,
-                 { c x     , -X <= x <= X
-
-        where
-        
-          a = (100-Y)/(100-X) 
-          b = 100(Y-X)/(100-X)
-          c = Y/X
-        
-        This is a generalized dead-zone nonlinearity.
-        The classic dead-zone nonlinearity has Y = 0.
-
-        The inverse can be obtained by swapping the arguments:
-
-             f = DeadZone(X, Y)   =>   inv(f) = DeadZone(Y, X)
-
-        When X = 0 the coefficient c == NaN.
+    def buffer_write(self):
+        """
+        Writes combination of inputs to the private `buffer`.
         """
 
-        self.Y = Y
-        self.X = X
+        assert len(self.buffer) == 1 + 2 * self.m
+        alpha = self.buffer[0] / self.gain;
+        self.buffer = tuple((1-alpha) * v for v in self.buffer[1:self.m+1]) \
+                      + tuple(alpha * v for v in self.buffer[self.m+1:])
 
-        super().__init__(*vars, **kwargs)
+class ControlledGain(block.BufferBlock):
+    r"""
+    *ControlledGain* implements the controlled gain:
+
+    .. math::
+
+        y = u[0] u[1:]
+    """
+
+    def __init__(self, **kwargs):
+
+        super().__init__(**kwargs)
+    
+    def buffer_write(self):
+
+        assert len(self.buffer) > 1
+        self.buffer = tuple(self.buffer[0] * v for v in self.buffer[1:])
+
+class DeadZone(block.BufferBlock):
+    r"""
+    *DeadZone* implements the piecewise function:
+
+    .. math::
+
+        y = f_{XY}(u) = \begin{cases} 
+            a u + b, & u > X, \\ 
+            a u - b, & u < -X, \\
+            c u, & -X \leq u \leq X
+        \end{cases}
+
+    where
+        
+    .. math::
+
+        a &= \frac{100-Y}{100-X} \\
+        b &= 100 \frac{Y-X}{100-X} \\
+        c &= \frac{Y}{X}
+        
+    This is a generalized dead-zone nonlinearity.
+
+    The classic dead-zone nonlinearity has :math:`Y = 0`.
+
+    The inverse can be obtained by swapping the arguments, that is
+
+    .. math::
+        
+        f_{XY}^{-1} &= f_{YX}^{}
+
+    When :math:`X = 0` then :math:`c` is `NaN`.
+    """
+
+    def __init__(self, **kwargs):
+
+        self.Y = kwargs.pop('Y', 0)
+        self.X = kwargs.pop('X', 1)
+
+        super().__init__(**kwargs)
 
         self._calculate_pars()
 
@@ -141,28 +126,42 @@ class DeadZone(block.BufferBlock):
         # call super
         return super().get(keys, exclude = ('_pars',))
 
-    def set(self, key, value):
-        
-        if key == 'Y':
-            self.Y = value
-            self._calculate_pars()
-        elif key == 'X':
-            self.X = value
-            self._calculate_pars()
-        else:
-            super().set(key, value)
+    def set(self, **kwargs):
 
-    def write(self, *values):
+        changes = False
+        
+        if 'Y' in kwargs:
+            self.Y = kwargs.pop('Y')
+            changes = True
+
+        if 'X' in kwargs:
+            self.X = kwargs.pop('X')
+            changes = True
+
+        if changes:
+            self._calculate_pars()
+            
+        super().set(**kwargs)
+
+    def _deadzone(self, a, b, c, x):
+        if x > self.X:
+            return a*x+b
+        elif x < -self.X:
+            return a*x-b
+        else: # -d <= x <= d
+            return c*x
+        
+    def buffer_write(self):
 
         # Dead-zone compensation
-        x = values[0]
         (a, b, c) = self._pars
-        if x > self.X:
-            self.buffer = (a*x+b, )
-        elif x < -self.X:
-            self.buffer = (a*x-b, )
-        else: # -d <= x <= d
-            self.buffer = (c*x, )
+        # x = self.buffer[0]
+        # if x > self.X:
+        #     self.buffer = (a*x+b, )
+        # elif x < -self.X:
+        #     self.buffer = (a*x-b, )
+        # else: # -d <= x <= d
+        #     self.buffer = (c*x, )
 
-        return self.buffer
+        self.buffer = tuple(self._deadzone(a,b,c,x) for x in self.buffer)
 
