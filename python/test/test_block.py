@@ -3,7 +3,7 @@ import sys
 import numpy
 
 import ctrl.block as block
-import ctrl.block.linear as linear
+import ctrl.block.system as system
 
 def test_BufferBlock():
 

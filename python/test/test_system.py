@@ -3,7 +3,6 @@ import pytest
 import math
 import numpy as np
 import ctrl.block as block
-import ctrl.block.linear as linear
 import ctrl.system as system
 import ctrl.system.tf as tf
 import ctrl.system.ss as ss

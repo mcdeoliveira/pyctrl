@@ -12,10 +12,10 @@ Module `ctrl.block`
    :show-inheritance:
    :inherited-members:
 
-Module `ctrl.block.linear`
+Module `ctrl.block.system`
 ==========================
       
-.. automodule:: ctrl.block.linear
+.. automodule:: ctrl.block.system
    :members:
    :show-inheritance:
    :inherited-members:

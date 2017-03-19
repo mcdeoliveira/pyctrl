@@ -9,7 +9,7 @@ from ctrl.block.logger import Logger
 from ctrl.block.clock import Clock, TimerClock
 from ctrl.block import Map
 from ctrl.system.ode import ODE, ODEINT
-from ctrl.block.linear import TimeVaryingSystem, Constant
+from ctrl.block.system import TimeVaryingSystem, Constant
 
 def test1():
 

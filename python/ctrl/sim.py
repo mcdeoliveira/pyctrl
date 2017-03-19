@@ -9,7 +9,7 @@ if __name__ == "__main__":
 
 import ctrl
 import ctrl.block.clock as clock
-import ctrl.block.linear as linear
+import ctrl.block.system as system
 import ctrl.block.nl as nl
 import ctrl.system.tf as tf
 
@@ -113,7 +113,7 @@ class Controller(ctrl.Controller):
         # add filter: model
         Ts = self.period
         c = math.exp(-self.a * Ts)
-        self.model3 = linear.System(model = \
+        self.model3 = system.System(model = \
             tf.DTTF(
                 numpy.array((0, (self.k*Ts)*(1-c)/2, (self.k*Ts)*(1-c)/2)), 
                 numpy.array((1, -(1 + c), c))))
@@ -180,7 +180,7 @@ if __name__ == "__main__":
 
     controller.add_signal('reference1')
     controller.add_filter('controller1', 
-                          linear.Feedback(block = linear.Gain(gain = Kp)),
+                          system.Feedback(block = system.Gain(gain = Kp)),
                           ['encoder1', 'reference1'], ['motor1'])
     controller.set_sink('printer', 
                         inputs = ['clock', 'encoder1', 'reference1', 'motor1'])
@@ -202,7 +202,7 @@ if __name__ == "__main__":
 
     controller.add_signal('velocity1')
     controller.add_filter('differentiator1', 
-                          linear.Differentiator(),
+                          system.Differentiator(),
                           ['clock', 'encoder1'], ['velocity1'])
     controller.set_sink('printer', 
                         inputs = ['clock', 'encoder1', 'velocity1', 'reference1', 'motor1'])
@@ -226,7 +226,7 @@ if __name__ == "__main__":
     Kp = 1/k
     controller.remove_filter('controller1') 
     controller.add_filter('controller1', 
-                          linear.Feedback(block = linear.Gain(gain = Kp)),
+                          system.Feedback(block = system.Gain(gain = Kp)),
                           ['velocity1', 'reference1'], ['motor1'])
     print(controller.info('all'))
 
@@ -248,10 +248,10 @@ if __name__ == "__main__":
     Kp = 1/k
     Ki = a/k
     controller.remove_filter('controller1') 
-    pi = linear.System(model = \
+    pi = system.System(model = \
                      tf.PID(Kp = Kp, Ki = Ki, period = controller.period))
     controller.add_filter('controller1', 
-                          linear.Feedback(block = pi),
+                          system.Feedback(block = pi),
                           ['velocity1', 'reference1'], ['motor1'])
     print(controller.info('all'))
 

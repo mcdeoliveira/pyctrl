@@ -93,7 +93,7 @@ def run(controller):
     import numpy
     import ctrl.block.logger as logger
     import ctrl.block as block
-    import ctrl.block.linear as linear
+    import ctrl.block.system as system
     import ctrl.block.random as blkrnd
 
     # initial signals
@@ -225,13 +225,13 @@ def run(controller):
     controller.add_source('_rand_', blkrnd.RandomUniform(), ['_test_'])
     assert '_rand_' in controller.list_sources()
 
-    controller.add_filter('_gain_', linear.ShortCircuit(), 
+    controller.add_filter('_gain_', system.ShortCircuit(), 
                           ['_test_'], 
                           ['_output_'])
     assert '_gain_' in controller.list_filters()
     # TODO: test for changed block
 
-    controller.add_filter('_gain_', linear.Gain(gain = 2), 
+    controller.add_filter('_gain_', system.Gain(gain = 2), 
                           ['_test_'], 
                           ['_output_'])
     assert '_gain_' in controller.list_filters()

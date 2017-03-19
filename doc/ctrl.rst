@@ -1,6 +1,6 @@
-=============
-Module `ctrl`
-=============
+==============
+Package `ctrl`
+==============
 
 .. automodule:: ctrl
    :members:

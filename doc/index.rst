@@ -3,8 +3,13 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Package `ctrl`
-==============
+A Python Suite for Systems and Control
+======================================
+
+This document describes a suite of packages that facilitate the
+implementation and deployment of filters and controllers. 
+
+Mauricio de Oliveira
 
 .. toctree::
    :maxdepth: 3

@@ -1,7 +1,7 @@
 import pytest
 
 import ctrl.block as block
-import ctrl.block.linear as linear
+import ctrl.block.system as system
 import ctrl.block.random as blkrnd
 
 def test_random_uniform():
