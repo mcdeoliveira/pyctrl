@@ -4,5 +4,5 @@ class System:
 class TVSystem(System):
     pass
 
-class SysException(Exception):
+class SystemException(Exception):
     pass

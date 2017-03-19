@@ -9,7 +9,7 @@ from .. import block
 
 # Blocks
 
-class Compare(block.BufferBlock):
+class Compare(block.FilterBlock):
     """
     The Block Compare takes two inputs and writes `1` if 
     
@@ -58,7 +58,7 @@ class Compare(block.BufferBlock):
         else:
             self.buffer = (0, )
 
-class CompareAbs(block.BufferBlock):
+class CompareAbs(block.FilterBlock):
     """
     The Block *CompareAbs* takes one input and writes `1` if 
     
@@ -131,7 +131,7 @@ class CompareAbs(block.BufferBlock):
             else:
                 self.buffer = (0, )
 
-class Trigger(block.BufferBlock):
+class Trigger(block.FilterBlock):
     """
     The Block *Trigger* writes
     

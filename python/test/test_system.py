@@ -151,13 +151,13 @@ def test3():
     # G(z) = z^2 / (z - 1) = 1 /(q - q^2)
     num1 = np.array([0, 0, 1])
     den1 = np.array([-1, 1])
-    with pytest.raises(system.SysException):
+    with pytest.raises(system.SystemException):
         sys = tf.zDTTF(num1, den1)
 
     # G(z) = z^2 / (z - 1) = 1 /(q - q^2)
     num1 = np.array([0, 0, 1])
     den1 = np.array([-1, 1, 0])
-    with pytest.raises(system.SysException):
+    with pytest.raises(system.SystemException):
         sys = tf.zDTTF(num1, den1)
 
     # G(z) = (z + 2)/(z - 1) = (1 + 2 q) / (1 - q)
@@ -284,7 +284,7 @@ def test3():
     # G(z) = z^2/(z - 1) = 1 / (1 - q)
     num1 = np.array([1, 0, 0])
     den1 = np.array([-1, 1])
-    with pytest.raises(system.SysException):
+    with pytest.raises(system.SystemException):
         sys = tf.zDTTF(num1, den1)
 
     # G(z) = (z + 3)/(z^2 + 2 z - 1) = (q + 3 q^2)/(1 + 2 q - q^2)

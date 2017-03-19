@@ -58,35 +58,6 @@ def test_clock():
 
     clock.set_enabled(False)
 
-def test_client_server():
-
-    import ctrl.client
-
-    if start_server:
-
-        # initiate server
-        print('> Starting server')
-
-        import subprocess
-        server = subprocess.Popen(["python3", 
-                                   "./server.py",
-                                   "-m",
-                                   "ctrl.sim"], 
-                                  stdout = subprocess.PIPE)
-
-        time.sleep(1)
-
-    try:
-        run(ctrl.client.Controller(host = HOST, port = PORT))
-    except Exception as e:
-        print('** EXCEPTION RAISED **')
-        raise e
-    finally:
-        if start_server:
-            # stop server
-            print('> Terminating server')
-            server.terminate()
-
 def run(controller):
 
     import ctrl
@@ -225,7 +196,7 @@ def run(controller):
     controller.add_source('_rand_', blkrnd.RandomUniform(), ['_test_'])
     assert '_rand_' in controller.list_sources()
 
-    controller.add_filter('_gain_', system.ShortCircuit(), 
+    controller.add_filter('_gain_', block.ShortCircuit(), 
                           ['_test_'], 
                           ['_output_'])
     assert '_gain_' in controller.list_filters()
@@ -316,6 +287,35 @@ def test_run():
     assert tk > 10 and tk < 10 + period
 
     controller.remove_source('clock')
+
+def test_client_server():
+
+    import ctrl.client
+
+    if start_server:
+
+        # initiate server
+        print('> Starting server')
+
+        import subprocess
+        server = subprocess.Popen(["python3", 
+                                   "./server.py",
+                                   "-m",
+                                   "ctrl.sim"], 
+                                  stdout = subprocess.PIPE)
+
+        time.sleep(1)
+
+    try:
+        run(ctrl.client.Controller(host = HOST, port = PORT))
+    except Exception as e:
+        print('** EXCEPTION RAISED **')
+        raise e
+    finally:
+        if start_server:
+            # stop server
+            print('> Terminating server')
+            server.terminate()
 
 if __name__ == "__main__":
 

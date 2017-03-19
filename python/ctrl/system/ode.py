@@ -8,14 +8,20 @@ def identity(t, x, u, *pars):
     return x
 
 class ODEBase(system.TVSystem):
-    """ODE(f, state)
+    r"""
+    *ODE* implements a general nonlinear time-varying continuous-time state-space model of the form:
 
-    Model is of the form:
+    .. math::
 
-      .
-      x = f(t, x, u, *pars)
-      y = g(t, x, u, *pars)
+       \dot{x} &= f(t, x, u, *pars) \\
+             y &= g(t, x, u, *pars)
 
+    :param shape:
+    :param f:
+    :param g:
+    :param x0:
+    :param t0:
+    :param pars:
     """
     
     def __init__(self,
@@ -66,14 +72,22 @@ class ODEBase(system.TVSystem):
 
 
 class ODE(ODEBase):
-    """ODE(f, state)
+    r"""
+    ODE(f, state)
 
     Model is of the form:
 
-      .
-      x = f(t, x, u, *pars)
-      y = g(t, x, u, *pars)
+    .. math::
 
+       \dot{x} &= f(t, x, u, *pars) \\
+             y &= g(t, x, u, *pars)
+
+    :param shape:
+    :param f:
+    :param g:
+    :param x0:
+    :param t0:
+    :param pars:
     """
     
     def __init__(self,
@@ -114,14 +128,21 @@ class ODE(ODEBase):
         return self.g(tk, self.state, uk, *self.pars)
 
 class ODEINT(ODEBase):
-    """ODE(f, state)
+    r"""ODE(f, state)
 
     Model is of the form:
 
-      .
-      x = f(t, x, u, *pars)
-      y = g(t, x, u, *pars)
+    .. math::
 
+       \dot{x} &= f(t, x, u, *pars) \\
+             y &= g(t, x, u, *pars)
+
+    :param shape:
+    :param f:
+    :param g:
+    :param x0:
+    :param t0:
+    :param pars:
     """
     
     def __init__(self,

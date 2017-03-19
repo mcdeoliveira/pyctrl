@@ -3,13 +3,19 @@ import numpy
 from .. import system
 
 class DTSS(system.System):
-    """DTSS(A, B, C, D, state)
+    r"""
+    *DTSS* implements a discrete-time state-space model of the form:
 
-    Model is of the form:
+    .. math::
 
-      x(k+1) = A x(k) + B u(k)
-        y(k) = C x(k) + D u(k)
+      x_{k+1} &= A x_k + B u_k \\
+          y_k &= C x_k + D u_k
 
+    :param A:
+    :param B:
+    :param C:
+    :param D:
+    :param state:
     """
     
     def __init__(self,
@@ -42,7 +48,7 @@ class DTSS(system.System):
         elif state.shape == (n,):
             self.state = state.astype(float)
         else:
-            raise system.SysException('Order of state must match order of denominator')
+            raise system.SystemException('Order of state must match order of denominator')
 
         #print('num = {}'.format(self.num))
         #print('den = {}'.format(self.den))

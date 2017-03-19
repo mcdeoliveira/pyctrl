@@ -282,7 +282,7 @@ def test_ShortCircuit():
 
     # Short-Circuit
 
-    blk = system.ShortCircuit()
+    blk = block.ShortCircuit()
 
     blk.write(2)
     (yk,) = blk.read()

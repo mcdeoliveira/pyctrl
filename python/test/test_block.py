@@ -8,7 +8,7 @@ import ctrl.block.system as system
 def test_BufferBlock():
 
     # no mux, no demux
-    obj = block.BufferBlock()
+    obj = block.ShortCircuit()
     
     obj.write()
     assert obj.read() == ()
@@ -31,7 +31,7 @@ def test_BufferBlock():
     assert numpy.array_equal(obj.read()[2], numpy.array([4,5]))
     
     # mux, no demux
-    obj = block.BufferBlock(mux = True)
+    obj = block.ShortCircuit(mux = True)
 
     obj.write()
     assert obj.read() == ()
@@ -52,7 +52,7 @@ def test_BufferBlock():
     assert numpy.array_equal(obj.read()[0], numpy.array([1,2,3,4,5]))
 
     # mux, demux
-    obj = block.BufferBlock(mux = True, demux = True)
+    obj = block.ShortCircuit(mux = True, demux = True)
 
     obj.write()
     assert obj.read() == ()
@@ -73,7 +73,7 @@ def test_BufferBlock():
     assert obj.read() == (1,2,3,4,5)
 
     with pytest.raises(block.BlockException):
-        obj = block.BufferBlock(asd = 1)
+        obj = block.ShortCircuit(asd = 1)
     
 def test_Printer():
 
@@ -89,7 +89,7 @@ def test_Printer():
 
     obj.write(*(1.5, 1.3))
 
-    assert obj.get() == { 'enabled': True, 'endln': '\n', 'frmt': '{: 12.4f}', 'sep': ' ', 'file': sys.stdout }
+    assert obj.get() == { 'enabled': True, 'endln': '\n', 'frmt': '{: 12.4f}', 'sep': ' ', 'file': sys.stdout, 'message': None }
 
     assert obj.get('enabled') == True
     print("-> '{}'".format(obj.get('endln', 'frmt')))
@@ -116,7 +116,7 @@ def test_set():
 
     blk = block.Printer()
 
-    assert blk.get() == { 'enabled': True, 'endln': '\n', 'frmt': '{: 12.4f}', 'sep': ' ', 'file': sys.stdout, }
+    assert blk.get() == { 'enabled': True, 'endln': '\n', 'frmt': '{: 12.4f}', 'sep': ' ', 'file': sys.stdout, 'message': None }
     
     assert blk.get(['enabled', 'frmt']) == {'frmt': '{: 12.4f}', 'enabled': True}
     

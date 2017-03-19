@@ -5,7 +5,7 @@ from .. import block
 
 # Blocks
 
-class ControlledCombination(block.BufferBlock):
+class ControlledCombination(block.FilterBlock):
     r"""
     *ControlledCombination* implements the combination:
 
@@ -49,7 +49,7 @@ class ControlledCombination(block.BufferBlock):
         self.buffer = tuple((1-alpha) * v for v in self.buffer[1:self.m+1]) \
                       + tuple(alpha * v for v in self.buffer[self.m+1:])
 
-class ControlledGain(block.BufferBlock):
+class ControlledGain(block.FilterBlock):
     r"""
     *ControlledGain* implements the controlled gain:
 
@@ -67,7 +67,7 @@ class ControlledGain(block.BufferBlock):
         assert len(self.buffer) > 1
         self.buffer = tuple(self.buffer[0] * v for v in self.buffer[1:])
 
-class DeadZone(block.BufferBlock):
+class DeadZone(block.FilterBlock):
     r"""
     *DeadZone* implements the piecewise function:
 

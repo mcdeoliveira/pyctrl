@@ -12,7 +12,7 @@ from ctrl.system.ss import DTSS
 
 # Blocks
 
-class System(block.BufferBlock):
+class System(block.FilterBlock):
     """
     *System* is a wrapper for a time-invariant dynamic system model. 
 
@@ -112,7 +112,7 @@ class TimeVaryingSystem(System):
         uk = self.buffer[0]
         self.buffer = (self.model.update(uk[0], uk[1:]), )
 
-class Gain(block.BufferBlock):
+class Gain(block.FilterBlock):
     """
     *Gain* multiplies input by a constant gain, that is
 
@@ -149,7 +149,7 @@ class Gain(block.BufferBlock):
 
         self.buffer = tuple(v * self.gain for v in self.buffer)
 
-class Affine(block.BufferBlock):
+class Affine(block.FilterBlock):
     """
     *Affine* multiplies and offset input by a constant gain and offset, that is
 
@@ -197,15 +197,6 @@ class Affine(block.BufferBlock):
 
         self.buffer = tuple(v*self.gain + self.offset for v in self.buffer)
 
-class ShortCircuit(block.BufferBlock):
-    """
-    *ShortCircuit* copies input to the output, that is
-
-    :math:`y = u`
-    """
-
-    pass
-
 class Constant(block.BufferBlock):
     """
     *Constant* outputs a constant.
@@ -221,7 +212,10 @@ class Constant(block.BufferBlock):
         
         self.buffer = value
 
-class Differentiator(block.BufferBlock):
+    def buffer_read(self):
+        pass
+    
+class Differentiator(block.FilterBlock):
     r"""
     *Differentiator* differentiates the input, that is
 
@@ -271,7 +265,7 @@ class Differentiator(block.BufferBlock):
             self.time, self.last, self.buffer = t, x, \
                 [0*v for v in x]
 
-class Feedback(block.BufferBlock):
+class Feedback(block.FilterBlock):
     r"""
     *Feedback* creates a feedback connection for a given `block`, that is
 
@@ -288,7 +282,7 @@ class Feedback(block.BufferBlock):
 
     def __init__(self, **kwargs):
 
-        self.block = kwargs.pop('block', ShortCircuit())
+        self.block = kwargs.pop('block', block.ShortCircuit())
         self.gamma = kwargs.pop('gamma', 1)
         self.m = kwargs.pop('m', 1)
 
@@ -336,7 +330,7 @@ class Feedback(block.BufferBlock):
         # then read
         self.buffer = self.block.read()
 
-class Sum(block.BufferBlock):
+class Sum(block.FilterBlock):
     """
     *Sum* adds all inputs and multiplies the result by a constant gain, that is
 
@@ -375,7 +369,7 @@ class Sum(block.BufferBlock):
 
         self.buffer = (self.gain * numpy.sum(self.buffer, axis=0), )
         
-class Average(block.BufferBlock):
+class Average(block.FilterBlock):
     """
     *Average* calculates the (weighted) average of all inputs, that is
 

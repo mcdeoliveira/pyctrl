@@ -210,12 +210,26 @@ class BufferBlock(Block):
         # else return None
 
     def buffer_read(self):
+        raise BlockException('This block does not support read')
+
+    def buffer_write(self):
+        raise BlockException('This block does not support write')
+
+class FilterBlock(BufferBlock):
+
+    def buffer_read(self):
         pass
 
     def buffer_write(self):
         pass
-        
-    
+
+class ShortCircuit(FilterBlock):
+    """
+    *ShortCircuit* copies input to the output, that is
+
+    :math:`y = u`
+    """
+
 class Printer(Block):
     """
     A *Printer* block prints the values of signals to the screen.
@@ -223,6 +237,7 @@ class Printer(Block):
     :param endl: end-of-line character (default `'\\\\n'`)
     :param frmt: format string (default `{: 12.4f}`)
     :param sep: field separator (default `' '`)
+    :param message: message to print (default `None`)
     :param file: file to print on (default `sys.stdout`)
     """
     
@@ -231,6 +246,7 @@ class Printer(Block):
         self.endln = kwargs.pop('endln', '\n')
         self.frmt = kwargs.pop('frmt', '{: 12.4f}')
         self.sep = kwargs.pop('sep', ' ')
+        self.message = kwargs.pop('message', None)
         self.file = kwargs.pop('sep', sys.stdout)
 
         super().__init__(**kwargs)
@@ -242,6 +258,7 @@ class Printer(Block):
         :param endl: end-of-line character
         :param frmt: format string
         :param sep: field separator
+        :param message: message to print
         :param file: file to print on
         """
         
@@ -254,6 +271,9 @@ class Printer(Block):
         if 'sep' in kwargs:
             self.sep = kwargs.pop('sep')
 
+        if 'message' in kwargs:
+            self.file = kwargs.pop('message')
+
         if 'file' in kwargs:
             self.file = kwargs.pop('file')
             
@@ -265,17 +285,23 @@ class Printer(Block):
         """
         
         if self.enabled:
+            
+            if self.message is not None:
+                print(self.message.format(*values),
+                      file=self.file,
+                      end=self.endln)
+                
+            else:
+                @contextlib.contextmanager
+                def printoptions(*args, **kwargs):
+                    original = numpy.get_printoptions()
+                    numpy.set_printoptions(*args, **kwargs)
+                    yield 
+                    numpy.set_printoptions(**original)
 
-            @contextlib.contextmanager
-            def printoptions(*args, **kwargs):
-                original = numpy.get_printoptions()
-                numpy.set_printoptions(*args, **kwargs)
-                yield 
-                numpy.set_printoptions(**original)
-
-            row = numpy.hstack(values)
-            print(self.sep.join(self.frmt.format(val) for val in row),
-                  file=self.file, end=self.endln)
+                row = numpy.hstack(values)
+                print(self.sep.join(self.frmt.format(val) for val in row),
+                      file=self.file, end=self.endln)
 
 
 class Signal(BufferBlock):
@@ -391,6 +417,9 @@ class Map(BufferBlock):
 
         super().set(**kwargs)
         
+    def buffer_read(self):
+        pass
+    
     def buffer_write(self):
         """
         Writes a tuple with the result of `function` applied to each
@@ -426,6 +455,9 @@ class Apply(BufferBlock):
 
         super().set(**kwargs)
         
+    def buffer_read(self):
+        pass
+    
     def buffer_write(self):
         """
         Writes a tuple with the result of `function` applied to all
@@ -433,3 +465,41 @@ class Apply(BufferBlock):
         """
 
         self.buffer = (self.function(*self.buffer), )
+
+class Message(Block):
+    """
+    A *Message* block prints a message the screen.
+
+    :param file: file to print on (default `sys.stdout`)
+    """
+    
+    def __init__(self, **kwargs):
+        
+        self.file = kwargs.pop('sep', sys.stdout)
+        self.message = kwargs.pop('message', '')
+
+        super().__init__(**kwargs)
+
+    def set(self, **kwargs):
+        """
+        Set properties of *Message*.
+
+        :param file: file to print on
+        """
+        
+        if 'message' in kwargs:
+            self.file = kwargs.pop('message')
+
+        if 'file' in kwargs:
+            self.file = kwargs.pop('file')
+            
+        super().set(**kwargs)
+    
+    def read(self):
+        """
+        Print `message` to `file`.
+        """
+        
+        if self.enabled:
+
+            print(self.message, file=self.file)

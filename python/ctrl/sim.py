@@ -107,7 +107,7 @@ class Controller(ctrl.Controller):
         self.add_signals('motor1', 'encoder1', 'pot1', 'input1')
 
         # add filter: deadzone
-        self.add_filter('dz1', nl.DeadZone(self.X), 
+        self.add_filter('dz1', nl.DeadZone(X = self.X), 
                         ['motor1'], ['input1'])
 
         # add filter: model

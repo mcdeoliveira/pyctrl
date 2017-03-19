@@ -4,30 +4,38 @@ from .. import system
 from . import ss
 
 class DTTF(system.System):
-    """DTTF(num, den, state)
+    r"""
+    *DTTF* implements a single-input-single-output (SISO) transfer-function.
 
-    Model is of the form:
+    The underlying model is of the form:
 
-      den' (yk, ... yk-n) = num' (uk, ... uk-m)
+    .. math::
 
-    or 
-                              -k
-              \sum_{k = 0}^n z   num[k]
-      G(z) = ---------------------------
-                              -k
-              \sum_{k = 0}^m z   den[k]
+        den[0] y_k + den[1] y_{k-1} + \cdots + den[n] y_{k-n} = num[0] uk + num[1] u_{k-1} + \cdots + num[m] u_{k-m}
 
-    Denominator is normalized so that den[0] = 1.
+    which corresponds to the transfer-function:
 
-    Implementation is as follows:
+    .. math::
 
-    Let
+      G(z) = \frac{\sum_{i = 0}^m z^{-i} num[i]}{\sum_{i = 0}^n z^{-i} den[i]}
 
-      zk = uk - den[1:] (zk-1, ..., zk-n)
+    Denominator is always normalized so that :math:`den[0] = 1`.
+
+    Model is implementated in terms of the auxiliary variable $z$ as follows. Let
+
+    .. math::
+
+        z_k + den[1] z_{k-1} + \cdots + den[n] z_{k-n} = u_k 
 
     By linearity:
 
-      yk = num[0] zk + num[1:] (zk-1, ..., zk-n)
+    .. math::
+
+        y_k = num[0] z_k + num[1] z_{k-1} + \cdots + den[n] z_{k-n}
+
+    :param num: numpy m-dimensional 1D-vector numerator (default [1])
+    :param den: numpy n-dimensional 1D-vector denominator (default [1])
+    :param state: numpy n-dimensional 1D-vector representing vector z (default `None`)
     """
     
     def __init__(self,
@@ -57,7 +65,7 @@ class DTTF(system.System):
 
         # inproper?
         if not self.den[0]:
-            raise system.SysException('Order of numerator cannot be greater than order of the denominator')
+            raise system.SystemException('Order of numerator cannot be greater than order of the denominator')
 
         # normalize denominator
         self.num = self.num / self.den[0]
@@ -68,18 +76,39 @@ class DTTF(system.System):
         elif state.size == n:
             self.state = state.astype(float)
         else:
-            raise system.SysException('Order of state must match order of denominator')
+            raise system.SystemException('Order of state must match order of denominator')
 
         #print('num = {}'.format(self.num))
         #print('den = {}'.format(self.den))
         #print('state = {}'.format(self.state))
 
     def set_output(self, yk):
-        # From the realization:
-        #   zk = uk - den[1:] (zk-1, ..., zk-n)
-        #   yk = num[0] zk + num[1:] (zk-1, ..., zk-n)
-        # with uk = 0
-        #  => zk-1 = (yk - num[2:] + num[0] den[2:]) (zk-2, ..., zk-n) / (num[1] - num[0] den[1])
+        r"""
+        Sets the internal state of the *DTTF* so that a call to `update` with `uk = 0` yields `yk`.
+        
+        It is calculated as follows. With :math:`u_k = 0`
+
+        .. math::
+
+            z_k + den[1] z_{k-1} + \cdots + den[n] z_{k-n} &= 0
+
+        and
+
+        .. math::
+
+            y_k &= num[0] z_k + num[1] z_{k-1} + \cdots + num[n] z_{k-n} \\
+            &= num[1] z_{k-1} + \cdots + num[n] z_{k-n} - num[0] (den[1] z_{k-1} + \cdots + den[n] z_{k-n}) \\
+        
+        and :math:`y_k =` `yk` if :math:`num[1] \neq num[0] den[1]` and
+
+        .. math::
+
+            z_{k-1} = \frac{y_k - \sum_{i = 2}^{n} (num[i] - num[0] den[i]) z_{k-i}}{num[1] - num[0] den[1]}
+
+        TODO: if :math:`num[1] \neq num[0] den[1]` then choose next nonzero coefficient.
+
+        :param yk: scalar desired `yk`
+        """
         self.state[1:] = 0
         if yk != 0:
             self.state[0] = (yk - self.state[1:].dot(self.num[2:]) + self.num[0] * self.state[1:].dot(self.den[2:]) ) / (self.num[1] - self.num[0] * self.den[1])
@@ -88,11 +117,22 @@ class DTTF(system.System):
         #print('state = {}'.format(self.state))
     
     def shape(self):
-        return (1,1)
+        """
+        Shape of a *DTTF*
+
+        :return: tuple with number of inputs, number of outputs and order
+        """
+        return (1,1,len(self.state))
     
     def update(self, uk):
-        # zk = uk - den[1:] (zk-1, ..., zk-n)
-        # yk = num[0] zk + num[1:] (zk-1, ..., zk-n)
+        r"""
+        Update *DTTF* model. Implements the recursion:
+
+        .. math::
+        
+            z_k + den[1] z_{k-1} + \cdots + den[n] z_{k-n} &= u_k \\
+            y_k &= num[0] z_k + num[1] z_{k-1} + \cdots + den[n] z_{k-n}
+        """
         #print('uk = {}, state = {}'.format(uk, self.state))
         zk = uk - self.state.dot(self.den[1:])
         yk = self.num[0] * zk + self.state.dot(self.num[1:])
@@ -105,6 +145,9 @@ class DTTF(system.System):
         return yk
 
     def as_DTSS(self):
+        """
+        :returns: a state-space representation (*DTSS*) of the *DTTF*.
+        """
         
         n = self.num.size - 1
         m = 1
@@ -124,19 +167,20 @@ class DTTF(system.System):
         return ss.DTSS(A, B, C, D)
 
 def zDTTF(num, den, state = None):
-    """zDTTF(num, den, state)
+    r"""
+    *zDTTF* implements a single-input-single-output (SISO) transfer-function.
 
-    Model is of the form:
+    The underlying model is of the form corresponds to the transfer-function:
 
-                              k
-              \sum_{k = 0}^m z  num[k]
-      G(z) = ---------------------------
-                              k
-              \sum_{k = 0}^n z  den[k]
+    .. math::
+
+      G(z) = \frac{\sum_{i = 0}^m z^{i} num[i]}{\sum_{i = 0}^n z^{i} den[i]}
+
+    This is a convinience constructor that transforms a model in the form *zDTTF* into a `ctrl.system.DTTF`
     """
 
     if len(num) > len(den):
-        raise system.SysException('Order of numerator cannot be greater than order of the denominator')
+        raise system.SystemException('Order of numerator cannot be greater than order of the denominator')
 
     # make sure it is numpy array
     num = numpy.array(num)
@@ -163,59 +207,60 @@ def zDTTF(num, den, state = None):
 
 
 class PID(DTTF):
-    """PID(Kp, Ki = 0, Kd = 0, period = 0, state = None) implements a PID
-    controller base on DTTF.
+    r"""
+    *PID* implements a PID controller.
 
-    Continuous:
+    A continuous-time PID implements the following function:
 
-      u(t) = Kp e(t) + Ki int_0^t e(t) dt + Kd d/dt e(t)
+    .. math::
 
-    Discrete:
+        u(t) = K_p e(t) + K_i \int_0^t{e(t) \, dt} + K_d \frac{d}{dt} e(t)
 
-                       T  
-      x[k] = x[k-1] + --- (e[k] + e[k-1])
-                       2
-                                  Kd
-      u[k] = Kp e[k] + Ki x[k] + --- (e[k] - e[k-1])
-                                  T
+    We provice the following discrete-time version:
 
-    Transfer-function (q = z^{-1}):
 
-           T  (1 + q)
-      X = --- ------- E
-           2  (1 - q)
-                         Kd
-      U = Kp E + Ki X + --- (1 - q) E
-                         T
-                  Ki T  (1 + q)    Kd
-        = { Kp + ------ ------- + --- (1 - q) } E
-                   2    (1 - q)    T
+    .. math::
 
-           Kp (1 - q) + Ki (T/2) (1 + q) + (Kd/T) (1 - q)^2
-        = -------------------------------------------------- E
-                             (1 - q)
+                         
+        x_k &= x_{k-1} +\frac{T}{2} (e_k + e_{k-1}) \\
+        u_k &= K_p e_k + K_i x_k + \frac{K_d}{T} (e_k - e_{k-1})
 
-           num(q)
-        = ------- E
-           den(q)
 
-           num = Kp + Ki (T/2) + (Kd/T), 
-                 Ki (T/2) - Kp - 2 (Kd/T),
-                 (Kd/T)
-           den = 1, -1, 0
+    In terms of a transfer-function
 
-    PD is special case Ki = 0:
+    .. math::
 
-                  Kd
-      U = Kp E + --- (1 - q) E
-                  T
-           num(q)
-        = ------- E
-           den(q)
+       X(z) &= \frac{T}{2} \frac{1 + z^{-1}}{1 - z^{-1}} E(z)
 
-           num = Kp + (Kd/T), -(Kd/T)
-           den = 1,  0
+    so that
 
+    .. math::
+
+       U(z) &= Kp E(z) + K_i X(z) + \frac{K_d}{T} (1 - z^{-1}) E(z) \\
+       &= \left ( K_p + \frac{K_i T}{2} \frac{1 + z^{-1}}{1 - z^{-1}} + \frac{K_d}{T} (1 - z^{-1}) \right) E(z) \\
+       &= \frac{K_p (1 - z^{-1}) + \frac{K_i T}{2} (1 + z^{-1}) + \frac{K_d}{T} (1 - z^{-1})^2}{1 - z^{-1}} E(z) \\
+       &= G(z) E(z)
+
+    where
+
+    .. math::
+
+       G(z) &= \frac{K_p + \frac{K_i T}{2} + \frac{Kd}{T} + z^{-1} \left ( \frac{K_i T}{2} - K_p - 2 \frac{K_d}{T} \right ) + z^{-2} \left ( \frac{K_d}{T} \right ) }{1 - z^{-1}}
+
+    A PD controller is the special case when Ki = 0:
+
+    .. math::
+
+       U(z) &= \left ( K_p + \frac{Kd}{T} (1 - z^{-1}) \right ) E(z) \\
+            &= \frac{K_p + + \frac{Kd}{T} - z^{-1} \frac{Kd}{T}}{1} E(z)
+
+    This is a convinience constructor that returs a *PID* as a `ctrl.systems.DTTF`.
+
+    :param Kp: proportional gain 
+    :param Ki: integral gain (default = `0`)
+    :param Kd: derivative gain (default = `0`)
+    :param period: sampling period (default = `0`)
+    :param state: internal state representation (default = `None`)
     """
 
     def __init__(self, Kp, Ki = 0, Kd = 0, period = 0, state = None):
@@ -257,7 +302,13 @@ class PID(DTTF):
 import math
 
 class LPF(DTTF):
-    """LPF(fc, order = 1) implements a low pass-filter base on DTTF.
+    """
+    *LPF* implements a low pass-filter base on DTTF.
+    
+    TODO: filters of order higher than `1`
+    
+    :param fc: cuttof frequency in Hz
+    :param order: order (default = `1`)
     """
 
     def __init__(self, fc, period = 0, order = 1):
