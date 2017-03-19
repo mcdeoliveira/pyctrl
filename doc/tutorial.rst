@@ -225,3 +225,22 @@ The *signal* :py:data:`is_running` can be set to `False` by calling
 :py:meth:`ctrl.Controller.stop` or exiting the :py:obj:`with`
 statement. In the `Hello World!` example this is done after doing
 nothing for 5 seconds inside the :py:obj:`with` statement.
+
+Note that the *flow* of *signals* is established by adding *sources*,
+*filters*, and *sinks*, which are processed according to the above
+loop.
+
+Note also that the content of the input signals is made available to
+the *filters* and *sinks*. To see this replace the sink
+:py:data:`message` by::
+
+    hello.add_sink('message',
+		   Printer(message = 'Hello World @ {:3.1f} s'),
+		   ['clock'])
+
+and run the controller to see a message that now prints the *signal*
+:py:data:`clock` along with `Hello World` message. The format
+`{:3.1f}` is used as in python's :py:func:`format`. More
+than one *signal* can be printed by specifying multiple placeholders
+in the attribute :py:attr:`message`.
+
