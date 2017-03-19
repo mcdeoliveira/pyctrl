@@ -7,7 +7,7 @@ import ctrl.system.tf as tf
 import ctrl.system.ss as ss
 import ctrl.system.ode as ode
 
-def test1():
+def test_System():
 
     signals = { 'clock' : 1, 'encoder1' : 2 , 'test' : 3}
     labels = ['clock', 'encoder1']
@@ -22,11 +22,11 @@ def test1():
     assert np.all(sys.den == den)
     assert np.all(sys.state == np.zeros(2))
 
-    blk = linear.SISO(sys)
+    blk = linear.System(model = sys)
     assert blk.model is sys
 
     with pytest.raises(block.BlockException):
-        blk = linear.SISO(modelo = sys)
+        blk = linear.System(modelo = sys)
 
     blk.write([1])
     (yk,) = blk.read()
@@ -60,7 +60,7 @@ def test1():
     den = np.array([1, -1])
     sys2 = tf.DTTF(num, den)
 
-    blk = linear.SISO(sys)
+    blk = linear.System(model = sys)
     blk.set(model = sys2)
     assert blk.model is sys2
 
@@ -77,11 +77,11 @@ def test1():
     assert np.all(sys.D == D)
     assert np.all(sys.state == np.zeros(2))
 
-    blk = linear.MIMO(sys)
+    blk = linear.System(model = sys)
     assert blk.model is sys
 
     with pytest.raises(block.BlockException):
-        blk = linear.MIMO(modelo = sys)
+        blk = linear.System(modelo = sys)
 
     blk.write([1])
     yk = blk.read()
@@ -123,11 +123,11 @@ def test1():
     assert np.all(sys.D == D)
     assert np.all(sys.state == np.zeros(2))
 
-    blk = linear.MIMO(sys)
+    blk = linear.System(model = sys)
     assert blk.model is sys
 
     with pytest.raises(block.BlockException):
-        blk = linear.MIMO(modelo = sys)
+        blk = linear.System(modelo = sys)
 
     blk.write(1)
     yk = blk.read()
@@ -157,7 +157,7 @@ def test1():
     blk.reset()
     assert np.all(sys.state == [0, 0])
 
-    # MIMO
+    # System
     A = np.array([[0,1],[1, -2]])
     B = np.array([[1,-1],[1,0]])
     C = np.array([[1,-2],[0,1]])
@@ -169,7 +169,7 @@ def test1():
     assert np.all(sys.D == D)
     assert np.all(sys.state == np.zeros(2))
 
-    blk = linear.MIMO(sys)
+    blk = linear.System(model = sys)
     assert blk.model is sys
 
     # u1 = 1   =>  y1 = 1
@@ -232,34 +232,36 @@ def test1():
     y2 = blk.read()
     assert np.all(sys.state == np.array([10,-15]))
     assert np.all(y2 == np.array([-15,8]))
-   
+
+    
+def test_Gain():
 
     # Gain
 
     blk = linear.Gain()
     assert blk.gain == 1
 
-    blk = linear.Gain(-1)
+    blk = linear.Gain(gain = -1)
     assert blk.gain == -1
 
     blk = linear.Gain(gain = 3)
     assert blk.gain == 3
 
-    blk = linear.Gain(-1.2)
+    blk = linear.Gain(gain = -1.2)
     assert blk.gain == -1.2
 
     with pytest.raises(AssertionError):
-        blk = linear.Gain('asd')
+        blk = linear.Gain(gain = 'asd')
 
     with pytest.raises(AssertionError):
-        blk = linear.Gain((1,2))
+        blk = linear.Gain(gain = (1,2))
 
-    blk = linear.Gain(-5.2)
+    blk = linear.Gain(gain = -5.2)
     blk.write(np.array([2]))
     (yk,) = blk.read()
     assert yk == -10.4
 
-    blk = linear.Gain(3)
+    blk = linear.Gain(gain = 3)
     blk.write(2, 4)
     yk = blk.read()
     assert yk == (6, 12)
@@ -275,12 +277,12 @@ def test1():
     blk.set(gain = 8)
     assert blk.gain == 8
 
+    
+def test_ShortCircuit():
+
     # Short-Circuit
 
     blk = linear.ShortCircuit()
-
-    with pytest.raises(block.BlockException):
-        blk = linear.ShortCircuit('asd')
 
     blk.write(2)
     (yk,) = blk.read()
@@ -298,6 +300,9 @@ def test1():
     yk = blk.read()
     assert np.all(yk[0] == [2, 4]) and yk[1] == -1
 
+
+def test_Differentiator():
+    
     # Differentiator
 
     signals = { 'clock' : 1, 'encoder1' : 5 , 'test' : 0}
@@ -361,15 +366,17 @@ def test1():
     assert result[1] == .5 and np.all(result[0] == np.array([-1.5,-1.5]))
 
     with pytest.raises(block.BlockException):
-        blk.set(time = 8)
+        diff.set(time = 8)
 
     with pytest.raises(block.BlockException):
-        blk.set(last = 8)
+        diff.set(last = 8)
+
+def test_Feedback():
 
     # Feedback
 
-    blk1 = linear.Gain(2)
-    blk = linear.Feedback(blk1)
+    blk1 = linear.Gain(gain = 2)
+    blk = linear.Feedback(block = blk1)
     assert blk.block is blk1
     assert blk.gamma == 1.0
 
@@ -385,7 +392,7 @@ def test1():
     (yk,) = blk.read()
     assert yk == 2 * (3 * 4 - 2)
 
-    gn = linear.Gain(150)
+    gn = linear.Gain(gain = 150)
     blk.set(block = gn)
     assert blk.block is gn
 
@@ -397,8 +404,8 @@ def test1():
     # G(z) = -.5/(z - .5)
 
     # TODO: CHECK DIFFERENT SIZES NUM/DEN
-    blk1 = linear.SISO(tf.zDTTF([-.5, 0], [-.5, 1]))
-    blktf = linear.Feedback(blk1)
+    blk1 = linear.System(model = tf.zDTTF([-.5, 0], [-.5, 1]))
+    blktf = linear.Feedback(block = blk1)
     assert blktf.block is blk1
 
     # A = .5, B = 1, C = -.5, D = 0
@@ -410,7 +417,7 @@ def test1():
     B = np.array([[-1, 1]])
     C = np.array([[-.5]])
     D = np.array([[0, 0]])
-    blkss = linear.MIMO(ss.DTSS(A,B,C,D))
+    blkss = linear.System(model = ss.DTSS(A,B,C,D))
     
     blktf.write(1,3)
     yk1 = list(blktf.read())
@@ -442,6 +449,8 @@ def test1():
     blktf.reset()
     assert blktf.block.model.state == (0,)
 
+def test_Sum():
+    
     # Sum
     blk = linear.Sum()
     
@@ -465,6 +474,74 @@ def test1():
     (yk, ) = blk.read()
     assert np.all(yk == [1, .4])
 
+    blk.write([1, .4], [2, 3])
+    (yk, ) = blk.read()
+    assert np.all(yk == [3, 3.4])
+
+def test_Average():
+    
+    # Average
+    blk = linear.Average()
+    
+    blk.write(1)
+    (yk, ) = blk.read()
+    assert yk == 1
+
+    blk.write()
+    (yk, ) = blk.read()
+    assert yk == 0
+
+    blk.write(1, 2)
+    (yk, ) = blk.read()
+    assert yk == 1.5
+
+    blk.write(1, .4)
+    (yk, ) = blk.read()
+    assert yk == (1 + .4)/2
+
+    blk.write([1, .4])
+    (yk, ) = blk.read()
+    assert np.all(yk == [1, .4])
+
+    blk.write([1, .4], [2, 3])
+    (yk, ) = blk.read()
+    assert np.all(yk == [1.5, 3.4/2])
+
+    # Weighted
+    blk = linear.Average(weights = np.array([1]))
+    
+    blk.write(1)
+    (yk, ) = blk.read()
+    assert yk == 1
+
+    blk.write()
+    (yk, ) = blk.read()
+    assert yk == 0
+
+    blk.set(weights = np.array([2,1]))
+    
+    blk.write(1, 2)
+    (yk, ) = blk.read()
+    assert yk == (2 + 2)/3
+
+    blk.write(1, .4)
+    (yk, ) = blk.read()
+    assert yk == (2 + .4)/3
+
+    blk.set(weights = None)
+
+    blk.write([1, .4])
+    (yk, ) = blk.read()
+    assert np.all(yk == [1, .4])
+
+    blk.set(weights = np.array([1, 2]))
+    
+    blk.write([1, .4], [2, 3])
+    (yk, ) = blk.read()
+    assert np.all(yk == [(1+2*2)/3, (.4+2*3)/3])
+    
+def test_Subtract():
+    
     # Subtract
     blk = linear.Subtract()
     
@@ -480,7 +557,19 @@ def test1():
     (yk, ) = blk.read()
     assert yk == 0
 
-def test2():
+    blk.write(2,1,1)
+    (yk, ) = blk.read()
+    assert yk == 0
+
+    blk.write(2)
+    (yk, ) = blk.read()
+    assert yk == -2
+
+    blk.write()
+    (yk, ) = blk.read()
+    assert yk == 0
+    
+def test_TimeVaryingSystem():
 
     a = np.array([[-1, 1],[0, -2]])
     b = np.array([[1],[1]])
@@ -490,7 +579,7 @@ def test2():
     
     tk = 0
     xk = np.array([1,-1])
-    sys = ode.ODE(f = f, t0 = tk, x0 = xk, pars = (a,b))
+    sys = ode.ODE(shape = (1,2,2), f = f, t0 = tk, x0 = xk, pars = (a,b))
 
     uk = [0]
     tk += 1
@@ -507,10 +596,10 @@ def test2():
     yk3 = sys.update(tk, uk)
     #print(yk3)
 
-    # Repeat with TimeVarying block
+    # Repeat with TimeVaryingSystem block
 
     tk = 0
-    blk = linear.TimeVarying(ode.ODE(f = f, t0 = tk, x0 = xk, pars = (a,b)))
+    blk = linear.TimeVaryingSystem(model = ode.ODE(shape = (1,2,2), f = f, t0 = tk, x0 = xk, pars = (a,b)))
 
     # u1 = 1   =>  y1 = 1
 

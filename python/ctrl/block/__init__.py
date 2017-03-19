@@ -14,19 +14,16 @@ class Block:
     *Block* provides the basic functionality for all types of blocks.
         
     `Block` does not take any parameters other than *enable* and will raise
-    *BlockException* if any of the *vars* or *kwargs* is left
-    unprocessed.
+    *BlockException* if any of the *kwargs* is left unprocessed.
         
     :param enable: set block as enabled (default True)
     """
     
-    def __init__(self, *vars, **kwargs):
+    def __init__(self, **kwargs):
         
         self.enabled = kwargs.pop('enabled', True)
 
-        if len(vars) > 0:
-            raise BlockException("Unknown parameter(s) '{}'".format(', '.join(str(v) for v in vars)))
-        elif len(kwargs) > 0:
+        if len(kwargs) > 0:
             raise BlockException("Unknown parameter(s) '{}'".format(', '.join(str(k) for k in kwargs.keys())))
 
     def is_enabled(self):
@@ -120,21 +117,36 @@ class Block:
 class BufferBlock(Block):
     """
     *BufferBlock* provides the basic functionality for blocks that
-    implement *read*. 
+    implement `read` and `write` through a local `buffer`. 
 
     A *BufferBlock* has the property `buffer`.
     
-    Reading from a *BufferBlock* reads the `buffer`.
+    Writing from a *BufferBlock* writes to the `buffer`.
 
-    An object that inherits from BufferBlock need not
-    implement `read()` but simply write to `self.buffer`.
+    Reading from a *BufferBlock* reads from the `buffer`.
+
+    Multiplexing and demultiplexing options are available.
+
+    If `mux` is `False` (`demux` is `False`) then `read` (`write`) are
+    simply copied to (from) the `buffer`.
+
+    If `mux` is `True` then `read` writes a numpy array with the
+    contents of `*values` to `buffer`.
+
+    If `demux` is `True` then `write` splits `buffer` into a tuple
+    with scalar entries.
+
+    Objects that inherit from *BufferBlock* overwrite the methods
+    `buffer_read` and `buffer_write` instead of `read` and `write`.
     """
-
-    def __init__(self, *vars, **kwargs):
+    def __init__(self, **kwargs):
         
         self.buffer = ()
 
-        super().__init__(*vars, **kwargs)
+        self.mux = kwargs.pop('mux', False)
+        self.demux = kwargs.pop('demux', False)
+
+        super().__init__(**kwargs)
 
     def get(self, keys = None, exclude = ()):
         """
@@ -148,15 +160,61 @@ class BufferBlock(Block):
         # call super
         return super().get(keys, exclude = exclude + ('buffer',))
         
+    def write(self, *values):
+        """
+        Writes to the private `buffer` property then call `self.buffer_write`.
+
+        If `mux` is `False` then `*values` are simply copied to the
+        `buffer`.
+
+        If `mux` is `True` then `*values` writes a numpy array with the
+        contents of `*values` to the first entry of `buffer`.
+
+        :param values: list of values
+        """
+
+        if self.enabled:
+            
+            if values and self.mux:
+                # convert values to numpy array
+                self.buffer = (numpy.hstack(values),)
+            else:
+                # simply copy to buffer
+                self.buffer = values
+
+            # call buffer_write
+            self.buffer_write()
+
     def read(self):
         """
-        Returns the private `buffer` property.
+        Calls `self.buffer_read` then returns the private `buffer` property.
+
+        If `demux` is `False` then read returns a copy of the local `buffer`. 
+
+        If `demux` is `True` then `buffer` is split into a tuple with
+        scalar entries.
 
         :returns: `buffer`
         """
-        # get buffer
-        return self.buffer
+        if self.enabled:
 
+            # call buffer_read
+            self.buffer_read()
+        
+            # return buffer
+            if self.buffer and self.demux:
+                self.buffer = tuple(numpy.hstack(self.buffer).tolist())
+                
+            return self.buffer
+
+        # else return None
+
+    def buffer_read(self):
+        pass
+
+    def buffer_write(self):
+        pass
+        
     
 class Printer(Block):
     """
@@ -168,14 +226,14 @@ class Printer(Block):
     :param file: file to print on (default `sys.stdout`)
     """
     
-    def __init__(self, *vars, **kwargs):
+    def __init__(self, **kwargs):
         
         self.endln = kwargs.pop('endln', '\n')
         self.frmt = kwargs.pop('frmt', '{: 12.4f}')
         self.sep = kwargs.pop('sep', ' ')
         self.file = kwargs.pop('sep', sys.stdout)
 
-        super().__init__(*vars, **kwargs)
+        super().__init__(**kwargs)
 
     def set(self, **kwargs):
         """
@@ -220,7 +278,7 @@ class Printer(Block):
                   file=self.file, end=self.endln)
 
 
-class Signal(Block):
+class Signal(BufferBlock):
     """
     A *Signal* block outputs values of a vector `signal` sequentially
     each time `read` is called.
@@ -231,18 +289,18 @@ class Signal(Block):
     :param repeat: if `True` then signal repeats periodically
     """
 
-    def __init__(self, signal, repeat = False, *vars, **kwargs):
+    def __init__(self, **kwargs):
 
         # signal
-        self.signal = numpy.array(signal)
+        self.signal = numpy.array(kwargs.pop('signal', []))
 
         # repeat?
-        self.repeat = repeat
+        self.repeat = kwargs.pop('repeat', False)
 
         # index
         self.index = 0
        
-        super().__init__(*vars, **kwargs)
+        super().__init__(**kwargs)
 
     def reset(self):
         """
@@ -266,12 +324,18 @@ class Signal(Block):
         if 'index' in kwargs:
             index = kwargs.pop('index')
             assert isinstance(index, int)
-            assert index >= 0 and index < len(self.signal)
+            if not self.repeat:
+                assert index >= 0 and index < len(self.signal)
+            else:
+                index = index % len(self.signal)
             self.index = index 
+            
+        if 'repeat' in kwargs:
+            self.repeat = kwargs.pop('repeat')
             
         super().set(**kwargs)
 
-    def read(self, *values):
+    def buffer_read(self):
         """
         Read from *Signal*.
 
@@ -298,7 +362,7 @@ class Signal(Block):
                 # reset
                 self.index = 0
         
-        return (xk, )
+        self.buffer = (xk,)
 
 class Map(BufferBlock):
     """
@@ -308,10 +372,12 @@ class Map(BufferBlock):
     :param function: the function to be applied
     """
 
-    def __init__(self, function = (lambda x: x), *vars, **kwargs):
+    def __init__(self,  **kwargs):
 
-        self.function = function
-        super().__init__(*vars, **kwargs)
+        # function
+        self.function = kwargs.pop('function', lambda x: x)
+        
+        super().__init__(**kwargs)
 
     def set(self, **kwargs):
         """
@@ -325,17 +391,13 @@ class Map(BufferBlock):
 
         super().set(**kwargs)
         
-    def write(self, *values):
+    def buffer_write(self):
         """
         Writes a tuple with the result of `function` applied to each
         input to the private `buffer`.
-
-        :param values: list of values of any length
-        :return: tuple with results of map(function, values)
         """
 
-        if self.enabled:
-            self.buffer = tuple(map(self.function, values))
+        self.buffer = tuple(map(self.function, self.buffer))
 
 class Apply(BufferBlock):
     """
@@ -345,10 +407,12 @@ class Apply(BufferBlock):
     :param function: the function to be applied
     """
 
-    def __init__(self, function = (lambda x: x), *vars, **kwargs):
+    def __init__(self, **kwargs):
 
-        self.function = function
-        super().__init__(*vars, **kwargs)
+        # function
+        self.function = kwargs.pop('function', lambda x: x)
+        
+        super().__init__(**kwargs)
 
     def set(self, **kwargs):
         """
@@ -362,19 +426,10 @@ class Apply(BufferBlock):
 
         super().set(**kwargs)
         
-    def write(self, *values):
+    def buffer_write(self):
         """
         Writes a tuple with the result of `function` applied to all
         inputs to the private `buffer`.
-
-        :param values: list of values of any length
-        :return: tuple with results of `function(*values)`
         """
 
-        if self.enabled:
-            eval = self.function(*values)
-            if isinstance(eval, (list, tuple)):
-                self.buffer = tuple(eval)
-            else:
-                self.buffer = (eval,)
-
+        self.buffer = (self.function(*self.buffer), )

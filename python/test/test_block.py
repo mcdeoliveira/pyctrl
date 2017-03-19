@@ -1,10 +1,81 @@
 import pytest
 import sys
+import numpy
 
 import ctrl.block as block
 import ctrl.block.linear as linear
 
-def testPrinter():
+def test_BufferBlock():
+
+    # no mux, no demux
+    obj = block.BufferBlock()
+    
+    obj.write()
+    assert obj.read() == ()
+
+    obj.write(1)
+    assert obj.read() == (1,)
+
+    obj.write(1, 2)
+    assert obj.read() == (1, 2)
+
+    obj.write(1, numpy.array([2,3]))
+    assert len(obj.read()) == 2
+    assert obj.read()[0] == 1
+    assert numpy.array_equal(obj.read()[1], numpy.array([2,3]))
+
+    obj.write(1, numpy.array([2,3]), numpy.array([4,5]))
+    assert len(obj.read()) == 3
+    assert obj.read()[0] == 1
+    assert numpy.array_equal(obj.read()[1], numpy.array([2,3]))
+    assert numpy.array_equal(obj.read()[2], numpy.array([4,5]))
+    
+    # mux, no demux
+    obj = block.BufferBlock(mux = True)
+
+    obj.write()
+    assert obj.read() == ()
+
+    obj.write(1)
+    assert obj.read() == (1,)
+
+    obj.write(1, 2)
+    assert len(obj.read()) == 1
+    assert numpy.array_equal(obj.read()[0], numpy.array([1, 2]))
+
+    obj.write(1, numpy.array([2,3]))
+    assert len(obj.read()) == 1
+    assert numpy.array_equal(obj.read()[0], numpy.array([1,2,3]))
+
+    obj.write(1, numpy.array([2,3]), numpy.array([4,5]))
+    assert len(obj.read()) == 1
+    assert numpy.array_equal(obj.read()[0], numpy.array([1,2,3,4,5]))
+
+    # mux, demux
+    obj = block.BufferBlock(mux = True, demux = True)
+
+    obj.write()
+    assert obj.read() == ()
+
+    obj.write(1)
+    assert obj.read() == (1,)
+
+    obj.write(1, 2)
+    assert len(obj.read()) == 2
+    assert obj.read() == (1, 2)
+
+    obj.write(1, numpy.array([2,3]))
+    assert len(obj.read()) == 3
+    assert obj.read() == (1,2,3)
+
+    obj.write(1, numpy.array([2,3]), numpy.array([4,5]))
+    assert len(obj.read()) == 5
+    assert obj.read() == (1,2,3,4,5)
+
+    with pytest.raises(block.BlockException):
+        obj = block.BufferBlock(asd = 1)
+    
+def test_Printer():
 
     obj = block.Printer()
 
@@ -25,25 +96,19 @@ def testPrinter():
     assert obj.get(['endln', 'frmt']) == { 'endln': '\n', 'frmt': '{: 12.4f}' }
 
     with pytest.raises(block.BlockException):
-        obj = block.Printer("adsadsda")
+        obj = block.Printer(adsadsda = 1)
 
-    with pytest.raises(block.BlockException):
+    with pytest.raises(TypeError):
         obj = block.Printer(1, "adsadsda")
-
-    with pytest.raises(block.BlockException):
-        obj = block.Printer("adsadsda", "adsads")
-
-    with pytest.raises(block.BlockException):
-        obj = block.Printer(par = "adsadsda")
 
     with pytest.raises(block.BlockException):
         obj = block.Printer(par = 1)
 
     with pytest.raises(block.BlockException):
-        obj = block.Printer(1, par = "adsadsda")
+        obj = block.Printer(par = "adsadsda")
 
     with pytest.raises(block.BlockException):
-        obj = block.Printer(1, par = "adsadsda", sadasd = 1)
+        obj = block.Printer(par = "adsadsda", sadasd = 1)
 
     obj = block.Printer(enabled = False)
 
@@ -51,7 +116,7 @@ def test_set():
 
     blk = block.Printer()
 
-    assert blk.get() == { 'enabled': True, 'endln': '\n', 'frmt': '{: 12.4f}', 'sep': ' ', 'file': sys.stdout }
+    assert blk.get() == { 'enabled': True, 'endln': '\n', 'frmt': '{: 12.4f}', 'sep': ' ', 'file': sys.stdout, }
     
     assert blk.get(['enabled', 'frmt']) == {'frmt': '{: 12.4f}', 'enabled': True}
     
@@ -73,9 +138,9 @@ def test_set():
     assert blk.get('sep') == '-'
 
     blk = block.BufferBlock()
-    assert blk.get() == {'enabled': True}
+    assert blk.get() == {'enabled': True, 'demux': False, 'mux': False}
     # test twice to make sure it is copying
-    assert blk.get() == {'enabled': True}
+    assert blk.get() == {'enabled': True, 'demux': False, 'mux': False}
     with pytest.raises(KeyError):
         blk.get('buffer')
 
@@ -114,7 +179,7 @@ def test_logger():
 
     assert _logger.get() == { 'auto_reset': False, 'enabled': True, 'current': 1, 'page': 0 }
 
-def test_signal():
+def test_Signal():
 
     import numpy as np
 
@@ -122,75 +187,97 @@ def test_signal():
     obj = block.Signal(signal = x, repeat = True)
     
     k = 0
-    (y,) = obj.read(0)
+    (y,) = obj.read()
     assert y == x[k]
     k += 1
 
-    (y,) = obj.read(0)
+    (y,) = obj.read()
     assert y == x[k]
     k += 1
 
-    (y,) = obj.read(0)
+    (y,) = obj.read()
     assert y == x[k]
 
     k = 0
-    (y,) = obj.read(0)
+    (y,) = obj.read()
     assert y == x[k]
     k += 1
 
-    (y,) = obj.read(0)
+    (y,) = obj.read()
     assert y == x[k]
     k += 1
 
-    (y,) = obj.read(0)
+    (y,) = obj.read()
     assert y == x[k]
 
     x = np.array([1,2,3])
     obj = block.Signal(signal = x, repeat = False)
     
     k = 0
-    (y,) = obj.read(0)
+    (y,) = obj.read()
     assert y == x[k]
     k += 1
 
-    (y,) = obj.read(0)
+    (y,) = obj.read()
     assert y == x[k]
     k += 1
 
-    (y,) = obj.read(0)
+    (y,) = obj.read()
     assert y == x[k]
 
-    (y,) = obj.read(0)
+    (y,) = obj.read()
     assert y == 0
 
-    (y,) = obj.read(0)
+    (y,) = obj.read()
     assert y == 0
 
-    (y,) = obj.read(0)
+    (y,) = obj.read()
     assert y == 0
 
     x = np.array([1,2,3])
     obj = block.Signal(signal = x, repeat = True)
     
     k = 0
-    (y,) = obj.read(0)
+    (y,) = obj.read()
     assert y == x[k]
     k += 1
 
-    (y,) = obj.read(0)
+    (y,) = obj.read()
     assert y == x[k]
     k += 1
 
     obj.reset()
     
     k = 0
-    (y,) = obj.read(0)
+    (y,) = obj.read()
     assert y == x[0]
 
+    k = 0
+    obj.set(index = k)
+    (y,) = obj.read()
+    assert y == x[k]
+
+    k = 2
+    obj.set(index = k)
+    (y,) = obj.read()
+    assert y == x[k]
+
+    k = 3
+    obj.set(index = k)
+    (y,) = obj.read()
+    assert y == x[0]
+
+    obj.set(repeat = False)
+    
+    k = 3
+    with pytest.raises(AssertionError):
+        obj.set(index = k)
+
+    
 def test_apply():
 
     def f(*x):
-        return (x[0] < 1, )
+        return x[0] < 1
     
     obj = block.Apply(function = f)
     
@@ -202,6 +289,14 @@ def test_apply():
     (y,) = obj.read()
     assert y == False
 
+    obj.write(0,1)
+    (y,) = obj.read()
+    assert y == True
+    
+    obj.write(1,2)
+    (y,) = obj.read()
+    assert y == False
+    
     def g(*x):
         return all(map(lambda y : y < 1, x))
     
@@ -211,10 +306,17 @@ def test_apply():
     (y,) = obj.read()
     assert y == True
 
+    obj.write(0, 0.5)
+    (y,) = obj.read()
+    assert y == True
+
     obj.write(1)
     (y,) = obj.read()
     assert y == False
 
+    obj.write(0, 1)
+    (y,) = obj.read()
+    assert y == False
     
 def test_map():
 

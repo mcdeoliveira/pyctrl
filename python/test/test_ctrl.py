@@ -20,7 +20,7 @@ def test_clock():
 
     period = 0.01
     controller.add_signal('clock')
-    controller.add_source('clock', Clock(period), ['clock'])
+    controller.add_source('clock', Clock(period = period), ['clock'])
     K = 10
     k = 0
     while k < K:
@@ -38,7 +38,7 @@ def test_clock():
 
     controller.remove_source('clock')
 
-    clock = TimerClock(period)
+    clock = TimerClock(period = period)
     controller.add_source('clock', clock, ['clock'])
 
     K = 10
@@ -282,18 +282,18 @@ def test_run():
 
     from ctrl import Controller
     from ctrl.block.clock import Clock, TimerClock
-    from ctrl.block import Condition
+    from ctrl.block import Map
 
     controller = Controller()
     print(controller.info('all'))
 
     period = 0.01
-    controller.add_source('clock', Clock(period), ['clock'])
+    controller.add_source('clock', Clock(period = period), ['clock'])
 
     # start/stop with condition
 
     controller.add_filter('condition', 
-                          Condition(lambda x: x < 10), 
+                          Map(function = lambda x: x < 10), 
                           ['clock'], ['is_running'])
 
     controller.set_source('clock', reset=True)

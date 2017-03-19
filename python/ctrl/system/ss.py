@@ -2,10 +2,7 @@ import numpy
 
 from .. import system
 
-class MIMOSystem:
-    pass
-
-class DTSS(MIMOSystem):
+class DTSS(system.System):
     """DTSS(A, B, C, D, state)
 
     Model is of the form:
@@ -52,14 +49,22 @@ class DTSS(MIMOSystem):
         #print('state = {}'.format(self.state))
 
     def set_output(self, yk):
-        raise Exception('Not implemented yet')
+        # y = C x
+        assert isinstance(yk, numpy.ndarray)
+        assert yk.shape[0] == self.C.shape[0]
+        xk = numpy.linalg.lstsq(self.C, yk)[0]
+        self.set_state(xk)
 
     def get_state(self):
         return self.state
         
     def set_state(self, xk):
+        assert len(xk) == len(self.state)
         self.state = xk
-    
+
+    def shape(self):
+        return (self.B.shape[1], self.C.shape[0], self.A.shape[0])
+        
     def update(self, uk):
         # yk = C xk + D uk
         # xk+1 = A xk + B uk

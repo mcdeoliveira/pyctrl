@@ -113,7 +113,7 @@ class Controller(ctrl.Controller):
         # add filter: model
         Ts = self.period
         c = math.exp(-self.a * Ts)
-        self.model3 = linear.SISO(model = \
+        self.model3 = linear.System(model = \
             tf.DTTF(
                 numpy.array((0, (self.k*Ts)*(1-c)/2, (self.k*Ts)*(1-c)/2)), 
                 numpy.array((1, -(1 + c), c))))
@@ -248,7 +248,7 @@ if __name__ == "__main__":
     Kp = 1/k
     Ki = a/k
     controller.remove_filter('controller1') 
-    pi = linear.SISO(model = \
+    pi = linear.System(model = \
                      tf.PID(Kp = Kp, Ki = Ki, period = controller.period))
     controller.add_filter('controller1', 
                           linear.Feedback(block = pi),

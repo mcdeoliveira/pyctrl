@@ -9,13 +9,13 @@ def test():
     N = 100
     Ts = 0.01
 
-    clock = clk.TimerClock()
+    clock = clk.TimerClock(period = Ts)
     k = 0
     while k < N:
         (t,) = clock.read()
         k += 1
 
-    assert abs(clock.get_average_period() - Ts)/Ts < 2e-1
+    assert abs(clock.get_average_period() - Ts)/Ts < 3e-1
 
     clock.set_enabled(False)
     clock.set_enabled(True)
@@ -25,7 +25,7 @@ def test():
         (t,) = clock.read()
         k += 1
 
-    assert abs(clock.get_average_period() - Ts)/Ts < 2e-1
+    assert abs(clock.get_average_period() - Ts)/Ts < 3e-1
 
     clock.set_enabled(False)
     clock.set_enabled(True)
@@ -35,7 +35,7 @@ def test():
         (t,) = clock.read()
         k += 1
 
-    assert abs(clock.get_average_period() - Ts)/Ts < 2e-1
+    assert abs(clock.get_average_period() - Ts)/Ts < 3e-1
     
     clock.set_enabled(False)
 

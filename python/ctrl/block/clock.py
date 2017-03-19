@@ -12,14 +12,14 @@ else:
 
 class Clock(block.Block):
 
-    def __init__(self, *pars, **kpars):
+    def __init__(self, **kpars):
 
         #print("Clock.__init__: pars {}".format(pars))
         #print("Clock.__init__: kpars {}".format(kpars))
         
         self.period = kpars.pop('period', 0.01)
 
-        super().__init__(*pars, **kpars)
+        super().__init__(**kpars)
 
         self.time_origin = perf_counter()
         self.time = self.time_origin
@@ -109,9 +109,9 @@ from threading import Thread, Timer, Condition
 
 class TimerClock(Clock):
 
-    def __init__(self, *pars, **kpars):
+    def __init__(self, **kpars):
 
-        super().__init__(*pars, **kpars)
+        super().__init__(**kpars)
 
         self.condition = Condition()
         self.timer = None

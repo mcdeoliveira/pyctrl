@@ -3,132 +3,81 @@ This module provides blocks for linear dynamic systems.
 """
 
 import numpy
+import itertools
 
 from .. import block
-from ctrl.system.tf import DTTF, SISOSystem
-from ctrl.system.ss import DTSS, MIMOSystem
-from ctrl.system.tv import TVSystem
+from .. import system
+from ctrl.system.tf import DTTF
+from ctrl.system.ss import DTSS
 
 # Blocks
 
-class SISO(block.BufferBlock):
+class System(block.BufferBlock):
     """
-    *SISO* is a wrapper for a single-input-single-output dynamic
-    system model. 
+    *System* is a wrapper for a time-invariant dynamic system model. 
 
-    :param model: an instance of `ctrl.system.SISOSystem`
+    :param model: an instance of `ctrl.system.System`
     """
     
-    def __init__(self, model = DTTF(), *vars, **kwargs):
+    def __init__(self, **kwargs):
 
-        assert isinstance(model, SISOSystem)
+        model = kwargs.pop('model', DTTF())
+        assert isinstance(model, system.System)
         self.model = model
 
-        super().__init__(*vars, **kwargs)
+        # set mux by default
+        if 'mux' not in kwargs:
+            kwargs['mux'] = True
+        elif not kargs.get('mux'):
+            raise BlockException('System must have `mux` equal to `True`.')
+            
+        super().__init__(**kwargs)
 
     def set(self, **kwargs):
         """
-        Set properties of `SISO` block.
+        Set properties of `System` block.
 
-        :param model: an instance of `ctrl.system.SISOSystem`
+        :param model: an instance of `ctrl.system.System`
         """
         
         if 'model' in kwargs:
             model = kwargs.pop('model')
-            assert isinstance(model, SISOSystem)
+            assert isinstance(model, system.System)
             self.model = model
 
         super().set(**kwargs)
 
     def reset(self):
         """
-        Reset `SISO` block.
+        Reset `System` block.
 
         Calls `model.set_output(0)`.
         """
 
-        self.model.set_output(0)
+        self.model.set_output(numpy.zeros(self.model.shape()[1]))
         
-    def write(self, *values):
+    def buffer_write(self):
         """
-        Writes current output of `model` to the private `buffer`.
-
-        :param values: list of values of length equal to one
-        :return: tuple with current model output
+        Update `model` and write to the private `buffer`.
         """
-
-        assert len(values) == 1
-        self.buffer = (self.model.update(values[0]), )
-
-class MIMO(block.BufferBlock):
-    """
-    *MIMO* is a wrapper for a multi-input-multi-output dynamic
-    system model. 
-
-    :param model: an instance of `ctrl.system.MIMOSystem`
-    """
-
-    def __init__(self, model = DTSS(), *vars, **kwargs):
-        """
-        Wrapper for state-space model as a Block
-        """
-
-        self.model = model
-        assert isinstance(self.model, MIMOSystem)
-
-        super().__init__(*vars, **kwargs)
-
-    def set(self, **kwargs):
-        """
-        Set properties of `MIMO` block.
-
-        :param model: an instance of `ctrl.system.MIMOSystem`
-        """
-
-        if 'model' in kwargs:
-            model = kwargs.pop('model')
-            assert isinstance(model, MIMOSystem)
-            self.model = model
-
-        super().set(**kwargs)
-
-    def reset(self):
-        """
-        Reset `MIMO` block.
-
-        Calls `model.set_state(0 * model.get_state())`.
-        """
-        self.model.set_state(0 * self.model.get_state())
         
-    def write(self, *values):
-        """
-        Writes current output of `model` to the private `buffer`.
-
-        :param values: list of values
-        :return: tuple with current model output
-        """
-
-        # convert input to array
-        uk = numpy.hstack(values)
-
-        # update model
-        self.buffer = self.model.update(uk).tolist()
-
-class TimeVarying(block.BufferBlock):
+        self.buffer = (self.model.update(self.buffer[0]), )
+        
+class TimeVaryingSystem(System):
     """
-    *TimeVarying* is a wrapper for a multi-input-multi-output dynamic
-    time-varying system model.
+    *TimeVarying* is a wrapper for a time-varying dynamic system model.
+
+    The first signal must be a clock.
 
     :param model: an instance of `ctrl.system.TVSystem`
     """
 
-    def __init__(self, model = TVSystem(), *vars, **kwargs):
+    def __init__(self, **kwargs):
 
-        assert isinstance(model, TVSystem)
-        self.model = model
+        super().__init__(**kwargs)
 
-        super().__init__(*vars, **kwargs)
-
+        assert isinstance(self.model, system.TVSystem)
+        
     def set(self, **kwargs):
         """
         Set properties of `TimeVarying` block.
@@ -138,7 +87,7 @@ class TimeVarying(block.BufferBlock):
 
         if 'model' in kwargs:
             model = kwargs.pop('model')
-            assert isinstance(model, TVSystem)
+            assert isinstance(model, system.TVSystem)
             self.model = 'model'
 
         super().set(**kwargs)
@@ -149,37 +98,37 @@ class TimeVarying(block.BufferBlock):
 
         Calls `model.set_state(0 * model.get_state())`.
         """
-        self.model.set_state(0 * self.model.get_state())
+        self.model.set_output(numpy.zeros(self.model.shape()[1]))
         
-    def write(self, *values):
+    def buffer_write(self):
         """
-        Writes current output of `model` to the private `buffer`.
+        Update `model` and write to the private `buffer`.
 
-        :param values: list of values
-        :return: tuple with current model output
+        The first signal must be a clock.
         """
-
-        # time comes first 
-        tk = values[0]
-
-        # convert input to array
-        uk = numpy.hstack(values[1:])
 
         # update model
-        self.buffer = self.model.update(tk, uk).tolist()
+        # time comes first
+        uk = self.buffer[0]
+        self.buffer = (self.model.update(uk[0], uk[1:]), )
 
 class Gain(block.BufferBlock):
     """
-    *Gain* multiplies input by a constant gain.
+    *Gain* multiplies input by a constant gain, that is
+
+    :math:`y = a u`,
+
+    where :math:`a` is the gain.
 
     :param gain: multiplier (default `1`)
     """
-    def __init__(self, gain = 1, *vars, **kwargs):
+    def __init__(self, **kwargs):
 
+        gain = kwargs.pop('gain', 1)
         assert isinstance(gain, (int, float))
         self.gain = gain
 
-        super().__init__(*vars, **kwargs)
+        super().__init__(**kwargs)
     
     def set(self, **kwargs):
         """
@@ -193,33 +142,36 @@ class Gain(block.BufferBlock):
 
         super().set(**kwargs)
 
-    def write(self, *values):
+    def buffer_write(self):
         """
         Writes product of `gain` times current input to the private `buffer`.
-
-        :param values: list of values
-        :return: tuple with scaled input
         """
 
-        self.buffer = tuple(v*self.gain for v in values)
+        self.buffer = tuple(v * self.gain for v in self.buffer)
 
 class Affine(block.BufferBlock):
     """
-    *Affine* offset and multiplies input by a constant gain.
+    *Affine* multiplies and offset input by a constant gain and offset, that is
+
+    :math:`y = a u + b`,
+
+    where :math:`a` is the gain and :math:`b` is the offset.
 
     :param gain: multiplier (default `1`)
     :param offset: offset (default `0`)
     """
 
-    def __init__(self, gain = 1, offset = 0, *vars, **kwargs):
+    def __init__(self, **kwargs):
 
+        gain = kwargs.pop('gain', 1)
         assert isinstance(gain, (int, float))
         self.gain = gain
 
+        offset = kwargs.pop('offset', 0)
         assert isinstance(offset, (int, float))
         self.offset = offset
 
-        super().__init__(*vars, **kwargs)
+        super().__init__(**kwargs)
     
     def set(self, **kwargs):
         """
@@ -237,69 +189,71 @@ class Affine(block.BufferBlock):
 
         super().set(**kwargs)
 
-    def write(self, *values):
+    def buffer_write(self):
         """
         Writes product of `gain` times current input plus `offset` to
         the private `buffer`.
-
-        :param values: list of values
-        :return: tuple with scaled input
         """
 
-        self.buffer = tuple(v*self.gain + self.offset for v in values)
+        self.buffer = tuple(v*self.gain + self.offset for v in self.buffer)
 
 class ShortCircuit(block.BufferBlock):
     """
-    *ShortCircuit* copies input to the output.
+    *ShortCircuit* copies input to the output, that is
+
+    :math:`y = u`
     """
 
-    def write(self, *values):
-        """
-        Writes current input to the private `buffer`.
+    pass
 
-        :param values: list of values
-        :return: copy of input
-        """
+class Constant(block.BufferBlock):
+    """
+    *Constant* outputs a constant.
 
-        self.buffer = values
+    :param value: constant
+    """
 
-class Constant(block.Block):
+    def __init__(self, **kwargs):
 
-    def __init__(self, value = 1, *vars, **kwargs):
-
-        assert isinstance(value, (int, float))
-        self.value = value
-
-        super().__init__(*vars, **kwargs)
-    
-    def read(self):
-
-        return (self.value, )
+        value = kwargs.pop('value', 1)
+        
+        super().__init__(**kwargs)
+        
+        self.buffer = value
 
 class Differentiator(block.BufferBlock):
+    r"""
+    *Differentiator* differentiates the input, that is
 
-    def __init__(self, *vars, **kwargs):
-        """Differentiator
-        inputs: clock, signal
-        output: derivative
-        """
+    :math:`y = {\displaystyle \frac{u_k - u_{k-1}}{t_k - t_{k-1}}} \approx \dot{u}`.
+
+    The first signal must be a clock.
+    """
+
+    def __init__(self, **kwargs):
         
         self.time = -1
         self.last = ()
 
-        super().__init__(*vars, **kwargs)
+        super().__init__(**kwargs)
 
     def get(self, keys = None):
 
-        # call super
+        # call super excluding time and last
         return super().get(keys, exclude = ('time', 'last'))
     
-    def write(self, *values):
+    def buffer_write(self):
+        """
+        Writes finite difference derivative to the private `buffer`.
+
+        The first signal must be a clock.
+        """
 
         #print('values = {}'.format(values))
 
-        t = values[0]
-        x = values[1:]
+        assert len(self.buffer) > 1
+        t = self.buffer[0]
+        x = self.buffer[1:]
 
         #print('t = {}'.format(t))
         #print('x = {}'.format(x))
@@ -318,82 +272,169 @@ class Differentiator(block.BufferBlock):
                 [0*v for v in x]
 
 class Feedback(block.BufferBlock):
+    r"""
+    *Feedback* creates a feedback connection for a given `block`, that is
 
-    def __init__(self, block = ShortCircuit(), gamma = 1, *vars, **kwargs):
-        """
-        Feedback connection:
-            u = block (error), 
-        error = gamma * ref - y
-        
-        inputs = (y, ref)
-        output = (u, )
-        """
-        self.block = block
-        self.gamma = gamma
+    :math:`y = G e, \quad e = \gamma u[m:] - u[:m]`,
 
-        super().__init__(*vars, **kwargs)
+    where :math:`G` represents the `block`, `gamma` is a constant gain, and `m` is the number of inputs and references.
+
+    The first `m` signals are inputs and the last `m` signals are references.
+
+    :param block: an instance of `ctrl.block.Block`
+    :param gamma: a constant gain (default `1`)
+    :param m: number of inputs (default `1`)
+    """
+
+    def __init__(self, **kwargs):
+
+        self.block = kwargs.pop('block', ShortCircuit())
+        self.gamma = kwargs.pop('gamma', 1)
+        self.m = kwargs.pop('m', 1)
+
+        super().__init__(**kwargs)
     
     def reset(self):
+        """
+        Reset `Feedback` block.
 
+        Calls `block.reset()`.
+        """
         self.block.reset()
 
     def set(self, **kwargs):
+        """
+        Set properties of `Feedback` block.
+
+        :param block: an instance of `ctrl.block.Block`
+        :param gamma: a constant gain
+        :param m: number of inputs
+        """
         
         if 'block' in kwargs:
             self.block = kwargs.pop('block')
-
+            
         if 'gamma' in kwargs:
             self.gamma = kwargs.pop('gamma')
+            
+        if 'm' in kwargs:
+            self.gamma = kwargs.pop('m')
 
         super().set(**kwargs)
 
-    def write(self, *values):
+    def buffer_write(self):
+        """
+        Writes feedback signal to the private `buffer`.
+        """
 
-        # write error to block
-        self.block.write(self.gamma * values[1] - values[0])
+        # calculate error
+        error = tuple(self.gamma*y-r for (y,r) in zip(self.buffer[self.m:], self.buffer[:self.m]))
+
+        # call block
+        self.block.write(*error)
         
         # then read
         self.buffer = self.block.read()
 
 class Sum(block.BufferBlock):
+    """
+    *Sum* adds all inputs and multiplies the result by a constant gain, that is
 
-    def __init__(self, gain = 1., *vars, **kwargs):
-        """
-        Sum:
-            y = \sum_{k = 1}^n u_k
+    :math:`y = a \sum_{i = 0}^{m-1} u[m]`,
+
+    where :math:`a` is the gain.
+
+    :param gain: multiplier (default `1`)
+    """
+
+    def __init__(self, **kwargs):
+
+        self.gain = kwargs.pop('gain', 1)
         
-        inputs = u
-        output = y
-        """
-
-        self.gain = gain
-        super().__init__(*vars, **kwargs)
+        super().__init__(**kwargs)
 
     def set(self, **kwargs):
+        """
+        Set properties of `Sum` block.
+
+        :param gain: multiplier
+        """
         
         if 'gain' in kwargs:
             self.gain = float(kwargs.pop('gain'))
 
         super().set(**kwargs)
 
-    def write(self, *values):
-
-        #(sum(v) for v in values)
-        self.buffer = (self.gain*sum(map(numpy.array, values)), )
-
-class Subtract(block.BufferBlock):
-
-    def __init__(self, *vars, **kwargs):
+    def buffer_write(self):
         """
-        Sum:
-            y = u[1] - u[0]
+        Writes product of `gain` times the sum of the current input to the private `buffer`.
+
+        :param values: list of values
+        :return: tuple with scaled input
+        """
+
+        self.buffer = (self.gain * numpy.sum(self.buffer, axis=0), )
         
-        inputs = u
-        output = y
+class Average(block.BufferBlock):
+    """
+    *Average* calculates the (weighted) average of all inputs, that is
+
+    :math:`y = \sum_{i = 0}^{m-1} w[i] u[i]`,
+
+    where :math:`w` is a vector of weights
+
+    :param weights: weights (default `1/m`)
+    """
+
+    def __init__(self, **kwargs):
+
+        self.weights = kwargs.pop('weights', None)
+        
+        super().__init__(**kwargs)
+
+    def set(self, **kwargs):
+        """
+        Set properties of `Sum` block.
+
+        :param weights: multiplier
+        """
+        
+        if 'weights' in kwargs:
+            weights = kwargs.pop('weights')
+            if weights is not None:
+                self.weights = numpy.array(weights)
+            else:
+                self.weights = None
+                
+        super().set(**kwargs)
+
+    def buffer_write(self):
+        """
+        Writes average of the current input to the private `buffer`.
+
+        :param values: list of values
+        :return: tuple with scaled input
         """
 
-        super().__init__(*vars, **kwargs)
-    
-    def write(self, *values):
+        if not self.buffer:
+            self.buffer = (0, )
+        elif self.weights is not None:
+            self.buffer = (numpy.average(self.buffer, axis=0, weights=self.weights), )
+        else:
+            self.buffer = (numpy.average(self.buffer, axis=0), )
 
-        self.buffer = (values[1]-values[0], )
+class Subtract(Sum):
+    r"""
+    *Subtract* subtracts first input as in
+
+    :math:`y = \sum_{i = 1}^{m-1} u[m] - u[0]`,
+    """
+
+    def buffer_write(self):
+        
+        if self.buffer:
+            # flip first entry
+            self.buffer = (-self.buffer[0],) + self.buffer[1:]
+
+        # call average
+        super().buffer_write()

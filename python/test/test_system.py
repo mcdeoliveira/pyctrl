@@ -532,7 +532,7 @@ def test4(oode = ode.ODE):
     def f(t, x, *pars):
         return np.array([1])
     
-    sys = oode(f, t0 = 0)
+    sys = oode((0,1,1), f, t0 = 0)
 
     yk = sys.update(1, 0)
     #print(yk)
@@ -541,7 +541,7 @@ def test4(oode = ode.ODE):
     yk = sys.update(2, 0)
     assert np.abs(yk - np.array([2.])) < 1e-4
 
-    sys = oode(f, t0 = 0)
+    sys = oode((0,1,1), f, t0 = 0)
 
     yk = sys.update(.1, 0)
     assert np.abs(yk - np.array([.1])) < 1e-4
@@ -549,7 +549,7 @@ def test4(oode = ode.ODE):
     yk = sys.update(.2, 0)
     assert np.abs(yk - np.array([.2])) < 1e-4
 
-    sys = oode(f, t0 = 0, pars = (3,))
+    sys = oode((0,1,1), f, t0 = 0, pars = (3,))
 
     yk = sys.update(1, -1)
     assert np.abs(yk - np.array([1.])) < 1e-4
@@ -560,7 +560,7 @@ def test4(oode = ode.ODE):
         return u
     
     tk = 0
-    sys = oode(f, t0 = tk)
+    sys = oode((0,1,1), f, t0 = tk)
 
     tk += 1
     yk = sys.update(tk, 0)
@@ -571,7 +571,7 @@ def test4(oode = ode.ODE):
     assert np.abs(yk - np.array([1.])) < 1e-4
 
     tk = 0
-    sys = oode(f, t0 = tk)
+    sys = oode((0,1,1), f, t0 = tk)
 
     tk += .1
     yk = sys.update(tk, 2)
@@ -589,7 +589,7 @@ def test4(oode = ode.ODE):
     a = 2
     x0 = -1.5
     tk = 0
-    sys = oode(f = F, t0 = tk, x0 = x0, pars = (a,))
+    sys = oode((1,1,1), f = F, t0 = tk, x0 = x0, pars = (a,))
 
     tk += 1
     yk = sys.update(tk, 0)
@@ -598,7 +598,7 @@ def test4(oode = ode.ODE):
 
     x0 = -1.5
     tk = 0
-    sys = oode(f = F, t0 = tk, x0 = x0, pars = (a,))
+    sys = oode((1,1,1), f = F, t0 = tk, x0 = x0, pars = (a,))
 
     uk = 3
     tk += 2
@@ -610,7 +610,6 @@ def test5():
 
     test4(ode.ODEINT)
 
-
 def test6():
 
     a = np.array([[-1, 0],[0, -2]])
@@ -621,7 +620,7 @@ def test6():
     
     tk = 0
     xk = np.array([1,-1])
-    sys = ode.ODE(f = f, t0 = tk, x0 = xk, pars = (a,b))
+    sys = ode.ODE((2,2,2), f = f, t0 = tk, x0 = xk, pars = (a,b))
 
     uk = [0]
     tk += 1
@@ -632,7 +631,7 @@ def test6():
 
     tk = 0
     xk = np.array([1,-1])
-    sys = ode.ODE(f = f, t0 = tk, x0 = xk, pars = (a,b))
+    sys = ode.ODE((2,2,2), f = f, t0 = tk, x0 = xk, pars = (a,b))
 
     uk = [2]
     tk += 1
@@ -675,7 +674,7 @@ def test6():
         return list(f(x, t))
 
     tk = 0
-    sys = ode.ODEINT(f = ff, t0 = tk, x0 = y0)
+    sys = ode.ODEINT((1,3,3), f = ff, t0 = tk, x0 = y0)
 
     uk = [0]
     tk += T

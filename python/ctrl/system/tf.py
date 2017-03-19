@@ -3,10 +3,7 @@ import numpy
 from .. import system
 from . import ss
 
-class SISOSystem:
-    pass
-
-class DTTF(SISOSystem):
+class DTTF(system.System):
     """DTTF(num, den, state)
 
     Model is of the form:
@@ -89,6 +86,9 @@ class DTTF(SISOSystem):
         elif self.state.size > 0:
             self.state[0] = 0
         #print('state = {}'.format(self.state))
+    
+    def shape(self):
+        return (1,1)
     
     def update(self, uk):
         # zk = uk - den[1:] (zk-1, ..., zk-n)

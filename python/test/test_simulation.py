@@ -7,9 +7,9 @@ import numpy.linalg as la
 
 from ctrl.block.logger import Logger
 from ctrl.block.clock import Clock, TimerClock
-from ctrl.block import Condition
+from ctrl.block import Map
 from ctrl.system.ode import ODE, ODEINT
-from ctrl.block.linear import TimeVarying, Constant
+from ctrl.block.linear import TimeVaryingSystem, Constant
 
 def test1():
 
@@ -28,15 +28,15 @@ def test1():
     t0 = 0
     uk = 1
     x0 = np.array([0])
-    sys = ODE(f, x0 = x0, t0 = t0, pars = (a,b))
+    sys = ODE((1,1,1), f, x0 = x0, t0 = t0, pars = (a,b))
 
     controller.add_signals('input','output')
 
     controller.add_filter('condition', 
-                          Condition(lambda x: x < 1), 
+                          Map(function = lambda x: x < 1), 
                           ['clock'], ['is_running'])
 
-    controller.add_filter('ode',TimeVarying(sys),['clock','input'],['output'])
+    controller.add_filter('ode',TimeVaryingSystem(model = sys),['clock','input'],['output'])
 
     controller.add_sink('logger',Logger(),['clock','output'])
 
@@ -47,45 +47,59 @@ def test1():
     controller.set_sink('logger', reset = True)
     controller.set_signal('input',uk)
     controller.run()
+    xk = sys.state
 
     log = controller.read_sink('logger')
     t0 = log[0,0]
     tk = log[-1,0]
     yk = log[-1,1]    
     yyk = uk * (1 - math.exp(a*(tk-t0))) + x0 * math.exp(a*(tk-t0))
-    #print(t0, tk, yk, yyk)
-    #print(log)
+    print(log)
+    print(t0, x0, tk, xk, yk, yyk)
     assert np.abs(yk - np.array([yyk])) < 1e-2
 
     uk = 0
     x0 = sys.state
-    controller.set_source('clock', reset = True)
+
+    controller.add_filter('condition', 
+                          Map(function = lambda x: x < 2), 
+                          ['clock'], ['is_running'])
+
+    
+    #controller.set_source('clock', reset = True)
     controller.set_sink('logger', reset = True)
     controller.set_signal('input',uk)
     controller.run()
+    xk = sys.state
 
     log = controller.read_sink('logger')
     t0 = log[0,0]
     tk = log[-1,0]
     yk = log[-1,1]    
     yyk = uk * (1 - math.exp(a*(tk-t0))) + x0 * math.exp(a*(tk-t0))
-    #print(t0, tk, yk, yyk)
-    #print(log)
+    print(log)
+    print(t0, x0, tk, xk, yk, yyk)
     assert np.abs(yk - np.array([yyk])) < 1e-2
 
     uk = -1
     x0 = sys.state
-    controller.set_source('clock', reset = True)
+
+    controller.add_filter('condition', 
+                          Map(function = lambda x: x < 3), 
+                          ['clock'], ['is_running'])
+
+    #controller.set_source('clock', reset = True)
     controller.set_sink('logger', reset = True)
     controller.set_signal('input',uk)
     controller.run()
+    xk = sys.state
 
     log = controller.read_sink('logger')
     t0 = log[0,0]
     tk = log[-1,0]
     yk = log[-1,1]    
     yyk = uk * (1 - math.exp(a*(tk-t0))) + x0 * math.exp(a*(tk-t0))
-    #print(t0, tk, yk, yyk)
+    print(t0, x0, tk, xk, yk, yyk)
     assert np.abs(yk - np.array([yyk])) < 1e-2
 
     clock.set_enabled(False)
@@ -135,7 +149,7 @@ def test2():
     print(K)
     print(ff(t0,x0,u0))
 
-    sys = ODE(t0 = t0, x0 = x0, f = ff)
+    sys = ODE(shape = (1,4,4), t0 = t0, x0 = x0, f = ff)
 
     tk = 5
     uk = [0]
@@ -149,12 +163,12 @@ def test2():
     Ts = 0.01
     controller.add_source('clock',Clock(period = Ts),['clock'])
 
-    condition = Condition(lambda t : t < T)
+    condition = Map(function = lambda t : t < T)
     controller.add_filter('condition',condition,['clock'],['is_running'])
 
     controller.add_signals('tau','x')
     controller.add_filter('ode', 
-                          TimeVarying(ODE(t0 = t0, x0 = x0, f = ff)),
+                          TimeVaryingSystem(model = ODE(shape = (1,4,4), t0 = t0, x0 = x0, f = ff)),
                           ['clock','tau'], ['x'])
     controller.add_sink('logger',Logger(),['clock','x'])
     
@@ -205,7 +219,7 @@ def test2():
     t0 = 0
     print('F = {}'.format(F(t0, x0, ref)))
 
-    sys = ODE(t0 = t0, x0 = x0, f = F)
+    sys = ODE(shape = (1,4,4), t0 = t0, x0 = x0, f = F)
 
     tk = 1
     uk = np.array([0])
@@ -217,12 +231,12 @@ def test2():
     Ts = 0.01
     controller.add_source('clock',Clock(period = Ts),['clock'])
 
-    condition = Condition(lambda t : t < T)
+    condition = Map(function = lambda t : t < T)
     controller.add_filter('condition',condition,['clock'],['is_running'])
 
     controller.add_signals('ref','x')
     controller.add_filter('ode', 
-                          TimeVarying(ODE(t0 = t0, x0 = x0, f = F)),
+                          TimeVaryingSystem(model = ODE(shape = (1,4,4), t0 = t0, x0 = x0, f = F)),
                           ['clock','ref'], ['x'])
     controller.add_sink('logger',Logger(),['clock','x'])
 
