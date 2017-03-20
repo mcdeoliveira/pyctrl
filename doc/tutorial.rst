@@ -6,7 +6,7 @@ In this tutorial you will learn how to use `Controller`s, work with
 *signals* and the various *blocks* available with the package `ctrl`.
 
 --------------
-`Hello World!`
+Hello World!
 --------------
 
 Start with the following simple *Hello World!* example::
@@ -49,7 +49,7 @@ Start with the following simple *Hello World!* example::
         hello.set_sink('message', enabled = False)
         hello.set_source('clock', enabled = False)
 
-This program will print the message *Hello World!* on the screen 5
+This program will print the message *Hello World!* on the screen 4
 times.
 	
 What's going on?
@@ -163,7 +163,9 @@ example::
 
     print(hello)
 
-produces the output::
+produces the output:
+
+.. code-block::none
 
     > Controller with 0 device(s), 2 signal(s), 1 source(s), 1 sink(s), and 0 filter(s)
 
@@ -172,7 +174,9 @@ example::
 
       print(hello.info('all'))
 
-produces the output::
+produces the output:
+
+.. code-block::none
 
     > Controller with 0 device(s), 2 signal(s), 1 source(s), 1 sink(s), and 0 filter(s)
     > devices
@@ -244,3 +248,126 @@ and run the controller to see a message that now prints the *signal*
 than one *signal* can be printed by specifying multiple placeholders
 in the attribute :py:attr:`message`.
 
+-----------------------
+Devices and Controllers
+-----------------------
+
+As you suspect after going through the :ref:`Hello World!` example, it
+is useful to have a default controller with a clock. The method
+:py:meth:`ctrl.add_device` automates the process of adding blocks to a
+controller. For example, the following code::
+
+  from ctrl import Controller
+
+  controller = Controller()
+  clock = controller.add_device('clock',
+                                'ctrl.block.clock', 'TimerClock',
+				type = 'source', 
+				outputs = ['clock'],
+				enable = True,
+				period = self.period)
+
+automatically creates a :py:class:`ctrl.block.clock.TimerClock` which
+is add to :py:data:`controller` as a :py:data:`source` with output
+:py:data:`clock`. Setting the attribute :py:data:`enable` equal to
+`True` makes sure the device is *enabled* at every call to
+:py:meth:`ctrl.start` and *disabled* at every call to
+:py:meth:`ctrl.stop`.
+
+A controller with a clock is so common that the above construction is
+provided as a module in :py:mod:`ctrl.timer`. Using
+:py:mod:`ctrl.timer` the `Hello World!` example can be simplified to::
+
+    # import python's standard time module
+    import time
+
+    # import Controller and other blocks from modules
+    from ctrl.timer import Controller
+    from ctrl.block import Printer
+
+    # initialize controller
+    hello = Controller(period = 1)
+    
+    # add a Printer as a sink
+    hello.add_sink('message',
+		   Printer(message = 'Hello World @ {:3.1f} s'),
+		   ['clock'])
+
+    try:
+        # run the controller
+        with hello:
+	    # do nothing for 5 seconds
+	    time.sleep(5)
+            hello.set_sink('message', enabled = False)
+
+    except KeyboardInterrupt:
+        pass
+
+Note that we no longer have to disable the `clock` *source*, which is
+handled automatically when exiting the :py:obj:`with` statement by
+calling :py:meth:`ctrl.stop`. Note however that disabling the clock
+causes clock to be read, which would print one additional message on
+the screen. This is avoided by calling::
+
+  hello.set_sink('message', enabled = False)
+
+to disable the sink `message` before exiting the :py:obj:`with` statement.
+
+A call to :samp:`print(hello.info('all'))`:
+
+.. code-block:: none
+	       
+    > Controller with 1 device(s), 3 signal(s), 1 source(s), 1 sink(s), and 0 filter(s)
+    > devices
+      1. clock[source]
+    > signals
+      1. clock
+      2. duty
+      3. is_running
+    > sources
+      1. clock[TimerClock, enabled] >> clock
+    > filters
+    > sinks
+      1. clock >> message[Printer, enabled]
+
+reveals the presence of the signal :py:data:`clock` and the *device*
+:py:class:`ctrl.block.clock.TimeClock` as a *source*.
+
+The notion of *device* is much more than a simple convenience
+though. By having the controller initialize dynamically initialize the
+Block by providing the module and class as strings to
+:py:meth:`ctrl.add_device`, the arguments
+:py:data:`'ctrl.block.clock'` and :py:data:`'TimerClock'` above, we
+can initialize blocks that rely on specific hardware remotely using
+our :ref:`Client Server Architecture`, as you learn later.
+
+A call to :samp:`print(hello.info('all'))`:
+
+.. code-block:: none
+	       
+    > Controller with 1 device(s), 3 signal(s), 1 source(s), 0 sink(s), and 0 filter(s)
+    > devices
+      1. clock[source]
+    > signals
+      1. clock
+      2. duty
+      3. is_running
+    > sources
+      1. clock[TimerClock, enabled] >> clock
+    > filters
+    > sinks
+
+
+------------------
+Signals and Blocks
+------------------
+
+In this section you will learn more about *signals* and
+*blocks*. There is no limit on the number of *signals* and *blocks*
+one can add to a controller other than the ability of your computer to
+process the loop in time before the next clock cycle.
+
+    
+--------------------------
+Client Server Architecture
+--------------------------

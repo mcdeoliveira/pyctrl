@@ -24,7 +24,17 @@ RUNNING = 1
 EXITING = 2
 
 class Controller:
+    """
+    *Controller* provides functionality for running signal flow tasks.
 
+    A `Controller` can be in one of three states:
+
+    1. IDLE
+    2. RUNNING
+    3. EXITING
+
+    Upon initialization a Controller state is set to IDLE.
+    """
     def __init__(self):
 
         # debug
@@ -71,7 +81,13 @@ class Controller:
     
     # reset
     def reset(self):
+        """
+        Stop the controller, remove all devices, sources, sinks,
+        filters, and all signals except `is_running` and `duty`.
 
+        Objects that inherit from `Controller` can customize `reset()`
+        by overloading the private method `__reset()`.
+        """
         # call stop
         self.stop()
 
@@ -80,14 +96,30 @@ class Controller:
 
     # get_state
     def get_state(self):
+        """
+        Return the current state of the Controller.
+
+        :return: the state of the Controller
+        """
         return self.state
 
     # set_state
     def set_state(self, state):
+        """
+        Set the current state of the Controller.
+
+        :param state: the state of the controller
+        """
         self.state = state
     
     # info
     def info(self, options = 'summary'):
+        """
+        Returns a string with information on the Controller.
+
+        :param options: can be one of `devices`, `signals`, `sources`, `filters`, `sinks`, `all`, or `summary`
+        :return: string with information on the Controller
+        """
 
         options = options.lower()
         result = ''
@@ -179,6 +211,11 @@ class Controller:
 
     # signals
     def add_signal(self, label):
+        """
+        Add signal to Controller.
+
+        :param label: the signal label
+        """
         assert isinstance(label, str)
         if label in self.signals:
             warnings.warn("Signal '{}' already present.".format(label),
@@ -187,28 +224,71 @@ class Controller:
             self.signals[label] = 0
 
     def add_signals(self, *labels):
+        """
+        Add multiple signal to Controller.
+
+        :param vargs labels: the signal labels
+        """
         for label in labels:
             self.add_signal(label)
 
     def remove_signal(self, label):
+        """
+        Remove signal from Controller.
+
+        :param label: the signal label to be removed
+        """
         self.signals.pop(label)
 
     def set_signal(self, label, value):
+        """
+        Set the value of signal.
+
+        :param label: the signal label
+        :param value: the value to be set
+        """
         if label not in self.signals:
             raise ControllerException("Signal '{}' does not exist".format(label))
         self.signals[label] = value
 
     def get_signal(self, label):
+        """
+        Get the value of signal.
+
+        :param label: the signal label
+        :return: the signal value
+        """
         return self.signals[label]
 
     def get_signals(self, *labels):
+        """
+        Get the value of signals.
+
+        :param vargs labels: the signal labels
+        :return: the signal values
+        :rtype: list
+        """
         return [self.signals[label] for label in labels]
 
     def list_signals(self):
+        """
+        List of the signals currently on Controller.
+
+        :return: a list of signal labels
+        :rtype: list
+        """
         return list(self.signals.keys())
 
     # sources
     def add_source(self, label, source, outputs, order = -1):
+        """
+        Add source to Controller.
+
+        :param label: the source label
+        :param source: the source block
+        :param list outputs: a list of output signals
+        :param int order: if positive, set execution order, otherwise add as last (default `-1`)
+        """
         assert isinstance(label, str)
         if label in self.sources:
             warnings.warn("Source '{}' already exists and is been replaced.".format(label),
@@ -227,11 +307,25 @@ class Controller:
             self.sources_order.insert(order, label)
 
     def remove_source(self, label):
+        """
+        Remove source from Controller.
+
+        :param label: the source label
+        """
         self.sources_order.remove(label)
         self.sources.pop(label)
 
     def set_source(self, label, **kwargs):
+        """
+        Set source attributes.
 
+        All attributes must be passed as key-value pairs and vary
+        depending on the type of block.
+
+        :param label: the source label
+        :param list outputs: set source output signals
+        :param kwargs kwargs: other key-value pairs of attributes
+        """
         if label not in self.sources:
             raise ControllerException("Source '{}' does not exist".format(label))
 
@@ -243,24 +337,56 @@ class Controller:
         self.sources[label]['block'].set(**kwargs)
 
     def get_source(self, label, *keys):
-        
+        """
+        Get attributes from source.
+
+        :param label: the source label
+        :param vargs keys: the keys of the attributes to get
+        :return: dictionary of attributes
+        :rtype: dict
+        """
         if label not in self.sources:
             raise ControllerException("Source '{}' does not exist".format(label))
 
         return self.sources[label]['block'].get(keys)
 
     def read_source(self, label):
+        """
+        Read from source. Call method `ctrl.block.read()`.
+        
+        :param label: the source label
+        """
         return self.sources[label]['block'].read()
 
     def write_source(self, label, *values):
+        """
+        Write to source. Call method `ctrl.block.write(*values)`.
+        
+        :param label: the source label
+        :param vargs values: the values to write to source
+        """
         self.sources[label]['block'].write(*values)
 
     def list_sources(self):
+        """
+        List of the sources currently on Controller.
+
+        :return: a list of source labels
+        :rtype: list
+        """
         return list(self.sources.keys())
 
 
     # sinks
     def add_sink(self, label, sink, inputs, order = -1):
+        """
+        Add sink to Controller.
+
+        :param label: the sink label
+        :param sink: the sink block
+        :param list inputs: a list of input signals
+        :param int order: if positive, set execution order, otherwise add as last (default `-1`)
+        """
         assert isinstance(label, str)
         if label in self.sinks:
             warnings.warn("Sink '{}' already exists and is been replaced.".format(label), 
@@ -279,11 +405,25 @@ class Controller:
             self.sinks_order.insert(order, label)
 
     def remove_sink(self, label):
+        """
+        Remove sink from Controller.
+
+        :param label: the sink label
+        """
         self.sinks_order.remove(label)
         self.sinks.pop(label)
 
     def set_sink(self, label, **kwargs):
+        """
+        Set sink attributes.
 
+        All attributes must be passed as key-value pairs and vary
+        depending on the type of block.
+
+        :param label: the sink label
+        :param list inputs: set sink input signals
+        :param kwargs kwargs: other key-value pairs of attributes
+        """
         if label not in self.sinks:
             raise ControllerException("Sink '{}' does not exist".format(label))
 
@@ -295,25 +435,58 @@ class Controller:
         self.sinks[label]['block'].set(**kwargs)
 
     def get_sink(self, label, *keys):
-        
+        """
+        Get attributes from sink.
+
+        :param label: the sink label
+        :param vargs keys: the keys of the attributes to get
+        :return: dictionary of attributes
+        :rtype: dict
+        """
         if label not in self.sinks:
             raise ControllerException("Sink '{}' does not exist".format(label))
 
         return self.sinks[label]['block'].get(keys)
 
     def read_sink(self, label):
+        """
+        Read from sink. Call method `ctrl.block.read()`.
+        
+        :param label: the sink label
+        """
         return self.sinks[label]['block'].read()
 
     def write_sink(self, label, *values):
+        """
+        Write to sink. Call method `ctrl.block.write(*values)`.
+        
+        :param label: the sink label
+        :param vargs values: the values to write to sink
+        """
         self.sinks[label]['block'].write(*values)
 
     def list_sinks(self):
+        """
+        List of the sinks currently on Controller.
+
+        :return: a list of sink labels
+        :rtype: list
+        """
         return list(self.sinks.keys())
 
     # filters
     def add_filter(self, label, 
                    filter_, inputs, outputs, 
                    order = -1):
+        """
+        Add filter to Controller.
+
+        :param label: the filter label
+        :param filter: the filter block
+        :param list inputs: a list of input signals
+        :param list outputs: a list of output signals
+        :param int order: if positive, set execution order, otherwise add as last (default `-1`)
+        """
         assert isinstance(label, str)
         if label in self.filters:
             warnings.warn("Filter '{}' already exists and is been replaced.".format(label),
@@ -334,11 +507,26 @@ class Controller:
             self.filters_order.insert(order, label)
 
     def remove_filter(self, label):
+        """
+        Remove filter from Controller.
+
+        :param label: the filter label
+        """
         self.filters_order.remove(label)
         self.filters.pop(label)
 
     def set_filter(self, label, **kwargs):
+        """
+        Set filter attributes.
 
+        All attributes must be passed as key-value pairs and vary
+        depending on the type of block.
+
+        :param label: the filter label
+        :param list inputs: set filter input signals
+        :param list outputs: set filter output signals
+        :param kwargs kwargs: other key-value pairs of attributes
+        """
         if label not in self.filters:
             raise ControllerException("Filter '{}' does not exist".format(label))
 
@@ -355,25 +543,61 @@ class Controller:
         self.filters[label]['block'].set(**kwargs)
             
     def get_filter(self, label, *keys):
-        
+        """
+        Get attributes from filter.
+
+        :param label: the filter label
+        :param vargs keys: the keys of the attributes to get
+        :return: dictionary of attributes
+        :rtype: dict
+        """
         if label not in self.filters:
             raise ControllerException("Filter '{}' does not exist".format(label))
 
         return self.filters[label]['block'].get(keys)
 
     def read_filter(self, label):
+        """
+        Read from filter. Call method `ctrl.block.read()`.
+        
+        :param label: the filter label
+        """
         return self.filters[label]['block'].read()
 
     def write_filter(self, label, *values):
+        """
+        Write to filter. Call method `ctrl.block.write(*values)`.
+        
+        :param label: the filter label
+        :param vargs values: the values to write to filter
+        """
         self.filters[label]['block'].write(*values)
 
     def list_filters(self):
+        """
+        List of the filters currently on Controller.
+
+        :return: a list of filter labels
+        :rtype: list
+        """
         return list(self.filters.keys())
 
     # devices
     def add_device(self, 
                    label, device_module, device_class, 
                    **kwargs):
+        """
+        Add device to Controller.
+
+        :param label: the device label
+        :param device_module: the device module
+        :param device_class: the device class
+        :param type: the device type, `source`, `filter`, or `sink` (default `source`)
+        :param enable: if the device needs to be enable and disabled at `start()` and `stop()` (default False)
+        :param list inputs: a list of input signals (default `[]`)
+        :param list outputs: a list of output signals (default `[]`)
+        :param kwargs kwargs: parameters to be passed to the device class initialization
+        """
 
         # parameters
         devtype = kwargs.pop('type', 'source')
@@ -513,7 +737,8 @@ class Controller:
             self.duty = max(self.duty, duty)
 
     def start(self):
-        """Start controller loop
+        """
+        Start Controller loop.
         """
 
         # enable devices
@@ -529,7 +754,8 @@ class Controller:
         self.state = RUNNING
 
     def stop(self):
-        """Stop controller loop
+        """
+        Stop Controller loop.
         """
 
         # Stop thread
@@ -546,13 +772,27 @@ class Controller:
         self.state = IDLE
 
     def join(self):
-
+        """
+        Wait for Controller thread to terminate.
+        """
         if self.thread:
             self.thread.join()
 
     def set_period(self,period):
+        """
+        Set Controller period.
+
+        The default Controller does not have a clock so it does nothing.
+        """
         pass
 
     def get_period(self):
+        """
+        Get Controller period.
+
+        The default Controller does not have a clock so it returns `None`.
+
+        :return: clock period
+        """
         return None
-                
+
