@@ -210,7 +210,7 @@ class Constant(block.BufferBlock):
         
         super().__init__(**kwargs)
         
-        self.buffer = value
+        self.buffer = (value, )
 
     def buffer_read(self):
         pass

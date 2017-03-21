@@ -159,26 +159,26 @@ The controller loop
 
 In order to understand what is going on on behind the scenes we shall
 probe the contents of the controller variable :py:data:`hello`. For
-example::
+example, after running the code in :ref:`Hello World!` a call to::
 
     print(hello)
 
 produces the output:
 
-.. code-block::none
+.. code-block:: none
 
     > Controller with 0 device(s), 2 signal(s), 1 source(s), 1 sink(s), and 0 filter(s)
 
 For more information we use the method :py:meth:`ctrl.info`. For
 example::
 
-      print(hello.info('all'))
+    print(hello.info('all'))
 
 produces the output:
 
-.. code-block::none
+.. code-block:: none
 
-    > Controller with 0 device(s), 2 signal(s), 1 source(s), 1 sink(s), and 0 filter(s)
+    > Controller with 0 device(s), 2 signal(s), 1 source(s), 0 filter(s), 1 sink(s), and 0 timer(s)
     > devices
     > signals
       1. clock
@@ -189,6 +189,7 @@ produces the output:
     > filters
     > sinks
       1. clock >> message[Printer, enabled]
+    > timers
 
 which details the *devices*, *signals*, *sources*, *filters* and
 *sinks* present in the controller :py:data:`hello`. Of course the
@@ -253,7 +254,9 @@ Devices and Controllers
 -----------------------
 
 As you suspect after going through the :ref:`Hello World!` example, it
-is useful to have a default controller with a clock. The method
+is useful to have a default controller with a clock. In fact, as you
+will learn later in :ref:`Timers`, every :py:class:`ctrl.Controller`
+comes equipped with some kind of clock. The method
 :py:meth:`ctrl.add_device` automates the process of adding blocks to a
 controller. For example, the following code::
 
@@ -268,14 +271,14 @@ controller. For example, the following code::
 				period = self.period)
 
 automatically creates a :py:class:`ctrl.block.clock.TimerClock` which
-is add to :py:data:`controller` as a :py:data:`source` with output
-:py:data:`clock`. Setting the attribute :py:data:`enable` equal to
-`True` makes sure the device is *enabled* at every call to
-:py:meth:`ctrl.start` and *disabled* at every call to
-:py:meth:`ctrl.stop`.
+is added to :py:data:`controller` as the *source* labeled
+:py:data:`clock` with *output signal* :py:data:`clock`. Setting the
+attribute :py:data:`enable` equal to `True` makes sure that the device
+is *enabled* at every call to :py:meth:`ctrl.start` and *disabled* at
+every call to :py:meth:`ctrl.stop`.
 
-A controller with a clock is so common that the above construction is
-provided as a module in :py:mod:`ctrl.timer`. Using
+A controller with a timer based clock is so common that the above
+construction is provided as a module in :py:mod:`ctrl.timer`. Using
 :py:mod:`ctrl.timer` the `Hello World!` example can be simplified to::
 
     # import python's standard time module
@@ -305,19 +308,20 @@ provided as a module in :py:mod:`ctrl.timer`. Using
 
 Note that we no longer have to disable the `clock` *source*, which is
 handled automatically when exiting the :py:obj:`with` statement by
-calling :py:meth:`ctrl.stop`. Note however that disabling the clock
-causes clock to be read, which would print one additional message on
-the screen. This is avoided by calling::
+calling :py:meth:`ctrl.stop`. However, disabling the clock causes an
+additional clock read, which would print one extra message on the
+screen. This is avoided by calling::
 
   hello.set_sink('message', enabled = False)
 
-to disable the sink `message` before exiting the :py:obj:`with` statement.
+to disable the *sink* :py:data:`message` right before exiting the
+:py:obj:`with` statement.
 
 A call to :samp:`print(hello.info('all'))`:
 
 .. code-block:: none
 	       
-    > Controller with 1 device(s), 3 signal(s), 1 source(s), 1 sink(s), and 0 filter(s)
+    > Controller with 1 device(s), 3 signal(s), 1 source(s), 0 filter(s), 1 sink(s), and 0 timer(s)
     > devices
       1. clock[source]
     > signals
@@ -329,23 +333,80 @@ A call to :samp:`print(hello.info('all'))`:
     > filters
     > sinks
       1. clock >> message[Printer, enabled]
+    > timers
 
 reveals the presence of the signal :py:data:`clock` and the *device*
-:py:class:`ctrl.block.clock.TimeClock` as a *source*.
+:py:class:`ctrl.block.clock.TimerClock` as a *source*.
 
 The notion of *device* is much more than a simple convenience
-though. By having the controller initialize dynamically initialize the
-Block by providing the module and class as strings to
+though. By having the controller dynamically initialize a block by
+providing the module and class as strings to
 :py:meth:`ctrl.add_device`, the arguments
 :py:data:`'ctrl.block.clock'` and :py:data:`'TimerClock'` above, we
 can initialize blocks that rely on specific hardware remotely using
-our :ref:`Client Server Architecture`, as you learn later.
+our :ref:`Client Server Architecture`, as you will learn later.
 
-A call to :samp:`print(hello.info('all'))`:
+---------------------
+Extending Controllers
+---------------------
+
+One can take advantage of python's object oriented features to extend
+the functionality of a :py:class:`ctrl.Controller`. All that is
+necessary is to inherit from :py:class:`ctrl.Controller`. Inheritance
+is an easy way to equip controllers with special hardware
+capabilities. That was the case, for example, with the class
+:py:class:`ctrl.timer.Controller` described in :ref:`Devices and
+Controllers`. In fact, this new class is so simple that we can show
+its entire code here::
+
+    import ctrl
+    import ctrl.block.clock as clock
+
+    class Controller(ctrl.Controller):
+    
+        def __init__(self, **kwargs):
+
+	    # period
+	    self.period = kwargs.pop('period', 0.01)
+
+	    # Initialize controller (this will call __reset)
+	    super().__init__(**kwargs)
+
+	def __reset(self):
+
+	    # call super first to reset controller
+	    super().__reset()
+
+	    # add device clock
+	    self.add_device('clock',
+	                    'ctrl.block.clock', 'TimerClock',
+                            type = 'source', 
+                            outputs = ['clock'],
+                            enable = True,
+                            period = self.period)
+			    
+	    # reset clock
+	    self.set_source('clock', reset=True)
+
+Virtually all functionality is provided by the base class
+:py:class:`ctrl.Controller`. The only methods overloaded are
+:py:meth:`ctrl.Controller.__init__` and
+:py:meth:`ctrl.Controller.__reset`. The first is the standard python
+constructor, which in this case just allows for the new attribute
+:py:attr:`period`. The method :py:meth:`ctrl.Controller.__reset` is
+called by :py:meth:`super().__init__` to set up the basic resources
+available when the controller is initialized. It is also called by the
+method :py:meth:`ctrl.Controller.reset`. In fact, one rarely needs to
+overload any method other than :py:meth:`ctrl.Controller.__init__` and
+:py:meth:`ctrl.Controller.reset`.
+
+For example, after initialization or a call to
+:py:meth:`ctrl.timer.Controller.reset`,
+:samp:`print(hello.info('all'))` returns:
 
 .. code-block:: none
 	       
-    > Controller with 1 device(s), 3 signal(s), 1 source(s), 0 sink(s), and 0 filter(s)
+    > Controller with 1 device(s), 3 signal(s), 1 source(s), 0 filter(s), 0 sink(s), and 0 timer(s)
     > devices
       1. clock[source]
     > signals
@@ -356,6 +417,86 @@ A call to :samp:`print(hello.info('all'))`:
       1. clock[TimerClock, enabled] >> clock
     > filters
     > sinks
+    > timers
+
+which shows the presence of the *source* and *signal* :py:data:`clock`.
+
+------
+Timers
+------
+
+As you have learned so far, all *sources*, *filters*, and *sinks* are
+continually processed in a loop. In the above example we have equipped
+the controller with a :py:class:`ctrl.block.timer.TimerClock`, either
+explicitly, as in :ref:`Hello World!`, or implicitly, by loading
+:py:class:`ctrl.timer.Controller`. Note that the controller itself has
+no notion of time and that events happen periodically simply because
+of the presence of a :py:class:`ctrl.block.timer.TimerClock`, which
+will stop processing until the set period has elapsed. In fact, the
+base class :py:class:`ctrl.timer.Controller` is also equipped with a
+clock *source* except that this clock that does not attempt to
+interrupt processing, but simply writes the current time into the
+*signal* :py:data:`clock` every time the controller loop is
+restarted. A controller with such clock runs as fast as possible.
+
+For example, the code::
+
+    # import python's standard time module
+    import time
+
+    # import Controller and other blocks from modules
+    from ctrl import Controller
+    from ctrl.block import Printer
+
+    # initialize controller
+    hello = Controller()
+
+    # add a Printer as a sink
+    hello.add_sink('message',
+		    Printer(message = 'Current time {:5.3f} s', endln = '\r'),
+		    ['clock'])
+    
+    try:
+
+        # run the controller
+        with hello:
+	    # do nothing for 5 seconds
+            time.sleep(5)
+
+    except KeyboardInterrupt:
+        pass
+
+will print the current time with 3 decimals as fast as possible on the
+screen. The additional parameter :py:data:`endl = '\\r'` introduces a
+carriage return without a line-feed so that the printing happens in a
+single terminal line. Now suppose that you still want to print the
+:ref:`Hello World!` message every second. You can achieve this using
+*timers*. Simply add the following snippet before running the
+controller::
+	
+    # add a Printer as a timer
+    hello.add_timer('message',
+		    Printer(message = 'Hello World @ {:3.1f} s '),
+		    ['clock'], None,
+                    period = 1, repeat = True)
+
+to see the `Hello World` message printing every second as the main
+loop prints the `Current time` message as fast as possible. The
+parameters of the method :py:meth:`ctrl.add_timer` are the *label* and
+*block*, in the case :py:data:`message` and the :py:class:`Printer`
+object, followed by a *list of signal inputs*, in this case
+:py:data:`['clock']`, and a *list of signal outputs*, in this case
+:py:data:`None`, then the *timer* period in seconds, and a flag to
+tell whether the execution of the *block* should repeat periodically,
+as opposed to just once.
+
+An example of a useful *timer* event to be run only once is the following::
+
+    # Add a timer to kill controller
+    hello.add_timer('killer',
+		    Constant(value = 0),
+		    None, ['is_running'],
+                    period = 5, repeat = False)
 
 ------------------
 Signals and Blocks

@@ -35,6 +35,9 @@ class Clock(block.Block):
         self.time_origin = self.time
         self.counter = 0
 
+    def get_count(self):
+        return self.counter
+
     def get_average_period(self):
 
         if self.counter:
@@ -96,7 +99,7 @@ class Clock(block.Block):
 
         if self.enabled:
 
-            self.time += self.period
+            self.time = perf_counter()
             self.counter += 1
 
         return (self.time - self.time_origin, )

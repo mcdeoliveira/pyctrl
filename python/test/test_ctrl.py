@@ -20,21 +20,20 @@ def test_clock():
 
     period = 0.01
     controller.add_signal('clock')
-    controller.add_source('clock', Clock(period = period), ['clock'])
+    clock = Clock(period = period)
+    controller.add_source('clock', clock, ['clock'])
     K = 10
     k = 0
     while k < K:
         (t,) = controller.read_source('clock')
         k += 1
 
-    print('t = {}'.format(t))
-    assert t > 0.9 * K * period
+    assert clock.get_count() == 10
 
     controller.set_source('clock', reset = True)
 
     (t,) = controller.read_source('clock')
-    print('t = {}'.format(t))
-    assert t < 0.9 * 2 * period
+    assert t < 0.01
 
     controller.remove_source('clock')
 
@@ -47,13 +46,11 @@ def test_clock():
         (t,) = controller.read_source('clock')
         k += 1
 
-    print('t = {}'.format(t))
     assert t > 0.9 * K * period
 
     controller.set_source('clock', reset = True)
 
     (t,) = controller.read_source('clock')
-    print('t = {}'.format(t))
     assert t < 0.9 * 2 * period
 
     clock.set_enabled(False)
@@ -275,13 +272,13 @@ def test_run():
     controller = Controller()
     print(controller.info('all'))
 
-    period = 0.01
-    controller.add_source('clock', Clock(period = period), ['clock'])
+    clock = Clock()
+    controller.add_source('clock', clock, ['clock'])
 
     # start/stop with condition
 
     controller.add_filter('condition', 
-                          Map(function = lambda x: x < 10), 
+                          Map(function = lambda x: x < 1), 
                           ['clock'], ['is_running'])
 
     controller.set_source('clock', reset=True)
@@ -292,7 +289,7 @@ def test_run():
     controller.stop()
 
     tk = controller.get_signal('clock')
-    assert tk > 10 and tk < 10 + period
+    assert tk > 1 and tk < 1.01
 
     # run with condition
 
@@ -301,7 +298,7 @@ def test_run():
     controller.stop()
 
     tk = controller.get_signal('clock')
-    assert tk > 10 and tk < 10 + period
+    assert tk > 1 and tk < 1.01
 
     controller.remove_source('clock')
 

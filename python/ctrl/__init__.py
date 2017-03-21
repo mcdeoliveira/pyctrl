@@ -74,6 +74,14 @@ class Controller:
         self.timers = { }
         self.running_timers = { }
 
+        # add device clock
+        self.add_device('clock',
+                        'ctrl.block.clock', 'Clock',
+                        type = 'source', 
+                        outputs = ['clock'],
+                        enable = True)
+        self.set_source('clock', reset=True)
+        
     # __str__ and __repr__
     def __str__(self):
         return self.info()

@@ -90,6 +90,9 @@ class Controller(ctrl.Controller):
         # call super
         super().__reset()
 
+        self.remove_source('clock')
+        self.remove_signal('clock')
+        
         # add source: clock
         # self.clock = clock.TimerClock(self.period)
         # self.add_source('clock', self.clock, ['clock'])
@@ -99,6 +102,7 @@ class Controller(ctrl.Controller):
                                      'ctrl.block.clock', 'TimerClock',
                                      type = 'source', 
                                      outputs = ['clock'],
+                                     enable = True,
                                      period = self.period)
         self.signals['clock'] = self.clock.time
         self.time_origin = self.clock.time_origin

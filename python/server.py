@@ -138,6 +138,7 @@ def main():
     finally:
 
         # shutdown server
+        controller.stop()
         server.shutdown()
         thread.join()
             

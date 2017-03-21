@@ -1,7 +1,3 @@
-import warnings
-import numpy
-import math
-
 import ctrl
 import ctrl.block.clock as clock
 
@@ -28,11 +24,12 @@ class Controller(ctrl.Controller):
         # call super
         super().__reset()
 
-        # add source: clock
-        self.clock = self.add_device('clock',
-                                     'ctrl.block.clock', 'TimerClock',
-                                     type = 'source', 
-                                     outputs = ['clock'],
-                                     enable = True,
-                                     period = self.period)
-        self.signals['clock'] = self.clock.time
+        # add device clock
+        self.add_device('clock',
+                        'ctrl.block.clock', 'TimerClock',
+                        type = 'source', 
+                        outputs = ['clock'],
+                        enable = True,
+                        period = self.period)
+        # reset clock
+        self.set_source('clock', reset=True)
