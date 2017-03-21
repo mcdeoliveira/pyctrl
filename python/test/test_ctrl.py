@@ -28,7 +28,7 @@ def test_clock():
         (t,) = controller.read_source('clock')
         k += 1
 
-    assert clock.get_count() == 10
+    assert clock.get('count') == 10
 
     controller.set_source('clock', reset = True)
 

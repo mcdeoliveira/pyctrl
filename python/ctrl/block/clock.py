@@ -20,7 +20,8 @@ class Clock(block.Block):
 
         self.time_origin = perf_counter()
         self.time = self.time_origin
-        self.counter = 0
+        self.count = 0
+        self.average_period = 0
         
     def set_period(self, period):
         
@@ -31,19 +32,26 @@ class Clock(block.Block):
         # Make sure time is current
         self.read()
 
-        # reset clock and counter
+        # reset clock and count
         self.time_origin = self.time
-        self.counter = 0
+        self.count = 0
 
-    def get_count(self):
-        return self.counter
+    def get(self, keys = None, exclude = ()):
 
-    def get_average_period(self):
+        if keys is None or 'average_period' in keys:
+            self.calculate_average_period()
 
-        if self.counter:
-            return (self.time - self.time_origin) / self.counter
+        # call super excluding time and last
+        return super().get(keys, exclude = exclude)
+        
+    def calculate_average_period(self):
+
+        if self.count:
+            self.average_period = (self.time - self.time_origin) / self.count
         else:
-            return 0
+            self.average_period = 0
+            
+        return self.average_period
 
     def calibrate(self, eps = 1/100, N = 100, K = 20):
                 
@@ -63,14 +71,14 @@ class Clock(block.Block):
             self.reset()
             for n in range(N):
                 self.read()
-            period = self.get_average_period()
+            period = self.calculate_average_period()
             
             # estimate actual period
             error = abs(period - target) / target
             print('  {:4}  {:6.5f}  {:6.5f}   {:5.2f}%'
                   .format(k, target, period, 100 * error))
 
-            # counter
+            # count
             k = k + 1
 
             # Success?
@@ -100,7 +108,7 @@ class Clock(block.Block):
         if self.enabled:
 
             self.time = perf_counter()
-            self.counter += 1
+            self.count += 1
 
         return (self.time - self.time_origin, )
 
@@ -120,6 +128,12 @@ class TimerClock(Clock):
         if self.enabled:
             self.enabled = False
             self.set_enabled(True)
+    
+    def get(self, keys = None, exclude = ()):
+
+        # call super excluding time and last
+        return super().get(keys, exclude + ('condition', 'timer', 'running',
+                                            'thread') )
     
     def tick(self):
 
@@ -144,8 +158,8 @@ class TimerClock(Clock):
             # Got a tick
             self.time = t
 
-            # Add to counter
-            self.counter += 1
+            # Add to count
+            self.count += 1
 
             #print('> tick {}'.format(self.time))
 

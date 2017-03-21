@@ -27,18 +27,18 @@ def main():
     
     try:
         # run the controller
-        print('> Will run the controller.')
+        print('> Run the controller.')
 
-        print('> Doing nothing for 5 s with the controller on...')
+        print('> Do nothing for 5 s with the controller on...')
         with hello:
 	    # do nothing for 5 seconds
             time.sleep(5)
             hello.set_sink('message', enabled = False)
 
-        print('> Doing nothing for 2 s with the controller off...')
+        print('> Do nothing for 2 s with the controller off...')
         time.sleep(2)
         
-        print('> Doing nothing for 5 s with the controller on...')
+        print('> Do nothing for 5 s with the controller on...')
         hello.set_sink('message', enabled = True)
         with hello:
 	    # do nothing for 5 seconds

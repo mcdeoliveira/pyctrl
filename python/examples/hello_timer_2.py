@@ -23,8 +23,8 @@ def main():
 		    ['clock'], None,
                     period = 1, repeat = True)
 
-    # Add a timer to kill controller
-    hello.add_timer('killer',
+    # Add a timer to stop the controller
+    hello.add_timer('stop',
 		    Constant(value = 0),
 		    None, ['is_running'],
                     period = 5, repeat = False)
@@ -40,10 +40,13 @@ def main():
     try:
 
         # run the controller
-        print('> Will run the controller.')
-        hello.start()
+        print('> Run the controller.')
+        with hello:
+
+            # wait for the controller to finish on its own
+            hello.join()
             
-        print('> Done, controller will be killed by timer.')
+        print('> Done with the controller.')
 
     except KeyboardInterrupt:
         pass

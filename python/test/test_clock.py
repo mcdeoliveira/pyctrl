@@ -15,7 +15,10 @@ def test():
         (t,) = clock.read()
         k += 1
 
-    assert abs(clock.get_average_period() - Ts)/Ts < 3e-1
+    print('*** {}'.format(clock.get()))
+        
+    average = clock.calculate_average_period()
+    assert abs(average - Ts)/Ts < 3e-1
 
     clock.set_enabled(False)
     clock.set_enabled(True)
@@ -25,7 +28,8 @@ def test():
         (t,) = clock.read()
         k += 1
 
-    assert abs(clock.get_average_period() - Ts)/Ts < 3e-1
+    average = clock.calculate_average_period()
+    assert abs(average - Ts)/Ts < 3e-1
 
     clock.set_enabled(False)
     clock.set_enabled(True)
@@ -35,7 +39,8 @@ def test():
         (t,) = clock.read()
         k += 1
 
-    assert abs(clock.get_average_period() - Ts)/Ts < 3e-1
+    average = clock.calculate_average_period()
+    assert abs(average - Ts)/Ts < 3e-1
     
     clock.set_enabled(False)
 

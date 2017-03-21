@@ -51,9 +51,10 @@ Start with the following simple *Hello World!* example::
 
 This program will print the message *Hello World!* on the screen 4
 times.
-	
+
+----------------
 What's going on?
-^^^^^^^^^^^^^^^^
+----------------
 
 Let's now analyze each part of the above code to make sense of what is
 going on. The first couple lines import the modules to be used from
@@ -88,7 +89,7 @@ block that takes produces at least one *output* and has *no inputs*.
 
 The parameters to :py:meth:`ctrl.Controller.add_source` are a *label*,
 in this case :py:data:`clock`, a :py:mod:`ctrl.block` object, in this
-case :py:class:`TimerClock`, and a *list of signal outputs*, in this
+case :py:class:`ctrl.block.clock.TimerClock`, and a *list of signal outputs*, in this
 case the *signal* :py:data:`['clock']`.
 
 :py:class:`ctrl.block.clock.TimerClock` is a clock based on python's
@@ -106,7 +107,7 @@ add a `Printer` as a *sink*. A *sink* is a type of block that takes at
 least one *input* but produces *no output*.
 
 The parameters to :py:meth:`ctrl.Controller.add_sink` are a *label*,
-in this case :py:data:`message`, a :py:mod:`ctrl.block` object, in this
+in this case :py:data:`'message'`, a :py:mod:`ctrl.block` object, in this
 case :py:class:`Printer`, and a *list of inputs*, in this case
 :py:data:`['clock']`.
 		   
@@ -153,9 +154,9 @@ way. In this case we need to stop the :py:data:`clock` or the
 controller would continue to run even as the program terminates, which
 is not the desired behavior in this first example.
 
-
+-------------------
 The controller loop
-^^^^^^^^^^^^^^^^^^^
+-------------------
 
 In order to understand what is going on on behind the scenes we shall
 probe the contents of the controller variable :py:data:`hello`. For
@@ -169,7 +170,7 @@ produces the output:
 
     > Controller with 0 device(s), 2 signal(s), 1 source(s), 1 sink(s), and 0 filter(s)
 
-For more information we use the method :py:meth:`ctrl.info`. For
+For more information we use the method :py:meth:`ctrl.Controller.info`. For
 example::
 
     print(hello.info('all'))
@@ -257,8 +258,8 @@ As you suspect after going through the :ref:`Hello World!` example, it
 is useful to have a default controller with a clock. In fact, as you
 will learn later in :ref:`Timers`, every :py:class:`ctrl.Controller`
 comes equipped with some kind of clock. The method
-:py:meth:`ctrl.add_device` automates the process of adding blocks to a
-controller. For example, the following code::
+:py:meth:`ctrl.Controller.add_device` automates the process of adding
+blocks to a controller. For example, the following code::
 
   from ctrl import Controller
 
@@ -274,8 +275,8 @@ automatically creates a :py:class:`ctrl.block.clock.TimerClock` which
 is added to :py:data:`controller` as the *source* labeled
 :py:data:`clock` with *output signal* :py:data:`clock`. Setting the
 attribute :py:data:`enable` equal to `True` makes sure that the device
-is *enabled* at every call to :py:meth:`ctrl.start` and *disabled* at
-every call to :py:meth:`ctrl.stop`.
+is *enabled* at every call to :py:meth:`ctrl.Controller.start` and *disabled* at
+every call to :py:meth:`ctrl.Controller.stop`.
 
 A controller with a timer based clock is so common that the above
 construction is provided as a module in :py:mod:`ctrl.timer`. Using
@@ -308,9 +309,9 @@ construction is provided as a module in :py:mod:`ctrl.timer`. Using
 
 Note that we no longer have to disable the `clock` *source*, which is
 handled automatically when exiting the :py:obj:`with` statement by
-calling :py:meth:`ctrl.stop`. However, disabling the clock causes an
-additional clock read, which would print one extra message on the
-screen. This is avoided by calling::
+calling :py:meth:`ctrl.Controller.stop`. However, disabling the clock
+causes an additional clock read, which would print one extra message
+on the screen. This is avoided by calling::
 
   hello.set_sink('message', enabled = False)
 
@@ -341,7 +342,7 @@ reveals the presence of the signal :py:data:`clock` and the *device*
 The notion of *device* is much more than a simple convenience
 though. By having the controller dynamically initialize a block by
 providing the module and class as strings to
-:py:meth:`ctrl.add_device`, the arguments
+:py:meth:`ctrl.Controller.add_device`, the arguments
 :py:data:`'ctrl.block.clock'` and :py:data:`'TimerClock'` above, we
 can initialize blocks that rely on specific hardware remotely using
 our :ref:`Client Server Architecture`, as you will learn later.
@@ -482,21 +483,34 @@ controller::
 
 to see the `Hello World` message printing every second as the main
 loop prints the `Current time` message as fast as possible. The
-parameters of the method :py:meth:`ctrl.add_timer` are the *label* and
-*block*, in the case :py:data:`message` and the :py:class:`Printer`
-object, followed by a *list of signal inputs*, in this case
-:py:data:`['clock']`, and a *list of signal outputs*, in this case
-:py:data:`None`, then the *timer* period in seconds, and a flag to
-tell whether the execution of the *block* should repeat periodically,
-as opposed to just once.
+parameters of the method :py:meth:`ctrl.Controller.add_timer` are the
+*label* and *block*, in the case :py:data:`'message'` and the
+:py:class:`Printer` object, followed by a *list of signal inputs*, in
+this case :py:data:`['clock']`, and a *list of signal outputs*, in
+this case :py:data:`None`, then the *timer* period in seconds, and a
+flag to tell whether the execution of the *block* should repeat
+periodically, as opposed to just once.
 
 An example of a useful *timer* event to be run only once is the following::
 
-    # Add a timer to kill controller
-    hello.add_timer('killer',
+    # Add a timer to stop the controller
+    hello.add_timer('stop',
 		    Constant(value = 0),
 		    None, ['is_running'],
                     period = 5, repeat = False)
+
+which will stop the controller after 5 seconds. In fact, after adding
+the above timer one could run the controller loop by simply waiting
+for the controller to terminate using :py:meth:`ctrl.Controller.join`
+as in::
+
+    with hello:
+        hello.join()
+
+Note that your program will not terminate until all block and timer
+tasks terminate, so it is important that you always call
+:py:meth:`ctrl.Controller.stop` or use the :py:obj:`with` statement to
+exit cleanly.
 
 ------------------
 Signals and Blocks

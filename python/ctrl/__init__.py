@@ -247,7 +247,7 @@ class Controller:
         """
         Add signal to Controller.
 
-        :param label: the signal label
+        :param str label: the signal label
         """
         assert isinstance(label, str)
         if label in self.signals:
@@ -269,7 +269,7 @@ class Controller:
         """
         Remove signal from Controller.
 
-        :param label: the signal label to be removed
+        :param str label: the signal label to be removed
         """
         self.signals.pop(label)
 
@@ -277,7 +277,7 @@ class Controller:
         """
         Set the value of signal.
 
-        :param label: the signal label
+        :param str label: the signal label
         :param value: the value to be set
         """
         if label not in self.signals:
@@ -288,7 +288,7 @@ class Controller:
         """
         Get the value of signal.
 
-        :param label: the signal label
+        :param str label: the signal label
         :return: the signal value
         """
         return self.signals[label]
@@ -317,8 +317,8 @@ class Controller:
         """
         Add source to Controller.
 
-        :param label: the source label
-        :param source: the source block
+        :param str label: the source label
+        :param ctrl.block source: the source block
         :param list outputs: a list of output signals
         :param int order: if positive, set execution order, otherwise add as last (default `-1`)
         """
@@ -343,7 +343,7 @@ class Controller:
         """
         Remove source from Controller.
 
-        :param label: the source label
+        :param str label: the source label
         """
         self.sources_order.remove(label)
         self.sources.pop(label)
@@ -355,7 +355,7 @@ class Controller:
         All attributes must be passed as key-value pairs and vary
         depending on the type of block.
 
-        :param label: the source label
+        :param str label: the source label
         :param list outputs: set source output signals
         :param kwargs kwargs: other key-value pairs of attributes
         """
@@ -373,10 +373,10 @@ class Controller:
         """
         Get attributes from source.
 
-        :param label: the source label
+        :param str label: the source label
         :param vargs keys: the keys of the attributes to get
-        :return: dictionary of attributes
-        :rtype: dict
+        :return: dictionary of attributes or single value
+        :rtype: dict or value
         """
         if label not in self.sources:
             raise ControllerException("Source '{}' does not exist".format(label))
@@ -387,7 +387,7 @@ class Controller:
         """
         Read from source. Call method `ctrl.block.read()`.
         
-        :param label: the source label
+        :param str label: the source label
         """
         return self.sources[label]['block'].read()
 
@@ -395,7 +395,7 @@ class Controller:
         """
         Write to source. Call method `ctrl.block.write(*values)`.
         
-        :param label: the source label
+        :param str label: the source label
         :param vargs values: the values to write to source
         """
         self.sources[label]['block'].write(*values)
@@ -415,8 +415,8 @@ class Controller:
         """
         Add sink to Controller.
 
-        :param label: the sink label
-        :param sink: the sink block
+        :param str label: the sink label
+        :param ctrl.block sink: the sink block
         :param list inputs: a list of input signals
         :param int order: if positive, set execution order, otherwise add as last (default `-1`)
         """
@@ -441,7 +441,7 @@ class Controller:
         """
         Remove sink from Controller.
 
-        :param label: the sink label
+        :param str label: the sink label
         """
         self.sinks_order.remove(label)
         self.sinks.pop(label)
@@ -453,7 +453,7 @@ class Controller:
         All attributes must be passed as key-value pairs and vary
         depending on the type of block.
 
-        :param label: the sink label
+        :param str label: the sink label
         :param list inputs: set sink input signals
         :param kwargs kwargs: other key-value pairs of attributes
         """
@@ -471,7 +471,7 @@ class Controller:
         """
         Get attributes from sink.
 
-        :param label: the sink label
+        :param str label: the sink label
         :param vargs keys: the keys of the attributes to get
         :return: dictionary of attributes
         :rtype: dict
@@ -485,7 +485,7 @@ class Controller:
         """
         Read from sink. Call method `ctrl.block.read()`.
         
-        :param label: the sink label
+        :param str label: the sink label
         """
         return self.sinks[label]['block'].read()
 
@@ -493,7 +493,7 @@ class Controller:
         """
         Write to sink. Call method `ctrl.block.write(*values)`.
         
-        :param label: the sink label
+        :param str label: the sink label
         :param vargs values: the values to write to sink
         """
         self.sinks[label]['block'].write(*values)
@@ -514,8 +514,8 @@ class Controller:
         """
         Add filter to Controller.
 
-        :param label: the filter label
-        :param filter: the filter block
+        :param str label: the filter label
+        :param ctrl.block filter: the filter block
         :param list inputs: a list of input signals
         :param list outputs: a list of output signals
         :param int order: if positive, set execution order, otherwise add as last (default `-1`)
@@ -543,7 +543,7 @@ class Controller:
         """
         Remove filter from Controller.
 
-        :param label: the filter label
+        :param str label: the filter label
         """
         self.filters_order.remove(label)
         self.filters.pop(label)
@@ -555,7 +555,7 @@ class Controller:
         All attributes must be passed as key-value pairs and vary
         depending on the type of block.
 
-        :param label: the filter label
+        :param str label: the filter label
         :param list inputs: set filter input signals
         :param list outputs: set filter output signals
         :param kwargs kwargs: other key-value pairs of attributes
@@ -579,7 +579,7 @@ class Controller:
         """
         Get attributes from filter.
 
-        :param label: the filter label
+        :param str label: the filter label
         :param vargs keys: the keys of the attributes to get
         :return: dictionary of attributes
         :rtype: dict
@@ -593,7 +593,7 @@ class Controller:
         """
         Read from filter. Call method `ctrl.block.read()`.
         
-        :param label: the filter label
+        :param str label: the filter label
         """
         return self.filters[label]['block'].read()
 
@@ -601,7 +601,7 @@ class Controller:
         """
         Write to filter. Call method `ctrl.block.write(*values)`.
         
-        :param label: the filter label
+        :param str label: the filter label
         :param vargs values: the values to write to filter
         """
         self.filters[label]['block'].write(*values)
@@ -622,11 +622,11 @@ class Controller:
         """
         Add device to Controller.
 
-        :param label: the device label
-        :param device_module: the device module
-        :param device_class: the device class
-        :param type: the device type, `source`, `filter`, or `sink` (default `source`)
-        :param enable: if the device needs to be enable and disabled at `start()` and `stop()` (default False)
+        :param str label: the device label
+        :param str device_module: the device module
+        :param str device_class: the device class
+        :param str type: the device type, `source`, `filter`, or `sink` (default `source`)
+        :param bool enable: if the device needs to be enable at `start()` and disabled at `stop()` (default False)
         :param list inputs: a list of input signals (default `[]`)
         :param list outputs: a list of output signals (default `[]`)
         :param kwargs kwargs: parameters to be passed to the device class initialization
@@ -704,7 +704,7 @@ class Controller:
     # timers
     def add_timer(self,
                   label,
-                  block_,
+                  blk,
                   inputs,
                   outputs,
                   period,
@@ -712,12 +712,12 @@ class Controller:
         """
         Add timer to Controller.
 
-        :param label: the timer label
-        :param block: the timer block
+        :param str label: the timer label
+        :param ctrl.block blk: the timer block
         :param list inputs: a list of input signals
         :param list outputs: a list of output signals
         :param int period: run timer in period seconds
-        :param repeat: repeat if True (default True)
+        :param bool repeat: repeat if True (default True)
         """
         assert isinstance(label, str)
         if label in self.timers:
@@ -725,7 +725,7 @@ class Controller:
                           ControllerWarning)
             self.remove_timer(label)
 
-        assert isinstance(block_, block.Block)
+        assert isinstance(blk, block.Block)
         if inputs:
             assert isinstance(inputs, (list, tuple))
         if outputs:
@@ -733,7 +733,7 @@ class Controller:
         assert isinstance(period, int)
         assert isinstance(repeat, bool)
         self.timers[label] = { 
-            'block': block_,  
+            'block': blk,  
             'inputs': inputs,
             'outputs': outputs,
             'period': period,

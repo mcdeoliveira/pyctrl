@@ -24,6 +24,9 @@ class Controller(ctrl.Controller):
         # call super
         super().__reset()
 
+        self.remove_source('clock')
+        self.remove_signal('clock')
+        
         # add device clock
         self.add_device('clock',
                         'ctrl.block.clock', 'TimerClock',
