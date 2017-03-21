@@ -183,6 +183,7 @@ def pack(type, content):
 
     # pickle
     elif type == 'P':
+        #print('content = {}'.format(content))
         try:
             bmessage = pickle.dumps(content)
         except pickle.PicklingError:

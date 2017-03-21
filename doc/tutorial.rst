@@ -507,8 +507,8 @@ as in::
     with hello:
         hello.join()
 
-Note that your program will not terminate until all block and timer
-tasks terminate, so it is important that you always call
+Note that your program will not terminate until all *blocks* and
+*timers* terminate, so it is important that you always call
 :py:meth:`ctrl.Controller.stop` or use the :py:obj:`with` statement to
 exit cleanly.
 

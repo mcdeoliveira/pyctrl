@@ -8,14 +8,15 @@ import sys
 from time import perf_counter
 
 class Clock(block.Block):
-
+    """
+    `Clock` provides a basic clock that writes the current time to its
+    output.
+    """
     def __init__(self, **kpars):
 
         #print("Clock.__init__: pars {}".format(pars))
         #print("Clock.__init__: kpars {}".format(kpars))
         
-        self.period = kpars.pop('period', 0.01)
-
         super().__init__(**kpars)
 
         self.time_origin = perf_counter()
@@ -24,10 +25,29 @@ class Clock(block.Block):
         self.average_period = 0
         
     def set_period(self, period):
-        
-        self.period = period
+        """
+        Set `Clock` period.
+
+        :param float period: clock period
+        :raise: `BlockExcpetion` if not supported
+        """
+        raise BlockException('Clock does not have a period')
+
+    def get_period(self):
+        """
+        Get `Clock` period.
+
+        :return: clock period
+        :retype: float
+        :raise: `BlockExcpetion` if not supported
+        """
+        raise BlockException('Clock does not have a period')
 
     def reset(self):
+        """
+        Reset `Clock` by setting the origin of time to the present time
+        and the clock count to zero.
+        """
 
         # Make sure time is current
         self.read()
@@ -37,6 +57,21 @@ class Clock(block.Block):
         self.count = 0
 
     def get(self, keys = None, exclude = ()):
+        """
+        Get properties of `Clock`. 
+
+        Available properties are:
+
+        1. `average_period`
+        2. `time_origin`
+        3. `count`
+
+        The elapsed time since initialization or last reset can be
+        obtained using the method `read()`
+
+        :param keys: string or tuple of strings with property names
+        :param exclude: tuple with list of keys never to be returned (Default ())
+        """
 
         if keys is None or 'average_period' in keys:
             self.calculate_average_period()
@@ -44,8 +79,29 @@ class Clock(block.Block):
         # call super excluding time and last
         return super().get(keys, exclude = exclude)
         
-    def calculate_average_period(self):
+    def read(self):
+        """
+        Read from `Clock`.
 
+        :return: tuple with elapsed time since initialization or last reset
+        """
+
+        if self.enabled:
+
+            self.time = perf_counter()
+            self.count += 1
+
+        return (self.time - self.time_origin, )
+
+    
+    def calculate_average_period(self):
+        """
+        Calculate the average period since the clock was initialized
+        or reset.
+        
+        :return: average period
+        :retype: float
+        """
         if self.count:
             self.average_period = (self.time - self.time_origin) / self.count
         else:
@@ -54,7 +110,13 @@ class Clock(block.Block):
         return self.average_period
 
     def calibrate(self, eps = 1/100, N = 100, K = 20):
-                
+        """
+        Calibration routine that attempts to callibrate clock
+        by fine tuning the `clock`'s period.
+
+        `Clock` must support `get_period()` and `set_period()` must
+        be able to accept arbitrary floats.
+        """
         enabled = self.enabled
         if not enabled:
             warnings.warn('Enabling clock for calibration.')
@@ -64,7 +126,7 @@ class Clock(block.Block):
         print('  ITER   TARGET   ACTUAL ACCURACY')
 
         k = 1
-        target = self.period
+        target = self.get_period()
         while True:
 
             # reset and run for T seconds
@@ -93,7 +155,7 @@ class Clock(block.Block):
                 break
 
             # compensate error
-            self.set_period(self.period + target - period)
+            self.set_period(self.get_period() + target - period)
 
         print('< Done!')
 
@@ -103,22 +165,22 @@ class Clock(block.Block):
 
         return (success, period)
 
-    def read(self):
-
-        if self.enabled:
-
-            self.time = perf_counter()
-            self.count += 1
-
-        return (self.time - self.time_origin, )
 
 
 from threading import Thread, Timer, Condition
 
 class TimerClock(Clock):
+    """
+    `TimerClock` provides a clock that reads the current time
+    periodically.
 
+    :param float period: period in seconds
+    """
+    
     def __init__(self, **kpars):
 
+        self.period = kpars.pop('period', 0.01)
+        
         super().__init__(**kpars)
 
         self.condition = Condition()
@@ -129,8 +191,38 @@ class TimerClock(Clock):
             self.enabled = False
             self.set_enabled(True)
     
-    def get(self, keys = None, exclude = ()):
+    def set_period(self, period):
+        """
+        Set `TimerClock` period.
 
+        :param float period: clock period
+        """
+        self.period = period
+
+    def get_period(self):
+        """
+        Get `TimerClock` period.
+
+        :return: clock period
+        :retype: float
+        """
+        return self.period
+        
+    def get(self, keys = None, exclude = ()):
+        """
+        Get properties of `TimerClock`. 
+
+        Available properties those from :py:meth:`ctrl.block.clock.Clock.get` and:
+
+        1. `period`
+
+        The elapsed time since initialization or last reset can be
+        obtained using the method `read()`
+
+        :param keys: string or tuple of strings with property names
+        :param exclude: tuple with list of keys never to be returned (Default ())
+        """
+        
         # call super excluding time and last
         return super().get(keys, exclude + ('condition', 'timer', 'running',
                                             'thread') )
@@ -192,6 +284,11 @@ class TimerClock(Clock):
         #print('> Disabled!')
 
     def set_enabled(self, enabled = True):
+        """
+        Set `TimerClock` *enabled* state.
+
+        :param enabled: True or False (default True)
+        """
 
         # quick return
         if enabled == self.enabled:
@@ -230,6 +327,11 @@ class TimerClock(Clock):
             self.condition.release()
 
     def read(self):
+        """
+        Read from `TimerClock`.
+
+        :return: tuple with elapsed time since initialization or last reset
+        """
 
         #print('> read')
         if self.enabled:

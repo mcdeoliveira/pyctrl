@@ -20,7 +20,7 @@ def test_clock():
 
     period = 0.01
     controller.add_signal('clock')
-    clock = Clock(period = period)
+    clock = Clock()
     controller.add_source('clock', clock, ['clock'])
     K = 10
     k = 0

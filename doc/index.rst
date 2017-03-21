@@ -17,7 +17,7 @@ Mauricio de Oliveira
 
    intro
    tutorial
-   ctrl
+   package_ctrl
    ctrl.block
    ctrl.system
       

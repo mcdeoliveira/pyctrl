@@ -202,7 +202,6 @@ class Controller(ctrl.Controller):
 
 
     # filters
-
     def add_filter(self, label, filter_, 
                    input_signals, output_signals,
                    order = -1):
@@ -232,6 +231,11 @@ class Controller(ctrl.Controller):
     def add_device(self, label, device_module, device_class, **kwargs):
         self.send('z', 'S', label, 'S', device_module, 'S', device_class, 'K', kwargs)
 
+    def add_timer(self, label, blk, inputs, outputs, period, repeat = True):
+        self.send('t', 'S', label,
+                  'P', blk, 'P', inputs, 'P', outputs, 
+                  'D', period, 'I', repeat)
+        
     # def set_period(self, value):
     #     return self.send('a', 'D', value)
 
@@ -245,6 +249,9 @@ class Controller(ctrl.Controller):
         if not self.shutdown_request:
             self.send('d')
 
+    def join(self):
+        self.send('j')
+            
     def shutdown(self):
         self.shutdown_request = True
         self.send('0')

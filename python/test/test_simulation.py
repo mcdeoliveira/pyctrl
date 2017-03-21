@@ -17,7 +17,7 @@ def test1():
     controller = Controller()
 
     Ts = 0.01
-    clock = Clock(period = Ts)
+    clock = TimerClock(period = Ts)
     controller.add_source('clock',clock,['clock'])
 
     a = -1
@@ -53,10 +53,10 @@ def test1():
     t0 = log[0,0]
     tk = log[-1,0]
     yk = log[-1,1]    
-    yyk = uk * (1 - math.exp(a*(tk-t0))) + x0 * math.exp(a*(tk-t0))
+    yyk = uk * (1 - math.exp(a*(tk-t0))) + x0[0] * math.exp(a*(tk-t0))
     print(log)
     print(t0, x0, tk, xk, yk, yyk)
-    assert np.abs(yk - np.array([yyk])) < 1e-2
+    assert np.abs(yk - yyk) < 1e-2
 
     uk = 0
     x0 = sys.state
@@ -161,7 +161,7 @@ def test2():
     controller = Controller()
 
     Ts = 0.01
-    controller.add_source('clock',Clock(period = Ts),['clock'])
+    controller.add_source('clock',Clock(),['clock'])
 
     condition = Map(function = lambda t : t < T)
     controller.add_filter('condition',condition,['clock'],['is_running'])
@@ -229,7 +229,7 @@ def test2():
 
     controller.reset()
     Ts = 0.01
-    controller.add_source('clock',Clock(period = Ts),['clock'])
+    controller.add_source('clock',Clock(),['clock'])
 
     condition = Map(function = lambda t : t < T)
     controller.add_filter('condition',condition,['clock'],['is_running'])

@@ -90,7 +90,7 @@ class DTTF(system.System):
 
         .. math::
 
-            z_k + den[1] z_{k-1} + \cdots + den[n] z_{k-n} &= 0
+            z_k + den[1] z_{k-1} + \cdots + den[n] z_{k-n} = 0
 
         and
 
@@ -230,7 +230,7 @@ class PID(DTTF):
 
     .. math::
 
-       X(z) &= \frac{T}{2} \frac{1 + z^{-1}}{1 - z^{-1}} E(z)
+       X(z) = \frac{T}{2} \frac{1 + z^{-1}}{1 - z^{-1}} E(z)
 
     so that
 
@@ -245,7 +245,7 @@ class PID(DTTF):
 
     .. math::
 
-       G(z) &= \frac{K_p + \frac{K_i T}{2} + \frac{Kd}{T} + z^{-1} \left ( \frac{K_i T}{2} - K_p - 2 \frac{K_d}{T} \right ) + z^{-2} \left ( \frac{K_d}{T} \right ) }{1 - z^{-1}}
+       G(z) = \frac{K_p + \frac{K_i T}{2} + \frac{Kd}{T} + z^{-1} \left ( \frac{K_i T}{2} - K_p - 2 \frac{K_d}{T} \right ) + z^{-2} \left ( \frac{K_d}{T} \right ) }{1 - z^{-1}}
 
     A PD controller is the special case when Ki = 0:
 

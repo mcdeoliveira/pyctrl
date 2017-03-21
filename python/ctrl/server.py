@@ -119,6 +119,9 @@ def set_controller(_controller = ctrl.Controller()):
         'z': ('SSSK', '', controller.add_device,
               'Add device'),
 
+        't': ('SPPPDI', '', controller.add_timer,
+              'Add timer'),
+        
         # 'a': ('D',  '', controller.set_period,
         #       'Set period'),
 
@@ -131,6 +134,9 @@ def set_controller(_controller = ctrl.Controller()):
         'd': ('',  '',  controller.stop,
               'Stop control loop'),
 
+        'j': ('',  '',  controller.join,
+              'Waif for control loop'),
+        
         # '0': ('', '', server_shutdown, 'Shutdown server')
         
     }

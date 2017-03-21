@@ -126,7 +126,7 @@ class Controller:
         """
         Returns a string with information on the Controller.
 
-        :param options: can be one of `devices`, `signals`, `sources`, `filters`, `sinks`, `all`, or `summary`
+        :param options: can be one of `devices`, `signals`, `sources`, `filters`, `sinks`, `timers`, `all`, or `summary`
         :return: string with information on the Controller
         """
 
@@ -730,8 +730,8 @@ class Controller:
             assert isinstance(inputs, (list, tuple))
         if outputs:
             assert isinstance(outputs, (list, tuple))
-        assert isinstance(period, int)
-        assert isinstance(repeat, bool)
+        assert isinstance(period, (int, float))
+        assert isinstance(repeat, (int, bool))
         self.timers[label] = { 
             'block': blk,  
             'inputs': inputs,

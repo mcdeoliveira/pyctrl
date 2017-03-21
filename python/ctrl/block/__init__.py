@@ -13,10 +13,10 @@ class Block:
     """
     *Block* provides the basic functionality for all types of blocks.
         
-    `Block` does not take any parameters other than *enable* and will raise
-    *BlockException* if any of the *kwargs* is left unprocessed.
+    `Block` does not take any parameters other than `enable`
         
     :param enable: set block as enabled (default True)
+    :raise: `BlockException` if any of the `kwargs` is left unprocessed
     """
     
     def __init__(self, **kwargs):
@@ -52,10 +52,10 @@ class Block:
 
     def set(self, **kwargs):
         """
-        Set properties of blocks. Will raise *BlockException* if any
-        *kwargs* is left unprocessed.
+        Set properties of *Block*.
 
         :param reset: if `True` calls `self.reset()`
+        :raise: `BlockException` if any of the `kwargs` is left unprocessed
         """
 
         if 'reset' in kwargs:
@@ -77,10 +77,9 @@ class Block:
         will retrieve the value of the property *enabled*. Returns a
         tuple with key values if argument *keys* is a list.
 
-        Will raise *KeyError* if key is not defined.
-
         :param keys: string or tuple of strings with property names
         :param exclude: tuple with list of keys never to be returned (Default ())
+        :raise: *KeyError* if `key` is not defined
         """
 
         if keys is None or isinstance(keys, (list, tuple)):
@@ -102,7 +101,9 @@ class Block:
         """
         Read from *Block*.
 
-        Will raise *BlockException* if block does not support read.
+        :return: values
+        :retype: tuple
+        :raise: *BlockException* if block does not support read
         """
         raise BlockException('This block does not support read')
 
@@ -110,7 +111,8 @@ class Block:
         """
         Write to *Block*.
 
-        Will raise *BlockException* if block does not support write.
+        :param varag values: values
+        :raise: *BlockException* if block does not support write
         """
         raise BlockException('This block does not support write')
 
@@ -234,7 +236,7 @@ class Printer(Block):
     """
     A *Printer* block prints the values of signals to the screen.
 
-    :param endl: end-of-line character (default `'\\\\n'`)
+    :param endln: end-of-line character (default `'\\\\n'`)
     :param frmt: format string (default `{: 12.4f}`)
     :param sep: field separator (default `' '`)
     :param message: message to print (default `None`)
@@ -247,8 +249,11 @@ class Printer(Block):
         self.frmt = kwargs.pop('frmt', '{: 12.4f}')
         self.sep = kwargs.pop('sep', ' ')
         self.message = kwargs.pop('message', None)
-        self.file = kwargs.pop('sep', sys.stdout)
-
+        self.file = kwargs.pop('file', None)
+        
+        if self.file is sys.stdout:
+            self.file = None
+        
         super().__init__(**kwargs)
 
     def set(self, **kwargs):
@@ -272,10 +277,12 @@ class Printer(Block):
             self.sep = kwargs.pop('sep')
 
         if 'message' in kwargs:
-            self.file = kwargs.pop('message')
+            self.message = kwargs.pop('message')
 
         if 'file' in kwargs:
             self.file = kwargs.pop('file')
+            if self.file is sys.stdout:
+                self.file = None
             
         super().set(**kwargs)
     
@@ -285,10 +292,14 @@ class Printer(Block):
         """
         
         if self.enabled:
+
+            file = self.file
+            if file is None:
+                file = sys.stdout
             
             if self.message is not None:
                 print(self.message.format(*values),
-                      file=self.file,
+                      file=file,
                       end=self.endln)
                 
             else:
@@ -301,7 +312,7 @@ class Printer(Block):
 
                 row = numpy.hstack(values)
                 print(self.sep.join(self.frmt.format(val) for val in row),
-                      file=self.file, end=self.endln)
+                      file=file, end=self.endln)
 
 
 class Signal(BufferBlock):
@@ -466,40 +477,3 @@ class Apply(BufferBlock):
 
         self.buffer = (self.function(*self.buffer), )
 
-class Message(Block):
-    """
-    A *Message* block prints a message the screen.
-
-    :param file: file to print on (default `sys.stdout`)
-    """
-    
-    def __init__(self, **kwargs):
-        
-        self.file = kwargs.pop('sep', sys.stdout)
-        self.message = kwargs.pop('message', '')
-
-        super().__init__(**kwargs)
-
-    def set(self, **kwargs):
-        """
-        Set properties of *Message*.
-
-        :param file: file to print on
-        """
-        
-        if 'message' in kwargs:
-            self.file = kwargs.pop('message')
-
-        if 'file' in kwargs:
-            self.file = kwargs.pop('file')
-            
-        super().set(**kwargs)
-    
-    def read(self):
-        """
-        Print `message` to `file`.
-        """
-        
-        if self.enabled:
-
-            print(self.message, file=self.file)
