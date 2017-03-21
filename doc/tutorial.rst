@@ -357,7 +357,6 @@ A call to :samp:`print(hello.info('all'))`:
     > filters
     > sinks
 
-
 ------------------
 Signals and Blocks
 ------------------

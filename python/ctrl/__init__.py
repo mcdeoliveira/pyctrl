@@ -1,5 +1,5 @@
 import warnings
-from threading import Thread
+from threading import Thread, Timer, Condition
 import numpy
 import importlib
 
@@ -7,10 +7,7 @@ from . import block
 
 # alternative perf_counter
 import sys
-if sys.version_info < (3, 3):
-    from .gettime import gettime as perf_counter
-else:
-    from time import perf_counter
+from time import perf_counter
 
 class ControllerWarning(Warning):
     pass
@@ -72,6 +69,10 @@ class Controller:
         # filters
         self.filters = { }
         self.filters_order = [ ]
+
+        # timers
+        self.timers = { }
+        self.running_timers = { }
 
     # __str__ and __repr__
     def __str__(self):
@@ -182,6 +183,29 @@ class Controller:
                     result += 'disabled'
                 result += ']' + '\n'
 
+        elif options == 'timers':
+
+            result += '> timers\n'
+            for (k,label) in enumerate(self.timers):
+                device = self.timers[label]
+                block_ = device['block']
+                result += '  {}. '.format(k+1)
+                if device['inputs']:
+                    result += ', '.join(device['inputs']) + ' >> '
+                result += label + '[' + \
+                          type(block_).__name__ + ', '
+                result += 'period = {}, '.format(device['period'])
+                if device['repeat']:
+                    result += 'repeat, '
+                if block_.is_enabled():
+                    result += 'enabled'
+                else:
+                    result += 'disabled'
+                result += ']'
+                if device['outputs']:
+                    result += ' >> ' + ', '.join(device['outputs'])
+                result += '\n'
+                
         elif options == 'signals':
 
             result += '> signals\n  ' + \
@@ -193,16 +217,17 @@ class Controller:
             
             result = ''.join(map(lambda x: self.info(x), 
                                  ['summary', 'devices', 'signals', 
-                                  'sources', 'filters', 'sinks']))
+                                  'sources', 'filters', 'sinks', 'timers']))
             
         elif options == 'summary':
         
-            result += '> Controller with {} device(s), {} signal(s), {} source(s), {} sink(s), and {} filter(s)' \
+            result += '> Controller with {} device(s), {} signal(s), {} source(s), {} filter(s), {} sink(s), and {} timer(s)' \
                 .format(len(self.devices),
                         len(self.signals),
                         len(self.sources), 
+                        len(self.filters),
                         len(self.sinks), 
-                        len(self.filters)) + '\n'
+                        len(self.timers)) + '\n'
 
         else:
             warnings.warn("Unknown option '{}'.".format(options))
@@ -668,6 +693,45 @@ class Controller:
 
         return instance
                 
+    # timers
+    def add_timer(self,
+                  label,
+                  block_,
+                  inputs,
+                  outputs,
+                  period,
+                  repeat = True):
+        """
+        Add timer to Controller.
+
+        :param label: the timer label
+        :param block: the timer block
+        :param list inputs: a list of input signals
+        :param list outputs: a list of output signals
+        :param int period: run timer in period seconds
+        :param repeat: repeat if True (default True)
+        """
+        assert isinstance(label, str)
+        if label in self.timers:
+            warnings.warn("Timer '{}' already exists and is been replaced.".format(label),
+                          ControllerWarning)
+            self.remove_timer(label)
+
+        assert isinstance(block_, block.Block)
+        if inputs:
+            assert isinstance(inputs, (list, tuple))
+        if outputs:
+            assert isinstance(outputs, (list, tuple))
+        assert isinstance(period, int)
+        assert isinstance(repeat, bool)
+        self.timers[label] = { 
+            'block': block_,  
+            'inputs': inputs,
+            'outputs': outputs,
+            'period': period,
+            'repeat': repeat
+        }
+            
     def __enter__(self):
         if self.debug > 0:
             print('> Starting controller')
@@ -696,11 +760,11 @@ class Controller:
             first = True
             t0 = 0
             for label in self.sources_order:
-                device = self.sources[label]
-                source = device['block']
+                block = self.sources[label]
+                source = block['block']
                 if source.is_enabled():
                     # retrieve outputs
-                    self.signals.update(dict(zip(device['outputs'], 
+                    self.signals.update(dict(zip(block['outputs'], 
                                                  source.read())))
                     # Begin profiling
                     if first:
@@ -709,24 +773,24 @@ class Controller:
 
             # Process all filters
             for label in self.filters_order:
-                device = self.filters[label]
-                fltr = device['block']
+                block = self.filters[label]
+                fltr = block['block']
                 if fltr.is_enabled():
                     # write signals to inputs
                     fltr.write(*[self.signals[label] 
-                                 for label in device['inputs']])
+                                 for label in block['inputs']])
                     # retrieve outputs
-                    self.signals.update(dict(zip(device['outputs'], 
+                    self.signals.update(dict(zip(block['outputs'], 
                                                  fltr.read())))
 
             # Write to all sinks
             for label in self.sinks_order:
-                device = self.sinks[label]
-                sink = device['block']
+                block = self.sinks[label]
+                sink = block['block']
                 if sink.is_enabled():
                     # write inputs
                     sink.write(*[self.signals[label]
-                                 for label in device['inputs']])
+                                 for label in block['inputs']])
 
             # update is_running
             self.is_running = self.signals['is_running']
@@ -736,6 +800,54 @@ class Controller:
             self.signals['duty'] = duty
             self.duty = max(self.duty, duty)
 
+    def tick(self, label, device):
+
+        # Acquire lock
+        device['condition'].acquire()
+
+        # Got a tick, run device
+        
+        if device['inputs']:
+            
+            # write signals to inputs
+            device['block'].write(*[self.signals[label] 
+                                    for label in device['inputs']])
+            
+        if device['outputs']:
+                
+            # retrieve outputs
+            self.signals.update(dict(zip(device['outputs'], 
+                                         device['block'].read())))
+
+        # Notify lock
+        device['condition'].notify_all()
+        
+        # Release lock
+        device['condition'].release()
+    
+    def run_timer(self, label, device):
+
+        while self.is_running and self.state != EXITING:
+
+            # Acquire condition
+            device['condition'].acquire()
+            
+            # Setup timer
+            self.running_timers[label] = Timer(device['period'],
+                                               self.tick,
+                                               args = (label, device))
+            self.running_timers[label].start()
+
+            # Wait 
+            device['condition'].wait()
+
+            # and release
+            device['condition'].release()
+
+            # repeat
+            if not device['repeat']:
+                break
+            
     def start(self):
         """
         Start Controller loop.
@@ -750,6 +862,13 @@ class Controller:
         self.thread = Thread(target = self.run)
         self.thread.start()
 
+        # start timer threads
+        for label, device in self.timers.items():
+            device['condition'] = Condition()
+            thread = Thread(target = self.run_timer,
+                            args = (label, device))
+            thread.start()
+        
         # change state to running
         self.state = RUNNING
 
@@ -762,6 +881,18 @@ class Controller:
         if self.is_running:
             self.is_running = False
             self.signals['is_running'] = self.is_running
+
+        # start timer threads
+        for (label,t) in self.running_timers.items():
+            # Try cancelling timer
+            t.cancel()
+            # Release condition
+            device = self.timers[label]
+            device['condition'].acquire()
+            device['condition'].notify_all()
+            device['condition'].release()
+
+        self.running_timers = { }
 
         # then disable devices
         for label, device in self.devices.items():

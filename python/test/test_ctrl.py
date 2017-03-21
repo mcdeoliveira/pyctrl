@@ -249,6 +249,23 @@ def run(controller):
     controller.stop()
     assert controller.get_signal('is_running') == False
 
+    # test timer
+    controller.reset()
+
+    print(controller.info('all'))
+
+    controller.add_timer('timer',
+                         block.Printer(message="*** TIMER MESSAGE ***"),
+                         ['is_running'], None, 1, False)
+
+    print(controller.info('all'))
+
+    with controller:
+        time.sleep(2)
+
+    with controller:
+        pass
+    
 def test_run():
 
     from ctrl import Controller
@@ -317,6 +334,7 @@ def test_client_server():
             print('> Terminating server')
             server.terminate()
 
+            
 if __name__ == "__main__":
 
     print('> Local')
