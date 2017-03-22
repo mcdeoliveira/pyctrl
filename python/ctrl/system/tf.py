@@ -302,29 +302,48 @@ class PID(DTTF):
 import math
 
 class LPF(DTTF):
-    """
-    *LPF* implements a low pass-filter base on DTTF.
+    r"""
+    *LPF* implements a low pass-filter based on DTTF.
+    
+    The first-order filter is a discretized version os the continuous-time filter with transfer-function:
+
+    .. math::
+    
+        T(s) = \frac{K \omega_c}{s + \omega_c}, \quad \omega_c = 2 \pi f_c
+    
+    where :math:`f_c` is the cutoff frequency and :math:`K` is the
+    filter gain. The zero-order hold equivalent transfer-function is:
+    
+    .. math::
+    
+        T(z) = \frac{K (1 - a)}{z - a}, \quad a = e^{-\omega_c T_s}
+    
+    where :math:`T_s` is the sampling period.
     
     TODO: filters of order higher than `1`
     
     :param fc: cuttof frequency in Hz
+    :param Ts: sampling period in seconds
+    :param gain: gain (default = `1`)
     :param order: order (default = `1`)
+    :param state: initial state (default = `None`)
     """
 
-    def __init__(self, fc, period = 0, order = 1):
+    def __init__(self,
+                 fc,
+                 period,
+                 gain = 1,
+                 order = 1,
+                 state = None):
 
         if order != 1:
             raise Exception('Not implemented yet')
 
         assert period > 0
 
-        # LPF order 1
-        # wc = 2 pi fc
-        # T(s) = wc / (s + wc)
-        # T(z) = wc Ts z / (z - e^{-wc Ts}) = wc Ts / (1 - q e^{-wc * Ts})
+        a = math.exp(-2 * math.pi * fc * period)
+        num = numpy.array([0, gain * (1 - a)])
+        den = numpy.array([1, -a])
         
-        wc = 2 * math.pi * fc
-        num = numpy.array([wc * period ])
-        den = numpy.array([1, -math.exp(-wc * period)])
-            
-        super().__init__(num, den)
+        super().__init__(num, den, state)
+        

@@ -59,7 +59,6 @@ def run(controller):
 
     import ctrl
     import numpy
-    import ctrl.block.logger as logger
     import ctrl.block as block
     import ctrl.block.system as system
     import ctrl.block.random as blkrnd
@@ -108,7 +107,7 @@ def run(controller):
 
     controller.add_signal('clock')
 
-    controller.add_sink('_logger_', logger.Logger(), ['_test_'])
+    controller.add_sink('_logger_', block.Logger(), ['_test_'])
     assert '_logger_' in controller.list_sinks()
     assert '_test_' in controller.list_signals()
 
@@ -116,7 +115,7 @@ def run(controller):
     controller.remove_signal('_test_')
     assert '_test_' in controller.list_signals()
 
-    controller.add_sink('_logger_', logger.Logger(), ['clock'])
+    controller.add_sink('_logger_', block.Logger(), ['clock'])
     assert '_logger_' in controller.list_sinks()
 
     
@@ -151,7 +150,7 @@ def run(controller):
 
     controller.add_signal('_test_')
 
-    controller.add_sink('_logger_', logger.Logger(), ['clock', '_test_'])
+    controller.add_sink('_logger_', block.Logger(), ['clock', '_test_'])
     assert '_logger_' in controller.list_sinks()
 
     with controller:
@@ -210,7 +209,7 @@ def run(controller):
                           ['_output_'])
     assert '_gain_' in controller.list_filters()
         
-    controller.add_sink('_logger_', logger.Logger(), ['_test_', '_output_'])
+    controller.add_sink('_logger_', block.Logger(), ['_test_', '_output_'])
     assert '_logger_' in controller.list_sinks()
 
     with controller:
@@ -259,7 +258,7 @@ def run(controller):
 
     controller.add_signal('timer')
     controller.add_timer('timer',
-                         system.Constant(value = 1),
+                         block.Constant(value = 1),
                          None, ['timer'], 1, False)
 
     print(controller.info('all'))
@@ -283,7 +282,7 @@ def run(controller):
     assert controller.get_signal('timer') == 0
 
     controller.add_timer('stop',
-                         system.Constant(value = 0),
+                         block.Constant(value = 0),
                          None, ['is_running'], 2, False)
     
     with controller:

@@ -147,7 +147,7 @@ def test_set():
 
 def test_logger():
 
-    import ctrl.block.logger as logger
+    import ctrl.block as logger
     import numpy as np
 
     _logger = logger.Logger()
@@ -273,6 +273,38 @@ def test_Signal():
     with pytest.raises(AssertionError):
         obj.set(index = k)
 
+
+def test_Interp():
+
+    import numpy as np
+
+    t = np.array([0,1,2])
+    x = np.array([1,0,1])
+    obj = block.Interp(signal = x, time = t)
+
+    for k in range(len(t)):
+        tk = t[k]
+        obj.write(tk)
+        (y,) = obj.read()
+        assert y == x[k]
+
+    obj.reset()
+    obj.write(0)
+        
+    tk = 0.5
+    obj.write(tk)
+    (y,) = obj.read()
+    assert y == 0.5
+
+    tk = 1.5
+    obj.write(tk)
+    (y,) = obj.read()
+    assert y == 0.5
+
+    tk = 1.75
+    obj.write(tk)
+    (y,) = obj.read()
+    assert y == 0.75
     
 def test_apply():
 

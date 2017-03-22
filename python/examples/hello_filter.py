@@ -14,9 +14,10 @@ def main():
     
     # import Controller and other blocks from modules
     from ctrl.timer import Controller
+    from ctrl.block import Interp
     from ctrl.block.logger import Logger
     from ctrl.block.system import Constant, System, Differentiator
-    from ctrl.system.tf import DTTF
+    from ctrl.system.tf import DTTF, LPF
 
     # import matplotlib
     import matplotlib.pyplot as plt
@@ -43,27 +44,38 @@ def main():
     # add motor speed signal
     hello.add_signals('speed')
 
-    # add velocity filter
+    # add motor speed filter
     hello.add_filter('speed',
                      Differentiator(),
                     ['clock','encoder'], ['speed'])
+
+    # add low-pass signal
+    hello.add_signals('fspeed')
+    
+    # add low-pass filter
+    hello.add_filter('LPF',
+                     System(model = LPF(fc = 10, period = Ts)),
+                     ['speed'], ['fspeed'])
     
     # add logger
     hello.add_sink('logger',
                    Logger(),
-                   ['clock','voltage','encoder','speed'])
+                   ['clock','voltage','encoder','speed','fspeed'])
+
+    # build interpolated input signal
+    ts = [0, 1, 2,   3,   4,   5,   5, 6]
+    us = [0, 0, 100, 100, -50, -50, 0, 0]
     
     # Add a step the voltage
-    hello.add_timer('step',
-		    Constant(value = 1),
-		    None, ['voltage'],
-                    period = .3, repeat = False)
+    hello.add_filter('input',
+		     Interp(signal = us, time = ts),
+		     ['clock'], ['voltage'])
 
     # Add a timer to stop the controller
     hello.add_timer('stop',
 		    Constant(value = 0),
 		    None, ['is_running'],
-                    period = 1, repeat = False)
+                    period = 6, repeat = False)
     
     # print controller info
     print(hello.info('all'))
@@ -85,21 +97,36 @@ def main():
         voltage = data[:,1]
         encoder = data[:,2]
         speed = data[:,3]
-        
-        # plot voltage and velocity
-        ax1 = plt.gca()
-        ax2 = ax1.twinx()
-        
-        ax1.plot(clock, speed, clock, encoder)
-        ax1.set_xlabel('time')
-        ax1.set_ylabel('speed')
-        ax1.grid()
-        
-        ax2.plot(clock, voltage)
-        ax2.set_xlabel('time')
-        ax2.set_ylabel('voltage')
-        ax2.grid()
+        fspeed = data[:,4]
 
+        # start plot
+        plt.figure()
+        
+        # plot input 
+        plt.subplot(3,1,1)
+        plt.plot(clock, voltage, 'b')
+        plt.ylabel('input (%duty)')
+        plt.ylim((-120,120))
+        plt.xlim(0,6)
+        plt.grid()
+        
+        # plot velocity
+        plt.subplot(3,1,2)
+        plt.plot(clock, speed,'b', clock, fspeed, 'r')
+        plt.ylabel('speed (Hz)')
+        plt.ylim((-12,12))
+        plt.xlim(0,6)
+        plt.grid()
+
+        # plot position
+        plt.subplot(3,1,3)
+        plt.plot(clock, encoder,'b')
+        plt.ylabel('position (cycles)')
+        plt.ylim((0,25))
+        plt.xlim(0,6)
+        plt.grid()
+
+        # show plots
         plt.show()
         
     except KeyboardInterrupt:

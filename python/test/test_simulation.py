@@ -5,11 +5,10 @@ import time
 import numpy as np
 import numpy.linalg as la
 
-from ctrl.block.logger import Logger
 from ctrl.block.clock import Clock, TimerClock
-from ctrl.block import Map
+from ctrl.block import Map, Constant, Logger
 from ctrl.system.ode import ODE, ODEINT
-from ctrl.block.system import TimeVaryingSystem, Constant
+from ctrl.block.system import TimeVaryingSystem
 
 def test1():
 

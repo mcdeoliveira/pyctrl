@@ -197,24 +197,6 @@ class Affine(block.FilterBlock):
 
         self.buffer = tuple(v*self.gain + self.offset for v in self.buffer)
 
-class Constant(block.BufferBlock):
-    """
-    *Constant* outputs a constant.
-
-    :param value: constant
-    """
-
-    def __init__(self, **kwargs):
-
-        value = kwargs.pop('value', 1)
-        
-        super().__init__(**kwargs)
-        
-        self.buffer = (value, )
-
-    def buffer_read(self):
-        pass
-    
 class Differentiator(block.FilterBlock):
     r"""
     *Differentiator* differentiates the input, that is

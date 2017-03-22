@@ -17,10 +17,11 @@ Mauricio de Oliveira
 
    intro
    tutorial
+   examples
    package_ctrl
    ctrl.block
    ctrl.system
-      
+   
 Indices and tables
 ==================
 

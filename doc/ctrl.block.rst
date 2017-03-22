@@ -16,14 +16,6 @@ Module `ctrl.block`
    :show-inheritance:
    :inherited-members:
 
-Module `ctrl.block.logger`
-==========================
-      
-.. automodule:: ctrl.block.logger
-   :members:
-   :show-inheritance:
-   :inherited-members:
-      
 Module `ctrl.block.system`
 ==========================
       

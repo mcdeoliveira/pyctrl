@@ -140,6 +140,9 @@ class BufferBlock(Block):
 
     Objects that inherit from *BufferBlock* overwrite the methods
     `buffer_read` and `buffer_write` instead of `read` and `write`.
+    
+    :param bool mux: mux flag (default False)
+    :param bool demux: demux flag (default False)
     """
     def __init__(self, **kwargs):
         
@@ -314,12 +317,29 @@ class Printer(Block):
                 print(self.sep.join(self.frmt.format(val) for val in row),
                       file=file, end=self.endln)
 
+class Constant(BufferBlock):
+    """
+    *Constant* outputs a constant.
+    
+    :param value: constant
+    """
 
+    def __init__(self, **kwargs):
+
+        value = kwargs.pop('value', 1)
+        
+        super().__init__(**kwargs)
+        
+        self.buffer = (value, )
+
+    def buffer_read(self):
+        pass
+    
 class Signal(BufferBlock):
     """
     A *Signal* block outputs values of a vector `signal` sequentially
     each time `read` is called.
-
+    
     If `repeat` is True, signal repeats periodically.
 
     :param signal: `numpy` vector with values
@@ -381,9 +401,11 @@ class Signal(BufferBlock):
         If `repeat` is True, `index` becomes `0` after end of `signal`.
         """
 
+        # read signal sequentially
+        
         # return 0 if over the edge
         if self.index >= len(self.signal):
-
+            
             xk = 0 * self.signal[0]
 
         else:
@@ -398,7 +420,111 @@ class Signal(BufferBlock):
 
                 # reset
                 self.index = 0
+
+        self.buffer = (xk,)
+
+class Interp(BufferBlock):
+    """
+    A *Interp* block outputs values of a vector `signal` sequentially
+    each time `read` is called.
+
+    If `repeat` is True, signal repeats periodically.
+
+    :param signal: `numpy` vector with values
+    :param repeat: if `True` then signal repeats periodically
+    """
+
+    def __init__(self, **kwargs):
+
+        # signal
+        self.signal = numpy.array(kwargs.pop('signal', []))
+
+        # time
+        self.time = numpy.array(kwargs.pop('time', []))
+
+        # make sure they have the same dimensions
+        assert self.signal.shape[0] == self.time.shape[0]
+
+        # left
+        self.left = numpy.array(kwargs.pop('left', 0))
+
+        # right
+        self.right = numpy.array(kwargs.pop('right', 0))
+
+        # repeat?
+        self.period = kwargs.pop('period', None)
+
+        super().__init__(**kwargs)
+
+        self.time_origin = None
+        self.time_current = None
         
+    def reset(self):
+        """
+        Reset *Signal* index back to `0`.
+        """
+
+        self.time_current = self.time_origin = None
+
+    def set(self, **kwargs):
+        """
+        Set properties of *Signal*. 
+
+        :param signal: `numpy` vector with values
+        :param index: current index
+        """
+
+        if 'signal' in kwargs:
+            self.signal = numpy.array(kwargs.pop('signal'))
+            self.reset()
+
+        if 'time' in kwargs:
+            self.time = numpy.array(kwargs.pop('time'))
+            self.reset()
+            
+        if 'left' in kwargs:
+            self.repeat = kwargs.pop('left')
+
+        if 'right' in kwargs:
+            self.repeat = kwargs.pop('right')
+
+        if 'period' in kwargs:
+            self.repeat = kwargs.pop('period')
+            
+        # make sure they have the same dimensions
+        assert self.signal.shape[0] == self.time.shape[0]
+        
+        super().set(**kwargs)
+
+    def buffer_write(self):
+        """
+        Writes finite difference derivative to the private `buffer`.
+
+        This signal must be a clock.
+        """
+
+        assert len(self.buffer) == 1
+        self.time_current = self.buffer[0]
+
+        # set time_origin if needed
+        if self.time_origin is None:
+            self.time_origin = self.time_current
+        
+    def buffer_read(self):
+        """
+        Read from *Signal*.
+
+        Reading increments current `index`.
+
+        If `repeat` is True, `index` becomes `0` after end of `signal`.
+        """
+
+        # interpolate signal
+        xk = numpy.interp(self.time_current - self.time_origin,
+                          self.time, self.signal,
+                          left = self.left, right = self.right,
+                          period = self.period)
+            
         self.buffer = (xk,)
 
 class Map(BufferBlock):
@@ -477,3 +603,87 @@ class Apply(BufferBlock):
 
         self.buffer = (self.function(*self.buffer), )
 
+class Logger(Block):
+    """
+    *Logger* stores signals into an array.
+
+    :param number_of_rows: number of stored rows (default 12000)
+    :param number_of_columns: number of columns (default 0)
+    """
+
+    def __init__(self,
+                 number_of_rows = 12000,
+                 number_of_columns = 0, 
+                 *vars, **kwargs):
+
+        # reshape
+        self.reshape(number_of_rows, number_of_columns)
+
+        # auto reset
+        self.auto_reset = kwargs.pop('auto_reset', False)
+
+        super().__init__(*vars, **kwargs)
+
+    def get(self, keys = None, exclude = ()):
+
+        # call super
+        return super().get(keys, exclude = exclude + ('data',))
+
+    def reshape(self, number_of_rows, number_of_columns):
+
+        self.data = numpy.zeros((number_of_rows, number_of_columns), float)
+        self.reset()
+
+    def reset(self):
+
+        self.page = 0
+        self.current = 0
+
+    def get_current_page(self):
+        return self.page
+
+    def get_current_index(self):
+        return self.page * self.data.shape[0] + self.current
+
+    def get_log(self):
+
+        # set return value
+        if self.page == 0:
+            retval = self.data[:self.current,:]
+
+        else:
+            retval =  numpy.vstack((self.data[self.current:,:],
+                                    self.data[:self.current,:]))
+
+        # reset after read?
+        if self.auto_reset:
+            self.reset()
+
+        # return values
+        return retval
+    
+    read = get_log
+        
+    def write(self, *values):
+
+        #print('values = {}'.format(values))
+
+        # stack first
+        values = numpy.hstack(values)
+
+        # reshape?
+        if self.data.shape[1] != len(values):
+            # reshape log
+            self.reshape(self.data.shape[0], len(values))
+        
+        # Log data
+        self.data[self.current, :] = values
+
+        if self.current < self.data.shape[0] - 1:
+            # increment current pointer
+            self.current += 1
+        else:
+            # reset current pointer and increment page counter
+            self.current = 0
+            self.page += 1
+        
