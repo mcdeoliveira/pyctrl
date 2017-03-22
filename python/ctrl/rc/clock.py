@@ -44,16 +44,30 @@ class Clock(clk.Clock):
         self.read()
 
     def set_period(self, period):
+        """
+        Set `Clock` period.
+
+        :param float period: clock period
+        """
         
         warnings.warn('> Setting clock period to {}s'.format(period))
             
-        # call supper
-        super().set_period(period)
+        # set period
+        self.period = period
 
         # initialize mpu9250
         mpu9250.initialize(enable_dmp = True,
                            dmp_sample_rate = int(1/self.period))
         
+    def get_period(self):
+        """
+        Get `TimerClock` period.
+
+        :return: clock period
+        :retype: float
+        """
+        return self.period
+    
     def get_imu(self):
 
         return self.imu
