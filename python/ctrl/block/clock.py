@@ -12,12 +12,12 @@ class Clock(block.Block):
     `Clock` provides a basic clock that writes the current time to its
     output.
     """
-    def __init__(self, **kpars):
+    def __init__(self, **kwargs):
 
         #print("Clock.__init__: pars {}".format(pars))
-        #print("Clock.__init__: kpars {}".format(kpars))
+        #print("Clock.__init__: kwargs {}".format(kwargs))
         
-        super().__init__(**kpars)
+        super().__init__(**kwargs)
 
         self.time_origin = perf_counter()
         self.time = self.time_origin
@@ -177,11 +177,11 @@ class TimerClock(Clock):
     :param float period: period in seconds
     """
     
-    def __init__(self, **kpars):
+    def __init__(self, **kwargs):
 
-        self.period = kpars.pop('period', 0.01)
+        self.period = kwargs.pop('period', 0.01)
         
-        super().__init__(**kpars)
+        super().__init__(**kwargs)
 
         self.condition = Condition()
         self.timer = None

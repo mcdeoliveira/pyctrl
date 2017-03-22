@@ -31,7 +31,7 @@ class Clock(clk.Clock):
             warnings.warn('> Clock is already initialized. Skipping call to __init__')
             return
 
-        self.period = kpars.pop('period', 0.01)
+        self.period = kwargs.pop('period', 0.01)
         
         # call super
         super().__init__(*vars, **kwargs)
