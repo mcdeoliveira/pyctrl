@@ -12,6 +12,13 @@ Module `ctrl`
    :members:
    :show-inheritance:
 
+Module `ctrl.timer`
+====================
+      
+.. automodule:: ctrl.timer
+   :members:
+   :show-inheritance:
+
 Module `ctrl.server`
 ====================
       

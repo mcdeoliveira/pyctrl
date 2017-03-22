@@ -271,6 +271,35 @@ class Controller:
 
         :param str label: the signal label to be removed
         """
+        # used in a source?
+        for (l, device) in self.sources.items():
+            if label in device['outputs']:
+                warnings.warn("Signal '{}' still in use by source '{}' and can't be removed.".format(label, l),
+                              ControllerWarning)
+                return
+
+        # used in a filter?
+        for (l, device) in self.filters.items():
+            if label in device['outputs'] or label in device['inputs']:
+                warnings.warn("Signal '{}' still in use by filter '{}' and can't be removed.".format(label, l),
+                              ControllerWarning)
+                return
+                
+        # used in a sink?
+        for (l, device) in self.sinks.items():
+            if label in device['inputs']:
+                warnings.warn("Signal '{}' still in use by sink '{}' and can't be removed.".format(label, l),
+                              ControllerWarning)
+                return
+                
+        # used in a filter?
+        for (l, device) in self.timers.items():
+            if label in device['outputs'] or label in device['inputs']:
+                warnings.warn("Signal '{}' still in use by timer '{}' and can't be removed.".format(label, l),
+                              ControllerWarning)
+                return
+
+        # otherwise go ahead
         self.signals.pop(label)
 
     def set_signal(self, label, value):
@@ -338,6 +367,11 @@ class Controller:
             self.sources_order.append(label)
         else:
             self.sources_order.insert(order, label)
+
+        # make sure output signals exist
+        for s in outputs:
+            if s not in self.signals:
+                self.add_signal(s)
 
     def remove_source(self, label):
         """
@@ -437,6 +471,13 @@ class Controller:
         else:
             self.sinks_order.insert(order, label)
 
+        # make sure input signals exist
+        for s in inputs:
+            if s not in self.signals:
+                warnings.warn("Signal '{}' was not present and is being automatically added.".format(s),
+                              ControllerWarning)
+                self.add_signal(s)
+                
     def remove_sink(self, label):
         """
         Remove sink from Controller.
@@ -539,6 +580,20 @@ class Controller:
         else:
             self.filters_order.insert(order, label)
 
+        # make sure input signals exist
+        for s in inputs:
+            if s not in self.signals:
+                warnings.warn("Signal '{}' was not present and is being automatically added.".format(s),
+                              ControllerWarning)
+                self.add_signal(s)
+                
+        # make sure output signals exist
+        for s in outputs:
+            if s not in self.signals:
+                warnings.warn("Signal '{}' was not present and is being automatically added".format(s),
+                              ControllerWarning)
+                self.add_signal(s)
+            
     def remove_filter(self, label):
         """
         Remove filter from Controller.

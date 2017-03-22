@@ -27,7 +27,7 @@ def main():
     hello.add_timer('stop',
 		    Constant(value = 0),
 		    None, ['is_running'],
-                    period = 5, repeat = False)
+                    period = 1, repeat = False)
     
     # add a Printer as a sink
     hello.add_sink('message',

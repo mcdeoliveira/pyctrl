@@ -512,6 +512,16 @@ Note that your program will not terminate until all *blocks* and
 :py:meth:`ctrl.Controller.stop` or use the :py:obj:`with` statement to
 exit cleanly.
 
+-------
+Filters
+-------
+
+So far you have used only *sources*, like
+:py:class:`ctrl.block.clock.TimerClock`, and *sinks*, like
+:py:class:`ctrl.block.Printer`. *Sources* produce outputs and take no
+input and sinks take inputs but produce no output. *Filters* take
+inputs *and* produce outputs.
+
 ------------------
 Signals and Blocks
 ------------------

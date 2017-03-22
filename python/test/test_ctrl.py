@@ -110,10 +110,16 @@ def run(controller):
 
     controller.add_sink('_logger_', logger.Logger(), ['_test_'])
     assert '_logger_' in controller.list_sinks()
+    assert '_test_' in controller.list_signals()
+
+    # try to remove signal _test_
+    controller.remove_signal('_test_')
+    assert '_test_' in controller.list_signals()
 
     controller.add_sink('_logger_', logger.Logger(), ['clock'])
     assert '_logger_' in controller.list_sinks()
 
+    
     # TODO: test for changed signals
 
     controller.set_sink('_logger_', reset = True)
@@ -251,17 +257,40 @@ def run(controller):
 
     print(controller.info('all'))
 
+    controller.add_signal('timer')
     controller.add_timer('timer',
-                         block.Printer(message="*** TIMER MESSAGE ***"),
-                         ['is_running'], None, 1, False)
+                         system.Constant(value = 1),
+                         None, ['timer'], 1, False)
 
     print(controller.info('all'))
+
+    assert controller.get_signal('timer') == 0
 
     with controller:
         time.sleep(2)
 
+    assert controller.get_signal('timer') == 1
+
+    controller.set_signal('timer', 0)
+    assert controller.get_signal('timer') == 0
+
     with controller:
-        pass
+        time.sleep(.5)
+
+    assert controller.get_signal('timer') == 0
+
+    controller.set_signal('timer', 0)
+    assert controller.get_signal('timer') == 0
+
+    controller.add_timer('stop',
+                         system.Constant(value = 0),
+                         None, ['is_running'], 2, False)
+    
+    with controller:
+        controller.join()
+
+    assert controller.get_signal('timer') == 1
+   
     
 def test_run():
 
