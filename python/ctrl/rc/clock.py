@@ -79,13 +79,9 @@ class Clock(clk.Clock):
 
             # Read imu (blocking call)
             self.imu = mpu9250.read()
-        
-            # Read clock
-            self.time = perf_counter()
-            self.counter += 1
-
-        return (self.time - self.time_origin, )
-
+            
+        # Call super.read
+        return super().read()
 
 if __name__ == "__main__":
 
