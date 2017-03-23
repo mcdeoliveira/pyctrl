@@ -12,7 +12,7 @@ def main():
     # import Controller and other blocks from modules
     import rc
     from ctrl.rc import Controller
-    from ctrl.block import Printer, Interp, Logger, Constant
+    from ctrl.block import Interp, Logger, Constant
     from ctrl.block.system import System, Differentiator
     from ctrl.system.tf import DTTF, LPF
 
@@ -77,12 +77,6 @@ def main():
 		  Constant(value = 0),
 		  None, ['is_running'],
                   period = 6, repeat = False)
-    
-    # add logger
-    bbb.add_sink('printer',
-                 Printer(message = 'time = {:3.1f} s, motor = {:+6.1f} %, encoder = {:+6.1f}',
-                         endln = '\r'),
-                 ['clock','pwm','encoder'])
     
     # print controller info
     print(bbb.info('all'))
