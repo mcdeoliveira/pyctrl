@@ -1,6 +1,6 @@
 import time
 
-import rc
+import rc as rcpy
 import ctrl
 
 class Controller(ctrl.Controller):
@@ -14,10 +14,10 @@ class Controller(ctrl.Controller):
         super().__init__(*vargs, **kwargs)
 
         # set state as RUNNING
-        rc.set_state(rc.RUNNING)
+        rcpy.set_state(rc.RUNNING)
 
         # register cleanup function
-        rc.add_cleanup(self.set_state, (ctrl.EXITING,))
+        rcpy.add_cleanup(rcpy.set_state, (ctrl.EXITING,))
 
     def __reset(self):
 
