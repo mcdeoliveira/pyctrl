@@ -83,6 +83,8 @@ def main():
         # run the controller
         print('> Run the controller.')
         with bbb:
+
+            print(bbb.info('all'))
             
             # wait for the controller to finish on its own
             bbb.join()
