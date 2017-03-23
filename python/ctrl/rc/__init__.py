@@ -1,5 +1,6 @@
 import time
 
+import rc
 import ctrl
 
 class Controller(ctrl.Controller):
