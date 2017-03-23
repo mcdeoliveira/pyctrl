@@ -36,7 +36,7 @@ def main():
                    'ctrl.rc.motor', 'Motor',
                    type = 'sink',
                    enable = True,
-                   inputs = ['pmw'],
+                   inputs = ['pwm'],
                    motor = 3)
 
     # build interpolated input signal
