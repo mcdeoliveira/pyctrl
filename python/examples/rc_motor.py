@@ -118,7 +118,7 @@ def main():
     
     # plot pwm 
     plt.subplot(2,1,1)
-    plt.plot(clock, motor, 'b')
+    plt.plot(clock, pwm, 'b')
     plt.ylabel('pwm (%)')
     plt.ylim((-120,120))
     plt.xlim(0,6)
