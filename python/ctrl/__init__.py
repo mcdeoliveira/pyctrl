@@ -728,7 +728,7 @@ class Controller:
                 warnings.warn("Sinks do not have outputs. Outputs ignored.",
                               ControllerWarning)
 
-            # add device as source
+            # add device as sink
             self.add_sink(label, instance, inputs)
 
         elif devtype == 'filter':
@@ -741,8 +741,8 @@ class Controller:
             raise NameError("Unknown device type '{}'. Must be sink, source or filter.".format(devtype))
 
         # add signals
-        self.add_signals(*outputs)
-        self.add_signals(*inputs)
+        #self.add_signals(*outputs)
+        #self.add_signals(*inputs)
 
         # store device
         self.devices[label] = {
