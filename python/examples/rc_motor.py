@@ -91,6 +91,7 @@ def main():
         
         # run the controller
         print('> Run the controller.')
+        bbb.set_source('clock', reset = True)
         with bbb:
 
             print(bbb.info('all'))
