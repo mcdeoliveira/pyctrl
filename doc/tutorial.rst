@@ -981,6 +981,8 @@ differentiator, and the filtered speed *signal* :py:data:`fspeed`.
 Interfacing with Hardware
 -------------------------
 
+.. image:: figures/rc_motor_1.png
+
 .. image:: figures/rc_motor_2.png
 
 --------------------------
