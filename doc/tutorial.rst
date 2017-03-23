@@ -1235,6 +1235,11 @@ around 4 s when the velocity comes to zero. Note also the more
 pronounced noise which is amplified by the differentiator and then
 attenuated by the low-pass filter.
 
+-------------------
+Closed-loop control
+-------------------
+
+
 --------------------------
 Client Server Architecture
 --------------------------
