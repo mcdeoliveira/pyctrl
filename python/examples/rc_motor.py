@@ -116,6 +116,25 @@ def main():
     # start plot
     plt.figure()
     
+    # plot pwm 
+    plt.subplot(2,1,1)
+    plt.plot(clock, motor, 'b')
+    plt.ylabel('pwm (%)')
+    plt.ylim((-120,120))
+    plt.xlim(0,6)
+    plt.grid()
+    
+    # plot encoder
+    plt.subplot(2,1,2)
+    plt.plot(clock, encoder,'b')
+    plt.ylabel('position (cycles)')
+    plt.ylim((0,25))
+    plt.xlim(0,6)
+    plt.grid()
+    
+    # start plot
+    plt.figure()
+    
     # plot pwm
     ax1 = plt.gca()
     
