@@ -18,77 +18,77 @@ def main():
 
     # initialize controller
     Ts = 0.01
-    simotor = Controller(period = Ts)
+    bbb = Controller(period = Ts)
 
     # add encoder as source
-    self.add_device('encoder1',
-                    'ctrl.rc.encoder', 'Encoder',
-                    type = 'source',
-                    outputs = ['encoder'],
-                    encoder = 3, 
-                    ratio = 60 * 35.557)
-
+    bbb.add_device('encoder1',
+                   'ctrl.rc.encoder', 'Encoder',
+                   type = 'source',
+                   outputs = ['encoder'],
+                   encoder = 3, 
+                   ratio = 60 * 35.557)
+    
     # add motor as sink
-    self.add_device('motor1', 
-                    'ctrl.rc.motor', 'Motor',
-                    type = 'sink',
-                    enable = True,
-                    inputs = ['pmw'],
-                    motor = 3)
+    bbb.add_device('motor1', 
+                   'ctrl.rc.motor', 'Motor',
+                   type = 'sink',
+                   enable = True,
+                   inputs = ['pmw'],
+                   motor = 3)
 
     # build interpolated input signal
     ts = [0, 1, 2,   3,   4,   5,   5, 6]
     us = [0, 0, 100, 100, -50, -50, 0, 0]
     
     # add filter to interpolate data
-    simotor.add_filter('input',
-		       Interp(signal = us, time = ts),
-		       ['clock'],
-                       ['pwm'])
-
+    bbb.add_filter('input',
+		   Interp(signal = us, time = ts),
+		   ['clock'],
+                   ['pwm'])
+    
     # add motor speed signal
-    simotor.add_signal('speed')
+    bbb.add_signal('speed')
     
     # add motor speed filter
-    simotor.add_filter('speed',
-                       Differentiator(),
-                       ['clock','encoder'],
-                       ['speed'])
+    bbb.add_filter('speed',
+                   Differentiator(),
+                   ['clock','encoder'],
+                   ['speed'])
     
     # add low-pass signal
-    simotor.add_signal('fspeed')
+    bbb.add_signal('fspeed')
     
     # add low-pass filter
-    simotor.add_filter('LPF',
-                       System(model = LPF(fc = 5, period = Ts)),
-                       ['speed'],
-                       ['fspeed'])
+    bbb.add_filter('LPF',
+                   System(model = LPF(fc = 5, period = Ts)),
+                   ['speed'],
+                   ['fspeed'])
     
     # add logger
-    simotor.add_sink('logger',
-                     Logger(),
-                     ['clock','pwm','encoder','speed','fspeed'])
+    bbb.add_sink('logger',
+                 Logger(),
+                 ['clock','pwm','encoder','speed','fspeed'])
     
     # Add a timer to stop the controller
-    simotor.add_timer('stop',
-		      Constant(value = 0),
-		      None, ['is_running'],
-                      period = 6, repeat = False)
+    bbb.add_timer('stop',
+		  Constant(value = 0),
+		  None, ['is_running'],
+                  period = 6, repeat = False)
     
     # print controller info
-    print(simotor.info('all'))
+    print(bbb.info('all'))
     
     try:
-
+        
         # run the controller
         print('> Run the controller.')
-        with simotor:
-
+        with bbb:
+            
             # wait for the controller to finish on its own
-            simotor.join()
+            bbb.join()
             
         print('> Done with the controller.')
-
+            
     except KeyboardInterrupt:
         pass
 
@@ -96,7 +96,7 @@ def main():
         pass
 
     # read logger
-    data = simotor.read_sink('logger')
+    data = bbb.read_sink('logger')
     clock = data[:,0]
     pwm = data[:,1]
     encoder = data[:,2]
