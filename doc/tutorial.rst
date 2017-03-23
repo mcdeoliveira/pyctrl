@@ -138,7 +138,10 @@ written the not so clean::
 Note that you enclosed the controller action inside a :py:func:`try` block::
 
     try:
-        # run the controller and do other things
+        # run the controller
+        with hello:
+	    # do other things
+	    pass
     
     except KeyboardInterrupt:
         pass
