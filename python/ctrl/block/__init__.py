@@ -6,6 +6,21 @@ import contextlib
 import numpy
 import sys
 
+np_major, np_minor, np_release = numpy.version.version.split('.')
+if int(np_major) == 1 and int(np_minor) >= 10:
+
+    # can handle period
+    #print('CAN HANDLE PERIOD')
+    interp = numpy.interp
+
+else:
+
+    # handle period
+    print('CANNOT HANDLE PERIOD')
+    def interp(x,xp,fp,left,right,period):
+        return numpy.interp(x,xp,fp,left,right)
+
+
 class BlockException(Exception):
     pass
 
