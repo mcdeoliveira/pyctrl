@@ -7,7 +7,7 @@ if __name__ == "__main__":
 def main():
 
     # import python's standard math module and numpy
-    import math, numpy
+    import math, numpy, time
     
     # import Controller and other blocks from modules
     import rc
@@ -96,7 +96,8 @@ def main():
             print(bbb.info('all'))
             
             # wait for the controller to finish on its own
-            bbb.join()
+            #bbb.join()
+            time.sleep(6)
             
         print('> Done with the controller.')
             
