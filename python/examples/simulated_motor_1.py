@@ -33,8 +33,8 @@ def main():
                        ['pwm'])
 
     # Motor model parameters
-    tau = 1/17   # time constant (s)
-    g = 0.11     # gain (cycles/sec duty)
+    tau = 1/55   # time constant (s)
+    g = 0.0915   # gain (cycles/sec duty)
     c = math.exp(-Ts/tau)
     d = (g*Ts)*(1-c)/2
 
