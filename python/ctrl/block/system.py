@@ -337,7 +337,7 @@ class Sum(block.FilterBlock):
         """
         
         if 'gain' in kwargs:
-            self.gain = float(kwargs.pop('gain'))
+            self.gain = kwargs.pop('gain')
 
         super().set(**kwargs)
 

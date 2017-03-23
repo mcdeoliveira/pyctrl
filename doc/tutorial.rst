@@ -347,62 +347,10 @@ providing the module and class as strings to
 can initialize blocks that rely on specific hardware remotely using
 our :ref:`Client Server Architecture`, as you will learn later.
 
----------------------
-Extending Controllers
----------------------
-
-One can take advantage of python's object oriented features to extend
-the functionality of a :py:class:`ctrl.Controller`. All that is
-necessary is to inherit from :py:class:`ctrl.Controller`. Inheritance
-is an easy way to equip controllers with special hardware
-capabilities. That was the case, for example, with the class
-:py:class:`ctrl.timer.Controller` described in :ref:`Devices and
-Controllers`. In fact, this new class is so simple that its entire
-code fits here::
-
-    import ctrl
-    import ctrl.block.clock as clock
-
-    class Controller(ctrl.Controller):
-    
-        def __init__(self, **kwargs):
-
-	    # period
-	    self.period = kwargs.pop('period', 0.01)
-
-	    # Initialize controller (this will call __reset)
-	    super().__init__(**kwargs)
-
-	def __reset(self):
-
-	    # call super first to reset controller
-	    super().__reset()
-
-	    # add device clock
-	    self.add_device('clock',
-	                    'ctrl.block.clock', 'TimerClock',
-                            type = 'source', 
-                            outputs = ['clock'],
-                            enable = True,
-                            period = self.period)
-			    
-	    # reset clock
-	    self.set_source('clock', reset=True)
-
-Virtually all functionality is provided by the base class
-:py:class:`ctrl.Controller`. The only methods overloaded are
-:py:meth:`ctrl.Controller.__init__` and
-:py:meth:`ctrl.Controller.__reset`. The first is the standard python
-constructor, which in this case just allows for the new attribute
-:py:attr:`period`. The method :py:meth:`ctrl.Controller.__reset` is
-called by :py:meth:`super().__init__` to set up the basic resources
-available when the controller is initialized. It is also called by the
-method :py:meth:`ctrl.Controller.reset`. In fact, one rarely needs to
-overload any method other than :py:meth:`ctrl.Controller.__init__` and
-:py:meth:`ctrl.Controller.reset`.
-
-For example, after initialization or a call to
-:py:meth:`ctrl.timer.Controller.reset`,
+In some situations it might be helpful to be able to reset a
+controller to its original configuration. This can be done using the
+method :py:meth:`ctrl.Controller.reset`. For example, after
+initialization or a call to :py:meth:`ctrl.timer.Controller.reset`,
 :samp:`print(hello.info('all'))` returns:
 
 .. code-block:: none
@@ -420,7 +368,8 @@ For example, after initialization or a call to
     > sinks
     > timers
 
-which shows the presence of the *source* and *signal* :py:data:`clock`.
+which shows the presence of the *source* :py:data:`clock` and the
+*signal* :py:data:`clock`.
 
 ------
 Timers
@@ -1234,101 +1183,6 @@ it takes a bit longer to start around 1 second and gets *stuck* again
 around 4 s when the velocity comes to zero. Note also the more
 pronounced noise which is amplified by the differentiator and then
 attenuated by the low-pass filter.
-
------------------
-Extending Blocks 
------------------
-
-The package :py:mod:`ctrl` is designed so that you can easily extend
-its functionality by writing simple python code for your own
-blocks. You can write blocks to support your specific unsupported
-hardware or implement an algorithm that is currently not available in
-the library of blocks, :py:mod:`ctrl.block`. Your blocks should
-inherit from :py:class:`ctrl.block.Block` or a derived class, such as
-:py:class:`ctrl.block.BufferBlock` or :py:class:`ctrl.block.FilterBlock`.
-
-Extending :py:class:`ctrl.block.Block`
---------------------------------------
-
-A :py:class:`ctrl.block.Block` needs to know how to do two things:
-respond to calls to :py:meth:`ctrl.block.Block.read` and/or
-:py:meth:`ctrl.block.Block.write`. If a block is to be used as a *source*
-then it needs to respond to :py:meth:`ctrl.block.Block.read`, if it is to be
-used as a *sink* it needs to respond to :py:meth:`ctrl.block.Block.write`,
-and it if is to be used as a *filter* it needs to respond to both.
-
-For example consider the following code::
-
-    class MyOneBlock(ctrl.Block):
-
-        def read(self):
-	    return (1,)
-
-can be used as a *source* whose output *signal* is the constant
-`1`. If you try to use :py:class:`MyOneBlock` as a *sink* an
-exception will be raised since :py:class:`MyOneBlock` does not
-overload :py:meth:`ctrl.block.Block.write`. Note that the return value
-of :py:meth:`ctrl.block.Block.read` must be a tuple with numbers or
-numpy 1D-arrays. You could use your block in a controller like this::
-  
-    # add a MyOneBlock as a source
-    hello.add_source('mysource',
-		     MyOneBlock(),
-		     ['signal'])
-
-which would write `1` to the *signal* :py:data:`signal` every time the
-controller loop is run.
-
-Consider now the following block::
-
-    class MySumBlock(ctrl.Block):
-
-        def __init__(self, **kwargs):
-
-	    # you must call super().__init__
-            super().__init__(**kwargs)
-
-	    # create local buffer
-	    self.buffer = ()
-    
-        def write(self, *values):
-
-            # copy values to buffer
-	    self.buffer = values
-	    
-        def read(self):
-
-	    # return sum of all values as first entry
-	    return (sum(self.buffer), )
-
-Because :py:class:`MySumBlock` overloads both
-:py:meth:`ctrl.block.Block.write` and :py:meth:`ctrl.block.Block.read`
-it can be used a *filter*. For instance::
-  
-    # add a MySumBlock as a filter
-    hello.add_filter('myfilter',
-		     MySumBlock(),
-		     ['signal1','signal2','signal3'],
-		     ['sum'])
-		     
-which would set the *signal* :py:data:`sum` to be equal to the sum of
-the three input *signals* :py:data:`signal1`, :py:data:`signal2`, and
-:py:data:`signal3`.
-	    
-.. literalinclude:: ../python/ctrl/block/system.py
-   :pyobject: Sum
-
-
-    
-Extending :py:class:`ctrl.block.BufferBlock`
---------------------------------------------
-
-.. literalinclude:: ../python/ctrl/block/__init__.py
-   :pyobject: Constant
-
-.. literalinclude:: ../python/ctrl/rc/encoder.py
-   :pyobject: Encoder
-
 
 -------------------
 Closed-loop control

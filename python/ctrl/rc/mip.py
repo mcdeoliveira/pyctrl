@@ -1,8 +1,8 @@
 import rc
 import ctrl
-import ctrl.rc as rc_ctrl
+import ctrl.rc
 
-class Controller(rc_ctrl.Controller):
+class Controller(ctrl.rc.Controller):
 
     def __reset(self):
 

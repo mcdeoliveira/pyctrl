@@ -1,3 +1,5 @@
+.. _Package-ctrl.block:
+
 ====================
 Package `ctrl.block`
 ====================

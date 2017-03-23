@@ -6,22 +6,12 @@
 A Python Suite for Systems and Control
 ======================================
 
-This document describes a suite of packages that facilitate the
-implementation and deployment of filters and controllers. 
-
-Mauricio de Oliveira
-
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 4
    :caption: Contents
 
-   intro
-   tutorial
-   examples
-   package_ctrl
-   ctrl.block
-   ctrl.system
-   ctrl.rc
+   user_guide
+   reference_guide
    
 Indices and tables
 ==================
