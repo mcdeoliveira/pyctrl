@@ -189,12 +189,18 @@ are called separately, it is often the case that one needs an internal
 variable to store values to be carried from
 :py:meth:`ctrl.block.Block.write` to
 :py:meth:`ctrl.block.Block.read`. This is so common that
-:py:mod:`ctrl.block.Block` provides a specialized class
+:py:mod:`ctrl.block` provides a specialized class
 :py:class:`ctrl.block.BufferBlock`, which you will learn about in the
 next section.
     
 Extending :py:class:`ctrl.block.BufferBlock`
 --------------------------------------------
+
+The class :py:class:`ctrl.block.BufferBlock` defines an internal
+attribute :py:obj:`buffer` and special methods
+:py:meth:`ctrl.block.BufferBlock.buffer_read` and
+:py:meth:`ctrl.block.BufferBlock.buffer_write`.
+
 
 .. literalinclude:: ../python/ctrl/block/__init__.py
    :pyobject: Constant
