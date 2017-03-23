@@ -14,10 +14,10 @@ class Controller(ctrl.Controller):
         super().__init__(*vargs, **kwargs)
 
         # set state as RUNNING
-        rcpy.set_state(rc.RUNNING)
+        rcpy.set_state(rcpy.RUNNING)
 
         # register cleanup function
-        rcpy.add_cleanup(rcpy.set_state, (ctrl.EXITING,))
+        rcpy.add_cleanup(rcpy.set_state, (rcpy.EXITING,))
 
     def __reset(self):
 
