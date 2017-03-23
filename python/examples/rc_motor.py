@@ -20,6 +20,9 @@ def main():
     Ts = 0.01
     bbb = Controller(period = Ts)
 
+    # print controller info
+    print(bbb.info('all'))
+    
     # add encoder as source
     bbb.add_device('encoder1',
                    'ctrl.rc.encoder', 'Encoder',
