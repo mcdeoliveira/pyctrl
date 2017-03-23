@@ -535,10 +535,10 @@ class Interp(BufferBlock):
         """
 
         # interpolate signal
-        xk = numpy.interp(self.time_current - self.time_origin,
-                          self.time, self.signal,
-                          left = self.left, right = self.right,
-                          period = self.period)
+        xk = interp(self.time_current - self.time_origin,
+                    self.time, self.signal,
+                    left = self.left, right = self.right,
+                    period = self.period)
             
         self.buffer = (xk,)
 
