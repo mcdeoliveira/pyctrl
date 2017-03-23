@@ -10,6 +10,7 @@ def main():
     import math, numpy
     
     # import Controller and other blocks from modules
+    import rc
     from ctrl.rc import Controller
     from ctrl.block import Interp, Logger, Constant
     from ctrl.block.system import System, Differentiator
@@ -19,12 +20,25 @@ def main():
     Ts = 0.01
     simotor = Controller(period = Ts)
 
+    # add encoder as source
+    self.add_device('encoder1',
+                    'ctrl.rc.encoder', 'Encoder',
+                    type = 'source',
+                    outputs = ['encoder'],
+                    encoder = 3, 
+                    ratio = 60 * 35.557)
+
+    # add motor as sink
+    self.add_device('motor1', 
+                    'ctrl.rc.motor', 'Motor',
+                    type = 'sink',
+                    enable = True,
+                    inputs = ['pmw'],
+                    motor = 3)
+
     # build interpolated input signal
     ts = [0, 1, 2,   3,   4,   5,   5, 6]
     us = [0, 0, 100, 100, -50, -50, 0, 0]
-    
-    # add pwm signal
-    simotor.add_signal('pwm')
     
     # add filter to interpolate data
     simotor.add_filter('input',
@@ -32,23 +46,6 @@ def main():
 		       ['clock'],
                        ['pwm'])
 
-    # Motor model parameters
-    tau = 1/17   # time constant (s)
-    g = 0.11     # gain (cycles/sec duty)
-    c = math.exp(-Ts/tau)
-    d = (g*Ts)*(1-c)/2
-
-    # add motor signals
-    simotor.add_signal('encoder')
-
-    # add motor filter
-    simotor.add_filter('motor',
-                       System(model = DTTF( 
-                           numpy.array((0, d, d)), 
-                           numpy.array((1, -(1 + c), c)))),
-                       ['pwm'],
-                       ['encoder'])
-    
     # add motor speed signal
     simotor.add_signal('speed')
     

@@ -48,10 +48,3 @@ class Controller(rc_ctrl.Controller):
                         inputs = ['motor2'],
                         motor = 2,
                         gain = -1/100) 
-
-        # set state as RUNNING
-        rc.set_state(rc.RUNNING)
-
-        # register cleanup function
-        rc.add_cleanup(self.set_state, (ctrl.EXITING,))
-        

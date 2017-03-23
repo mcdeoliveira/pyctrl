@@ -16,10 +16,8 @@ if int(np_major) == 1 and int(np_minor) >= 10:
 else:
 
     # handle period
-    print('CANNOT HANDLE PERIOD')
     def interp(x,xp,fp,left,right,period):
         return numpy.interp(x,xp,fp,left,right)
-
 
 class BlockException(Exception):
     pass

@@ -12,6 +12,12 @@ class Controller(ctrl.Controller):
         # Initialize controller
         super().__init__(*vargs, **kwargs)
 
+        # set state as RUNNING
+        rc.set_state(rc.RUNNING)
+
+        # register cleanup function
+        rc.add_cleanup(self.set_state, (ctrl.EXITING,))
+
     def __reset(self):
 
         # call super
