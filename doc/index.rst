@@ -21,6 +21,7 @@ Mauricio de Oliveira
    package_ctrl
    ctrl.block
    ctrl.system
+   ctrl.rc
    
 Indices and tables
 ==================

@@ -50,4 +50,11 @@ simulated_motor_2.py
 
 .. literalinclude:: ../python/examples/simulated_motor_2.py
    :pyobject: main
-      
+
+-----------
+rc_motor.py
+-----------
+
+.. literalinclude:: ../python/examples/simulated_motor_2.py
+   :pyobject: main
+   

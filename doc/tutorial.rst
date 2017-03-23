@@ -760,8 +760,8 @@ will simulate by creating the following *filter*::
                        ['pwm'])
 
     # Motor model parameters
-    tau = 1/17   # time constant (s)
-    g = 0.11     # gain (cycles/sec duty)
+    tau = 1/55   # time constant (s)
+    g = 0.092     # gain (cycles/sec duty)
     c = math.exp(-Ts/tau)
     d = (g*Ts)*(1-c)/2
 
@@ -978,12 +978,262 @@ the *signal* :py:data:`speed` as calculated by the
 differentiator, and the filtered speed *signal* :py:data:`fspeed`.
 	   
 -------------------------
-Interfacing with Hardware
+Interfacing with hardware
 -------------------------
 
+In this section you will learn how to interface with real hardware. Of
+course you can only run the examples in this section if you have the
+appropriate hardware equipment.
+
+Before you begin
+----------------
+
+For demonstration purposes it will be assumed that you have an
+`Educational MIP (Mobile Inverted Pendulum) kit
+<https://github.com/StrawsonDesign/EduMiP>`_ with a `Beaglebone Black
+<https://beagleboard.org/black>`_ equipped with a `Robotics Cape
+<http://www.strawsondesign.com/>`_ or a `Beaglebone Blue
+<https://beagleboard.org/blue>`_. You will need to download an
+additional `libraries
+<https://github.com/StrawsonDesign/Robotics_Cape_Installer>`_ and the
+`rcpy package <https://github.com/mcdeoliveira/rcpy>`_.
+
+Make sure that all required software is installed and working before
+proceeding. Consult the documentation provided in the links above for
+more details.
+
+
+Installing devices
+------------------
+
+Before you can interact with hardware you have to install the
+appropriate devices. The following code will initialize a controller
+that can interface with the Robotics Cape::
+   
+    # import Controller and other blocks from modules
+    from ctrl.rc import Controller
+
+    # initialize controller
+    Ts = 0.01
+    bbb = Controller(period = Ts)
+
+Note that the code is virtually the same as used before except that
+you are importing `Controller` from :py:mod:`ctrl.rc` rather than from
+:py:mod:`ctrl` or :py:mod:`ctrl.timer`. It is now time to install the
+devices you will be using. For this demonstration you will use one of
+the MIP's motor and the corresponding encoder. First load the
+encoder::
+   
+    # add encoder as source
+    bbb.add_device('encoder1',
+                   'ctrl.rc.encoder', 'Encoder',
+                   type = 'source',
+                   outputs = ['encoder'],
+                   encoder = 3, 
+                   ratio = 60 * 35.557)
+
+which will appear as a *source* labeled :py:data:`encoder1` connected
+to the output *signal* :py:data:`encoder`.
+
+You install devices using the :py:meth:`ctrl.Controller.add_device`
+you already learned how to use. Besides the mandatory parameters
+`label`, `device_module`, `device_class`, you have to provide the type
+of block the device will be installed as, i.e. *source*, *filter*, or
+*sink*, the corresponding list of *inputs signal* and *output
+signals*. The remaining parameters are specific to the device and are
+passed to the `device_module` and `device_class` constructor. Each
+device has its own specific set of parameters.
+
+For example, :py:data:`encoder` is set to 3, which selects the 3rd
+(out of a total of 4 available) hardware encoder counter in the
+Beaglebone Black, and :py:data:`ratio` is set to 60 * 35.557 to
+reflect the presence of a gear box connected between the encoder and
+the wheel shaft, which is the movement that you would like the encoder
+to measure.  Using the above ratio, the unit of the *signal*
+:py:data:`encoder` will be *cycles*, that is, one complete turn of the
+will will add or substract one to the *signal* :py:data:`encoder`.
+
+You load the motor as::
+
+    # add motor as sink
+    bbb.add_device('motor1', 
+                   'ctrl.rc.motor', 'Motor',
+                   type = 'sink',
+                   enable = True,
+                   inputs = ['pwm'],
+                   motor = 3)
+
+which will appear as the *sink* :py:data:`motor1` connected to the
+input *signal* :py:data:`pwm`. Note that the above code makes use of
+the parameter :py:data:`enable`, which controls whether the device
+should be enabled at :py:meth:`ctrl.Controller.start` and disabled at
+:py:meth:`ctrl.Controller.stop`. In the case of motors or other
+devices that can present danger if left in some unknown state, this is
+done for safety: terminating or aborting your code will automatically
+turn off the physical motor. Note that the *source*
+:py:data:`encoder1` will remain enabled all the time, since there is
+no danger in keeping counting your encoder pulses even when the
+controller is off.
+
+As with the encoder, the motor devices takes the additional parameter
+:py:data:`motor`, which selects the 3rd (out of a total of 4
+available) hardware motor drivers (H-bridges) in the Robotics Cape or
+Beaglebone Blue. Those are driven by the Beaglebone Black or Blue PWM
+hardware generators, which in this case is controlled by the input
+signal :py:data:`pwm` taking values between -100 and 100. Negative
+values reverse the polarity of the voltage applied to the motor
+causing a reversal in the motor direction. Note that the value of the
+actual voltage applied to the motor will depend on the voltage source
+connected to the Robotics Cape. In the case of the Educational MIP kit
+this voltage will be approximately 7.4 V when the battery is fully
+charged.
+
+The current configuration of the controller after installing the
+devices is shown in the output of :samp:`print(bbb.info('all'))`:
+
+.. code-block:: none
+
+    > Controller with 3 device(s), 6 signal(s), 2 source(s), 0 filter(s), 1 sink(s), and 0 timer(s)
+    > devices
+      1. clock[source]
+      2. encoder1[source]
+      3. motor1[sink]
+    > signals
+      1. clock
+      2. duty
+      3. encoder
+      4. fspeed
+      5. is_running
+      6. speed
+    > sources
+      1. clock[TimerClock, enabled] >> clock
+      2. encoder1[Encoder, enabled] >> encoder
+    > filters
+    > sinks
+      1. pwm >> motor1[Motor, disabled]
+    > timers
+
+
+Using devices
+-------------
+
+Once hardware devices are installed as *sinks*, *filters*, or
+*sources*, you can use them exactly as before. *Sensors* will usually
+be installed as *sources* and *actuators* typically as *sinks*.
+
+Because you use the same names for the signals handled by the encoder
+and motor devices as the ones used in the Section :ref:`Simulated
+motor example`, you can simply copy parts of that code to repeat the
+motor experiment, this time using real hardware. For example, the
+code::
+
+    from ctrl.block import Interp, Logger, Constant
+    from ctrl.block.system import Differentiator
+    from ctrl.system.tf import LPF
+
+    # build interpolated input signal
+    ts = [0, 1, 2,   3,   4,   5,   5, 6]
+    us = [0, 0, 100, 100, -50, -50, 0, 0]
+    
+    # add filter to interpolate data
+    bbb.add_filter('input',
+		   Interp(signal = us, time = ts),
+		   ['clock'],
+                   ['pwm'])
+    
+    # add motor speed signal
+    bbb.add_signal('speed')
+    
+    # add motor speed filter
+    bbb.add_filter('speed',
+                   Differentiator(),
+                   ['clock','encoder'],
+                   ['speed'])
+    
+    # add low-pass signal
+    bbb.add_signal('fspeed')
+    
+    # add low-pass filter
+    bbb.add_filter('LPF',
+                   System(model = LPF(fc = 5, period = Ts)),
+                   ['speed'],
+                   ['fspeed'])
+    
+    # add logger
+    bbb.add_sink('logger',
+                 Logger(),
+                 ['clock','pwm','encoder','speed','fspeed'])
+    
+    # Add a timer to stop the controller
+    bbb.add_timer('stop',
+		  Constant(value = 0),
+		  None, ['is_running'],
+                  period = 6, repeat = False)
+
+will produce a controller with the following connections:
+
+.. code-block:: none
+
+    > Controller with 3 device(s), 6 signal(s), 2 source(s), 3 filter(s), 2 sink(s), and 1 timer(s)
+    > devices
+      1. clock[source]
+      2. encoder1[source]
+      3. motor1[sink]
+    > signals
+      1. clock
+      2. duty
+      3. encoder
+      4. fspeed
+      5. is_running
+      6. speed
+    > sources
+      1. clock[TimerClock, enabled] >> clock
+      2. encoder1[Encoder, enabled] >> encoder
+    > filters
+      1. clock >> input[Interp, enabled] >> pwm
+      2. clock, encoder >> speed[Differentiator, enabled] >> speed
+      3. speed >> LPF[System, enabled] >> fspeed
+    > sinks
+      1. pwm >> motor1[Motor, disabled]
+      2. clock, pwm, encoder, speed, fspeed >> logger[Logger, enabled]
+    > timers
+      1. stop[Constant, period = 6, enabled] >> is_running
+
+You run this controller program invoking::
+  
+  # reset the clock
+  bbb.set_source('clock', reset = True)
+   
+  # run the controller
+  with bbb:
+      bbb.join()
+
+Note the additional step of resetting the clock before starting the
+controller. Because the clock in the Robotics Cape is controlled by
+hardware and runs continuously starting when you create a
+:py:class:`ctrl.rc.Controller` object, one needs to reset the clock
+before starting this program so that the input :py:data:`pwm` be
+properly synchronized with the hardware clock.
+
+Upon running the complete code provided in :ref:`rc_motor.py` the
+following plots are produced using matplotlib:
+      
 .. image:: figures/rc_motor_1.png
 
+To the naked eye, the position plot above is virtually identical to
+the one obtained using the simulated model from Section
+:ref:`Simulated motor example`. Some subtle differences appear more
+visible in the velocity plot below:
+	   
 .. image:: figures/rc_motor_2.png
+
+where one can that the motor has some difficulties overcoming
+`stiction <https://en.wikipedia.org/wiki/Stiction>`_, that is the
+static friction force that dominates when the velocities become small:
+it takes a bit longer to start around 1 second and gets *stuck* again
+around 4 s when the velocity comes to zero. Note also the more
+pronounced noise which is amplified by the differentiator and then
+attenuated by the low-pass filter.
 
 --------------------------
 Client Server Architecture
