@@ -1235,10 +1235,104 @@ around 4 s when the velocity comes to zero. Note also the more
 pronounced noise which is amplified by the differentiator and then
 attenuated by the low-pass filter.
 
+-----------------
+Extending Blocks 
+-----------------
+
+The package :py:mod:`ctrl` is designed so that you can easily extend
+its functionality by writing simple python code for your own
+blocks. You can write blocks to support your specific unsupported
+hardware or implement an algorithm that is currently not available in
+the library of blocks, :py:mod:`ctrl.block`. Your blocks should
+inherit from :py:class:`ctrl.block.Block` or a derived class, such as
+:py:class:`ctrl.block.BufferBlock` or :py:class:`ctrl.block.FilterBlock`.
+
+Extending :py:class:`ctrl.block.Block`
+--------------------------------------
+
+A :py:class:`ctrl.block.Block` needs to know how to do two things:
+respond to calls to :py:meth:`ctrl.block.Block.read` and/or
+:py:meth:`ctrl.block.Block.write`. If a block is to be used as a *source*
+then it needs to respond to :py:meth:`ctrl.block.Block.read`, if it is to be
+used as a *sink* it needs to respond to :py:meth:`ctrl.block.Block.write`,
+and it if is to be used as a *filter* it needs to respond to both.
+
+For example consider the following code::
+
+    class MyOneBlock(ctrl.Block):
+
+        def read(self):
+	    return (1,)
+
+can be used as a *source* whose output *signal* is the constant
+`1`. If you try to use :py:class:`MyOneBlock` as a *sink* an
+exception will be raised since :py:class:`MyOneBlock` does not
+overload :py:meth:`ctrl.block.Block.write`. Note that the return value
+of :py:meth:`ctrl.block.Block.read` must be a tuple with numbers or
+numpy 1D-arrays. You could use your block in a controller like this::
+  
+    # add a MyOneBlock as a source
+    hello.add_source('mysource',
+		     MyOneBlock(),
+		     ['signal'])
+
+which would write `1` to the *signal* :py:data:`signal` every time the
+controller loop is run.
+
+Consider now the following block::
+
+    class MySumBlock(ctrl.Block):
+
+        def __init__(self, **kwargs):
+
+	    # you must call super().__init__
+            super().__init__(**kwargs)
+
+	    # create local buffer
+	    self.buffer = ()
+    
+        def write(self, *values):
+
+            # copy values to buffer
+	    self.buffer = values
+	    
+        def read(self):
+
+	    # return sum of all values as first entry
+	    return (sum(self.buffer), )
+
+Because :py:class:`MySumBlock` overloads both
+:py:meth:`ctrl.block.Block.write` and :py:meth:`ctrl.block.Block.read`
+it can be used a *filter*. For instance::
+  
+    # add a MySumBlock as a filter
+    hello.add_filter('myfilter',
+		     MySumBlock(),
+		     ['signal1','signal2','signal3'],
+		     ['sum'])
+		     
+which would set the *signal* :py:data:`sum` to be equal to the sum of
+the three input *signals* :py:data:`signal1`, :py:data:`signal2`, and
+:py:data:`signal3`.
+	    
+.. literalinclude:: ../python/ctrl/block/system.py
+   :pyobject: Sum
+
+
+    
+Extending :py:class:`ctrl.block.BufferBlock`
+--------------------------------------------
+
+.. literalinclude:: ../python/ctrl/block/__init__.py
+   :pyobject: Constant
+
+.. literalinclude:: ../python/ctrl/rc/encoder.py
+   :pyobject: Encoder
+
+
 -------------------
 Closed-loop control
 -------------------
-
 
 --------------------------
 Client Server Architecture
