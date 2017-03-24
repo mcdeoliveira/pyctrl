@@ -54,6 +54,8 @@ def main():
 
     Kp = 1/g
     Ki = Kp/tau
+
+    print('Kp = {}, Ki = {}'.format(Kp, Ki))
     
     pid = System(model = PID(Kp = Kp, Ki = Ki, period = Ts))
     
@@ -145,7 +147,7 @@ def main():
     ax2 = plt.twinx()
 
     ax2.plot(clock, speed,'b', label='speed')
-    ax2.plot(clock, speed_reference, 'r', label='fspeed')
+    ax2.plot(clock, speed_reference, 'r', label='reference')
     ax2.set_ylabel('speed (Hz)')
     ax2.set_ylim((-6,12))
     ax2.set_xlim(0,6)
