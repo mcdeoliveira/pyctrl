@@ -17,18 +17,18 @@ def main():
     # initialize controller
     hello = Controller()
 
-    # add the signal clock
-    hello.add_signal('clock')
+    # add the signal myclock
+    hello.add_signal('myclock')
 
     # add a TimerClock as a source
-    hello.add_source('clock',
+    hello.add_source('myclock',
                      TimerClock(period = 1),
-                     ['clock'])
+                     ['myclock'])
 
     # add a Printer as a sink
     hello.add_sink('message',
                    Printer(message = 'Hello World!'),
-                   ['clock'])
+                   ['myclock'])
 
     try:
         # run the controller
@@ -42,7 +42,7 @@ def main():
     finally:
         # disable Printer and TimerClock
         hello.set_sink('message', enabled = False)
-        hello.set_source('clock', enabled = False)
+        hello.set_source('myclock', enabled = False)
     
 if __name__ == "__main__":
     

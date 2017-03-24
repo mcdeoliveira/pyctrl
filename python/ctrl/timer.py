@@ -25,7 +25,6 @@ class Controller(ctrl.Controller):
         super().__reset()
 
         self.remove_source('clock')
-        self.remove_signal('clock')
         
         # add device clock
         self.add_device('clock',

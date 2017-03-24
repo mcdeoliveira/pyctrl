@@ -692,6 +692,7 @@ class Controller:
         # parameters
         devtype = kwargs.pop('type', 'source')
         enable = kwargs.pop('enable', False)
+        force = kwargs.pop('force', False)
 
         inputs = kwargs.pop('inputs', [])
         outputs = kwargs.pop('outputs', [])

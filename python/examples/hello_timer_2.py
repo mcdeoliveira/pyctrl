@@ -11,8 +11,7 @@ def main():
 
     # import Controller and other blocks from modules
     from ctrl import Controller
-    from ctrl.block import Printer
-    from ctrl.block.system import Constant
+    from ctrl.block import Printer, Constant
 
     # initialize controller
     hello = Controller()
@@ -27,7 +26,7 @@ def main():
     hello.add_timer('stop',
 		    Constant(value = 0),
 		    None, ['is_running'],
-                    period = 1, repeat = False)
+                    period = 5, repeat = False)
     
     # add a Printer as a sink
     hello.add_sink('message',

@@ -123,7 +123,7 @@ def main():
     # plot encoder
     plt.subplot(2,1,2)
     plt.plot(clock, encoder,'b')
-    plt.ylabel('position (cycles)')
+    plt.ylabel('encoder (cycles)')
     plt.ylim((0,25))
     plt.xlim(0,6)
     plt.grid()
