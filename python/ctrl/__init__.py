@@ -371,6 +371,8 @@ class Controller:
         # make sure output signals exist
         for s in outputs:
             if s not in self.signals:
+                warnings.warn("Signal '{}' was not present and is being automatically added.".format(s),
+                              ControllerWarning)
                 self.add_signal(s)
 
     def remove_source(self, label):
