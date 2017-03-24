@@ -90,15 +90,13 @@ def main():
     finally:
         pass
 
-    return
-    
     # read logger
     data = bbb.read_sink('logger')
     clock = data[:,0]
     pwm = data[:,1]
     encoder = data[:,2]
     speed = data[:,3]
-    fspeed = data[:,4]
+    speed_reference = data[:,4]
     
     # import matplotlib
     import matplotlib.pyplot as plt
@@ -138,7 +136,7 @@ def main():
     ax2 = plt.twinx()
 
     ax2.plot(clock, speed,'b', label='speed')
-    ax2.plot(clock, fspeed, 'r', label='fspeed')
+    ax2.plot(clock, speed_reference, 'r', label='fspeed')
     ax2.set_ylabel('speed (Hz)')
     ax2.set_ylim((-6,12))
     ax2.set_xlim(0,6)
