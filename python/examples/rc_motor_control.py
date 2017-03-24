@@ -49,7 +49,7 @@ def main():
     bbb.add_signal('speed_reference')
     
     # add pid controller
-    pid = System(model = PID(Kp = 1))
+    pid = System(model = PID(Kp = 100))
     
     bbb.add_filter('input',
 		   Feedback(block = pid),
@@ -76,7 +76,7 @@ def main():
         print('> Run the controller.')
 
         # set speed_reference
-        bbb.set_signal('speed_reference', 1)
+        bbb.set_signal('speed_reference', 3)
 
         # reset clock
         bbb.set_source('clock', reset = True)
