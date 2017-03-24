@@ -1074,10 +1074,10 @@ Once hardware devices are installed as *sinks*, *filters*, or
 be installed as *sources* and *actuators* typically as *sinks*.
 
 Because you use the same names for the signals handled by the encoder
-and motor devices as the ones used in the Section :ref:`Simulated
-motor example`, you can simply copy parts of that code to repeat the
-motor experiment, this time using real hardware. For example, the
-code::
+and motor devices as the ones used in the Section
+:ref:`Simulated motor example`, you can simply copy parts of that code
+to repeat the motor experiment, this time using real hardware. For example,
+the code::
 
     from ctrl.block import Interp, Logger, Constant
     from ctrl.block.system import Differentiator
@@ -1191,10 +1191,22 @@ attenuated by the low-pass filter.
 Closed-loop control
 -------------------
 
-You will now turn to the implementation of a closed-loop controller
-using the same hardware discussed in the Section :ref:`Interfacing
-with hardware`. Start by installing the same devices as before, a
-motor and an encoder::
+The motivation to write this package is to be able to easily implement
+feedback controllers. The subject is extensive and will not be covered
+in any detail here. A completely unbiased and awesome reference is
+[deO16]_. The treatment is suitable to undergraduates students with an
+engineer and science background. **Again, do not let yourself be
+intimidated by the language here, you do not need to understand all
+the details to implement or, better yet, to benefit from using a
+feedback controller**
+
+Proportional-integral motor speed control
+-----------------------------------------
+
+You will now turn to the implementation of a closed-loop
+proportional-integral controller using the same hardware discussed in
+the Section :ref:`Interfacing with hardware`. Start by installing the
+same devices as before, a motor and an encoder::
 
     # import python's standard math module and numpy
     import math, numpy
@@ -1202,9 +1214,6 @@ motor and an encoder::
     # import Controller and other blocks from modules
     import rc
     from ctrl.rc import Controller
-    from ctrl.block import Interp, Logger, Constant
-    from ctrl.block.system import System, Differentiator
-    from ctrl.system.tf import DTTF, LPF
 
     # initialize controller
     Ts = 0.01
@@ -1226,10 +1235,43 @@ motor and an encoder::
                    inputs = ['pwm'],
                    motor = 3)
 
-
-Our goal is to implement the following feedback controller:
+Because you will be controlling the motor speed, add also a differentiator::
 		   
-.. tikz:: [>=latex', block/.style = {
+    from ctrl.block.system import Differentiator
+    
+    # add motor speed signal
+    bbb.add_signal('speed')
+    
+    # add motor speed filter
+    bbb.add_filter('speed',
+                   Differentiator(),
+                   ['clock','encoder'],
+                   ['speed'])
+
+According to the dynamic model introduced earlier in :ref:`Simulated
+motor example`, the transfer-function from the PWM input, :math:`u`, to
+the motor velocity, :math:`\omega = \dot{\theta}`, is:
+
+.. math::
+
+   G(s) = \frac{\Omega(s)}{U(s)} = \frac{g}{\tau s + 1}
+
+You will implement a PI (Proportional-Integral) controller with
+transfer-function:
+
+.. math::
+
+   K(s) = \frac{U(s)}{E(s)} = K_{\mathrm{p}} + \frac{K_{\mathrm{i}}}{s} = K_{\mathrm{p}} \frac{s + K_{\mathrm{i}}/K_{\mathrm{p}}}{s}
+
+The way by which you will connect this controller to the motor is
+given in the feedback block-diagram:
+
+.. _FeedbackDiagram:
+
+.. tikz:: Block-diagram for feedback control
+   :libs: arrows,positioning
+	  
+	  [>=latex', block/.style = {
 	     draw,
 	     fill=blue!5,
 	     rectangle,
@@ -1240,22 +1282,144 @@ Our goal is to implement the following feedback controller:
 	     draw, fill=blue!5, circle
 	     }, node distance = 6em]
     \node [coordinate, name=input]{};
-    \node [sum, right of=input,node distance = 3em](sum){};
+    \node [sum, right of=input,node distance = 5em](sum){};
     \node [block, right of=sum,node distance = 6em](controller){Controller};
     \node [block, right of=controller,node distance = 8em](system){Motor};
     \node [coordinate, right of=system] (output) {};
     \draw [->](input) -- node [above]{$\bar{\omega}$}(sum);
     \path [->](sum) edge node[above]{$e$} (controller);
-    \path [->](controller) edge node[above]{$v$} (system);
-    \path [->](system) edge node [above,name=y] {$\omega$}(output);
+    \path [->](controller) edge node[above,name=u,pos=0.7]{$u$} (system);
+    \path [->](system) edge node [above,name=y,pos=0.3] {$\omega$}(output);
     \draw [->](y) -- ++(0,-3em) -| node[left,pos=0.9] {$-$}(sum);
-   :libs: arrows,positioning
+    \draw [dashed,rounded corners]
+            ([yshift=-4em,xshift=3.2em] input) rectangle
+            ([yshift=2em,xshift=-1em] u);
 
+*Feedback* here means that a measurement of the motor speed,
+:math:`\omega`, will be compared with a reference speed,
+:math:`\bar{\omega}`, to create an *error signal*, :math:`e`. When
+:math:`\omega` matches :math:`\bar{\omega}` exactly then the error
+signal is zero. It is the controller's job to produce a suitable pwm
+input, :math:`u`, so that this is possible. The PI controller does
+that by *integrating* the error. Indeed, the transfer-function of the
+PI controller corresponds to:
 
 .. math::
 
-   G(s) &= \frac{g}{\tau s + 1}
+   u(t) = K_{\mathrm{p}} e(t) + K_{\mathrm{i}} \int_{0}^t e(\tau) \, d\tau
 
---------------------------
-Client Server Architecture
---------------------------
+You can see that it is the integrator's job to *estimate* the
+necessary level of motor PWM input, :math:`u`, so that the error can
+be made small, in other words, so that the motor can track a desired
+reference speed, :math:`\bar{\omega}`. Indeed, if the controller
+succeeds in its task to keep the error signal small, that is :math:`e
+= 0`, then the contribution from the proportional term,
+:math:`K_{\mathrm{p}} e(t)`, will also be zero.
+
+There's lot to be said about how to *design* suitable gains
+:math:`K_{\mathrm{p}}` and :math:`K_{\mathrm{i}}` [deO16]_. Here you
+will choose
+
+.. math::
+
+   \frac{K_{\mathrm{i}}}{K_{\mathrm{p}}} = \tau^{-1}, \quad K_{\mathrm{p}} = g^{-1}
+
+so that the closed-loop transfer-function from :math:`\bar{\omega}` to
+:math:`\omega` becomes
+
+.. math::
+
+   \frac{\Omega(s)}{\bar{\Omega}(s)} = \frac{G(s) K(s)}{1 + G(s) K(s)} = \frac{1}{\tau K_{\mathrm{p}}^{-1} g^{-1} s + 1} = \frac{1}{\tau s + 1}
+
+This will make the motor respond with the same time-constant as if it
+were in open-loop but this time with the ability to *track* constant a
+reference velocity signal :math:`\bar{\omega}`.
+
+Taking advantage of the blocks :py:class:`ctrl.block.system.System`
+and :py:class:`ctrl.block.system.Feedback`, and of the PID control
+algoritm provided in :py:class:`ctrl.system.tf.PID` you can calculate
+and implement this PI controller in only a few lines of code::
+
+    from ctrl.block.system import Feedback, System
+    from ctrl.system.tf import PID
+    
+    # calculate PI controller gains
+    tau = 1/55   # time constant (s)
+    g = 0.092    # gain (cycles/sec duty)
+
+    Kp = 1/g
+    Ki = Kp/tau
+
+    print('Controller gains: Kp = {}, Ki = {}'.format(Kp, Ki))
+
+    # build controller block
+    pid = System(model = PID(Kp = Kp, Ki = Ki, period = Ts))
+    
+    # add motor speed signal
+    bbb.add_signal('speed_reference')
+
+    # add controller to the loop
+    bbb.add_filter('PIcontrol',
+		   Feedback(block = pid),
+		   ['speed','speed_reference'],
+                   ['pwm'])
+
+The block :py:class:`ctrl.block.system.Feedback` implements the
+operations inside the dashed box in FeedbackDiagram_. That is, it
+calculates the error signal, :math:`e`, and evaluates the block given
+as the attribute :py:data:`block`, in this case the
+:py:class:`ctrl.block.system.System` containing as the attribute
+:py:data:`model` the controller :py:class:`ctrl.system.tf.PID`.
+		   
+The complete code, including a reference speed that looks like
+the PWM input used before to drive the motor in Sections
+:ref:`Simulated motor example` and :ref:`Interfacing with hardware`,
+is in the example :ref:`rc_motor_control.py`. Results obtained with
+the MIP kit should look like the following plot:
+		   
+.. image:: figures/rc_motor_control.png
+
+Note how the motor speed *tracks* the reference signal in closed-loop,
+effectively calculating the required PWM input necessary for
+acomplishing that. Compare this behaviour with the previous
+*open-loop* graphs in which a curve similar to the reference speed was
+instead applied directly to the motor PWM input. Look also for some
+interesting side-effects of feedback control, such as the somwehat
+smoother behavior near the points where the motor reaches zero
+speed. Look for [deO16]_ for much more in depth discussions.
+
+State-space MIP balance controller
+----------------------------------
+
+.. _MIPDiagram:
+
+.. tikz:: Block-diagram for balancing the MIP
+   :libs: arrows,positioning
+	  
+	  [>=latex', block/.style = {
+	     draw,
+	     fill=blue!5,
+	     rectangle,
+	     rounded corners,
+	     minimum height=2em,
+	     minimum width=3em
+	     }, sum/.style = {
+	     draw, fill=blue!5, circle
+	     }, node distance = 6em]
+    \node [coordinate, name=input]{};
+    \node [sum, right of=input,node distance = 5em](sum){};
+    \node [block, right of=sum,node distance = 6em](controller){Controller};
+    \node [block, right of=controller,node distance = 8em](system){Motor};
+    \node [coordinate, right of=system, yshift=-1em] (phi) {};
+    \node [coordinate, right of=system, yshift=1em] (theta) {};
+    \draw [->](input) -- node [above]{$\bar{\dot{\phi}}$}(sum);
+    \path [->](sum) edge node[above]{$e$} (controller);
+    \path [->](controller) edge node[above,name=u,pos=0.7]{$u$} (system);
+    \path [->](system) ++(2em,-1em) edge node [above,name=y,pos=0.3] {$\dot{\phi}$}(phi);
+    \draw [->](y) -- ++(0,-3em) -| node[left,pos=0.9] {$-$}(sum);
+    \draw [dashed,rounded corners]
+            ([yshift=-4em,xshift=3.2em] input) rectangle
+            ([yshift=2em,xshift=-1em] u);
+	   
+.. [deO16] M. C. de Oliveira, *Fundamentals of Linear Control: a
+           concise approach*, Cambridge University Press, 2016.

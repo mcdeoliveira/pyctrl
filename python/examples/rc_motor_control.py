@@ -14,7 +14,7 @@ def main():
     from ctrl.rc import Controller
     from ctrl.block import Interp, Logger, Constant
     from ctrl.block.system import System, Differentiator, Feedback
-    from ctrl.system.tf import DTTF, LPF, PID
+    from ctrl.system.tf import PID
 
     # initialize controller
     Ts = 0.01

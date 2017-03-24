@@ -3,10 +3,14 @@ More advanced usage
 ===================
 
 The next sections describe tasks that are better suited to advanced
-users, such as extending Controllers or writing your own Blocks. Make
-sure you have gone through the :ref:`Tutorial` and have a good
-understanding of the concepts discussed there before reading this
-chapter.
+users, such as working with the provided Client-Server architecture,
+extending Controllers, or writing your own Blocks. Make sure you have
+gone through the :ref:`Tutorial` and have a good understanding of the
+concepts discussed there before reading this chapter.
+
+--------------------------
+Client Server Architecture
+--------------------------
 
 ---------------------
 Extending Controllers
