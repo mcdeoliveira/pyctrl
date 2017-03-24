@@ -64,6 +64,16 @@ def main():
 		   ['speed','speed_reference'],
                    ['pwm'])
     
+    # build interpolated input signal
+    ts = [0, 1, 2,  3,   4,  5, 5, 6]
+    us = [0, 0, 10, 10, -5, -5, 0, 0]
+    
+    # add filter to interpolate data
+    bbb.add_filter('input',
+		   Interp(signal = us, time = ts),
+		   ['clock'],
+                   ['speed_reference'])
+    
     # add logger
     bbb.add_sink('logger',
                  Logger(),
@@ -84,7 +94,7 @@ def main():
         print('> Run the controller.')
 
         # set speed_reference
-        bbb.set_signal('speed_reference', 5)
+        #bbb.set_signal('speed_reference', 5)
 
         # reset clock
         bbb.set_source('clock', reset = True)
