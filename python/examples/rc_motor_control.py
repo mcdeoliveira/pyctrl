@@ -45,19 +45,20 @@ def main():
                    ['clock','encoder'],
                    ['speed'])
 
-    # add motor speed signal
-    bbb.add_signal('speed_reference')
-    
-    # add pid controller
+    # calculate PI controller gains
     tau = 1/55   # time constant (s)
     g = 0.092    # gain (cycles/sec duty)
 
     Kp = 1/g
     Ki = Kp/tau
 
-    print('Kp = {}, Ki = {}'.format(Kp, Ki))
-    
+    print('Controller gains: Kp = {}, Ki = {}'.format(Kp, Ki))
+
+    # build controller block
     pid = System(model = PID(Kp = Kp, Ki = Ki, period = Ts))
+    
+    # add motor speed signal
+    bbb.add_signal('speed_reference')
     
     bbb.add_filter('PIcontrol',
 		   Feedback(block = pid),
