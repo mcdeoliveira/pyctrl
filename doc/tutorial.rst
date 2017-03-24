@@ -1250,7 +1250,11 @@ Our goal is to implement the following feedback controller:
     \path [->](system) edge node [above,name=y] {$\omega$}(output);
     \draw [->](y) -- ++(0,-3em) -| node[left,pos=0.9] {$-$}(sum);
    :libs: arrows,positioning
-		   
+
+
+.. math::
+
+   G(s) &= \frac{g}{\tau s + 1}
 
 --------------------------
 Client Server Architecture
