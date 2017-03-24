@@ -13,7 +13,7 @@ def main():
     import rc
     from ctrl.rc import Controller
     from ctrl.block import Interp, Logger, Constant
-    from ctrl.block.system import System, Differentiator
+    from ctrl.block.system import System, Differentiator, Feedback
     from ctrl.system.tf import DTTF, LPF, PID
 
     # initialize controller
