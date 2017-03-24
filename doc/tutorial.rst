@@ -1283,10 +1283,10 @@ given in the feedback block-diagram:
     \node [block, right of=sum,node distance = 6em](controller){Controller};
     \node [block, right of=controller,node distance = 8em](system){Motor};
     \node [coordinate, right of=system] (output) {};
-    \draw [->](input) -- node [above]{$\bar{\omega}$}(sum);
+    \draw [->](input) -- node [above,pos=0.3]{$\bar{\omega}$}(sum);
     \path [->](sum) edge node[above]{$e$} (controller);
     \path [->](controller) edge node[above,name=u,pos=0.7]{$u$} (system);
-    \path [->](system) edge node [above,name=y,pos=0.3] {$\omega$}(output);
+    \path [->](system) edge node [above,name=y] {$\omega$}(output);
     \draw [->](y) -- ++(0,-3em) -| node[left,pos=0.9] {$-$}(sum);
     \draw [dashed,rounded corners]
             ([yshift=-4em,xshift=3.2em] input) rectangle
@@ -1362,9 +1362,10 @@ and implement this PI controller in only a few lines of code::
                    ['pwm'])
 
 The block :py:class:`ctrl.block.system.Feedback` implements the
-operations inside the dashed box in FeedbackDiagram_. That is, it
-calculates the error signal, :math:`e`, and evaluates the block given
-as the attribute :py:data:`block`, in this case the
+operations inside the dashed box in the :ref:`feedback diagram
+<FeedbackDiagram>`. That is, it calculates the error signal,
+:math:`e`, and evaluates the block given as the attribute
+:py:data:`block`, in this case the
 :py:class:`ctrl.block.system.System` containing as the attribute
 :py:data:`model` the controller :py:class:`ctrl.system.tf.PID`.
 		   
@@ -1388,6 +1389,12 @@ speed. Look for [deO16]_ for much more in depth discussions.
 State-space MIP balance controller
 ----------------------------------
 
+Your second feedback controller will be more sophisticated. You will
+use two measurements and will be used to balance the MIP in its
+upright position. More details on the modeling and design of the
+controller you will implement here can be found in [Zhuo16]_. The
+final controller correspond to the following feedback diagram:
+
 .. _MIPDiagram:
 
 .. tikz:: [>=latex', block/.style = {
@@ -1402,18 +1409,174 @@ State-space MIP balance controller
 	     }, node distance = 6em]
     \node [coordinate, name=input]{};
     \node [sum, right of=input,node distance = 5em](sum){};
-    \node [block, right of=sum,node distance = 6em](controller){Controller};
-    \node [block, right of=controller,node distance = 8em](system){Motor};
-    \node [coordinate, right of=system, yshift=-1em] (phi) {};
-    \node [coordinate, right of=system, yshift=1em] (theta) {};
-    \draw [->](input) -- node [above]{$\bar{\dot{\phi}}$}(sum);
-    \path [->](sum) edge node[above]{$e$} (controller);
+    \node [coordinate, name=sum2, above of=sum, node distance=2em]{};
+    \node [block, right of=sum,node distance = 6em, minimum height=4em, yshift=1em](controller){Controller};
+    \node [block, right of=controller,node distance = 8em, minimum height=6em,minimum width=4em](system){MIP};
+    \node [coordinate, right of=system, yshift=-1.75em] (phi) {};
+    \node [coordinate, right of=system, yshift=1.75em] (theta) {};
+    \draw [->](input) -- node [above,pos=0.3]{$\bar{\dot{\phi}}$}(sum);
+    \path [<-](controller) ++(-2.5em,-1em) edge node[above]{$e_{\dot{\phi}}$} (sum);
     \path [->](controller) edge node[above,name=u,pos=0.7]{$u$} (system);
-    \path [->](system) ++(2em,-1em) edge node [above,name=y,pos=0.3] {$\dot{\phi}$}(phi);
+    \path [->](system) ++(2em,-1.75em) edge node [above,name=y] {$\dot{\phi}$}(phi);
+    \path [->](system) ++(2em,+1.75em) edge node [below,name=y2] {$\dot{\theta}$}(theta);
     \draw [->](y) -- ++(0,-3em) -| node[left,pos=0.9] {$-$}(sum);
+    \draw [->](y2) -- ++(0,3em) -| (sum2) -- node[above,pos=0.7]{$-$} ++(3.5em,0);
     \draw [dashed,rounded corners]
             ([yshift=-4em,xshift=3.2em] input) rectangle
-            ([yshift=2em,xshift=-1em] u);
-	   
+            ([yshift=4.4em,xshift=-1em] u);
+
+in which you can see that the feedback controller makes use of two
+measurements, the vertical angle velocity, :math:`\dot{\theta}`, and
+the wheel angular velocity, :math:`\dot{\phi}`. It also takes in a
+reference wheel angular velicity, :math:`\bar{\dot{\phi}}`, that can
+be used to drive the MIP backward and forward.
+
+As described in detail in [Zhuo16]_, the discrete-time controller,
+corresponding to the block inside the dashed box in the :ref:`feedback
+diagram <MIPDiagram>`, is given by discrete-time state-space model of
+the form:
+
+.. math::
+
+   x_{k+1} &= A x_k + B y_k \\
+   u_k &= C x_k + D y_k
+
+where :math:`y_k` represents the controller input, consisting of the
+measurement and error signals
+
+.. math::
+
+   y_k = \begin{pmatrix} \dot{\theta}_k \\ \dot{\phi}_k \\
+   \bar{\dot{\phi}}_k \end{pmatrix}
+
+and :math:`u_k` is the PWM input to be applied to both left and right
+MIP motors.
+
+Implementing this controller is very simple. First initialize the
+controller as::
+
+    # import blocks and controller
+    from ctrl.rc.mip import Controller
+    from ctrl.block.system import System, Subtract, Differentiator, Sum, Gain
+    from ctrl.block.nl import ControlledCombination
+    from ctrl.block import Logger, ShortCircuit
+    from ctrl.system.ss import DTSS
+  
+    # create mip
+    mip = Controller()
+
+Note that you have imported the special
+:py:class:`ctrl.rc.mip.Controller` class that already initializes all
+devices needed for controlling the MIP. A look at :samp:`mip.info('all')`:
+
+.. code-block:: none
+		
+    > Controller with 6 device(s), 9 signal(s), 4 source(s), 0 filter(s), 2 sink(s), and 0 timer(s)
+    > devices
+      1. inclinometer[source]
+      2. clock[source]
+      3. motor1[sink]
+      4. motor2[sink]
+      5. encoder1[source]
+      6. encoder2[source]
+    > signals
+      1. clock
+      2. duty
+      3. encoder1
+      4. encoder2
+      5. is_running
+      6. motor1
+      7. motor2
+      8. theta
+      9. theta_dot
+    > sources
+      1. clock[Clock, enabled] >> clock
+      2. inclinometer[Inclinometer, enabled] >> theta, theta_dot
+      3. encoder1[Encoder, enabled] >> encoder1
+      4. encoder2[Encoder, enabled] >> encoder2
+    > filters
+    > sinks
+      1. motor1 >> motor1[Motor, disabled]
+      2. motor2 >> motor2[Motor, disabled]
+    > timers
+
+reveals that :py:class:`ctrl.rc.mip.Controller` already installed the
+following devices:
+
+1. **a clock**;
+2. **one inclinometer**, which is based on a built in giroscope and
+   will be used to measure :math:`\dot{\theta}`; the inclinometer also
+   produces a measurement of :math:`\theta` that is only accurate
+   under small velocities and accelerations;
+3. **two motors**, which give access to the two PWM signals driving
+   the left and right motors of the MIP;
+4. **two encoders**, which measure the relative angular displacement
+   between the body of MIP and the axis of the left and right motors,
+   from which you will measure :math:`\dot{\phi}`.
+
+The angular velocity :math:`\dot{\phi}` can be obtained after
+averaging the two wheel encoders and differentiating the resulting
+angle :math:`\phi`::
+   
+    # phi is the average of the encoders
+    mip.add_signal('phi')
+    mip.add_filter('phi',
+                   Sum(gain=0.5),
+                   ['encoder1','encoder2'],
+                   ['phi'])
+
+    # phi dot
+    mip.add_signal('phi_dot')
+    mip.add_filter('phi_dot',
+                   Differentiator(),
+                   ['clock','phi'],
+                   ['phi_dot'])
+
+Also add the reference signal :math:`\bar{\dot{\phi}}`::
+		   
+    # phi dot reference
+    mip.add_signal('phi_dot_reference')
+		   
+Having all signals necessary for feedback, construct and implemented
+the feedack controller as follows::
+   
+    # state-space matrices
+    A = np.array([[0.913134, 0.0363383],[-0.0692862, 0.994003]])
+    B = np.array([[0.00284353, -0.000539063], [0.00162443, -0.00128745]])
+    C = np.array([[-383.009, 303.07]])
+    D = np.array([[-1.22015, 0]])
+
+    B = 2*np.pi*(100/7.4)*np.hstack((-B, B[:,1]))
+    D = 2*np.pi*(100/7.4)*np.hstack((-D, D[:,1]))
+
+    ssctrl = DTSS(A,B,C,D)
+
+    mip.add_signal('pwm')
+    mip.add_filter('controller',
+                   System(model = ssctrl),
+                   ['theta_dot','phi_dot','phi_dot_reference'],
+                   ['pwm'])
+
+As a final step connect the *signal* :py:data:`pwm` to both motors::
+   
+    # connect to motors
+    mip.add_filter('cl1',
+                   ShortCircuit(),
+                   ['pwm'],
+                   ['motor1'])
+    mip.add_filter('cl2',
+                   ShortCircuit(),
+                   ['pmw'],
+		   ['motor2'])
+		   
+
+
+References
+----------
+
 .. [deO16] M. C. de Oliveira, *Fundamentals of Linear Control: a
            concise approach*, Cambridge University Press, 2016.
+
+.. [Zhuo16] Zhu Zhuo, *MIP*, M.Sc. Thesis, University of California San
+	    Diego, 2016.
+	   
