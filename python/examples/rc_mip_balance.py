@@ -65,7 +65,7 @@ def get_arrows(mip, fd):
 def main():
 
     import ctrl
-    from ctrl.block.system import System, ShortCircuit, Subtract, Differentiator, Sum, Gain
+    from ctrl.block.system import System, Subtract, Differentiator, Sum, Gain
     from ctrl.block.nl import ControlledCombination
     from ctrl.block.logger import Logger
     from ctrl.system.ss import DTSS
