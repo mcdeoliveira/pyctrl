@@ -271,16 +271,19 @@ class Differentiator(block.BufferBlock):
 
 class Feedback(block.BufferBlock):
     r"""
-    *Feedback* creates a feedback connection for a given `block`, that is
+    *Feedback* creates a general feedback connection for a given `block`, that is
 
-    :math:`y = G e, \quad e = \gamma u[m:] - u[:m]`,
+    .. math::
 
-    where :math:`G` represents the `block`, `gamma` is a constant gain, and `m` is the number of inputs and references.
+        y = G e, \quad e = \gamma u[m:] + \rho u[:m],
 
-    The first `m` signals are inputs and the last `m` signals are references.
+    where :math:`G` represents the `block`, :math:`\gamma` and :math:`\rho` are a constant gains, and :math:`m` is the number of inputs and references.
+
+    For the default configuration the first `m` signals are measurements and the last `m` signals are references under standard unit negative feedback.
 
     :param block: an instance of `ctrl.block.Block`
     :param gamma: a constant gain (default `1`)
+    :param rho: a constant gain (default `-1`)
     :param m: number of inputs (default `1`)
     """
 
@@ -288,6 +291,7 @@ class Feedback(block.BufferBlock):
 
         self.block = kwargs.pop('block', block.ShortCircuit())
         self.gamma = kwargs.pop('gamma', 1)
+        self.rho = kwargs.pop('rho', -1)
         self.m = kwargs.pop('m', 1)
 
         super().__init__(**kwargs)
@@ -315,6 +319,9 @@ class Feedback(block.BufferBlock):
         if 'gamma' in kwargs:
             self.gamma = kwargs.pop('gamma')
             
+        if 'rho' in kwargs:
+            self.rho = kwargs.pop('rho')
+            
         if 'm' in kwargs:
             self.gamma = kwargs.pop('m')
 
@@ -329,7 +336,7 @@ class Feedback(block.BufferBlock):
         super().write(*values)
         
         # calculate error
-        error = tuple(self.gamma*y-r for (y,r) in zip(self.buffer[self.m:], self.buffer[:self.m]))
+        error = tuple(self.gamma*r+self.rho*y for (r,y) in zip(self.buffer[self.m:], self.buffer[:self.m]))
 
         # call block
         self.block.write(*error)

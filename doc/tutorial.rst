@@ -1174,12 +1174,12 @@ following plots are produced using matplotlib:
 
 To the naked eye, the position plot above is virtually identical to
 the one obtained using the simulated model from Section
-:ref:`Simulated motor example`. Some subtle differences appear more
-visible in the velocity plot below:
+:ref:`Simulated motor example`. Some subtle differences are visible in
+the velocity plot below:
 	   
 .. image:: figures/rc_motor_2.png
 
-where one can that the motor has some difficulties overcoming
+where you can see that the motor has some difficulties overcoming
 `stiction <https://en.wikipedia.org/wiki/Stiction>`_, that is the
 static friction force that dominates when the velocities become small:
 it takes a bit longer to start around 1 second and gets *stuck* again
@@ -1190,6 +1190,67 @@ attenuated by the low-pass filter.
 -------------------
 Closed-loop control
 -------------------
+
+You will now turn to the implementation of a closed-loop controller
+using the same hardware discussed in the Section :ref:`Interfacing
+with hardware`. Start by installing the same devices as before, a
+motor and an encoder::
+
+    # import python's standard math module and numpy
+    import math, numpy
+    
+    # import Controller and other blocks from modules
+    import rc
+    from ctrl.rc import Controller
+    from ctrl.block import Interp, Logger, Constant
+    from ctrl.block.system import System, Differentiator
+    from ctrl.system.tf import DTTF, LPF
+
+    # initialize controller
+    Ts = 0.01
+    bbb = Controller(period = Ts)
+
+    # add encoder as source
+    bbb.add_device('encoder1',
+                   'ctrl.rc.encoder', 'Encoder',
+                   type = 'source',
+                   outputs = ['encoder'],
+                   encoder = 3, 
+                   ratio = 60 * 35.557)
+    
+    # add motor as sink
+    bbb.add_device('motor1', 
+                   'ctrl.rc.motor', 'Motor',
+                   type = 'sink',
+                   enable = True,
+                   inputs = ['pwm'],
+                   motor = 3)
+
+
+Our goal is to implement the following feedback controller:
+		   
+.. tikz:: [>=latex', block/.style = {
+	     draw,
+	     fill=blue!5,
+	     rectangle,
+	     rounded corners,
+	     minimum height=2em,
+	     minimum width=3em
+	     }, sum/.style = {
+	     draw, fill=blue!5, circle
+	     }, node distance = 6em]
+    \node [coordinate, name=input]{};
+    \node [sum, right of=input,node distance = 3em](sum){};
+    \node [block, right of=sum,node distance = 6em](controller){Controller};
+    \node [block, right of=controller,node distance = 8em](system){Motor};
+    \node [coordinate, right of=system] (output) {};
+    \draw [->](input) -- node [above]{$\bar{\omega}$}(sum);
+    \path [->](sum) edge node[above]{$e$} (controller);
+    \path [->](controller) edge node[above]{$v$} (system);
+    \path [->](system) edge node [above,name=y] {$\omega$}(output);
+    \draw [->](y) -- ++(0,-3em) -| node[left,pos=0.9] {$-$}(sum);
+   :libs: arrows,positioning
+		   
 
 --------------------------
 Client Server Architecture

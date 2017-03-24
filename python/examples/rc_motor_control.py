@@ -14,7 +14,7 @@ def main():
     from ctrl.rc import Controller
     from ctrl.block import Interp, Logger, Constant
     from ctrl.block.system import System, Differentiator
-    from ctrl.system.tf import DTTF, LPF
+    from ctrl.system.tf import DTTF, LPF, PID
 
     # initialize controller
     Ts = 0.01
@@ -36,16 +36,6 @@ def main():
                    inputs = ['pwm'],
                    motor = 3)
 
-    # build interpolated input signal
-    ts = [0, 1, 2,   3,   4,   5,   5, 6]
-    us = [0, 0, 100, 100, -50, -50, 0, 0]
-    
-    # add filter to interpolate data
-    bbb.add_filter('input',
-		   Interp(signal = us, time = ts),
-		   ['clock'],
-                   ['pwm'])
-    
     # add motor speed signal
     bbb.add_signal('speed')
     
@@ -54,26 +44,28 @@ def main():
                    Differentiator(),
                    ['clock','encoder'],
                    ['speed'])
+
+    # add motor speed signal
+    bbb.add_signal('speed_reference')
     
-    # add low-pass signal
-    bbb.add_signal('fspeed')
+    # add pid controller
+    pid = System(model = PID(Kp = 1))
     
-    # add low-pass filter
-    bbb.add_filter('LPF',
-                   System(model = LPF(fc = 5, period = Ts)),
-                   ['speed'],
-                   ['fspeed'])
+    bbb.add_filter('input',
+		   Feedback(block = pid),
+		   ['encoder','speed_reference'],
+                   ['pwm'])
     
     # add logger
     bbb.add_sink('logger',
                  Logger(),
-                 ['clock','pwm','encoder','speed','fspeed'])
+                 ['clock','pwm','encoder','speed','speed_reference'])
     
     # Add a timer to stop the controller
     bbb.add_timer('stop',
 		  Constant(value = 0),
 		  None, ['is_running'],
-                  period = 6, repeat = False)
+                  period = 1, repeat = False)
     
     # print controller info
     print(bbb.info('all'))
@@ -85,10 +77,10 @@ def main():
 
         # reset clock
         bbb.set_source('clock', reset = True)
-        with bbb:
+        #with bbb:
 
             # wait for the controller to finish on its own
-            bbb.join()
+            #bbb.join()
             
         print('> Done with the controller.')
             
@@ -98,6 +90,8 @@ def main():
     finally:
         pass
 
+    return
+    
     # read logger
     data = bbb.read_sink('logger')
     clock = data[:,0]

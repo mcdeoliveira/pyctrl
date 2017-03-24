@@ -84,8 +84,8 @@ implement an algorithm that is currently not available in
 :ref:`Package-ctrl.block`.
 
 Your blocks should inherit from :py:class:`ctrl.block.Block` or one of
-its derived class, such as :py:class:`ctrl.block.BufferBlock` or
-:py:class:`ctrl.block.FilterBlock`, which are described next.
+its derived class, such as :py:class:`ctrl.block.BufferBlock`, which
+are described next.
 
 Extending :py:class:`ctrl.block.Block`
 --------------------------------------
@@ -196,10 +196,15 @@ next section.
 Extending :py:class:`ctrl.block.BufferBlock`
 --------------------------------------------
 
-The class :py:class:`ctrl.block.BufferBlock` defines an internal
-attribute :py:obj:`buffer` and special methods
-:py:meth:`ctrl.block.BufferBlock.buffer_read` and
-:py:meth:`ctrl.block.BufferBlock.buffer_write`.
+The class :py:class:`ctrl.block.BufferBlock` has several features that
+can facilitate the implementation of blocks. First,:
+py:meth:`ctrl.block.BufferBlock.buffer_read` and
+:py:meth:`ctrl.block.BufferBlock.buffer_write` work with a an internal
+attribute :py:obj:`buffer`, which can be used to carry values from
+:py:meth:`ctrl.block.BufferBlock.buffer_write` to
+:py:meth:`ctrl.block.BufferBlock.buffer_read`. Second, it support
+*multiplexing* and *demultiplexing* of inputs. You will learn about
+that later.
 
 
 .. literalinclude:: ../python/ctrl/block/__init__.py

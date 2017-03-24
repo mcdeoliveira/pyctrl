@@ -11,5 +11,3 @@ Introduction
 .. include:: ctrl.block.rst
 
 .. include:: ctrl.system.rst
-
-.. include:: ctrl.rc.rst

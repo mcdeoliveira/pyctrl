@@ -33,7 +33,8 @@
 # ones.
 extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.mathjax',
-              'sphinx.ext.autosectionlabel']
+              'sphinx.ext.autosectionlabel',
+              'sphinxcontrib.tikz']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -120,6 +121,8 @@ latex_elements = {
     #
     # 'preamble': '',
 
+    'preamble': '\\usepackage{tikz}',
+    
     # Latex figure (float) alignment
     #
     # 'figure_align': 'htbp',
