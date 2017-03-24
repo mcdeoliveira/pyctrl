@@ -135,8 +135,8 @@ def main():
     C = np.array([[-383.009, 303.07]])
     D = 2*np.pi*np.array([[-1.22015, 0]])
 
-    B = (100/7.4)*np.hstack((-B, B[:,1]))
-    D = (100/7.4)*np.hstack((-D, D[:,1]))
+    B = (100/7.4)*np.vstack((-B, B[:,1]))
+    D = (100/7.4)*np.vstack((-D, D[:,1]))
 
     ssctrl = DTSS(A,B,C,D)
 
