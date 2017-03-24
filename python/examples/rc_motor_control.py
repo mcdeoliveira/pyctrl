@@ -75,6 +75,9 @@ def main():
         # run the controller
         print('> Run the controller.')
 
+        # set speed_reference
+        bbb.set_signal('speed_reference', 1)
+
         # reset clock
         bbb.set_source('clock', reset = True)
         with bbb:
