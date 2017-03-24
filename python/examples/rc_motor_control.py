@@ -49,7 +49,7 @@ def main():
     bbb.add_signal('speed_reference')
     
     # add pid controller
-    pid = System(model = PID(Kp = 30))
+    pid = System(model = PID(Kp = 30, Ki = 1))
     
     bbb.add_filter('input',
 		   Feedback(block = pid),
