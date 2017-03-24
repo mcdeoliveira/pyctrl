@@ -66,7 +66,7 @@ def main():
     
     # build interpolated input signal
     ts = [0, 1, 2,  3,   4,  5, 5, 6]
-    us = [0, 0, 10, 10, -5, -5, 0, 0]
+    us = [0, 0, 8, 8, -4, -4, 0, 0]
     
     # add filter to interpolate data
     bbb.add_filter('input',
