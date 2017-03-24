@@ -118,7 +118,6 @@ def main():
                    ['motor1','motor2'])
 
     # set references
-    mip.set_signal('theta_dot_reference', 0)
     mip.set_signal('phi_dot_reference',0)
     mip.set_signal('steer_reference',0.5)
 
