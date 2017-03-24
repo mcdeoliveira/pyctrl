@@ -1546,8 +1546,8 @@ the feedack controller as follows::
     C = np.array([[-383.009, 303.07]])
     D = np.array([[-1.22015, 0]])
 
-    B = 2*np.pi*(100/7.4)*np.hstack((-B, B[:,1]))
-    D = 2*np.pi*(100/7.4)*np.hstack((-D, D[:,1]))
+    B = 2*np.pi*(100/7.4)*np.hstack((-B, B[:,1:]))
+    D = 2*np.pi*(100/7.4)*np.hstack((-D, D[:,1:]))
 
     ssctrl = DTSS(A,B,C,D)
 
@@ -1568,7 +1568,11 @@ As a final step connect the *signal* :py:data:`pwm` to both motors::
                    ShortCircuit(),
                    ['pmw'],
 		   ['motor2'])
-		   
+
+The code for a complete controller with some added bells and whitles
+to let you drive the MIP while balancing upright is given in
+:ref:`rc_mip_balance.py`. A video of the resulting balancing
+controller is available `here <http://guitar.ucsd.edu/beaglebone/mip.mpeg>`.
 
 
 References
