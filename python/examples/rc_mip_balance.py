@@ -92,6 +92,9 @@ def main():
                    ['clock','phi'],
                    ['phi_dot'])
 
+    # phi dot reference
+    mip.add_signal('phi_dot_reference')
+
     # state-space matrices
     A = np.array([[0.913134, 0.0363383],[-0.0692862, 0.994003]])
     B = 2*np.pi*np.array([[0.00284353, -0.000539063], [0.00162443, -0.00128745]])
@@ -104,7 +107,7 @@ def main():
     ssctrl = DTSS(A,B,C,D)
 
     # state-space controller
-    mip.add_signal('pwm')
+    mip.add_signals('pwm')
     mip.add_filter('controller',
                    System(model = ssctrl),
                    ['theta_dot','phi_dot','phi_dot_reference'],
