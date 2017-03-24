@@ -11,6 +11,8 @@ import numpy as np
 import sys, tty, termios
 import threading
 
+import ctrl
+
 def brief_warning(message, category, filename, lineno, line=None):
     return "*{}\n".format(message)
 
@@ -64,16 +66,18 @@ def get_arrows(mip, fd):
         
 def main():
 
-    import ctrl
+    # import blocks and controller
+    from ctrl.rc.mip import Controller
     from ctrl.block.system import System, Subtract, Differentiator, Sum, Gain
     from ctrl.block.nl import ControlledCombination
     from ctrl.block import Logger, ShortCircuit
     from ctrl.system.ss import DTSS
 
     # create mip
-    from ctrl.rc.mip import Controller
     mip = Controller()
 
+    print(mip.info('all'))
+    
     # phi is the average of the encoders
     mip.add_signal('phi')
     mip.add_filter('phi',
