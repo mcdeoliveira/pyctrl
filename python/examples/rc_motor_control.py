@@ -59,7 +59,7 @@ def main():
     
     pid = System(model = PID(Kp = Kp, Ki = Ki, period = Ts))
     
-    bbb.add_filter('input',
+    bbb.add_filter('PIcontrol',
 		   Feedback(block = pid),
 		   ['speed','speed_reference'],
                    ['pwm'])
