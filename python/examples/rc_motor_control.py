@@ -65,7 +65,7 @@ def main():
     bbb.add_timer('stop',
 		  Constant(value = 0),
 		  None, ['is_running'],
-                  period = 1, repeat = False)
+                  period = 6, repeat = False)
     
     # print controller info
     print(bbb.info('all'))
