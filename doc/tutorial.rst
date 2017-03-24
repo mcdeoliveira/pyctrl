@@ -1268,10 +1268,7 @@ given in the feedback block-diagram:
 
 .. _FeedbackDiagram:
 
-.. tikz:: Block-diagram for feedback control
-   :libs: arrows,positioning
-	  
-	  [>=latex', block/.style = {
+.. tikz:: [>=latex', block/.style = {
 	     draw,
 	     fill=blue!5,
 	     rectangle,
@@ -1393,10 +1390,7 @@ State-space MIP balance controller
 
 .. _MIPDiagram:
 
-.. tikz:: Block-diagram for balancing the MIP
-   :libs: arrows,positioning
-	  
-	  [>=latex', block/.style = {
+.. tikz:: [>=latex', block/.style = {
 	     draw,
 	     fill=blue!5,
 	     rectangle,

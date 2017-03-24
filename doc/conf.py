@@ -99,6 +99,7 @@ html_theme = 'alabaster'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
+tikz_tikzlibraries = 'arrows,positioning'
 
 # -- Options for HTMLHelp output ------------------------------------------
 
@@ -121,7 +122,7 @@ latex_elements = {
     #
     # 'preamble': '',
 
-    'preamble': '\\usepackage{tikz}',
+    'preamble': '\\usepackage{tikz}' + '\\usetikzlibrary{' + tikz_tikzlibraries + '}',
     
     # Latex figure (float) alignment
     #
