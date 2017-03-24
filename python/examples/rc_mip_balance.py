@@ -92,43 +92,6 @@ def main():
                    ['clock','phi'],
                    ['phi_dot'])
 
-    # calculate theta errors
-    mip.add_signal('theta_dot_reference')
-    mip.add_signal('theta_dot_error')
-    mip.add_filter('sub_theta',
-                   Subtract(),
-                   ['theta_dot','theta_dot_reference'],
-                   ['theta_dot_error'])
-
-    # calculate phi errors
-    mip.add_signal('phi_dot_reference')
-    mip.add_signal('phi_dot_error')
-    mip.add_filter('sub_phi',
-                   Subtract(),
-                   ['phi_dot','phi_dot_reference'],
-                   ['phi_dot_error'])
-
-    # state-space controller
-    # Ts = 0.01
-    Ac = np.array([[0.913134, 0.0363383],[-0.0692862, 0.994003]])
-    Bc = 2*np.pi*np.array([[0.00284353, -0.000539063], [0.00162443, -0.00128745]])
-    Cc = np.array([[-383.009, 303.07]])
-    Dc = 2*np.pi*np.array([[-1.22015, 0]])
-
-    Bc = (100/7.4)*Bc
-    Dc = (100/7.4)*Dc
-
-    K = 1
-
-    ssctrl = DTSS(Ac,K*Bc,Cc,K*Dc)
-
-    mip.add_signal('pwm')
-    mip.add_filter('controller',
-                   System(model = ssctrl),
-                   ['theta_dot_error','phi_dot_error'],
-                   ['pwm'])
-
-
     # state-space matrices
     A = np.array([[0.913134, 0.0363383],[-0.0692862, 0.994003]])
     B = 2*np.pi*np.array([[0.00284353, -0.000539063], [0.00162443, -0.00128745]])
@@ -140,6 +103,7 @@ def main():
 
     ssctrl = DTSS(A,B,C,D)
 
+    # state-space controller
     mip.add_signal('pwm')
     mip.add_filter('controller',
                    System(model = ssctrl),
@@ -152,16 +116,6 @@ def main():
                    ControlledCombination(),
                    ['steer_reference', 'pwm','pwm'],
                    ['motor1','motor2'])
-
-    # connect controller to motors
-    # mip.add_filter('cl1',
-    #                ShortCircuit(),
-    #                ['pwm'],
-    #                ['motor1'])
-    # mip.add_filter('cl2',
-    #                ShortCircuit(),
-    #                ['pwm'],
-    #                ['motor2'])
 
     # set references
     mip.set_signal('theta_dot_reference', 0)
