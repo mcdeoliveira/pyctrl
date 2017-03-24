@@ -122,27 +122,45 @@ def main():
 
     ssctrl = DTSS(Ac,K*Bc,Cc,K*Dc)
 
-    mip.add_signal('voltage')
+    mip.add_signal('pwm')
     mip.add_filter('controller',
                    System(model = ssctrl),
                    ['theta_dot_error','phi_dot_error'],
-                   ['voltage'])
+                   ['pwm'])
 
+
+    # state-space matrices
+    A = np.array([[0.913134, 0.0363383],[-0.0692862, 0.994003]])
+    B = 2*np.pi*np.array([[0.00284353, -0.000539063], [0.00162443, -0.00128745]])
+    C = np.array([[-383.009, 303.07]])
+    D = 2*np.pi*np.array([[-1.22015, 0]])
+
+    B = (100/7.4)*np.hstack((-B, B[:,1]))
+    D = (100/7.4)*np.hstack((-D, D[:,1]))
+
+    ssctrl = DTSS(A,B,C,D)
+
+    mip.add_signal('pwm')
+    mip.add_filter('controller',
+                   System(model = ssctrl),
+                   ['theta_dot','phi_dot','phi_dot_reference'],
+                   ['pwm'])
+    
     # steering biasing
     mip.add_signal('steer_reference')
     mip.add_filter('steer',
                    ControlledCombination(),
-                   ['steer_reference', 'voltage','voltage'],
+                   ['steer_reference', 'pwm','pwm'],
                    ['motor1','motor2'])
 
     # connect controller to motors
     # mip.add_filter('cl1',
     #                ShortCircuit(),
-    #                ['voltage'],
+    #                ['pwm'],
     #                ['motor1'])
     # mip.add_filter('cl2',
     #                ShortCircuit(),
-    #                ['voltage'],
+    #                ['pwm'],
     #                ['motor2'])
 
     # set references
