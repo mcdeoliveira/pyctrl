@@ -200,9 +200,6 @@ class BufferBlock(Block):
                 # simply copy to buffer
                 self.buffer = values
 
-            # call buffer_write
-            self.buffer_write()
-
     def read(self):
         """
         Calls `self.buffer_read` then returns the private `buffer` property.
@@ -216,9 +213,6 @@ class BufferBlock(Block):
         """
         if self.enabled:
 
-            # call buffer_read
-            self.buffer_read()
-        
             # return buffer
             if self.buffer and self.demux:
                 self.buffer = tuple(numpy.hstack(self.buffer).tolist())
@@ -227,21 +221,7 @@ class BufferBlock(Block):
 
         # else return None
 
-    def buffer_read(self):
-        raise BlockException('This block does not support read')
-
-    def buffer_write(self):
-        raise BlockException('This block does not support write')
-
-class FilterBlock(BufferBlock):
-
-    def buffer_read(self):
-        pass
-
-    def buffer_write(self):
-        pass
-
-class ShortCircuit(FilterBlock):
+class ShortCircuit(BufferBlock):
     """
     *ShortCircuit* copies input to the output, that is
 
@@ -342,11 +322,12 @@ class Constant(BufferBlock):
         value = kwargs.pop('value', 1)
         
         super().__init__(**kwargs)
-        
-        self.buffer = (value, )
 
-    def buffer_read(self):
-        pass
+        if isinstance(value, (tuple, list)):
+            self.buffer = value
+        else:
+            self.buffer = (value, )
+            
     
 class Signal(BufferBlock):
     """
@@ -405,7 +386,7 @@ class Signal(BufferBlock):
             
         super().set(**kwargs)
 
-    def buffer_read(self):
+    def read(self):
         """
         Read from *Signal*.
 
@@ -435,6 +416,9 @@ class Signal(BufferBlock):
                 self.index = 0
 
         self.buffer = (xk,)
+
+        # call super
+        return super().read()
 
 class Interp(BufferBlock):
     """
@@ -509,13 +493,17 @@ class Interp(BufferBlock):
         
         super().set(**kwargs)
 
-    def buffer_write(self):
+    def write(self, *values):
         """
         Writes finite difference derivative to the private `buffer`.
 
         This signal must be a clock.
         """
 
+        # call super
+        super().write(*values)
+
+        # get index from buffer
         assert len(self.buffer) == 1
         self.time_current = self.buffer[0]
 
@@ -523,7 +511,7 @@ class Interp(BufferBlock):
         if self.time_origin is None:
             self.time_origin = self.time_current
         
-    def buffer_read(self):
+    def read(self):
         """
         Read from *Signal*.
 
@@ -539,6 +527,9 @@ class Interp(BufferBlock):
                     period = self.period)
             
         self.buffer = (xk,)
+
+        # call super
+        return super().read()
 
 class Map(BufferBlock):
     """
@@ -567,15 +558,16 @@ class Map(BufferBlock):
 
         super().set(**kwargs)
         
-    def buffer_read(self):
-        pass
-    
-    def buffer_write(self):
+    def write(self, *values):
         """
         Writes a tuple with the result of `function` applied to each
         input to the private `buffer`.
         """
 
+        # call super
+        super().write(*values)
+
+        # map onto buffer
         self.buffer = tuple(map(self.function, self.buffer))
 
 class Apply(BufferBlock):
@@ -605,15 +597,16 @@ class Apply(BufferBlock):
 
         super().set(**kwargs)
         
-    def buffer_read(self):
-        pass
-    
-    def buffer_write(self):
+    def write(self, *values):
         """
         Writes a tuple with the result of `function` applied to all
         inputs to the private `buffer`.
         """
 
+        # call super
+        super().write(*values)
+
+        # apply on buffer
         self.buffer = (self.function(*self.buffer), )
 
 class Logger(Block):

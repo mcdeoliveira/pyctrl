@@ -5,7 +5,7 @@ from .. import block
 
 # Blocks
 
-class ControlledCombination(block.FilterBlock):
+class ControlledCombination(block.BufferBlock):
     r"""
     *ControlledCombination* implements the combination:
 
@@ -39,17 +39,20 @@ class ControlledCombination(block.FilterBlock):
 
         super().set(**kwargs)
 
-    def buffer_write(self):
+    def write(self, *values):
         """
         Writes combination of inputs to the private `buffer`.
         """
+
+        # call super
+        super().write(*values)
 
         assert len(self.buffer) == 1 + 2 * self.m
         alpha = self.buffer[0] / self.gain;
         self.buffer = tuple((1-alpha) * v for v in self.buffer[1:self.m+1]) \
                       + tuple(alpha * v for v in self.buffer[self.m+1:])
 
-class ControlledGain(block.FilterBlock):
+class ControlledGain(block.BufferBlock):
     r"""
     *ControlledGain* implements the controlled gain:
 
@@ -62,12 +65,19 @@ class ControlledGain(block.FilterBlock):
 
         super().__init__(**kwargs)
     
-    def buffer_write(self):
+    def write(self, *values):
 
+        """
+        Writes product of gain times inputs to the private `buffer`.
+        """
+
+        # call super
+        super().write(*values)
+        
         assert len(self.buffer) > 1
         self.buffer = tuple(self.buffer[0] * v for v in self.buffer[1:])
 
-class DeadZone(block.FilterBlock):
+class DeadZone(block.BufferBlock):
     r"""
     *DeadZone* implements the piecewise function:
 
@@ -151,8 +161,11 @@ class DeadZone(block.FilterBlock):
         else: # -d <= x <= d
             return c*x
         
-    def buffer_write(self):
+    def write(self, *values):
 
+        # call super
+        super().write(*values)
+        
         # Dead-zone compensation
         (a, b, c) = self._pars
         # x = self.buffer[0]

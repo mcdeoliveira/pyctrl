@@ -12,7 +12,7 @@ from ctrl.system.ss import DTSS
 
 # Blocks
 
-class System(block.FilterBlock):
+class System(block.BufferBlock):
     """
     *System* is a wrapper for a time-invariant dynamic system model. 
 
@@ -53,17 +53,19 @@ class System(block.FilterBlock):
 
         Calls `model.set_output(0)`.
         """
-
         self.model.set_output(numpy.zeros(self.model.shape()[1]))
         
-    def buffer_write(self):
+    def write(self, *values):
         """
         Update `model` and write to the private `buffer`.
         """
+
+        # call super
+        super().write(*values)
         
         self.buffer = (self.model.update(self.buffer[0]), )
         
-class TimeVaryingSystem(System):
+class TimeVaryingSystem(block.BufferBlock):
     """
     *TimeVarying* is a wrapper for a time-varying dynamic system model.
 
@@ -74,9 +76,17 @@ class TimeVaryingSystem(System):
 
     def __init__(self, **kwargs):
 
-        super().__init__(**kwargs)
+        model = kwargs.pop('model', DTTF())
+        assert isinstance(model, system.TVSystem)
+        self.model = model
 
-        assert isinstance(self.model, system.TVSystem)
+        # set mux by default
+        if 'mux' not in kwargs:
+            kwargs['mux'] = True
+        elif not kargs.get('mux'):
+            raise BlockException('System must have `mux` equal to `True`.')
+        
+        super().__init__(**kwargs)
         
     def set(self, **kwargs):
         """
@@ -88,7 +98,7 @@ class TimeVaryingSystem(System):
         if 'model' in kwargs:
             model = kwargs.pop('model')
             assert isinstance(model, system.TVSystem)
-            self.model = 'model'
+            self.model = model
 
         super().set(**kwargs)
 
@@ -96,23 +106,26 @@ class TimeVaryingSystem(System):
         """
         Reset `TimeVarying` block.
 
-        Calls `model.set_state(0 * model.get_state())`.
+        Calls `model.set_output(0, 0)`.
         """
-        self.model.set_output(numpy.zeros(self.model.shape()[1]))
+        self.model.set_output(0, numpy.zeros(self.model.shape()[1]))
         
-    def buffer_write(self):
+    def write(self, *values):
         """
         Update `model` and write to the private `buffer`.
 
         The first signal must be a clock.
         """
 
+        # call super
+        super().write(*values)
+
         # update model
         # time comes first
         uk = self.buffer[0]
         self.buffer = (self.model.update(uk[0], uk[1:]), )
 
-class Gain(block.FilterBlock):
+class Gain(block.BufferBlock):
     """
     *Gain* multiplies input by a constant gain, that is
 
@@ -142,14 +155,17 @@ class Gain(block.FilterBlock):
 
         super().set(**kwargs)
 
-    def buffer_write(self):
+    def write(self, *values):
         """
         Writes product of `gain` times current input to the private `buffer`.
         """
 
+        # call super
+        super().write(*values)
+
         self.buffer = tuple(v * self.gain for v in self.buffer)
 
-class Affine(block.FilterBlock):
+class Affine(block.BufferBlock):
     """
     *Affine* multiplies and offset input by a constant gain and offset, that is
 
@@ -189,15 +205,18 @@ class Affine(block.FilterBlock):
 
         super().set(**kwargs)
 
-    def buffer_write(self):
+    def write(self, *values):
         """
         Writes product of `gain` times current input plus `offset` to
         the private `buffer`.
         """
 
+        # call super
+        super().write(*values)
+
         self.buffer = tuple(v*self.gain + self.offset for v in self.buffer)
 
-class Differentiator(block.FilterBlock):
+class Differentiator(block.BufferBlock):
     r"""
     *Differentiator* differentiates the input, that is
 
@@ -218,13 +237,16 @@ class Differentiator(block.FilterBlock):
         # call super excluding time and last
         return super().get(keys, exclude = ('time', 'last'))
     
-    def buffer_write(self):
+    def write(self, *values):
         """
         Writes finite difference derivative to the private `buffer`.
 
         The first signal must be a clock.
         """
 
+        # call super
+        super().write(*values)
+        
         #print('values = {}'.format(values))
 
         assert len(self.buffer) > 1
@@ -247,7 +269,7 @@ class Differentiator(block.FilterBlock):
             self.time, self.last, self.buffer = t, x, \
                 [0*v for v in x]
 
-class Feedback(block.FilterBlock):
+class Feedback(block.BufferBlock):
     r"""
     *Feedback* creates a feedback connection for a given `block`, that is
 
@@ -298,11 +320,14 @@ class Feedback(block.FilterBlock):
 
         super().set(**kwargs)
 
-    def buffer_write(self):
+    def write(self, *values):
         """
         Writes feedback signal to the private `buffer`.
         """
 
+        # call super
+        super().write(*values)
+        
         # calculate error
         error = tuple(self.gamma*y-r for (y,r) in zip(self.buffer[self.m:], self.buffer[:self.m]))
 
@@ -312,46 +337,7 @@ class Feedback(block.FilterBlock):
         # then read
         self.buffer = self.block.read()
 
-class Sum(block.FilterBlock):
-    """
-    *Sum* adds all inputs and multiplies the result by a constant gain, that is
-
-    :math:`y = a \sum_{i = 0}^{m-1} u[m]`,
-
-    where :math:`a` is the gain.
-
-    :param gain: multiplier (default `1`)
-    """
-
-    def __init__(self, **kwargs):
-
-        self.gain = kwargs.pop('gain', 1)
-        
-        super().__init__(**kwargs)
-
-    def set(self, **kwargs):
-        """
-        Set properties of `Sum` block.
-
-        :param gain: multiplier
-        """
-        
-        if 'gain' in kwargs:
-            self.gain = kwargs.pop('gain')
-
-        super().set(**kwargs)
-
-    def buffer_write(self):
-        """
-        Writes product of `gain` times the sum of the current input to the private `buffer`.
-
-        :param values: list of values
-        :return: tuple with scaled input
-        """
-
-        self.buffer = (self.gain * numpy.sum(self.buffer, axis=0), )
-        
-class Average(block.FilterBlock):
+class Average(block.BufferBlock):
     """
     *Average* calculates the (weighted) average of all inputs, that is
 
@@ -384,7 +370,7 @@ class Average(block.FilterBlock):
                 
         super().set(**kwargs)
 
-    def buffer_write(self):
+    def write(self, *values):
         """
         Writes average of the current input to the private `buffer`.
 
@@ -392,6 +378,9 @@ class Average(block.FilterBlock):
         :return: tuple with scaled input
         """
 
+        # call super
+        super().write(*values)
+        
         if not self.buffer:
             self.buffer = (0, )
         elif self.weights is not None:
@@ -399,18 +388,92 @@ class Average(block.FilterBlock):
         else:
             self.buffer = (numpy.average(self.buffer, axis=0), )
 
-class Subtract(Sum):
+
+class Sum(block.BufferBlock):
+    """
+    *Sum* adds all inputs and multiplies the result by a constant gain, that is
+
+    :math:`y = a \sum_{i = 0}^{m-1} u[m]`,
+
+    where :math:`a` is the gain.
+
+    :param gain: multiplier (default `1`)
+    """
+
+    def __init__(self, **kwargs):
+
+        self.gain = kwargs.pop('gain', 1)
+        
+        super().__init__(**kwargs)
+
+    def set(self, **kwargs):
+        """
+        Set properties of `Sum` block.
+
+        :param gain: multiplier
+        """
+        
+        if 'gain' in kwargs:
+            self.gain = kwargs.pop('gain')
+
+        super().set(**kwargs)
+
+    def write(self, *values):
+        """
+        Writes product of `gain` times the sum of the current input to the private `buffer`.
+
+        :param values: list of values
+        :return: tuple with scaled input
+        """
+        # call super
+        super().write(*values)
+        
+        self.buffer = (self.gain * numpy.sum(self.buffer, axis=0), )
+        
+
+class Subtract(block.BufferBlock):
     r"""
     *Subtract* subtracts first input as in
 
-    :math:`y = \sum_{i = 1}^{m-1} u[m] - u[0]`,
+    :math:`y = a \sum_{i = 1}^{m-1} u[m] - u[0]`,
+
+    where :math:`a` is the gain.
+
+    :param gain: multiplier (default `1`)
     """
 
-    def buffer_write(self):
+    def __init__(self, **kwargs):
+
+        self.gain = kwargs.pop('gain', 1)
+        
+        super().__init__(**kwargs)
+
+    def set(self, **kwargs):
+        """
+        Set properties of `Sum` block.
+
+        :param gain: multiplier
+        """
+        
+        if 'gain' in kwargs:
+            self.gain = kwargs.pop('gain')
+
+        super().set(**kwargs)
+
+    def write(self, *values):
+        """
+        Writes product of `gain` times the difference of the current input to the private `buffer`.
+
+        :param values: list of values
+        :return: tuple with scaled input
+        """
+
+        # call super
+        super().write(*values)
         
         if self.buffer:
             # flip first entry
             self.buffer = (-self.buffer[0],) + self.buffer[1:]
 
-        # call average
-        super().buffer_write()
+        # calculate sum
+        self.buffer = (self.gain * numpy.sum(self.buffer, axis=0), )

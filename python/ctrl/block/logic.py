@@ -9,7 +9,7 @@ from .. import block
 
 # Blocks
 
-class Compare(block.FilterBlock):
+class Compare(block.BufferBlock):
     """
     The Block Compare takes two inputs and writes `1` if 
     
@@ -52,13 +52,16 @@ class Compare(block.FilterBlock):
         :return: tuple with 0 or 1
         """
 
+        # call super
+        super().write(*values)
+        
         assert len(values) == 2
         if values[1] - values[0] >= self.threshold:
             self.buffer = (1, )
         else:
             self.buffer = (0, )
 
-class CompareAbs(block.FilterBlock):
+class CompareAbs(block.BufferBlock):
     """
     The Block *CompareAbs* takes one input and writes `1` if 
     
@@ -119,6 +122,9 @@ class CompareAbs(block.FilterBlock):
         :return: tuple with 0 or 1
         """
 
+        # call super
+        super().write(*values)
+        
         assert len(values) == 1
         if math.fabs(values[0]) <= self.threshold:
             if self.invert:
@@ -131,7 +137,7 @@ class CompareAbs(block.FilterBlock):
             else:
                 self.buffer = (0, )
 
-class Trigger(block.FilterBlock):
+class Trigger(block.BufferBlock):
     """
     The Block *Trigger* writes
     
@@ -200,6 +206,9 @@ class Trigger(block.FilterBlock):
         :return: see above
         """
 
+        # call super
+        super().write(*values)
+        
         assert len(values) > 0
         if self.state:
             self.buffer = values[1:]

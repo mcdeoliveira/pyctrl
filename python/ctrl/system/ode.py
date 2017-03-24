@@ -60,11 +60,11 @@ class ODEBase(system.TVSystem):
     def shape(self):
         return self.shp
             
-    def set_output(self, yk):
+    def set_output(self, tk, yk):
         
         u0 = numpy.zeros(self.shp[0])
         x0 = self.state
-        self.state = scipy.optimize.newton(lambda x: self.g(0, x, u0) - yk, x0)
+        self.state = scipy.optimize.newton(lambda x: self.g(tk, x, u0) - yk, x0)
     
     def update(self, tk, uk):
         
