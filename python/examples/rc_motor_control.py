@@ -53,7 +53,7 @@ def main():
     
     bbb.add_filter('input',
 		   Feedback(block = pid),
-		   ['encoder','speed_reference'],
+		   ['speed','speed_reference'],
                    ['pwm'])
     
     # add logger
