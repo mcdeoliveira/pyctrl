@@ -77,10 +77,10 @@ def main():
 
         # reset clock
         bbb.set_source('clock', reset = True)
-        #with bbb:
+        with bbb:
 
             # wait for the controller to finish on its own
-            #bbb.join()
+            bbb.join()
             
         print('> Done with the controller.')
             
