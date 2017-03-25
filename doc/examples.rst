@@ -65,3 +65,10 @@ rc_motor_control.py
 .. literalinclude:: ../python/examples/rc_motor_control.py
    :pyobject: main
 
+-------------------
+rc_mip_balance.py
+-------------------
+
+.. literalinclude:: ../python/examples/rc_mip_balance.py
+   :pyobject: main
+	      

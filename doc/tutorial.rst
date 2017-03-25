@@ -376,7 +376,9 @@ providing the module and class names as strings to
 :py:data:`'ctrl.block.clock'` and :py:data:`'TimerClock'` above, it
 will be possible to remotely initialize blocks that rely on the
 presence of specific hardware using our :ref:`Client Server
-Architecture`, as you will learn later.
+Architecture`, as you will learn later. Note that you do not have to
+directly import any modules when using
+:py:meth:`ctrl.Controller.add_device`.
 
 In some situations it might be helpful to be able to reset a
 controller to its original configuration. This can be done using the
@@ -1211,8 +1213,8 @@ the velocity plot below:
 where you can see that the motor has some difficulties overcoming
 `stiction <https://en.wikipedia.org/wiki/Stiction>`_, that is the
 static friction force that dominates when the velocities become small:
-it takes a bit longer to start around 1 second and gets *stuck* again
-around 4 s when the velocity comes to zero. Note also the more
+it takes a bit longer to start around 1 s and it gets *stuck* again
+around 3.7 s when the velocity becomes zero. Note also the more
 pronounced noise which is amplified by the differentiator and then
 attenuated by the low-pass filter.
 
@@ -1220,28 +1222,28 @@ attenuated by the low-pass filter.
 Closed-loop control
 -------------------
 
-The motivation to write this package is to be able to easily implement
-feedback controllers. The subject is extensive and will not be covered
-in any detail here. A completely unbiased and awesome reference is
-[deO16]_. The treatment is suitable to undergraduates students with an
-engineer and science background. **Again, do not let yourself be
-intimidated by the language here, you do not need to understand all
-the details to implement or, better yet, to benefit from using a
-feedback controller**
+The initial motivation to write this package was to be able to easily
+implement and deploy feedback controllers. The subject of feedback
+control is extensive and will not be covered in any detail here. A
+completely unbiased and awesome reference is [deO16]_. The treatment
+is suitable to undergraduates students with an engineering or science
+background.
 
-Proportional-integral motor speed control
+**Again, do not let yourself be intimidated by the
+language here, you do not need to understand all the details to
+implement or, better yet, to benefit from using a feedback
+controller**
+
+Proportional-Integral motor speed control
 -----------------------------------------
 
 You will now turn to the implementation of a closed-loop
-proportional-integral controller using the same hardware discussed in
-the Section :ref:`Interfacing with hardware`. Start by installing the
-same devices as before, a motor and an encoder::
+Proportional-Integral controller, or PI controller for short, on the
+same hardware used in the Section :ref:`Interfacing with
+hardware`. Start by installing the same devices as before, one motor and
+one encoder::
 
-    # import Python's standard math module and numpy
-    import math, numpy
-    
     # import Controller and other blocks from modules
-    import rc
     from ctrl.rc import Controller
 
     # initialize controller
@@ -1277,7 +1279,7 @@ Because you will be controlling the motor speed, add also a differentiator::
                    ['clock','encoder'],
                    ['speed'])
 
-According to the dynamic model introduced earlier in :ref:`Simulated
+According to the dynamic model introduced earlier in Section :ref:`Simulated
 motor example`, the transfer-function from the PWM input, :math:`u`, to
 the motor velocity, :math:`\omega = \dot{\theta}`, is:
 
@@ -1323,24 +1325,25 @@ given in the feedback block-diagram:
 
 *Feedback* here means that a measurement of the motor speed,
 :math:`\omega`, will be compared with a reference speed,
-:math:`\bar{\omega}`, to create an *error signal*, :math:`e`. When
+:math:`\bar{\omega}`, to create an *error signal*, :math:`e`, that
+will then be *fed back* to the *Motor* by the *Controller*. When
 :math:`\omega` matches :math:`\bar{\omega}` exactly then the error
-signal is zero. It is the controller's job to produce a suitable pwm
-input, :math:`u`, so that this is possible. The PI controller does
-that by *integrating* the error. Indeed, the transfer-function of the
-PI controller corresponds to:
+signal, :math:`e`, is zero. It is the controller's job to produce a
+suitable PWM input, :math:`u`, so that this is possible. The PI
+controller does that by *integrating* the error signal. Indeed, the
+transfer-function of the PI controller corresponds to:
 
 .. math::
 
    u(t) = K_{\mathrm{p}} e(t) + K_{\mathrm{i}} \int_{0}^t e(\tau) \, d\tau
 
-You can see that it is the integrator's job to *estimate* the
-necessary level of motor PWM input, :math:`u`, so that the error can
-be made small, in other words, so that the motor can track a desired
-reference speed, :math:`\bar{\omega}`. Indeed, if the controller
-succeeds in its task to keep the error signal small, that is :math:`e
-= 0`, then the contribution from the proportional term,
-:math:`K_{\mathrm{p}} e(t)`, will also be zero.
+In a way, the integrator *estimates* the necessary level of motor PWM
+input, :math:`u`, so that the error can be made small, in other words,
+so that the motor can track a desired reference speed,
+:math:`\bar{\omega}`. Indeed, if the controller succeeds in its task
+to keep the error signal small, that is :math:`e = 0`, then the
+contribution from the proportional term, :math:`K_{\mathrm{p}} e(t)`,
+will also be zero.
 
 There's lot to be said about how to *design* suitable gains
 :math:`K_{\mathrm{p}}` and :math:`K_{\mathrm{i}}` [deO16]_. Here you
@@ -1358,7 +1361,7 @@ so that the closed-loop transfer-function from :math:`\bar{\omega}` to
    \frac{\Omega(s)}{\bar{\Omega}(s)} = \frac{G(s) K(s)}{1 + G(s) K(s)} = \frac{1}{\tau K_{\mathrm{p}}^{-1} g^{-1} s + 1} = \frac{1}{\tau s + 1}
 
 This will make the motor respond with the same time-constant as if it
-were in open-loop but this time with the ability to *track* constant a
+were in open-loop but this time with the ability to *track* a constant
 reference velocity signal :math:`\bar{\omega}`.
 
 Taking advantage of the blocks :py:class:`ctrl.block.system.System`
@@ -1402,7 +1405,7 @@ The complete code, including a reference speed that looks like
 the PWM input used before to drive the motor in Sections
 :ref:`Simulated motor example` and :ref:`Interfacing with hardware`,
 is in the example :ref:`rc_motor_control.py`. Results obtained with
-the MIP kit should look like the following plot:
+the `MIP kit <https://github.com/StrawsonDesign/EduMiP>`_ should look like the following plot:
 		   
 .. image:: figures/rc_motor_control.png
 
@@ -1411,7 +1414,7 @@ effectively calculating the required PWM input necessary for
 acomplishing that. Compare this behaviour with the previous
 *open-loop* graphs in which a curve similar to the reference speed was
 instead applied directly to the motor PWM input. Look also for some
-interesting side-effects of feedback control, such as the somwehat
+interesting side-effects of feedback control, such as the somewhat
 smoother behavior near the points where the motor reaches zero
 speed. Look for [deO16]_ for much more in depth discussions.
 
@@ -1419,10 +1422,11 @@ State-space MIP balance controller
 ----------------------------------
 
 Your second feedback controller will be more sophisticated. You will
-use two measurements and will be used to balance the MIP in its
-upright position. More details on the modeling and design of the
-controller you will implement here can be found in [Zhuo16]_. The
-final controller correspond to the following feedback diagram:
+use two measurements to balance the `MIP kit
+<https://github.com/StrawsonDesign/EduMiP>`_ in its upright
+position. More details on the modeling and design of the controller
+you will implement here can be found in [Zhuo16]_. The final
+controller corresponds to the following feedback diagram:
 
 .. _MIPDiagram:
 
@@ -1462,7 +1466,7 @@ be used to drive the MIP backward and forward.
 
 As described in detail in [Zhuo16]_, the discrete-time controller,
 corresponding to the block inside the dashed box in the :ref:`feedback
-diagram <MIPDiagram>`, is given by discrete-time state-space model of
+diagram <MIPDiagram>`, is given by a discrete-time state-space model of
 the form:
 
 .. math::
@@ -1479,7 +1483,7 @@ measurement and error signals
    \bar{\dot{\phi}}_k \end{pmatrix}
 
 and :math:`u_k` is the PWM input to be applied to both left and right
-MIP motors.
+motors.
 
 Implementing this controller is very simple. First initialize the
 controller as::
@@ -1605,9 +1609,9 @@ to let you drive the MIP while balancing upright is given in
 controller is available `here
 <http://guitar.ucsd.edu/beaglebone/mip.mpeg>`_.
 
-
+==========
 References
-----------
+==========
 
 .. [deO16] M. C. de Oliveira, *Fundamentals of Linear Control: a
            concise approach*, Cambridge University Press, 2016.
