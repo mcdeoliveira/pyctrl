@@ -60,10 +60,10 @@ Raspberry Pi support
 
 TODO 
 
-.. include:: tutorial.rst
+.. include:: tutorial.inc
 
-.. include:: advanced.rst
+.. include:: advanced.inc
 	     
-.. include:: examples.rst
+.. include:: examples.inc
 
      

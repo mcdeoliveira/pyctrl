@@ -2,12 +2,12 @@
 Reference Guide
 ###############
    
-============
-Introduction
-============
+========
+Preamble
+========
 
-.. include:: package_ctrl.rst
+.. include:: package_ctrl.inc
 
-.. include:: ctrl.block.rst
+.. include:: ctrl.block.inc
 
-.. include:: ctrl.system.rst
+.. include:: ctrl.system.inc
