@@ -60,9 +60,6 @@ instance/
 # Scrapy stuff:
 .scrapy
 
-# Sphinx documentation
-docs/_build/
-
 # PyBuilder
 target/
 
@@ -102,3 +99,10 @@ aed/settings.py
 *.o
 
 python/source/mpu9150/test
+
+# rc subdirectory
+python/rc
+
+# Sphinx documentation
+doc/_build/
+
