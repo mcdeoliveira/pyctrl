@@ -131,10 +131,10 @@ class DeadZone(block.BufferBlock):
             c = numpy.nan
         self._pars = (a,b,c)
 
-    def get(self, keys = None):
+    def get(self, *keys, exclude = ()):
 
         # call super
-        return super().get(keys, exclude = ('_pars',))
+        return super().get(*keys, exclude = exclude + ('_pars',))
 
     def set(self, **kwargs):
 

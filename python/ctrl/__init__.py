@@ -417,7 +417,7 @@ class Controller:
         if label not in self.sources:
             raise ControllerException("Source '{}' does not exist".format(label))
 
-        return self.sources[label]['block'].get(keys)
+        return self.sources[label]['block'].get(*keys)
 
     def read_source(self, label):
         """
@@ -522,7 +522,7 @@ class Controller:
         if label not in self.sinks:
             raise ControllerException("Sink '{}' does not exist".format(label))
 
-        return self.sinks[label]['block'].get(keys)
+        return self.sinks[label]['block'].get(*keys)
 
     def read_sink(self, label):
         """
@@ -644,7 +644,7 @@ class Controller:
         if label not in self.filters:
             raise ControllerException("Filter '{}' does not exist".format(label))
 
-        return self.filters[label]['block'].get(keys)
+        return self.filters[label]['block'].get(*keys)
 
     def read_filter(self, label):
         """
@@ -797,7 +797,82 @@ class Controller:
             'period': period,
             'repeat': repeat
         }
-            
+
+    def remove_timer(self, label):
+        """
+        Remove timer from Controller.
+
+        :param str label: the timer label
+        """
+        self.timers.pop(label)
+        
+    def set_timer(self, label, **kwargs):
+        """
+        Set timer attributes.
+
+        All attributes must be passed as key-value pairs and vary
+        depending on the type of block.
+
+        :param str label: the timer label
+        :param list inputs: set timer input signals
+        :param list outputs: set timer output signals
+        :param kwargs kwargs: other key-value pairs of attributes
+        """
+        if label not in self.timers:
+            raise ControllerException("Timer '{}' does not exist".format(label))
+
+        if 'inputs' in kwargs:
+            values = kwargs.pop('inputs')
+            assert isinstance(values, (list, tuple))
+            self.timers[label]['inputs'] = values
+
+        if 'outputs' in kwargs:
+            values = kwargs.pop('outputs')
+            assert isinstance(values, (list, tuple))
+            self.timers[label]['outputs'] = values
+
+        self.timers[label]['block'].set(**kwargs)
+        
+    def get_timer(self, label, *keys):
+        """
+        Get attributes from timer.
+
+        :param str label: the timer label
+        :param vargs keys: the keys of the attributes to get
+        :return: dictionary of attributes
+        :rtype: dict
+        """
+        if label not in self.timers:
+            raise ControllerException("Timer '{}' does not exist".format(label))
+
+        return self.timers[label]['block'].get(*keys)
+
+    def read_timer(self, label):
+        """
+        Read from timer. Call method `ctrl.block.read()`.
+        
+        :param str label: the timer label
+        """
+        return self.timers[label]['block'].read()
+
+    def write_timer(self, label, *values):
+        """
+        Write to timer. Call method `ctrl.block.write(*values)`.
+        
+        :param str label: the timer label
+        :param vargs values: the values to write to timer
+        """
+        self.timers[label]['block'].write(*values)
+
+    def list_timers(self):
+        """
+        List of the timers currently on Controller.
+
+        :return: a list of timer labels
+        :rtype: list
+        """
+        return list(self.timers.keys())
+        
     def __enter__(self):
         if self.debug > 0:
             print('> Starting controller')

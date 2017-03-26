@@ -81,7 +81,7 @@ class Block:
         if len(kwargs) > 0:
             raise BlockException("Does not know how to set '{}'".format(kwargs))
 
-    def get(self, keys = None, exclude = ()):
+    def get(self, *keys, exclude = ()):
         """
         Get properties of blocks. For example:
 
@@ -95,20 +95,37 @@ class Block:
         :raise: *KeyError* if `key` is not defined
         """
 
-        if keys is None or isinstance(keys, (list, tuple)):
-            #print('keys = {}'.format(keys))
-            if keys is None:
-                retval = self.__dict__.copy()
-            else:
-                retval = { k : self.__dict__[k] for k in keys }
-            for key in exclude:
-                del retval[key]
+        #print('> keys = {}'.format(keys))
+
+        if len(keys) == 0:
+            
+            # all keys
+            retval = self.__dict__.copy()
+
+            # exclude keys
+            for k in exclude:
+                # remove key
+                retval.pop(k,None)
+
             return retval
+            
+        #else:
+            
+        # multiple keys
+        retval = { k : self.__dict__[k] for k in keys }
 
-        if len(exclude) == 0 or keys not in exclude:
-            return self.__dict__[keys]
+        # exclude keys
+        for k, v in retval.items():
+            # if key in exclude
+            if k in exclude:
+                # remove key
+                raise KeyError('Item with key {} does not exist'.format(k))
 
-        raise KeyError()
+        # remove dict if single key
+        if len(keys) == 1:
+            return retval.popitem()[1]
+        else:
+            return retval
 
     def read(self):
         """
@@ -166,7 +183,7 @@ class BufferBlock(Block):
 
         super().__init__(**kwargs)
 
-    def get(self, keys = None, exclude = ()):
+    def get(self, *keys, exclude = ()):
         """
         Get properties of a *BufferBlock*.
 
@@ -176,7 +193,7 @@ class BufferBlock(Block):
         :param exclude: tuple with list of keys never to be returned (Default ())
         """
         # call super
-        return super().get(keys, exclude = exclude + ('buffer',))
+        return super().get(*keys, exclude = exclude + ('buffer',))
         
     def write(self, *values):
         """
@@ -443,10 +460,10 @@ class Interp(BufferBlock):
         assert self.signal.shape[0] == self.time.shape[0]
 
         # left
-        self.left = numpy.array(kwargs.pop('left', 0))
+        self.left = kwargs.pop('left', 0)
 
         # right
-        self.right = numpy.array(kwargs.pop('right', 0))
+        self.right = kwargs.pop('right', 0)
 
         # repeat?
         self.period = kwargs.pop('period', None)
@@ -630,10 +647,10 @@ class Logger(Block):
 
         super().__init__(*vars, **kwargs)
 
-    def get(self, keys = None, exclude = ()):
+    def get(self, *keys, exclude = ()):
 
         # call super
-        return super().get(keys, exclude = exclude + ('data',))
+        return super().get(*keys, exclude = exclude + ('data',))
 
     def reshape(self, number_of_rows, number_of_columns):
 

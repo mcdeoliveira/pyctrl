@@ -121,6 +121,18 @@ def set_controller(_controller = ctrl.Controller()):
 
         't': ('SPPPDI', '', controller.add_timer,
               'Add timer'),
+        'f': ('SK', '', controller.set_timer,
+              'Set timer'),
+        'g': ('SR', 'K', controller.get_timer,
+              'Get timer'),
+        'v': ('S', '', controller.remove_timer,
+              'Remove timer'),
+        'w': ('', 'P', controller.list_timers,
+              'List timers'),
+        'x': ('SP', '', controller.write_timer,
+              'Write timer'),
+        'y': ('S', 'P', controller.read_timer,
+              'Read timer'),
         
         # 'a': ('D',  '', controller.set_period,
         #       'Set period'),

@@ -56,7 +56,7 @@ class Clock(block.Block):
         self.time_origin = self.time
         self.count = 0
 
-    def get(self, keys = None, exclude = ()):
+    def get(self, *keys, exclude = ()):
         """
         Get properties of `Clock`. 
 
@@ -77,7 +77,7 @@ class Clock(block.Block):
             self.calculate_average_period()
 
         # call super excluding time and last
-        return super().get(keys, exclude = exclude)
+        return super().get(*keys, exclude = exclude)
         
     def read(self):
         """
@@ -208,7 +208,7 @@ class TimerClock(Clock):
         """
         return self.period
         
-    def get(self, keys = None, exclude = ()):
+    def get(self, *keys, exclude = ()):
         """
         Get properties of `TimerClock`. 
 
@@ -224,8 +224,10 @@ class TimerClock(Clock):
         """
         
         # call super excluding time and last
-        return super().get(keys, exclude + ('condition', 'timer', 'running',
-                                            'thread') )
+        return super().get(*keys, exclude = exclude + ('condition',
+                                                       'timer',
+                                                       'running',
+                                                       'thread') )
     
     def tick(self):
 

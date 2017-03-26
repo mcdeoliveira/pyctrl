@@ -375,7 +375,7 @@ providing the module and class names as strings to
 :py:meth:`ctrl.Controller.add_device`, i.e. the arguments
 :py:data:`'ctrl.block.clock'` and :py:data:`'TimerClock'` above, it
 will be possible to remotely initialize blocks that rely on the
-presence of specific hardware using our :ref:`Client Server
+presence of specific hardware using our :ref:`Client-Server
 Architecture`, as you will learn later. Note that you do not have to
 directly import any modules when using
 :py:meth:`ctrl.Controller.add_device`.
@@ -601,6 +601,59 @@ where you can see the relationship between the inputs and outputs
 *signals* indicated by a pair of arrows :samp:`>>` coming in *and* out
 of the the *filter* :py:data:`input`. The complete code can be found
 in :ref:`hello_filter_1.py`.
+
+------------------------
+Interacting with Blocks 
+------------------------
+
+Instances of :py:class:`ctrl.block.Block` can have its attributes
+retrieved and modified using the methods
+:py:meth:`ctrl.block.Block.get` and
+:py:meth:`ctrl.block.Block.set`. There is also the special methods
+:py:meth:`ctrl.block.Block.reset`,
+:py:meth:`ctrl.block.Block.is_enabled` and
+:py:meth:`ctrl.block.Block.set_enabled`.
+
+However, once you install an instance of :py:class:`ctrl.block.Block`
+in a controller as a *source*, *filter*, *sink*, or *timer*, you
+should no longer directly call those methods. Instead you should
+retrieve and set block attributes using the family of methods
+:py:meth:`ctrl.Controller.get_source`,
+:py:meth:`ctrl.Controller.get_filter`,
+:py:meth:`ctrl.Controller.get_sink`,
+:py:meth:`ctrl.Controller.get_timer`,
+:py:meth:`ctrl.Controller.set_source`,
+:py:meth:`ctrl.Controller.set_filter`,
+:py:meth:`ctrl.Controller.set_sink`, and
+:py:meth:`ctrl.Controller.set_timer`. The reason for this is that,
+depending on the context, the block owned by the controller might be
+different than the one you originally installed. This is the case, for
+example, when you run a controller remotely using the
+:ref:`Client-Server Architecture`.
+
+For example, for the same controller you implemented in Section :ref:`Filters`::
+
+  hello.get_source('clock')
+
+would produce:
+
+.. code-block:: none
+     
+  {'average_period': 0,
+   'count': 33,
+   'enabled': True,
+   'period': 0.1,
+   'time': 491901.67835816,
+   'time_origin': 491898.26005493104}
+
+which return all public properties of the
+:py:class:`ctrl.block.clock.TimerClock`, and::
+     
+  hello.get_source('clock', 'count')
+
+returns simply :py:data:`33`.
+
+
 
 -----------------
 Working with data

@@ -93,7 +93,7 @@ def test_Printer():
 
     assert obj.get('enabled') == True
     print("-> '{}'".format(obj.get('endln', 'frmt')))
-    assert obj.get(['endln', 'frmt']) == { 'endln': '\n', 'frmt': '{: 12.4f}' }
+    assert obj.get('endln', 'frmt') == { 'endln': '\n', 'frmt': '{: 12.4f}' }
 
     with pytest.raises(block.BlockException):
         obj = block.Printer(adsadsda = 1)
@@ -118,7 +118,7 @@ def test_set():
 
     assert blk.get() == { 'enabled': True, 'endln': '\n', 'frmt': '{: 12.4f}', 'sep': ' ', 'file': None, 'message': None }
     
-    assert blk.get(['enabled', 'frmt']) == {'frmt': '{: 12.4f}', 'enabled': True}
+    assert blk.get('enabled', 'frmt') == {'frmt': '{: 12.4f}', 'enabled': True}
     
     assert blk.get('enabled') == True
 

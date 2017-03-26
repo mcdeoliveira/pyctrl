@@ -231,11 +231,30 @@ class Controller(ctrl.Controller):
     def add_device(self, label, device_module, device_class, **kwargs):
         self.send('z', 'S', label, 'S', device_module, 'S', device_class, 'K', kwargs)
 
+    # timres
     def add_timer(self, label, blk, inputs, outputs, period, repeat = True):
         self.send('t', 'S', label,
                   'P', blk, 'P', inputs, 'P', outputs, 
                   'D', period, 'I', repeat)
         
+    def set_timer(self, label, **kwargs):
+        self.send('f', 'S', label, 'K', kwargs)
+
+    def get_timer(self, label, *keys):
+        return self.send('g', 'S', label, 'R', keys)
+
+    def remove_timer(self, label):
+        return self.send('v', 'S', label)
+
+    def list_timers(self):
+        return self.send('w')
+
+    def write_timer(self, label, *values):
+        self.send('x', 'S', label, 'R', values)
+
+    def read_timer(self, label):
+        return self.send('y', 'S', label)
+    
     # def set_period(self, value):
     #     return self.send('a', 'D', value)
 

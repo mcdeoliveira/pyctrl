@@ -111,13 +111,18 @@ def run(controller):
     assert '_logger_' in controller.list_sinks()
     assert '_test_' in controller.list_signals()
 
+    assert controller.get_sink('_logger_') == {'current': 0, 'auto_reset': False, 'page': 0, 'enabled': True}
+
+    assert controller.get_sink('_logger_', 'current', 'auto_reset') == {'current': 0, 'auto_reset': False}
+    
+    assert controller.get_sink('_logger_','current') == 0
+    
     # try to remove signal _test_
     controller.remove_signal('_test_')
     assert '_test_' in controller.list_signals()
 
     controller.add_sink('_logger_', block.Logger(), ['clock'])
     assert '_logger_' in controller.list_sinks()
-
     
     # TODO: test for changed signals
 
@@ -177,6 +182,12 @@ def run(controller):
     controller.add_source('_rand_', blkrnd.RandomUniform(), ['_test_'])
     assert '_rand_' in controller.list_sources()
 
+    assert controller.get_source('_rand_') == {'a': 0, 'b': 1, 'enabled': True, 'seed': None}
+
+    assert controller.get_source('_rand_', 'a', 'b') == {'a': 0, 'b': 1}
+    
+    assert controller.get_source('_rand_','a') == 0
+    
     # TODO: test for changed signals
 
     controller.set_source('_rand_', reset = True)
@@ -202,6 +213,7 @@ def run(controller):
                           ['_test_'], 
                           ['_output_'])
     assert '_gain_' in controller.list_filters()
+    
     # TODO: test for changed block
 
     controller.add_filter('_gain_', system.Gain(gain = 2), 
@@ -209,6 +221,12 @@ def run(controller):
                           ['_output_'])
     assert '_gain_' in controller.list_filters()
         
+    assert controller.get_filter('_gain_') == {'demux': False, 'enabled': True, 'gain': 2, 'mux': False}
+
+    assert controller.get_filter('_gain_', 'demux', 'gain') == {'demux': False, 'gain': 2}
+    
+    assert controller.get_filter('_gain_','gain') == 2
+    
     controller.add_sink('_logger_', block.Logger(), ['_test_', '_output_'])
     assert '_logger_' in controller.list_sinks()
 
@@ -265,6 +283,12 @@ def run(controller):
 
     assert controller.get_signal('timer') == 0
 
+    assert controller.get_timer('timer') == {'enabled': True, 'demux': False, 'mux': False}
+
+    assert controller.get_timer('timer', 'enabled', 'demux') == {'enabled': True, 'demux': False}
+    
+    assert controller.get_timer('timer','enabled') == True
+    
     with controller:
         time.sleep(2)
 

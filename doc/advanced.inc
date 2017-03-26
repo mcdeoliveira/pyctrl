@@ -9,7 +9,7 @@ gone through the :ref:`Tutorial` and have a good understanding of the
 concepts discussed there before reading this chapter.
 
 --------------------------
-Client Server Architecture
+Client-Server Architecture
 --------------------------
 
 ---------------------

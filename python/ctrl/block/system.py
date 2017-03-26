@@ -232,10 +232,10 @@ class Differentiator(block.BufferBlock):
 
         super().__init__(**kwargs)
 
-    def get(self, keys = None):
+    def get(self, *keys, exclude = ()):
 
         # call super excluding time and last
-        return super().get(keys, exclude = ('time', 'last'))
+        return super().get(*keys, exclude = exclude + ('time', 'last'))
     
     def write(self, *values):
         """
