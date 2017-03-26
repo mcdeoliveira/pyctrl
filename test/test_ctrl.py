@@ -117,6 +117,10 @@ def run(controller):
     
     assert controller.get_sink('_logger_','current') == 0
     
+    controller.set_sink('_logger_',current = 1)
+
+    assert controller.get_sink('_logger_','current') == 1
+    
     # try to remove signal _test_
     controller.remove_signal('_test_')
     assert '_test_' in controller.list_signals()
@@ -187,6 +191,10 @@ def run(controller):
     assert controller.get_source('_rand_', 'a', 'b') == {'a': 0, 'b': 1}
     
     assert controller.get_source('_rand_','a') == 0
+
+    controller.set_source('_rand_',a = 1)
+
+    assert controller.get_source('_rand_','a') == 1
     
     # TODO: test for changed signals
 

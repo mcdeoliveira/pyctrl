@@ -532,7 +532,7 @@ following code::
     
     # add filter to interpolate data
     hello.add_filter('input',
-		     Interp(signal = us, time = ts),
+		     Interp(xp = us, fp = ts),
 		     ['clock'],
 		     ['pwm'])
 
@@ -626,9 +626,9 @@ retrieve and set block attributes using the family of methods
 :py:meth:`ctrl.Controller.set_filter`,
 :py:meth:`ctrl.Controller.set_sink`, and
 :py:meth:`ctrl.Controller.set_timer`. The reason for this is that,
-depending on the context, the block owned by the controller might be
-different than the one you originally installed. This is the case, for
-example, when you run a controller remotely using the
+depending on the context, the block instance owned by the controller
+might be different than the one you originally installed. This is the
+case, for example, when you run a controller remotely using the
 :ref:`Client-Server Architecture`.
 
 For example, for the same controller you implemented in Section :ref:`Filters`::
@@ -653,7 +653,11 @@ which return all public properties of the
 
 returns simply :py:data:`33`.
 
+Likewise::
 
+  hello.set_sink('message', endln = '\n')
+
+changes the attribute :py:attr:`endln` in the *sink* :py:data:`message`.
 
 -----------------
 Working with data
@@ -754,7 +758,7 @@ The beginnig of the code is similar to :ref:`hello_filter_2.py`::
     
     # add filter to interpolate data
     simotor.add_filter('input',
-		       Interp(signal = us, time = ts),
+		       Interp(xp = us, fp = ts),
 		       ['clock'],
                        ['pwm'])
 
@@ -1173,7 +1177,7 @@ the code::
     
     # add filter to interpolate data
     bbb.add_filter('input',
-		   Interp(signal = us, time = ts),
+		   Interp(xp = us, fp = ts),
 		   ['clock'],
                    ['pwm'])
     

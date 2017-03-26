@@ -11,17 +11,17 @@ def test_random_uniform():
     assert x >= 0 and x <= 1
     assert blk.a == 0 and blk.b == 1
 
-    blk = blkrnd.RandomUniform(-1,1)
+    blk = blkrnd.RandomUniform(a = -1, b = 1)
     (x,) = blk.read()
     assert x >= -1 and x <= 1
     assert blk.a == -1 and blk.b == 1
 
-    blk = blkrnd.RandomUniform(-1,1,seed = 5)
+    blk = blkrnd.RandomUniform(a = -1, b = 1,seed = 5)
     (x,) = blk.read()
     assert x >= -1 and x <= 1
     assert blk.a == -1 and blk.b == 1
 
-    blk = blkrnd.RandomUniform(-1,1,seed = 5)
+    blk = blkrnd.RandomUniform(a = -1, b = 1,seed = 5)
     (y,) = blk.read()
     assert x == y
 
@@ -32,7 +32,7 @@ def test_random_uniform():
     (y,) = blk.read()
     assert x == y
     
-    blk = blkrnd.RandomUniform(-1,1)
+    blk = blkrnd.RandomUniform(a = -1, b = 1)
     blk.set(seed = 5)
     (y,) = blk.read()
     assert x == y
@@ -50,21 +50,21 @@ def test_random_gaussian():
     assert isinstance(x, float)
     assert blk.mu == 0 and blk.sigma == 1
 
-    blk = blkrnd.RandomGaussian(-1,1)
+    blk = blkrnd.RandomGaussian(mu = -1, sigma = 1)
     (x,) = blk.read()
     assert isinstance(x, float)
     assert blk.mu == -1 and blk.sigma == 1
 
-    blk = blkrnd.RandomGaussian(-1,1,seed = 5)
+    blk = blkrnd.RandomGaussian(mu = -1, sigma = 1, seed = 5)
     (x,) = blk.read()
     assert isinstance(x, float)
     assert blk.mu == -1 and blk.sigma == 1
 
-    blk = blkrnd.RandomGaussian(-1,1,seed = 5)
+    blk = blkrnd.RandomGaussian(mu = -1, sigma = 1,seed = 5)
     (y,) = blk.read()
     assert x == y
     
-    blk = blkrnd.RandomGaussian(-1,1)
+    blk = blkrnd.RandomGaussian(mu = -1, sigma = 1)
     blk.set(seed = 5)
     (y,) = blk.read()
     assert x == y

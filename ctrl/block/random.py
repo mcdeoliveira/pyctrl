@@ -4,22 +4,22 @@ from .. import block
 
 class RandomUniform(block.Block):
 
-    def __init__(self, a = 0, b = 1, seed = None, *vars, **kwargs):
+    def __init__(self, **kwargs):
 
-        self.a = a
-        self.b = b
-        self.seed = seed
+        self.a = kwargs.pop('a', 0)
+        self.b = kwargs.pop('b', 1)
+        self.seed = kwargs.pop('seed', None)
+
+        super().__init__(**kwargs)
 
         self.reset()
-
-        super().__init__(*vars, **kwargs)
 
     def reset(self):
         
         if self.seed is not None:
             random.seed(self.seed)
 
-    def set(self, **kwargs):
+    def set(self, exclude = (), **kwargs):
         
         if 'a' in kwargs:
             self.a = kwargs.pop('a')
@@ -31,7 +31,7 @@ class RandomUniform(block.Block):
             self.seed = kwargs.pop('seed')
             self.reset()
         
-        super().set(**kwargs)
+        super().set(exclude, **kwargs)
 
     def read(self):
 
@@ -39,22 +39,22 @@ class RandomUniform(block.Block):
 
 class RandomGaussian(block.Block):
 
-    def __init__(self, mu = 0, sigma = 1, seed = None, *vars, **kwargs):
+    def __init__(self, **kwargs):
 
-        self.mu = mu
-        self.sigma = sigma
-        self.seed = seed
+        self.mu = kwargs.pop('mu', 0)
+        self.sigma = kwargs.pop('sigma', 1)
+        self.seed = kwargs.pop('seed', None)
 
+        super().__init__(**kwargs)
+        
         self.reset()
-
-        super().__init__(*vars, **kwargs)
 
     def reset(self):
         
         if self.seed is not None:
             random.seed(self.seed)
 
-    def set(self, **kwargs):
+    def set(self, exclude = (), **kwargs):
         
         if 'mu' in kwargs:
             self.mu = kwargs.pop('mu')
@@ -66,7 +66,7 @@ class RandomGaussian(block.Block):
             self.seed = kwargs.pop('seed')
             self.reset()
 
-        super().set(**kwargs)
+        super().set(exclude, **kwargs)
 
     def read(self):
 

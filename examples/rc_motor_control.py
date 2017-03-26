@@ -71,7 +71,7 @@ def main():
     
     # add filter to interpolate data
     bbb.add_filter('input',
-		   Interp(signal = us, time = ts),
+		   Interp(xp = us, fp = ts),
 		   ['clock'],
                    ['speed_reference'])
     

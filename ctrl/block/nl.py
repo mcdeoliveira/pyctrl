@@ -26,19 +26,6 @@ class ControlledCombination(block.BufferBlock):
 
         super().__init__(**kwargs)
     
-    def set(self, **kwargs):
-        """
-        Set properties of `ControlledCombination` block.
-
-        :param gain: multiplier (default `1`)
-        :param m: number of inputs to combine
-        """
-        
-        if 'gain' in kwargs:
-            self.gain = kwargs.pop('gain')
-
-        super().set(**kwargs)
-
     def write(self, *values):
         """
         Writes combination of inputs to the private `buffer`.
@@ -136,7 +123,7 @@ class DeadZone(block.BufferBlock):
         # call super
         return super().get(*keys, exclude = exclude + ('_pars',))
 
-    def set(self, **kwargs):
+    def set(self, exclude = (), **kwargs):
 
         changes = False
         
@@ -151,7 +138,7 @@ class DeadZone(block.BufferBlock):
         if changes:
             self._calculate_pars()
             
-        super().set(**kwargs)
+        super().set(exclude + ('_pars',), **kwargs)
 
     def _deadzone(self, a, b, c, x):
         if x > self.X:

@@ -18,28 +18,17 @@ class Compare(block.BufferBlock):
     or `0` otherwise.
     """
     
-    def __init__(self, threshold = 0, *vars, **kwargs):
+    def __init__(self, **kwargs):
         """
         Constructs a new *Compare* object.
 
         :param threshold: the threshold to be used for comparison
         """
 
-        self.threshold = threshold
-        super().__init__(*vars, **kwargs)
-
-    def set(self, **kwargs):
-        """
-        Set properties of *Compare* object.
-
-        :param threshold: the threshold to be used for comparison
-        """
+        self.threshold = kwargs.pop('threshold', 0)
         
-        if 'threshold' in kwargs:
-            self.threshold = kwargs.pop('threshold')
+        super().__init__(**kwargs)
 
-        super().set(**kwargs)
-        
     def write(self, *values):
         """
         Returns `1` if
@@ -76,7 +65,7 @@ class CompareAbs(block.BufferBlock):
     or `0` otherwise.
     """
 
-    def __init__(self, threshold = 0.5, invert = False, *vars, **kwargs):
+    def __init__(self, **kwargs):
         """
         Constructs a new *CompareAbs* object.
 
@@ -84,26 +73,11 @@ class CompareAbs(block.BufferBlock):
         :param invert: if output is to be inverted or not (default False)
         """
 
-        self.threshold = threshold
-        self.invert = invert
+        self.threshold = kwargs.pop('threshold', 0.5)
+        self.invert = kwargs.pop('invert', False)
 
-        super().__init__(*vars, **kwargs)
+        super().__init__(**kwargs)
 
-    def set(self, **kwargs):
-        """
-        Set properties of *CompareAbs* object.
-
-        :param threshold: the threshold to be used for comparison
-        :param invert: if output is to be inverted or not
-        """
-        if 'threshold' in kwargs:
-            self.threshold = kwargs.pop('threshold')
-
-        if 'invert' in kwargs:
-            self.invert = kwargs.pop('invert')
-
-        super().set(**kwargs)
-        
     def write(self, *values):
         """
         Returns `1` if
@@ -152,7 +126,7 @@ class Trigger(block.BufferBlock):
     to True and must be reset manually.
     """
     
-    def __init__(self, function = (lambda x: x), state = False, *vars, **kwargs):
+    def __init__(self, function = (lambda x: x), state = False, **kwargs):
         """
         Constructs a new *Trigger* object.
 
@@ -163,23 +137,7 @@ class Trigger(block.BufferBlock):
         self.function = function
         self.state = state
 
-        super().__init__(*vars, **kwargs)
-
-    def set(self, **kwargs):
-        """
-        Set properties of *Trigger* object.
-
-        :param function: the test function
-        :param state: the current state (True or False)
-        """
-        
-        if 'function' in kwargs:
-            self.state = kwargs.pop('function')
-            
-        if 'state' in kwargs:
-            self.state = kwargs.pop('state')
-
-        super().set(**kwargs)
+        super().__init__(**kwargs)
 
     def reset(self):
         """

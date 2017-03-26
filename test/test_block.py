@@ -139,11 +139,18 @@ def test_set():
 
     blk = block.BufferBlock()
     assert blk.get() == {'enabled': True, 'demux': False, 'mux': False}
+    
     # test twice to make sure it is copying
     assert blk.get() == {'enabled': True, 'demux': False, 'mux': False}
     with pytest.raises(KeyError):
         blk.get('buffer')
 
+    blk.set(demux = True)
+    assert blk.get('demux') == True
+
+    with pytest.raises(block.BlockException):
+        blk.set(buffer = (1,))
+    
 
 def test_logger():
 
@@ -280,7 +287,7 @@ def test_Interp():
 
     t = np.array([0,1,2])
     x = np.array([1,0,1])
-    obj = block.Interp(signal = x, time = t)
+    obj = block.Interp(xp = x, fp = t)
 
     for k in range(len(t)):
         tk = t[k]

@@ -33,7 +33,7 @@ class System(block.BufferBlock):
             
         super().__init__(**kwargs)
 
-    def set(self, **kwargs):
+    def set(self, exclude = (), **kwargs):
         """
         Set properties of `System` block.
 
@@ -45,7 +45,7 @@ class System(block.BufferBlock):
             assert isinstance(model, system.System)
             self.model = model
 
-        super().set(**kwargs)
+        super().set(exclude, **kwargs)
 
     def reset(self):
         """
@@ -88,7 +88,7 @@ class TimeVaryingSystem(block.BufferBlock):
         
         super().__init__(**kwargs)
         
-    def set(self, **kwargs):
+    def set(self, exclude = (), **kwargs):
         """
         Set properties of `TimeVarying` block.
 
@@ -100,7 +100,7 @@ class TimeVaryingSystem(block.BufferBlock):
             assert isinstance(model, system.TVSystem)
             self.model = model
 
-        super().set(**kwargs)
+        super().set(exclude, **kwargs)
 
     def reset(self):
         """
@@ -143,18 +143,6 @@ class Gain(block.BufferBlock):
 
         super().__init__(**kwargs)
     
-    def set(self, **kwargs):
-        """
-        Set properties of `Gain` block.
-
-        :param gain: multiplier
-        """
-        
-        if 'gain' in kwargs:
-            self.gain = kwargs.pop('gain')
-
-        super().set(**kwargs)
-
     def write(self, *values):
         """
         Writes product of `gain` times current input to the private `buffer`.
@@ -189,22 +177,6 @@ class Affine(block.BufferBlock):
 
         super().__init__(**kwargs)
     
-    def set(self, **kwargs):
-        """
-        Set properties of `Affine` block.
-
-        :param gain: multiplier (default `1`)
-        :param offset: offset (default `0`)
-        """
-        
-        if 'gain' in kwargs:
-            self.gain = kwargs.pop('gain')
-
-        if 'offset' in kwargs:
-            self.gain = kwargs.pop('offset')
-
-        super().set(**kwargs)
-
     def write(self, *values):
         """
         Writes product of `gain` times current input plus `offset` to
@@ -236,6 +208,11 @@ class Differentiator(block.BufferBlock):
 
         # call super excluding time and last
         return super().get(*keys, exclude = exclude + ('time', 'last'))
+
+    def set(self, exclude = (), **kwargs):
+
+        # call super excluding time and last
+        return super().set(exclude + ('time', 'last'), **kwargs)
     
     def write(self, *values):
         """
@@ -304,29 +281,6 @@ class Feedback(block.BufferBlock):
         """
         self.block.reset()
 
-    def set(self, **kwargs):
-        """
-        Set properties of `Feedback` block.
-
-        :param block: an instance of `ctrl.block.Block`
-        :param gamma: a constant gain
-        :param m: number of inputs
-        """
-        
-        if 'block' in kwargs:
-            self.block = kwargs.pop('block')
-            
-        if 'gamma' in kwargs:
-            self.gamma = kwargs.pop('gamma')
-            
-        if 'rho' in kwargs:
-            self.rho = kwargs.pop('rho')
-            
-        if 'm' in kwargs:
-            self.gamma = kwargs.pop('m')
-
-        super().set(**kwargs)
-
     def write(self, *values):
         """
         Writes feedback signal to the private `buffer`.
@@ -361,7 +315,7 @@ class Average(block.BufferBlock):
         
         super().__init__(**kwargs)
 
-    def set(self, **kwargs):
+    def set(self, exclude = (), **kwargs):
         """
         Set properties of `Sum` block.
 
@@ -375,7 +329,7 @@ class Average(block.BufferBlock):
             else:
                 self.weights = None
                 
-        super().set(**kwargs)
+        super().set(exclude, **kwargs)
 
     def write(self, *values):
         """
@@ -413,18 +367,6 @@ class Sum(block.BufferBlock):
         
         super().__init__(**kwargs)
 
-    def set(self, **kwargs):
-        """
-        Set properties of `Sum` block.
-
-        :param gain: multiplier
-        """
-        
-        if 'gain' in kwargs:
-            self.gain = kwargs.pop('gain')
-
-        super().set(**kwargs)
-
     def write(self, *values):
         """
         Writes product of `gain` times the sum of the current input to the private `buffer`.
@@ -454,18 +396,6 @@ class Subtract(block.BufferBlock):
         self.gain = kwargs.pop('gain', 1)
         
         super().__init__(**kwargs)
-
-    def set(self, **kwargs):
-        """
-        Set properties of `Sum` block.
-
-        :param gain: multiplier
-        """
-        
-        if 'gain' in kwargs:
-            self.gain = kwargs.pop('gain')
-
-        super().set(**kwargs)
 
     def write(self, *values):
         """

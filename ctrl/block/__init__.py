@@ -63,11 +63,14 @@ class Block:
         """
         pass
 
-    def set(self, **kwargs):
+    def set(self, exclude = (), **kwargs):
         """
         Set properties of *Block*.
 
-        :param reset: if `True` calls `self.reset()`
+        :param tuple exclude: list of attributes to exclude (default ())
+        :param bool reset: if `True` calls `self.reset()`
+        :param bool enabled: set enabled attribute
+        :param kwargs: other keyword arguments
         :raise: `BlockException` if any of the `kwargs` is left unprocessed
         """
 
@@ -77,9 +80,13 @@ class Block:
 
         if 'enabled' in kwargs:
             self.set_enabled(kwargs.pop('enabled'))
-            
-        if len(kwargs) > 0:
-            raise BlockException("Does not know how to set '{}'".format(kwargs))
+
+        for k in kwargs:
+            if k in exclude or k not in self.__dict__:
+                raise BlockException("Does not know how to set attribute '{}'".format(kwargs))
+            else:
+                # set attribute
+                setattr(self, k, kwargs.get(k))
 
     def get(self, *keys, exclude = ()):
         """
@@ -195,6 +202,19 @@ class BufferBlock(Block):
         # call super
         return super().get(*keys, exclude = exclude + ('buffer',))
         
+    def set(self, exclude = (), **kwargs):
+        """
+        Set properties of a *BufferBlock*.
+
+        This method excludes `buffer` from the list of properties. 
+
+        :param tuple exclude: list of attributes to exclude (default ())
+        :param kwargs: other keyword arguments
+        """
+        
+        # call super
+        return super().set(exclude + ('buffer',), **kwargs)
+
     def write(self, *values):
         """
         Writes to the private `buffer` property then call `self.buffer_write`.
@@ -269,35 +289,26 @@ class Printer(Block):
         
         super().__init__(**kwargs)
 
-    def set(self, **kwargs):
+    def set(self, exclude = (), **kwargs):
         """
         Set properties of *Printer*.
 
+        :param tuple exclude: list of attributes to exclude (default ())
         :param endl: end-of-line character
         :param frmt: format string
         :param sep: field separator
         :param message: message to print
         :param file: file to print on
+        :param kwargs: other keyword arguments
         """
         
-        if 'endln' in kwargs:
-            self.endln = kwargs.pop('endln')
-        
-        if 'frmt' in kwargs:
-            self.frmt = kwargs.pop('frmt')
-
-        if 'sep' in kwargs:
-            self.sep = kwargs.pop('sep')
-
-        if 'message' in kwargs:
-            self.message = kwargs.pop('message')
-
         if 'file' in kwargs:
             self.file = kwargs.pop('file')
             if self.file is sys.stdout:
                 self.file = None
-            
-        super().set(**kwargs)
+
+        # call super
+        super().set(exclude, **kwargs)
     
     def write(self, *values):
         """
@@ -377,12 +388,14 @@ class Signal(BufferBlock):
 
         self.index = 0
 
-    def set(self, **kwargs):
+    def set(self, exclude = (), **kwargs):
         """
         Set properties of *Signal*. 
 
+        :param tuple exclude: list of attributes to exclude (default ())
         :param signal: `numpy` vector with values
         :param index: current index
+        :param kwargs: other keyword arguments
         """
 
         if 'signal' in kwargs:
@@ -398,10 +411,8 @@ class Signal(BufferBlock):
                 index = index % len(self.signal)
             self.index = index 
             
-        if 'repeat' in kwargs:
-            self.repeat = kwargs.pop('repeat')
-            
-        super().set(**kwargs)
+        # call super
+        super().set(exclude, **kwargs)
 
     def read(self):
         """
@@ -444,20 +455,23 @@ class Interp(BufferBlock):
 
     If `repeat` is True, signal repeats periodically.
 
-    :param signal: `numpy` vector with values
-    :param repeat: if `True` then signal repeats periodically
+    :param xp: `numpy` array with the x-coordinates of the data points, must be increasing
+    :param fp: `numpy` array with the y-coordinates
+    :param left: value to return for x < xp[0] (default is fp[0]).
+    :param right: value to return for x > xp[-1] (default is fp[-1]).
+    :param period: a period for the x-coordinates; parameters left and right are ignored if period is specified (default None)
     """
 
     def __init__(self, **kwargs):
 
-        # signal
-        self.signal = numpy.array(kwargs.pop('signal', []))
+        # xp
+        self.xp = numpy.array(kwargs.pop('xp', []))
 
-        # time
-        self.time = numpy.array(kwargs.pop('time', []))
+        # fp
+        self.fp = numpy.array(kwargs.pop('fp', []))
 
         # make sure they have the same dimensions
-        assert self.signal.shape[0] == self.time.shape[0]
+        assert self.xp.shape[0] == self.fp.shape[0]
 
         # left
         self.left = kwargs.pop('left', 0)
@@ -465,56 +479,51 @@ class Interp(BufferBlock):
         # right
         self.right = kwargs.pop('right', 0)
 
-        # repeat?
+        # period?
         self.period = kwargs.pop('period', None)
 
         super().__init__(**kwargs)
 
-        self.time_origin = None
-        self.time_current = None
+        self.xp_origin = None
+        self.xp_current = None
         
     def reset(self):
         """
-        Reset *Signal* index back to `0`.
+        Reset *Interp*. Set xp index back to its origin.
         """
 
-        self.time_current = self.time_origin = None
+        self.xp_current = self.xp_origin = None
 
-    def set(self, **kwargs):
+    def set(self, exclude = (), **kwargs):
         """
-        Set properties of *Signal*. 
+        Set properties of *Interp*. 
 
-        :param signal: `numpy` vector with values
-        :param index: current index
+        :param tuple exclude: list of attributes to exclude (default ())
+        :param xp: `numpy` array with the x-coordinates of the data points, must be increasing
+        :param fp: `numpy` array with the y-coordinates
+        :param left: value to return for x < xp[0]
+        :param right: value to return for x > xp[-1]
+        :param period: a period for the x-coordinates; parameters left and right are ignored if period is specified
+        :param kwargs: other keyword arguments
         """
 
-        if 'signal' in kwargs:
-            self.signal = numpy.array(kwargs.pop('signal'))
+        if 'xp' in kwargs:
+            self.xp = numpy.array(kwargs.pop('xp'))
             self.reset()
 
-        if 'time' in kwargs:
-            self.time = numpy.array(kwargs.pop('time'))
+        if 'fp' in kwargs:
+            self.fp = numpy.array(kwargs.pop('fp'))
             self.reset()
-            
-        if 'left' in kwargs:
-            self.repeat = kwargs.pop('left')
-
-        if 'right' in kwargs:
-            self.repeat = kwargs.pop('right')
-
-        if 'period' in kwargs:
-            self.repeat = kwargs.pop('period')
             
         # make sure they have the same dimensions
-        assert self.signal.shape[0] == self.time.shape[0]
-        
-        super().set(**kwargs)
+        assert self.xp.shape[0] == self.fp.shape[0]
+
+        # call super
+        super().set(exclude + ('xp_current', 'xp_origin'), **kwargs)
 
     def write(self, *values):
         """
-        Writes finite difference derivative to the private `buffer`.
-
-        This signal must be a clock.
+        Writes input to the private `buffer`.
         """
 
         # call super
@@ -522,24 +531,24 @@ class Interp(BufferBlock):
 
         # get index from buffer
         assert len(self.buffer) == 1
-        self.time_current = self.buffer[0]
+        self.xp_current = self.buffer[0]
 
-        # set time_origin if needed
-        if self.time_origin is None:
-            self.time_origin = self.time_current
+        # set xp_origin if needed
+        if self.xp_origin is None:
+            self.xp_origin = self.xp_current
         
     def read(self):
         """
-        Read from *Signal*.
+        Read from *Xp*.
 
         Reading increments current `index`.
 
-        If `repeat` is True, `index` becomes `0` after end of `signal`.
+        If `repeat` is True, `index` becomes `0` after end of `xp`.
         """
 
         # interpolate signal
-        xk = interp(self.time_current - self.time_origin,
-                    self.time, self.signal,
+        xk = interp(self.xp_current - self.xp_origin,
+                    self.fp, self.xp,
                     left = self.left, right = self.right,
                     period = self.period)
             
@@ -563,18 +572,6 @@ class Map(BufferBlock):
         
         super().__init__(**kwargs)
 
-    def set(self, **kwargs):
-        """
-        Set properties of *Map* object.
-
-        :param function: the function to be mapped (default identity)
-        """
-        
-        if 'function' in kwargs:
-            self.function = kwargs.pop('function')
-
-        super().set(**kwargs)
-        
     def write(self, *values):
         """
         Writes a tuple with the result of `function` applied to each
@@ -592,7 +589,7 @@ class Apply(BufferBlock):
     The Block *Apply* applies `function` to all inputs and returns tuple
     with the result.
 
-    :param function: the function to be applied
+    :param function: the function to be applied (default identity)
     """
 
     def __init__(self, **kwargs):
@@ -602,18 +599,6 @@ class Apply(BufferBlock):
         
         super().__init__(**kwargs)
 
-    def set(self, **kwargs):
-        """
-        Set properties of *Apply* object.
-
-        :param function: the function to be applied (default identity)
-        """
-        
-        if 'function' in kwargs:
-            self.function = kwargs.pop('function')
-
-        super().set(**kwargs)
-        
     def write(self, *values):
         """
         Writes a tuple with the result of `function` applied to all
@@ -637,7 +622,7 @@ class Logger(Block):
     def __init__(self,
                  number_of_rows = 12000,
                  number_of_columns = 0, 
-                 *vars, **kwargs):
+                 **kwargs):
 
         # reshape
         self.reshape(number_of_rows, number_of_columns)
@@ -645,13 +630,30 @@ class Logger(Block):
         # auto reset
         self.auto_reset = kwargs.pop('auto_reset', False)
 
-        super().__init__(*vars, **kwargs)
+        super().__init__(**kwargs)
 
     def get(self, *keys, exclude = ()):
 
         # call super
         return super().get(*keys, exclude = exclude + ('data',))
 
+    def set(self, exclude = (), **kwargs):
+        """
+        Set properties of *Logger*.
+
+        Excludes data.
+
+        :param tuple exclude: list of attributes to exclude
+        :param int current: current index
+        :param int page: current page index
+        :param bool auto_reset: auto reset flag
+        :param kwargs: other keyword arguments
+        :raise: `BlockException` if any of the `kwargs` is left unprocessed
+        """
+
+        # call super
+        return super().set(exclude + ('data',), **kwargs)
+    
     def reshape(self, number_of_rows, number_of_columns):
 
         self.data = numpy.zeros((number_of_rows, number_of_columns), float)
