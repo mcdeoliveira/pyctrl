@@ -10,4 +10,7 @@ Preamble
 
 .. include:: ctrl.block.inc
 
+.. include:: ctrl.rc.inc
+	     
 .. include:: ctrl.system.inc
+

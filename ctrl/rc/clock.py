@@ -16,12 +16,11 @@ from rc import mpu9250
 import atexit; atexit.register(mpu9250.power_off)
 
 # Uses Alex Martelli's Borg for making Clock a singleton
-
-class Clock(clk.Clock):
+class MPU9250Clock(clk.Clock):
 
     _shared_state = {}
 
-    def __init__(self, *vars, **kwargs):
+    def __init__(self, **kwargs):
 
         # Makes sure clock is a singleton
         self.__dict__ = self._shared_state
@@ -34,14 +33,30 @@ class Clock(clk.Clock):
         self.period = kwargs.pop('period', 0.01)
         
         # call super
-        super().__init__(*vars, **kwargs)
+        super().__init__(**kwargs)
 
         # set period
         self.set_period(self.period)
 
-        # initialize clock
+        # initialize imu 
         self.imu = None
         self.read()
+
+    def set(self, exclude = (), **kwargs):
+        """
+        Set properties of `Clock`. 
+
+        :param tuple exclude: list of attributes to exclude
+        :param float period: clock period
+        :param kwargs: other keyword arguments
+        :raise: `BlockException` if any of the `kwargs` is left unprocessed
+        """
+
+        if 'period' in kwargs:
+            self.period = kwargs.pop('period')
+
+        # call super
+        return super().set(exclude, **kwargs)
 
     def set_period(self, period):
         """
@@ -127,5 +142,3 @@ if __name__ == "__main__":
         avg = ((k-1)/k) * avg + (1/k) * dt
         mx = max(dt, mx)
         print('\r dt = {:7.3f} ms  average = {:7.3f} ms   max = {:7.3f} ms'.format(dt, avg, mx), end='')
-
-        

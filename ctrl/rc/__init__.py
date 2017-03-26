@@ -4,7 +4,14 @@ import rc as rcpy
 import ctrl
 
 class Controller(ctrl.Controller):
+    """
+    :bases: :py:class:`ctrl.Controller`
 
+    :py:class:`ctrl.rc.Controller` initializes a controller for the Robotics Cape equiped with a clock based on the MPU9250 periodic interrupts.
+
+    :param float period: period in seconds (default 0.01)
+    :param kwargs: other keyword parameters
+    """
     def __init__(self, *vargs, **kwargs):
 
         # period (default 100Hz)
@@ -26,31 +33,15 @@ class Controller(ctrl.Controller):
       
         # print("ctrl.bbb.reset: PERIOD = {}".format(self.period))
         
-        # add source: clock
-        self.clock = self.add_device('clock',
-                                     'ctrl.rc.clock', 'Clock',
-                                     type = 'source',
-                                     outputs = ['clock'],
-                                     period = self.period)
-
-        # sleep for a while
-        time.sleep(.5)
+        # remove current clock
+        self.remove_source('clock')
         
-        # set period
-        self.clock.set_period(self.period)
+        # add device clock
+        self.add_device('clock',
+                        'ctrl.rc.mpu9250', 'MPU9250',
+                        type = 'source',
+                        outputs = ['clock'],
+                        period = self.period)
 
-        # initialize clock signals
-        self.signals['clock'] = self.clock.time
-        self.time_origin = self.clock.time_origin
-
-    # period
-    def set_period(self, value):
-
-        self.period = value
-
-        # set period
-        self.clock.set_period(self.period)
-        
-    def get_period(self):
-        
-        return self.period
+        # reset clock
+        self.set_source('clock', reset=True)

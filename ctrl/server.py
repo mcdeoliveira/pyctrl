@@ -134,12 +134,6 @@ def set_controller(_controller = ctrl.Controller()):
         'y': ('S', 'P', controller.read_timer,
               'Read timer'),
         
-        # 'a': ('D',  '', controller.set_period,
-        #       'Set period'),
-
-        # 'b': ('',  'D', controller.get_period,
-        #       'Get period'),
-
         'c': ('',  '',  controller.start,
               'Start control loop'),
 

@@ -10,36 +10,33 @@ import rc.encoder as encdr
 
 class Encoder(block.BufferBlock):
         
-    def __init__(self,
-                 ratio = 48 * 172, 
-                 encoder = 2,
-                 *vars, **kwargs):
-
+    def __init__(self, **kwargs):
+        
         # gear ratio
-        self.ratio = ratio
+        self.ratio = float(kwargs.pop('ratio', 48 * 172))
 
         # encoder
-        self.encoder = encoder
+        self.encoder = kwargs.pop('encoder', 2)
 
         # call super
-        super().__init__(*vars, **kwargs)
+        super().__init__(**kwargs)
         
-        # output is in cycles
-        self.buffer = (encdr.read(self.encoder) / self.ratio, )
-
     def set(self, **kwargs):
-        
+
         if 'ratio' in kwargs:
-            self.ratio = kwargs.pop('ratio')
+            # make sure ratio is a float
+            self.ratio = float(kwargs.pop('ratio'))
 
+        # call super
         super().set(**kwargs)
-
+        
     def reset(self):
 
         encdr.set(self.encoder, 0)
 
     def write(self, *values):
 
+        assert len(values) == 1
         encdr.set(self.encoder, int(values[0] * self.ratio))
 
     def read(self):
@@ -50,7 +47,6 @@ class Encoder(block.BufferBlock):
             self.buffer = (encdr.read(self.encoder) / self.ratio, )
         
         return self.buffer
-
 
 if __name__ == "__main__":
 

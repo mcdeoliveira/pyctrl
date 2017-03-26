@@ -24,25 +24,6 @@ class Clock(block.Block):
         self.count = 0
         self.average_period = 0
         
-    def set_period(self, period):
-        """
-        Set `Clock` period.
-
-        :param float period: clock period
-        :raise: `BlockExcpetion` if not supported
-        """
-        raise BlockException('Clock does not have a period')
-
-    def get_period(self):
-        """
-        Get `Clock` period.
-
-        :return: clock period
-        :retype: float
-        :raise: `BlockExcpetion` if not supported
-        """
-        raise BlockException('Clock does not have a period')
-
     def reset(self):
         """
         Reset `Clock` by setting the origin of time to the present time
@@ -114,8 +95,8 @@ class Clock(block.Block):
         Calibration routine that attempts to callibrate clock
         by fine tuning the `clock`'s period.
 
-        `Clock` must support `get_period()` and `set_period()` must
-        be able to accept arbitrary floats.
+        `Clock` must support `get('period')` and `set(period = float)` must
+        be able to accept arbitrary floats as periods.
         """
         enabled = self.enabled
         if not enabled:
@@ -126,7 +107,7 @@ class Clock(block.Block):
         print('  ITER   TARGET   ACTUAL ACCURACY')
 
         k = 1
-        target = self.get_period()
+        target = self.get('period')
         while True:
 
             # reset and run for T seconds
@@ -155,7 +136,7 @@ class Clock(block.Block):
                 break
 
             # compensate error
-            self.set_period(self.get_period() + target - period)
+            self.set(period = self.get('period') + target - period)
 
         print('< Done!')
 
@@ -164,8 +145,6 @@ class Clock(block.Block):
             self.set_enabled(False)
 
         return (success, period)
-
-
 
 from threading import Thread, Timer, Condition
 
@@ -191,28 +170,27 @@ class TimerClock(Clock):
             self.enabled = False
             self.set_enabled(True)
     
-    def set_period(self, period):
+    def set(self, exclude = (), **kwargs):
         """
-        Set `TimerClock` period.
+        Set properties of `TimerClock`. 
 
+        :param tuple exclude: list of attributes to exclude
         :param float period: clock period
+        :param kwargs: other keyword arguments
+        :raise: `BlockException` if any of the `kwargs` is left unprocessed
         """
-        self.period = period
 
-    def get_period(self):
-        """
-        Get `TimerClock` period.
+        if 'period' in kwargs:
+            self.period = kwargs.pop('period')
 
-        :return: clock period
-        :retype: float
-        """
-        return self.period
-        
+        # call super
+        return super().set(exclude, **kwargs)
+    
     def get(self, *keys, exclude = ()):
         """
         Get properties of `TimerClock`. 
 
-        Available properties those from :py:meth:`ctrl.block.clock.Clock.get` and:
+        Available properties are those from :py:meth:`ctrl.block.clock.Clock.get` and:
 
         1. `period`
 

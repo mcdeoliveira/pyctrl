@@ -11,7 +11,7 @@ class Controller(ctrl.rc.Controller):
 
         # add source: imu
         self.add_device('inclinometer',
-                        'ctrl.rc.imu', 'Inclinometer',
+                        'ctrl.rc.mpu9250', 'Inclinometer',
                         type = 'source',
                         enable = False,
                         outputs = ['theta','theta_dot'])

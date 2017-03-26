@@ -15,20 +15,29 @@ mtr.enable()
 import atexit; atexit.register(mtr.disable)
 
 class Motor(block.Block):
-        
-    def __init__(self, *vars, **kwargs):
 
-        self.gain = kwargs.pop('gain', 1/100)
+    def __init__(self, **kwargs):
+
+        self.ratio = float(kwargs.pop('ratio', 100))
         self.motor = kwargs.pop('motor', 2)
 
         # call super
-        super().__init__(*vars, **kwargs)
+        super().__init__(**kwargs)
 
         # disable motor
         self.set_enabled(False)
 
-    def set_enabled(self, enabled = True):
+    def set(self, **kwargs):
 
+        if 'ratio' in kwargs:
+            # make sure ratio is a float
+            self.ratio = float(kwargs.pop('ratio'))
+
+        # call super
+        super().set(**kwargs)
+        
+    def set_enabled(self, enabled = True):
+        
         # call super
         super().set_enabled(enabled)
 
@@ -43,7 +52,8 @@ class Motor(block.Block):
         #print('> write to motor')
         if self.enabled:
 
-            mtr.set(self.motor, self.gain * values[0])
+            assert len(values) == 1
+            mtr.set(self.motor, values[0] / self.ratio)
 
 if __name__ == "__main__":
 

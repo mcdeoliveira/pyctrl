@@ -607,9 +607,9 @@ where you can see the relationship between the inputs and outputs
 of the the *filter* :py:data:`input`. The complete code can be found
 in :ref:`hello_filter_1.py`.
 
-------------------------
-Interacting with Blocks 
-------------------------
+----------------
+Modifying Blocks
+----------------
 
 Instances of :py:class:`ctrl.block.Block` can have its attributes
 retrieved and modified using the methods
@@ -666,7 +666,9 @@ Likewise::
 
 changes the attribute :py:attr:`endln` in the *sink*
 :py:data:`message`. More than one atribute can be changed at a time by
-passing multiple keyword arguments.
+passing multiple keyword arguments, as in::
+
+  hello.set_sink('message', endln = '\n', message = 'New message')
 
 *Sources*, *filters*, *sinks*, and *timers* can also be removed using
 :py:meth:`ctrl.Controller.remove_source`,
@@ -1180,7 +1182,7 @@ devices is shown in the output of :samp:`print(bbb.info('all'))`:
       5. is_running
       6. speed
     > sources
-      1. clock[TimerClock, enabled] >> clock
+      1. clock[MPU9250, enabled] >> clock
       2. encoder1[Encoder, enabled] >> encoder
     > filters
     > sinks
@@ -1263,7 +1265,7 @@ will produce a controller with the following connections:
       5. is_running
       6. speed
     > sources
-      1. clock[TimerClock, enabled] >> clock
+      1. clock[MPU9250, enabled] >> clock
       2. encoder1[Encoder, enabled] >> encoder
     > filters
       1. clock >> input[Interp, enabled] >> pwm
@@ -1616,7 +1618,7 @@ devices needed for controlling the MIP. A look at :samp:`mip.info('all')`:
       8. theta
       9. theta_dot
     > sources
-      1. clock[Clock, enabled] >> clock
+      1. clock[MPU9250, enabled] >> clock
       2. inclinometer[Inclinometer, enabled] >> theta, theta_dot
       3. encoder1[Encoder, enabled] >> encoder1
       4. encoder2[Encoder, enabled] >> encoder2
@@ -1701,9 +1703,7 @@ to let you drive the MIP while balancing upright is given in
 controller is available `here
 <http://guitar.ucsd.edu/beaglebone/mip.mpeg>`_.
 
-==========
-References
-==========
+.. rubric:: References
 
 .. [deO16] M. C. de Oliveira, *Fundamentals of Linear Control: a
            concise approach*, Cambridge University Press, 2016.

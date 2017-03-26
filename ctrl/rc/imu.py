@@ -15,14 +15,14 @@ class Raw(block.BufferBlock):
         
     def __init__(self, 
                  clock = clk.Clock(), # is a singleton
-                 *vars, **kwargs):
+                 **kwargs):
 
         # make sure clock is Clock
         assert isinstance(clock, clk.Clock)
         self.clock = clock
 
         # call super
-        super().__init__(*vars, **kwargs)
+        super().__init__(**kwargs)
 
     def read(self):
 
@@ -41,7 +41,7 @@ class Raw(block.BufferBlock):
 
 class Inclinometer(Raw):
 
-    def __init__(self, *vars, **kwargs):
+    def __init__(self, **kwargs):
 
         # turns initialization
         self.turns = 0
@@ -49,7 +49,7 @@ class Inclinometer(Raw):
         self.threshold = 0.25
 
         # call super
-        super().__init__(*vars, **kwargs)
+        super().__init__(**kwargs)
 
     def reset(self):
 

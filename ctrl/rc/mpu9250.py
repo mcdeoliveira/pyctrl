@@ -4,17 +4,15 @@ import time
 from time import perf_counter
 
 from ctrl import block
-from ctrl.block import clock as clk
+from ctrl.block import clock
 
-from . import mpu9250
+# Uses Alex Martelli's Borg for making MPU9250 a singleton
 
-# Uses Alex Martelli's Borg for making Clock a singleton
-
-class Clock(clk.Clock):
+class MPU9250(clock.Clock):
 
     _shared_state = {}
 
-    def __init__(self, *vars, **kwargs):
+    def __init__(self, **kwargs):
 
         # Makes sure clock is a singleton
         self.__dict__ = self._shared_state
@@ -24,57 +22,182 @@ class Clock(clk.Clock):
             warnings.warn('> Clock is already initialized. Skipping call to __init')
             return
 
-        # call super
-        super().__init__(*vars, **kwargs)
-
-        # set period
-        self.set_period()
-
-        # initialize clock
-        self.imu = None
-        self.read()
-
-    def set_period(self, period):
+        # get defaults
+        defaults = mpu9250.default_imu_config()
         
-        warnings.warn('> Setting clock period to {}s'.format(period))
-            
-        # call supper
-        super().set_period(period)
+        # accel_fsr
+        self.accel_fsr = kwargs.pop('accel_fsr', defaults.accel_fsr)
+
+        # gyro_fsr
+        self.gyro_fsr = kwargs.pop('gyro_fsr', defaults.gyro_fsr)
+
+        # accel_dlpf
+        self.accel_dlpf = kwargs.pop('accel_dlpf', defaults.accel_dlpf)
+
+        # gyro_dlpf
+        self.gyro_dlpf = kwargs.pop('gyro_dlpf', defaults.gyro.dlpf)
+
+        # enable_magnetometer 
+        self.enable_magnetometer = kwargs.pop('enable_magnetometer',
+                                              defaults.enable_magnetometer)
+
+        # orientation
+        self.orientation = kwargs.pop('orientation', defaults.orientation)
+
+        # compass_time_constant
+        self.compass_time_constant = kwargs.pop('compass_time_constant',
+                                                defaults.compass_time_constant)
+
+        # dmp_interrupt_priority
+        self.dmp_interrupt_priority = kwargs.pop('dmp_interrupt_priority',
+                                                 defaults.dmp_interrupt_priority)
+
+        # dmp_sample_rate
+        self.period = kwargs.pop('period',
+                                 1/defaults.dmp_sample_rate
+
+        # show_warnings
+        self.show_warnings = kwargs.pop('show_warnings',
+                                        defaults.show_warnings)
+
+        # enable_dmp 
+        self.enable_dmp = kwargs.pop('enable_dmp',
+                                     defaults.enable_dmp)
+        
+        # call super
+        super().__init__(**kwargs)
 
         # initialize mpu9250
-        mpu9250.initialize(enable_dmp = True,
-                           dmp_sample_rate = 1/self.period)
-        
+        mpu9250.initialize(accel_fsr = self.accel_fsr,
+			   gyro_fsr = self.gyro_fsr,
+			   accel_dlpf = self.accel_dlpf,
+			   gyro_dlpf = self.gyro_dlpf,
+			   enable_magnetometer = self.enable_magnetometer,
+			   orientation = self.orientation,
+			   compass_time_constant = self.compass_time_constant,
+			   dmp_interrupt_priority = self.dmp_interrupt_priority,
+			   dmp_sample_rate = 1/self.dmp_sample_rate,
+			   show_warnings = self.show_warnings,
+			   enable_dmp = self.enable_dmp)
 
-    def get_imu(self):
+        self.data = {}
+                                          
+    def get(self, *keys, exclude = ()):
 
-        return self.imu
+        # call super excluding time and last
+        return super().get(*keys, exclude = exclude + ('data',
+                                                       '_shared_state'))
+                                          
+    def set(self, exclude = (), **kwargs):
+
+        # call super
+        super().set(exclude + ('data',
+                               '_shared_state'), **kwargs)
+
+        # initialize mpu9250
+        mpu9250.initialize(accel_fsr = self.accel_fsr,
+			   gyro_fsr = self.gyro_fsr,
+			   accel_dlpf = self.accel_dlpf,
+			   gyro_dlpf = self.gyro_dlpf,
+			   enable_magnetometer = self.enable_magnetometer,
+			   orientation = self.orientation,
+			   compass_time_constant = self.compass_time_constant,
+			   dmp_interrupt_priority = self.dmp_interrupt_priority,
+			   dmp_sample_rate = 1/self.dmp_sample_rate,
+			   show_warnings = self.show_warnings,
+			   enable_dmp = self.enable_dmp)
+    
+    def get_data(self):
+
+        return self.data
 
     def read(self):
 
         #print('> read')
         if self.enabled:
 
-            # Read imu (blocking call)
-            self.imu = mpu9250.read()
-        
-            # Read clock
-            self.time = perf_counter()
-            self.counter += 1
-
-        return (self.time - self.time_origin, )
-
-
-class MPU9250(block.BufferBlock):
-        
-    def __init__(self, 
-                 clock = Clock(), # is a singleton
-                 *vars, **kwargs):
-
-        # make sure clock is Clock
-        assert isinstance(clock, Clock)
-        self.clock = clock
+            # Read imu and store data (blocking call)
+            self.data = mpu9250.read()
 
         # call super
-        super().__init__(*vars, **kwargs)
+        return super().read()
 
+
+class Raw(block.BufferBlock):
+        
+    def __init__(self, **kwargs):
+
+        # call super
+        super().__init__(**kwargs)
+
+        # make sure clock is Clock
+        self.mpu9250 = MPU9250() # singleton
+
+    def get(self, *keys, exclude = ()):
+
+        # call super excluding time and last
+        return super().get(*keys, exclude = exclude + ('mpu9250'))
+                                          
+    def set(self, exclude = (), **kwargs):
+
+        # call super
+        super().set(exclude + ('mpu9250'), **kwargs)
+
+    def read(self):
+
+        #print('> read')
+        if self.enabled:
+
+            # read imu
+            data = self.mpu9250.get_data()
+
+            # units (m/s^2) and (rad/s)
+            self.buffer = (data['accel'], data['gyro'])
+        
+        # call super
+        return super().read()
+
+class Inclinometer(Raw):
+
+    def __init__(self, **kwargs):
+
+        # turns initialization
+        self.turns = kwargs.pop('turns', 0)
+        self.theta = kwargs.pop('theta', 0)
+        self.threshold = kwargs.pop('threshold', 0.25)
+
+        # call super
+        super().__init__(**kwargs)
+
+    def reset(self):
+
+        self.turns = 0
+        
+    def read(self):
+
+        #print('> read')
+        if self.enabled:
+
+            # read imu
+            data = self.mpu9250.get_imu()
+        
+            # read IMU
+            ax, ay, az = data['accel']
+            gx, gy, gz = data['gyro']
+
+            # compensate for turns
+            theta = -math.atan2(az, ay) / (2 * math.pi)
+            if (theta < 0 and self.theta > 0):
+                if (self.theta - theta > self.threshold):
+                    self.turns += 1
+            elif (theta > 0 and self.theta < 0):
+                if (theta - self.theta > self.threshold):
+                    self.turns -= 1
+            self.theta = theta
+
+            # units (turns) and (1/s)
+            self.buffer = (self.turns + theta, gx / 360)
+        
+        # call super
+        return super().read()
+                        

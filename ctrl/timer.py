@@ -3,7 +3,7 @@ import ctrl.block.clock as clock
 
 class Controller(ctrl.Controller):
     """
-    `Controller` implements a controller with a :py:class:`ctrl.block.clock.TimerClock`.
+    :py:class:`ctrl.timer.Controller` implements a controller with a :py:class:`ctrl.block.clock.TimerClock`.
 
     The clock is enabled and disabled automatically when calling
     `start()` and `stop()`.
@@ -24,6 +24,7 @@ class Controller(ctrl.Controller):
         # call super
         super().__reset()
 
+        # remove current clock
         self.remove_source('clock')
         
         # add device clock
@@ -33,5 +34,6 @@ class Controller(ctrl.Controller):
                         outputs = ['clock'],
                         enable = True,
                         period = self.period)
+        
         # reset clock
         self.set_source('clock', reset=True)

@@ -255,12 +255,6 @@ class Controller(ctrl.Controller):
     def read_timer(self, label):
         return self.send('y', 'S', label)
     
-    # def set_period(self, value):
-    #     return self.send('a', 'D', value)
-
-    # def get_period(self):
-    #     return self.send('b')
-
     def start(self):
         self.send('c')
 

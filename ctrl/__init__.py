@@ -31,8 +31,11 @@ class Controller:
     3. EXITING
 
     Upon initialization a Controller state is set to IDLE.
+
+    :param kwargs: should be left empty
+    :raises: :py:class:`ctrl.ControllerException` if any parameters are passed to py:data`**kwargs`
     """
-    def __init__(self):
+    def __init__(self, **kwargs):
 
         # debug
         self.debug = 0
@@ -45,6 +48,10 @@ class Controller:
 
         # duty
         self.duty = 0
+
+        # no arguments are supposed to be left out
+        if len(kwargs) > 0:
+            raise ControllerException("Unknown parameter(s) '{}'".format(', '.join(str(k) for k in kwargs.keys())))
 
         # call __reset
         self.__reset()
@@ -1050,22 +1057,3 @@ class Controller:
         """
         if self.thread:
             self.thread.join()
-
-    def set_period(self,period):
-        """
-        Set Controller period.
-
-        The default Controller does not have a clock so it does nothing.
-        """
-        pass
-
-    def get_period(self):
-        """
-        Get Controller period.
-
-        The default Controller does not have a clock so it returns `None`.
-
-        :return: clock period
-        """
-        return None
-
