@@ -162,6 +162,6 @@ texinfo_documents = [
 # setup path
 
 import sys
-sys.path.append('../python')
+sys.path.append('..')
 
 autodoc_member_order = 'bysource'

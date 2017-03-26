@@ -34,7 +34,7 @@ Installation
 
 The Python source code is available from:
 
-* `ctrl <https://github.com/mauricio/ctrl>`_
+* `ctrl <https://github.com/mcdeoliveira/ctrl>`_
 
 
 ---------------------

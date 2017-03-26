@@ -193,8 +193,9 @@ example, after running the code in :ref:`Hello World!` a call to::
 produces the output:
 
 .. code-block:: none
-
-    > Controller with 0 device(s), 4 signal(s), 1 source(s), 1 sink(s), and 0 filter(s)
+		
+    > Controller with: 0 device(s), 0 timer(s), 4 signal(s),
+                       1 source(s), 0 filter(s), and 1 sink(s)
 
 For more information you can use the method
 :py:meth:`ctrl.Controller.info`. For example::
@@ -205,8 +206,10 @@ produces the output:
 
 .. code-block:: none
 
-    > Controller with 0 device(s), 4 signal(s), 1 source(s), 0 filter(s), 1 sink(s), and 0 timer(s)
+    > Controller with: 0 device(s), 0 timer(s), 4 signal(s),
+                       1 source(s), 0 filter(s), and 1 sink(s)
     > devices
+    > timers
     > signals
       1. clock
       2. duty
@@ -217,7 +220,6 @@ produces the output:
     > filters
     > sinks
       1. myclock >> message[Printer, enabled]
-    > timers
 
 which details the *devices*, *signals*, *sources*, *filters*, *sinks*,
 and *timers* present in the controller :py:data:`hello`. Of course the
@@ -352,9 +354,11 @@ A call to :samp:`print(hello.info('all'))`:
 
 .. code-block:: none
 	       
-    > Controller with 1 device(s), 3 signal(s), 1 source(s), 0 filter(s), 1 sink(s), and 0 timer(s)
+    > Controller with: 1 device(s), 0 timer(s), 3 signal(s),
+                       1 source(s), 0 filter(s), and 1 sink(s)
     > devices
       1. clock[source]
+    > timers
     > signals
       1. clock
       2. duty
@@ -364,7 +368,6 @@ A call to :samp:`print(hello.info('all'))`:
     > filters
     > sinks
       1. clock >> message[Printer, enabled]
-    > timers
 
 reveals the presence of the signal :py:data:`clock` and the *device*
 :py:class:`ctrl.block.clock.TimerClock` as a *source*.
@@ -388,9 +391,11 @@ initialization or a call to :py:meth:`ctrl.timer.Controller.reset`,
 
 .. code-block:: none
 	       
-    > Controller with 1 device(s), 3 signal(s), 1 source(s), 0 filter(s), 0 sink(s), and 0 timer(s)
+    > Controller with: 1 device(s), 0 timer(s), 3 signal(s),
+                       1 source(s), 0 filter(s), and 0 sink(s)
     > devices
       1. clock[source]
+    > timers
     > signals
       1. clock
       2. duty
@@ -399,7 +404,6 @@ initialization or a call to :py:meth:`ctrl.timer.Controller.reset`,
       1. clock[TimerClock, enabled] >> clock
     > filters
     > sinks
-    > timers
 
 which shows the presence of the *source* :py:data:`clock` and the
 *signal* :py:data:`clock` but no other *source*, *filter*, *sink*, or
@@ -580,9 +584,12 @@ The key aspect in this example is how *filters* process
 
 .. code-block:: none
 	       
-    > Controller with 1 device(s), 4 signal(s), 1 source(s), 1 filter(s), 1 sink(s), and 1 timer(s)
+    > Controller with: 1 device(s), 1 timer(s), 4 signal(s),
+                       1 source(s), 1 filter(s), and 1 sink(s)
     > devices
       1. clock[source]
+    > timers
+      1. stop[Constant, period = 6, enabled] >> is_running
     > signals
       1. clock
       2. duty
@@ -594,8 +601,6 @@ The key aspect in this example is how *filters* process
       1. clock >> input[Interp, enabled] >> pwm
     > sinks
       1. clock, pwm >> printer[Printer, enabled]
-    > timers
-      1. stop[Constant, period = 6, enabled] >> is_running
       
 where you can see the relationship between the inputs and outputs
 *signals* indicated by a pair of arrows :samp:`>>` coming in *and* out
@@ -646,19 +651,45 @@ would produce:
    'time': 491901.67835816,
    'time_origin': 491898.26005493104}
 
-which return all public properties of the
-:py:class:`ctrl.block.clock.TimerClock`, and::
+which return all public properties of the source :py:data:`clock`, an
+instance of :py:class:`ctrl.block.clock.TimerClock`. If only one
+attribute is sought, as in::
      
   hello.get_source('clock', 'count')
 
-returns simply :py:data:`33`.
+then :py:meth:`ctrl.Controller.get_source` returns simply
+:py:data:`33`.
 
 Likewise::
 
   hello.set_sink('message', endln = '\n')
 
-changes the attribute :py:attr:`endln` in the *sink* :py:data:`message`.
+changes the attribute :py:attr:`endln` in the *sink*
+:py:data:`message`. More than one atribute can be changed at a time by
+passing multiple keyword arguments.
 
+*Sources*, *filters*, *sinks*, and *timers* can also be removed using
+:py:meth:`ctrl.Controller.remove_source`,
+:py:meth:`ctrl.Controller.remove_filter`,
+:py:meth:`ctrl.Controller.remove_sink`, and
+:py:meth:`ctrl.Controller.remove_timer`. For example::
+
+  hello.remove_sink('message')
+
+removes the *sink* :py:data:`message` from the controller loop.
+
+Finally, one can also read and write to blocks using
+:py:meth:`ctrl.Controller.read_source`,
+:py:meth:`ctrl.Controller.read_filter`,
+:py:meth:`ctrl.Controller.read_sink`,
+:py:meth:`ctrl.Controller.read_timer`,
+:py:meth:`ctrl.Controller.write_source`,
+:py:meth:`ctrl.Controller.write_filter`,
+:py:meth:`ctrl.Controller.write_sink`, and
+:py:meth:`ctrl.Controller.write_timer`. These will be used in the next
+section to read values from a block that logs running data.
+
+    
 -----------------
 Working with data
 -----------------
@@ -962,9 +993,12 @@ After all that you should have a controller with the following blocks:
 
 .. code-block:: none
 
-    > Controller with 1 device(s), 6 signal(s), 1 source(s), 4 filter(s), 1 sink(s), and 1 timer(s)
+    > Controller with: 1 device(s), 1 timer(s), 6 signal(s),
+                       1 source(s), 4 filter(s), and 1 sink(s)
     > devices
       1. clock[source]
+    > timers
+      1. stop[Constant, period = 6, enabled] >> is_running
     > signals
       1. clock
       2. duty
@@ -981,8 +1015,6 @@ After all that you should have a controller with the following blocks:
       4. speed >> LPF[System, enabled] >> fspeed
     > sinks
       1. clock, pwm, encoder, speed, fspeed >> logger[Logger, enabled]
-    > timers
-      1. stop[Constant, period = 6, enabled] >> is_running
 
 Note how the order of the *filters* is important. Output that is
 needed as input for other filters must be computed first if they are
@@ -1133,11 +1165,13 @@ devices is shown in the output of :samp:`print(bbb.info('all'))`:
 
 .. code-block:: none
 
-    > Controller with 3 device(s), 6 signal(s), 2 source(s), 0 filter(s), 1 sink(s), and 0 timer(s)
+    > Controller with: 3 device(s), 0 timer(s), 6 signal(s),
+                       2 source(s), 0 filter(s), and 1 sink(s)
     > devices
       1. clock[source]
       2. encoder1[source]
       3. motor1[sink]
+    > timers
     > signals
       1. clock
       2. duty
@@ -1151,7 +1185,6 @@ devices is shown in the output of :samp:`print(bbb.info('all'))`:
     > filters
     > sinks
       1. pwm >> motor1[Motor, disabled]
-    > timers
 
 
 Using devices
@@ -1214,11 +1247,14 @@ will produce a controller with the following connections:
 
 .. code-block:: none
 
-    > Controller with 3 device(s), 6 signal(s), 2 source(s), 3 filter(s), 2 sink(s), and 1 timer(s)
+    > Controller with: 3 device(s), 1 timer(s), 6 signal(s),
+                       2 source(s), 3 filter(s), and 3 sink(s)
     > devices
       1. clock[source]
       2. encoder1[source]
       3. motor1[sink]
+    > timers
+      1. stop[Constant, period = 6, enabled] >> is_running
     > signals
       1. clock
       2. duty
@@ -1236,8 +1272,6 @@ will produce a controller with the following connections:
     > sinks
       1. pwm >> motor1[Motor, disabled]
       2. clock, pwm, encoder, speed, fspeed >> logger[Logger, enabled]
-    > timers
-      1. stop[Constant, period = 6, enabled] >> is_running
 
 You run this controller program invoking::
   
@@ -1561,7 +1595,8 @@ devices needed for controlling the MIP. A look at :samp:`mip.info('all')`:
 
 .. code-block:: none
 		
-    > Controller with 6 device(s), 9 signal(s), 4 source(s), 0 filter(s), 2 sink(s), and 0 timer(s)
+    > Controller with: 6 device(s), 0 timer(s), 9 signal(s),
+                       4 source(s), 0 filter(s), and 2 sink(s)
     > devices
       1. inclinometer[source]
       2. clock[source]
@@ -1569,6 +1604,7 @@ devices needed for controlling the MIP. A look at :samp:`mip.info('all')`:
       4. motor2[sink]
       5. encoder1[source]
       6. encoder2[source]
+    > timers
     > signals
       1. clock
       2. duty
@@ -1588,7 +1624,6 @@ devices needed for controlling the MIP. A look at :samp:`mip.info('all')`:
     > sinks
       1. motor1 >> motor1[Motor, disabled]
       2. motor2 >> motor2[Motor, disabled]
-    > timers
 
 reveals that :py:class:`ctrl.rc.mip.Controller` already installed the
 following devices:

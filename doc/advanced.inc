@@ -27,7 +27,7 @@ hardware capabilities. That was the case, for example, with the class
 Controllers`. In fact, this new class is so simple that its entire
 code easily fits here:
 
-.. literalinclude:: ../python/ctrl/timer.py
+.. literalinclude:: ../ctrl/timer.py
    :pyobject: Controller
 
 Virtually all functionality is provided by the base class
@@ -46,7 +46,7 @@ Most of the action is in the method
 :py:meth:`ctrl.Controller.__reset`. In fact, a closer look at
 :py:meth:`ctrl.Controller.__init__`:
 
-.. literalinclude:: ../python/ctrl/__init__.py
+.. literalinclude:: ../ctrl/__init__.py
    :pyobject: Controller.__init__
 
 reveals that :py:meth:`ctrl.Controller.__init__` calls
@@ -70,7 +70,7 @@ provide the user with a set of devices that continue to exist even
 after a call to :py:meth:`ctrl.Controller.reset`. For example, the
 following code is from :py:meth:`ctrl.rc.mip.Controller`:
 
-.. literalinclude:: ../python/ctrl/rc/mip.py
+.. literalinclude:: ../ctrl/rc/mip.py
    :pyobject: Controller
 
 which adds a number of devices to the base class
@@ -211,14 +211,13 @@ attribute :py:obj:`buffer`, which can be used to carry values from
 that later.
 
 
-.. literalinclude:: ../python/ctrl/block/__init__.py
+.. literalinclude:: ../ctrl/block/__init__.py
    :pyobject: Constant
 
-.. literalinclude:: ../python/ctrl/rc/encoder.py
+.. literalinclude:: ../ctrl/rc/encoder.py
    :pyobject: Encoder
 
-    
-.. literalinclude:: ../python/ctrl/block/system.py 
+.. literalinclude:: ../ctrl/block/system.py 
    :pyobject: Sum
 
 

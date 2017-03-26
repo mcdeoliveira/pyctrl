@@ -224,18 +224,19 @@ class Controller:
         elif options == 'all':
             
             result = ''.join(map(lambda x: self.info(x), 
-                                 ['summary', 'devices', 'signals', 
-                                  'sources', 'filters', 'sinks', 'timers']))
+                                 ['summary',
+                                  'devices', 'timers', 'signals',
+                                  'sources', 'filters', 'sinks']))
             
         elif options == 'summary':
         
-            result += '> Controller with {} device(s), {} signal(s), {} source(s), {} filter(s), {} sink(s), and {} timer(s)' \
+            result += '> Controller with: {} device(s), {} timer(s), {} signal(s),\n                   {} source(s), {} filter(s), and {} sink(s)\n' \
                 .format(len(self.devices),
+                        len(self.timers),
                         len(self.signals),
                         len(self.sources), 
                         len(self.filters),
-                        len(self.sinks), 
-                        len(self.timers)) + '\n'
+                        len(self.sinks))
 
         else:
             warnings.warn("Unknown option '{}'.".format(options))
