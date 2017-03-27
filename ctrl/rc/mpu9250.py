@@ -80,13 +80,13 @@ class MPU9250(clock.Clock):
                            gyro_fsr = self.gyro_fsr,
                            accel_dlpf = self.accel_dlpf,
                            gyro_dlpf = self.gyro_dlpf,
-                           enable_magnetometer = self.enable_magnetometer,
                            orientation = self.orientation,
                            compass_time_constant = self.compass_time_constant,
                            dmp_interrupt_priority = self.dmp_interrupt_priority,
                            dmp_sample_rate = int(1/self.period),
-                           show_warnings = self.show_warnings,
+                           enable_magnetometer = self.enable_magnetometer,
                            enable_dmp = self.enable_dmp,
+                           show_warnings = self.show_warnings,
                            enable_fusion = self.enable_fusion)
                                  
         self.data = {}
@@ -173,12 +173,13 @@ class Inclinometer(Raw):
 
         # turns initialization
         self.turns = kwargs.pop('turns', 0)
-        self.theta = kwargs.pop('theta', 0)
         self.threshold = kwargs.pop('threshold', 0.25)
 
         # call super
         super().__init__(**kwargs)
 
+        self.theta = 0
+        
     def get(self, *keys, exclude = ()):
 
         # call super excluding time and last

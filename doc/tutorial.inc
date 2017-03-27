@@ -1613,8 +1613,8 @@ devices needed for controlling the MIP. A look at :samp:`mip.info('all')`:
       3. encoder1
       4. encoder2
       5. is_running
-      6. motor1
-      7. motor2
+      6. pwm1
+      7. pwm2
       8. theta
       9. theta_dot
     > sources
@@ -1624,8 +1624,8 @@ devices needed for controlling the MIP. A look at :samp:`mip.info('all')`:
       4. encoder2[Encoder, enabled] >> encoder2
     > filters
     > sinks
-      1. motor1 >> motor1[Motor, disabled]
-      2. motor2 >> motor2[Motor, disabled]
+      1. pwm1 >> motor1[Motor, disabled]
+      2. pwm2 >> motor2[Motor, disabled]
 
 reveals that :py:class:`ctrl.rc.mip.Controller` already installed the
 following devices:
@@ -1691,11 +1691,11 @@ using a :py:class:`ctrl.block.ShortCircuit`::
     mip.add_filter('cl1',
                    ShortCircuit(),
                    ['pwm'],
-                   ['motor1'])
+                   ['pwm1'])
     mip.add_filter('cl2',
                    ShortCircuit(),
                    ['pmw'],
-		   ['motor2'])
+		   ['pwm2'])
 
 The code for a complete controller with some added bells and whitles
 to let you drive the MIP while balancing upright is given in

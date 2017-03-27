@@ -49,8 +49,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'ctrl'
-copyright = '2017, Mauricio de Oliveira'
+project = 'ctrl: a Python Suite for Systems and Control'
+copyright = '2017, Mauricio C. de Oliveira'
 author = 'Mauricio de Oliveira'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -86,7 +86,8 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+#html_theme = 'alabaster'
+html_theme = 'sphinxdoc'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -133,8 +134,9 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'ctrl.tex', 'ctrl Documentation',
-     'Mauricio de Oliveira', 'manual'),
+    (master_doc, 'ctrl.tex',
+     'ctrl: a Python Suite for Systems and Control',
+     'Mauricio C. de Oliveira', 'manual'),
 ]
 
 

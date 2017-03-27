@@ -3,8 +3,9 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-A Python Suite for Systems and Control
-======================================
+============================================   
+ctrl: A Python Suite for Systems and Control
+============================================
 
 .. toctree::
    :maxdepth: 4

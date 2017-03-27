@@ -112,7 +112,8 @@ Module `ctrl.rc.mpu9250`
    :param int dmp_interrupt_priority: DMP interrupt priority
    :param int period: DMP period in seconds
    :param bool enable_magnetometer: enable magnetometer
-   :param bool enable_dmp:
+   :param bool enable_dmp: enable Digital Motion Processor
+   :param bool enable_fusion: enable fusion algorithm
    :param bool show_warnings: show warnings
    :param kwargs: other keyword parameters
 
@@ -134,6 +135,8 @@ Module `ctrl.rc.mpu9250`
 
    :bases: :py:class:`ctrl.block.BufferBlock`
 
+   :py:class:`ctrl.rc.mpu9250.Raw` reads raw accelerometer and gyroscope angular velocity from the MPU9250 IMU.
+
    .. py:method:: read()
 	     
       Read from IMU.
@@ -145,6 +148,11 @@ Module `ctrl.rc.mpu9250`
 .. py:class:: ctrl.rc.mpu9250.Inclinometer(**kwargs)
 
    :bases: :py:class:`ctrl.rc.mpu9250.Raw`
+
+   :py:class:`ctrl.rc.mpu9250.Inclinometer` reads the output from `ctrl.rc.mpu9250.Inclinometer` and returns the angle and angualar velocity with respect to the vertical.
+
+   :param int turns: current number of turns (default 0)
+   :param float threshold: used to detect that the IMU has been fliped more than 1 turn (360 degrees) (default 0.25 turns (90 deg))
 
    .. py:method:: read()
 	     
@@ -182,8 +190,9 @@ Module `ctrl.rc.mip`
       axis of the left and right motors; units are cycles;
 
    4. Two motors, :py:data:`motor1`, and :py:data:`motor2`; installed
-      as *sinks*; inputs are the PWM signals driving the left and right
-      motors of the MIP; range is from -100 to 100.
+      as *sinks*; inputs are the PWM signals :py:data:`pwm1` and
+      `py:data:`pwm2` driving the left and right motors of the MIP;
+      range is from -100 to 100.
        
    :param float period: period in seconds (default 0.01)
    :param kwargs: other keyword parameters
