@@ -6,6 +6,9 @@ from time import perf_counter
 from ctrl import block
 from ctrl.block import clock
 
+import rcpy
+import rcpy.mpu9250 as mpu
+
 # Uses Alex Martelli's Borg for making MPU9250 a singleton
 
 class MPU9250(clock.Clock):
@@ -23,7 +26,7 @@ class MPU9250(clock.Clock):
             return
 
         # get defaults
-        defaults = mpu9250.default_imu_config()
+        defaults = mpu.mpu9250.get()
         
         # accel_fsr
         self.accel_fsr = kwargs.pop('accel_fsr', defaults.accel_fsr)
@@ -64,22 +67,27 @@ class MPU9250(clock.Clock):
         self.enable_dmp = kwargs.pop('enable_dmp',
                                      defaults.enable_dmp)
         
+        # enable_fusion 
+        self.enable_fusion = kwargs.pop('enable_fusion',
+                                        defaults.enable_fusion)
+
         # call super
         super().__init__(**kwargs)
 
         # initialize mpu9250
-        mpu9250.initialize(accel_fsr = self.accel_fsr,
-			   gyro_fsr = self.gyro_fsr,
-			   accel_dlpf = self.accel_dlpf,
-			   gyro_dlpf = self.gyro_dlpf,
-			   enable_magnetometer = self.enable_magnetometer,
-			   orientation = self.orientation,
-			   compass_time_constant = self.compass_time_constant,
-			   dmp_interrupt_priority = self.dmp_interrupt_priority,
-			   dmp_sample_rate = 1/self.dmp_sample_rate,
-			   show_warnings = self.show_warnings,
-			   enable_dmp = self.enable_dmp)
-
+        mpu.mpu9250.initialize(accel_fsr = self.accel_fsr,
+			       gyro_fsr = self.gyro_fsr,
+			       accel_dlpf = self.accel_dlpf,
+			       gyro_dlpf = self.gyro_dlpf,
+			       enable_magnetometer = self.enable_magnetometer,
+			       orientation = self.orientation,
+			       compass_time_constant = self.compass_time_constant,
+			       dmp_interrupt_priority = self.dmp_interrupt_priority,
+			       dmp_sample_rate = 1/self.dmp_sample_rate,
+			       show_warnings = self.show_warnings,
+			       enable_dmp = self.enable_dmp,
+			       enable_fusion = self.enable_fusion)
+                                 
         self.data = {}
                                           
     def get(self, *keys, exclude = ()):
@@ -95,17 +103,18 @@ class MPU9250(clock.Clock):
                                '_shared_state'), **kwargs)
 
         # initialize mpu9250
-        mpu9250.initialize(accel_fsr = self.accel_fsr,
-			   gyro_fsr = self.gyro_fsr,
-			   accel_dlpf = self.accel_dlpf,
-			   gyro_dlpf = self.gyro_dlpf,
-			   enable_magnetometer = self.enable_magnetometer,
-			   orientation = self.orientation,
-			   compass_time_constant = self.compass_time_constant,
-			   dmp_interrupt_priority = self.dmp_interrupt_priority,
-			   dmp_sample_rate = 1/self.dmp_sample_rate,
-			   show_warnings = self.show_warnings,
-			   enable_dmp = self.enable_dmp)
+        mpu.mpu9250.initialize(accel_fsr = self.accel_fsr,
+			       gyro_fsr = self.gyro_fsr,
+			       accel_dlpf = self.accel_dlpf,
+			       gyro_dlpf = self.gyro_dlpf,
+			       enable_magnetometer = self.enable_magnetometer,
+			       orientation = self.orientation,
+			       compass_time_constant = self.compass_time_constant,
+			       dmp_interrupt_priority = self.dmp_interrupt_priority,
+			       dmp_sample_rate = 1/self.dmp_sample_rate,
+			       show_warnings = self.show_warnings,
+			       enable_dmp = self.enable_dmp,
+			       enable_fusion = self.enable_fusion)
     
     def get_data(self):
 
@@ -117,7 +126,7 @@ class MPU9250(clock.Clock):
         if self.enabled:
 
             # Read imu and store data (blocking call)
-            self.data = mpu9250.read()
+            self.data = mpu.mpu9250.read()
 
         # call super
         return super().read()
@@ -130,7 +139,7 @@ class Raw(block.BufferBlock):
         # call super
         super().__init__(**kwargs)
 
-        # make sure clock is Clock
+        # set MPU9250 block
         self.mpu9250 = MPU9250() # singleton
 
     def get(self, *keys, exclude = ()):

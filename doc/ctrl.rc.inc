@@ -130,6 +130,29 @@ Module `ctrl.rc.mpu9250`
 		  
       :return: time
 
+.. py:class:: ctrl.rc.mpu9250.Raw(**kwargs)
+
+   :bases: :py:class:`ctrl.block.BufferBlock`
+
+   .. py:method:: read()
+	     
+      Read from IMU.
+
+      When enabled, returns the current IMU linear acceleration and gyroscope angular velocities.
+
+      :return: tuple with IMU acceleration and gyroscope angular velocities.
+      
+.. py:class:: ctrl.rc.mpu9250.Inclinometer(**kwargs)
+
+   :bases: :py:class:`ctrl.rc.mpu9250.Raw`
+
+   .. py:method:: read()
+	     
+      Read inclinometer.
+
+      When enabled, returns the current angle and angular velocity measured with respect to the vertical.
+
+      :return: tuple with angle and angular velocity.
 
 Module `ctrl.rc.mip`
 ====================

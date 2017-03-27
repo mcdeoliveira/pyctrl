@@ -5,8 +5,8 @@ if __name__ == "__main__":
 
 import ctrl.block as block
 
-import rc
-import rc.motor as mtr
+import rcpy
+import rcpy.motor as mtr
 
 # enable motor
 mtr.enable()

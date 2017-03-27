@@ -1,4 +1,4 @@
-import rc
+import rcpy
 import ctrl
 import ctrl.rc
 

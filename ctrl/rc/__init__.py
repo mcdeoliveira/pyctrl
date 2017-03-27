@@ -1,6 +1,6 @@
 import time
 
-import rc as rcpy
+import rcpy
 import ctrl
 
 class Controller(ctrl.Controller):
