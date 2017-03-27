@@ -2,4 +2,4 @@
 
 ## Release 0.1a
 
-See [http://guitar.ucsd.edu/ctrl/index.html] for complete documentation.
+See http://guitar.ucsd.edu/ctrl/index.html for complete documentation.
