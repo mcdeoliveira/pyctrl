@@ -16,7 +16,6 @@ def brief_warning(message, category, filename, lineno, line=None):
 
 warnings.formatwarning = brief_warning
 
-
 from ctrl.rc.mip import Controller
 import ctrl.block as block
 
@@ -114,15 +113,29 @@ def test_theta(args):
 
     with mip:
 
+        print('< Lean the MIP:')
+        
         # Test IMU
-        answer = input('< Lean the MIP near the +90 deg position and hit <ENTER>').lower()
+        mip.add_sink('printer',
+                     block.Printer(message = 'Theta = {:+4.2f} cycles', endln = '\r'), 
+                     ['theta'])
+
+        print("""
+                    |
+                    |             ---
+      ___O           O           O
+    ==========   =========   ==========
+     +90 deg       0 deg      -90 deg
+""")
+        
+        answer = input('<                    | near +90 deg (0.25 cycles) and hit <ENTER>\r').lower()
         (theta, thetaDot) = mip.read_source('inclinometer')
         if theta < 0:
             return False, 'Motors are likely reversed'
         if theta < .2:
             return False, 'MIP does not seem to be leaning at +90 degree position'
         
-        answer = input('< Lean the MIP near the -90 deg position and hit <ENTER>').lower()
+        answer = input('<                    | near -90 deg (-0.25 cycles) and hit <ENTER>\r').lower()
         (theta, thetaDot) = mip.read_source('inclinometer')
         if theta > 0:
             return False, 'Motors are likely reversed'
@@ -169,8 +182,8 @@ above the wheels. For example
         if verbose:
             mip.add_sink('printer', block.Printer(endln = '\r'), 
                                 ['clock',
-                                 'motor1','encoder1',
-                                 'motor2','encoder2',
+                                 'pwm1','encoder1',
+                                 'pmw2','encoder2',
                                  'theta','theta_dot'])
 
             print(mip.info('all'))
@@ -180,7 +193,7 @@ above the wheels. For example
         k = 1
         position1, position2 \
             = test('{}: MOTOR 1 COUNTER-CLOCKWISE'.format(k), 
-                   ('motor1','encoder1'),
+                   ('pwm1','encoder1'),
                    'Did the wheel nearest to you spin counter-clockwise for two seconds?', 
                    'motor1 not working properly',
                    test_motor_forward)
@@ -197,7 +210,7 @@ above the wheels. For example
         k += 1
         position1, position2 \
             = test('{}: MOTOR 2 COUNTER-CLOCKWISE'.format(k), 
-                   ('motor2','encoder2'),
+                   ('pwm2','encoder2'),
                    'Did the wheel farthest from you spin counter-clockwise for two seconds?', 
                    'motor2 not working properly',
                    test_motor_forward)
@@ -220,7 +233,7 @@ above the wheels. For example
         k += 1
         position1, position2 \
             = test('{}: MOTOR 1 CLOCKWISE'.format(k),
-                   ('motor1','encoder1'),
+                   ('pwm1','encoder1'),
                    'Did the wheel nearest to you spin clockwise for two seconds?', 
                    'motor1 not working properly',
                    test_motor_backward)
@@ -237,7 +250,7 @@ above the wheels. For example
         k += 1
         position1, position2 \
             = test('{}: MOTOR 2 CLOCKWISE'.format(k),
-                   ('motor2','encoder2'),
+                   ('pwm2','encoder2'),
                    'Did the wheel farthest from you spin clockwise for two seconds?', 
                    'motor2 not working properly',
                    test_motor_backward)
@@ -253,7 +266,7 @@ above the wheels. For example
 
         k += 1
         test('{}: MOTOR 1 TWO SPEEDS'.format(k),
-             ('motor1','encoder1'),
+             ('pwm1','encoder1'),
              'Did wheel nearest to you spin counter-clockwise at full speed then slowed down to half speed?', 
              'motor1 not working properly',
              test_motor_speeds)
@@ -262,7 +275,7 @@ above the wheels. For example
 
         k += 1
         test('{}: MOTOR 2 TWO SPEEDS'.format(k),
-             ('motor2','encoder2'),
+             ('pwm2','encoder2'),
              'Did the wheel farthest from you spin counter-clockwise at full speed then slowed down to half speed?', 
              'motor2 not working properly',
              test_motor_speeds)

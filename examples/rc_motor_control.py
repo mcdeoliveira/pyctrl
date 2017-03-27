@@ -10,7 +10,6 @@ def main():
     import math, numpy
     
     # import Controller and other blocks from modules
-    import rc
     from ctrl.rc import Controller
     from ctrl.block import Interp, Logger, Constant
     from ctrl.block.system import System, Differentiator, Feedback

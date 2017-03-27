@@ -76,8 +76,6 @@ def main():
     # create mip
     mip = Controller()
 
-    print(mip.info('all'))
-    
     # phi is the average of the encoders
     mip.add_signal('phi')
     mip.add_filter('phi',
@@ -118,7 +116,7 @@ def main():
     mip.add_filter('steer',
                    ControlledCombination(),
                    ['steer_reference', 'pwm','pwm'],
-                   ['motor1','motor2'])
+                   ['pwm1','pwm2'])
 
     # set references
     mip.set_signal('phi_dot_reference',0)

@@ -12,13 +12,13 @@ class Controller(ctrl.Controller):
     :param float period: period in seconds (default 0.01)
     :param kwargs: other keyword parameters
     """
-    def __init__(self, *vargs, **kwargs):
+    def __init__(self, **kwargs):
 
         # period (default 100Hz)
         self.period = kwargs.pop('period', 0.01)
 
         # Initialize controller
-        super().__init__(*vargs, **kwargs)
+        super().__init__(**kwargs)
 
         # set state as RUNNING
         rcpy.set_state(rcpy.RUNNING)
@@ -43,5 +43,9 @@ class Controller(ctrl.Controller):
                         outputs = ['clock'],
                         period = self.period)
 
+        # set clock period: it will be ignored at the construction time
+        # because MPU9250 is a singleton
+        self.set_source('clock', period = self.period)
+        
         # reset clock
         self.set_source('clock', reset=True)

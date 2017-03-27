@@ -100,8 +100,8 @@ aed/settings.py
 
 python/source/mpu9150/test
 
-# rc subdirectory
-python/rc
+# rcpy subdirectory
+rcpy
 
 # Sphinx documentation
 doc/_build/

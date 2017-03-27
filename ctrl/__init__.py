@@ -766,7 +766,16 @@ class Controller:
         }
 
         return instance
-                
+
+    def list_devices(self):
+        """
+        List of the devices currently on Controller.
+
+        :return: a list of devices labels
+        :rtype: list
+        """
+        return list(self.devices.keys())
+    
     # timers
     def add_timer(self,
                   label,

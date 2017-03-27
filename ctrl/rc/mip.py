@@ -9,6 +9,10 @@ class Controller(ctrl.rc.Controller):
         # call super
         super().__reset()
 
+        self.add_signals('theta','theta_dot',
+                         'encoder1','encoder2',
+                         'pwm1','pwm2')
+        
         # add source: imu
         self.add_device('inclinometer',
                         'ctrl.rc.mpu9250', 'Inclinometer',
@@ -37,7 +41,7 @@ class Controller(ctrl.rc.Controller):
                         'ctrl.rc.motor', 'Motor',
                         type = 'sink',
                         enable = True,
-                        inputs = ['motor1'],
+                        inputs = ['pwm1'],
                         motor = 3)
 
         # add sink: motor2
@@ -45,6 +49,6 @@ class Controller(ctrl.rc.Controller):
                         'ctrl.rc.motor', 'Motor',
                         type = 'sink',
                         enable = True,
-                        inputs = ['motor2'],
+                        inputs = ['pwm2'],
                         motor = 2,
-                        gain = -1/100) 
+                        ratio = -100) 
