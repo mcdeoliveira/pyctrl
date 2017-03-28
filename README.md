@@ -4,9 +4,11 @@
 
 This is a Python library for system and control.
 
+We only support Python 3, and are not interested in Python 2 at all.
+
 ## Installation
 
-If you would want to install on a Beaglebone Black with the Robotics Cape first install the [rcpy package](https://github.com/mcdeoliveira/rcpy)
+If you would want to install on a Beaglebone Black with the Robotics Cape first install the [rcpy package](https://github.com/mcdeoliveira/rcpy).
 
 Clone this repository:
 
