@@ -8,8 +8,6 @@ We only support Python 3, and are not interested in Python 2 at all.
 
 ## Installation
 
-If you would want to install on a Beaglebone Black with the Robotics Cape first install the [rcpy package](https://github.com/mcdeoliveira/rcpy).
-
 Clone this repository:
 
     git clone https://github.com/mcdeoliveira/ctrl
@@ -18,7 +16,17 @@ Run setup.py install:
 
     python3 setup.py install
 
+You will need to have numpy installed.
+
 More details are available in the documentation.
+
+## Installation on a Beaglebone Black
+
+You will need python3 and numpy:
+
+    sudo apt install python3 python3-numpy
+
+If you want to use it with the Robotics Cape, you will also need to install the [rcpy package](https://github.com/mcdeoliveira/rcpy).
 
 ## Available Documentation:
 
