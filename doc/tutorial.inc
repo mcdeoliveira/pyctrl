@@ -305,13 +305,13 @@ clock. For example, the following code::
   from ctrl import Controller
 
   hello = Controller()
-  clock = hello.add_device('clock',
-                            'ctrl.block.clock', 'TimerClock',
-			    type = 'source', 
-			    outputs = ['clock'],
-			    enable = True,
-			    period = 1)
-
+  hello.add_device('clock',
+                   'ctrl.block.clock', 'TimerClock',
+		   type = 'source', 
+		   outputs = ['clock'],
+		   enable = True,
+		   period = 1)
+			    
 automatically creates a :py:class:`ctrl.block.clock.TimerClock` which
 is added to :py:data:`controller` as the *source* labeled
 :py:data:`clock` with *output signal* :py:data:`clock`. Setting the

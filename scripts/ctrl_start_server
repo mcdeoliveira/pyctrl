@@ -19,68 +19,62 @@ def one_line_warning(message, category, filename, lineno, line=None):
 def brief_warning(message, category, filename, lineno, line=None):
     return "*{}\n".format(message)
 
-def usage():
-    print('ctrl_start_server (version {})'.format(ctrl.server.version()))
-    print("""usage: ctrl_start_server [option] ...
-Options are:
--c     : skip simulated controller calibration
--C arg : controller class             (default 'Controller')
--h     : print this help message and exit
--H arg : set hostname                 (default 'localhost')
--l arg : set log size in seconds      (default 120s)
--m arg : controller module            (default 'ctrl.bbb')
--p arg : set port                     (default 9999)
--t arg : set sampling rate in second  (default 0.01s)
--v arg : set verbose level            (default 1)""")
-
 def main():
+    
+    import argparse, sys
+    import ctrl.server
 
     # Parse command line
+    parser = argparse.ArgumentParser(
+        description='ctrl_start_server (version {})'.format(ctrl.server.version()),
+        add_help = False)
+    parser.add_argument('-h', '--help', default=False,
+                        action='store_true',
+                        help='show this help message and exit')
+    parser.add_argument('-m', '--module',
+                        type=str, default='ctrl', 
+                        help='controller module')
+    parser.add_argument('-c', '--controller',
+                        type=str, default='Controller',
+                        help='controller class')
+    parser.add_argument('-H', '--host',
+                        type=str, default='localhost',
+                        help='host name or ip address')
+    parser.add_argument('-p', '--port',
+                        type=int, default=9999,
+                        help='port number')
+    parser.add_argument('-v', '--verbose',
+                        type=int, default=1,
+                        help='level of verbosity')
+    parser.add_argument('-t', '--period',
+                        type=float, default=0.01,
+                        help='sampling period in seconds')
+                                     
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "cC:fhH:l:m:p:t:v:", ["help"])
+        args = parser.parse_args()
+    except:
+        print()
+        parser.print_help()
+        sys.exit(0)
 
-    except getopt.GetoptError as err:
-        # print help information and exit:
-        print('server: illegal option {}'.format(sys.argv[1:]))
-        usage()
-        sys.exit(2)
-
+    # help?
+    if args.help:
+        parser.print_help()
+        sys.exit(0)
+        
     # Sampling period
-    Ts = 0.01
+    Ts = args.period
 
     # HOST AND PORT
-    HOST, PORT = "localhost", 9999
+    HOST = args.host
+    PORT = args.port
 
     # verbose_level
-    verbose_level = 1
-
-    # calibrate
-    calibrate = 1
+    verbose_level = args.verbose
 
     # default module
-    module = 'ctrl'
-    ctrl_class = 'Controller'
-
-    for o, a in opts:
-        if o in ("-h", "--help"):
-            usage()
-            sys.exit()
-        elif o == "-H":
-            HOST = a
-        elif o in "-p":
-            PORT = int(a)
-        elif o in "-t":
-            Ts = float(a)
-        elif o in "-v":
-            verbose_level = int(a)
-        elif o == "-c":
-            calibrate = 0
-        elif o == "-m":
-            module = a
-        elif o == "-C":
-            ctrl_class = a
-        else:
-            assert False, "Unhandled option"
+    module = args.module
+    ctrl_class = args.controller
 
     # Modify warnings
     if verbose_level > 2:
@@ -153,7 +147,8 @@ def main():
         thread.join()
             
         # say bye
-        print("\nBye Beaglebone!")
+        print("\n> Goodbye!")
 
 if __name__ == "__main__":
+
     main()

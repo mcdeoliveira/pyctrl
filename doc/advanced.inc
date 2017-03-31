@@ -27,20 +27,23 @@ Starting the server
 Start by using the script :samp:`ctrl_start_server` to create a server
 for you. In this tutorial, you will create a server on the same
 machine you will be running the client. The process of initializing a
-server on a remote machine is virtually identical.
+server on a remote machine is virtually identical. Type::
 
     ctrl_start_server
 
-which::
-    
+which start the server and produces the following output:
+
+.. code-block:: none
+  
     ctrl_start_server (version 1.0)
     > Options:
-      Controller class: ctrl.Controller
-	Hostname[port]: localhost[9999]
-       Sampling period: ---
-	 Verbose level: 1
-    > Controller with: 1 device(s), 0 timer(s), 3 signal(s),
-		       1 source(s), 0 filter(s), and 0 sink(s)
+       Hostname[port]: localhost[9999]
+      Sampling period: ---
+        Verbose level: 1
+    
+    <class 'ctrl.Controller'> with:
+      1 device(s), 0 timer(s), 3 signal(s),
+      1 source(s), 0 filter(s), and 0 sink(s)
     > devices
       1. clock[source]
     > timers
@@ -52,19 +55,152 @@ which::
       1. clock[Clock, enabled] >> clock
     > filters
     > sinks
-
+    
     > Server started...
-    > Hit Ctrl-C or Use 'python kill_server.py' to exit server    
+    > Hit Ctrl-C or use 'ctrl_stop_server' to exit the server
+
+showing that a server has been started at the :py:data:`localhost` at
+the port :py:data:`9999`. Those are the default values for `host` and
+`port`. It also shows that the server is running a controller which is
+an instance of the basic :py:class:`ctrl.Controller` class.
+
+The attribute :py:data:`host` is qualified name or valid ip address of
+the machine you're connecting to and :py:data:`port` is the port you
+would like to connect. The connection is established using a `TCP
+network socket <https://en.wikipedia.org/wiki/Network_socket>`_. See
+:ref:`Options available with ctrl_start_server` for how to set these
+options.
 
 
-Connecting a client
--------------------
+Connecting your client
+----------------------
 
-Using these controller classes is not any more difficult than using
-the regular controlller classes. Consider for example the :ref:`Hello
-World!` example considered in the :ref:`Tutorial`. Modify the
-controller instantiation to read as follows::
+Now start a new console and start a new python shell. Proceed as in
+Section :ref:`Hello World!` and create a controller::
 
+    from ctrl.client import Controller
+    hello = Controller()
+
+The only difference is that you imported :py:obj:`Controller` from the
+class :py:class:`ctrl.client.Controller`, as opposed to from
+:py:class:`ctrl.Controller`. Once you have initialized a controller as
+a *client* and you have a controller running as a server the flow is
+very much like before. For example, we can query the controller using
+:samp:`print(hello.info('all'))`, which in this case should reproduce
+the exact same configuration of the controller running on the server:
+
+.. code-block:: none
+  
+    ctrl_start_server (version 1.0)
+    > Options:
+       Hostname[port]: localhost[9999]
+      Sampling period: ---
+	Verbose level: 1
+
+    <class 'ctrl.Controller'> with:
+      1 device(s), 0 timer(s), 3 signal(s),
+      1 source(s), 0 filter(s), and 0 sink(s)
+    > devices
+      1. clock[source]
+    > timers
+    > signals
+      1. clock
+      2. duty
+      3. is_running
+    > sources
+      1. clock[Clock, enabled] >> clock
+    > filters
+    > sinks
+	
+Programming a client controller is, for the most part, just like
+programming a local controller. However, there are some important caveats you should be aware of. For instance, attempting to install an instance :py:class:`ctrl.block.clock.TimerClock` as a *source*  by typing::
+    
+    from ctrl.block.clock import TimerClock
+    hello.add_source('myclock',
+		     TimerClock(period = 1),
+		     ['myclock'])
+		     
+will fail. The reason for the failure is because an instance of the
+class :py:class:`ctrl.block.clock.TimerClock` cannot be transported
+from your hardware to another, that is from the *client* to the
+*server*. Here is where the notion of a *device* comes in
+handy. Instead of instantiating
+:py:class:`ctrl.block.clock.TimerClock` on the client, you can use
+:py:meth:`ctrl.Controller.add_device` to have the remote controller
+instantiate it directly on the server hardware! That can be done
+easily. As in Section :ref:`Devices and Controllers` type::
+
+    hello.add_device('myclock',
+                     'ctrl.block.clock', 'TimerClock',
+		     type = 'source', 
+		     outputs = ['myclock'],
+		     enable = True,
+		     period = 1)
+
+to add a *device* :py:class:`ctrl.block.clock.TimerClock` by letting
+the remote server instantiate the object. From this point on, just
+proceed as in :ref:`Hello World!` to add a
+:py:class:`ctrl.block.Printer`::
+		     
+    from ctrl.block import Printer
+    hello.add_sink('message',
+		   Printer(message = 'Hello World!'),
+		   ['myclock'])
+
+and run the controller::
+
+    import time
+    with hello:
+        # do nothing for 5 seconds
+        time.sleep(5)
+        # disable Printer
+        hello.set_sink('message', enabled = False)
+
+If you can't see anything happening for five seconds, look again. This
+time not on the console running the *client*, but on the console
+running the *server*. You should see the message `Hello World!`
+printed there a couple of times. What you have accomplished is running
+a task on the remote server controller by programming it on the client
+controller. Effectively, and appart from some subtleties concerning
+devices, the only difference was importing from
+:py:class:`ctrl.client.Controller` rather than from
+:py:class:`ctrl.Controller`.
+
+Before moving forward, a bit of a technical note. You might be
+wondering why :py:class:`ctrl.block.clock.TimerClock` could not be
+added as a *source* but it is fine to add
+:py:class:`ctrl.block.Printer` as a *sink*. The difference has to do
+with the ability of the client controller to *transfer* a block to the
+remote controller. In order for that to process to happen, the block
+:py:class:`ctrl.block.Printer` has to be safely deconstructed, packed,
+transmitted over the network socket, unpacked and then reconstructed
+at the server controller. This is done using a technique called
+`serialization <https://en.wikipedia.org/wiki/Serialization>`_. We use
+Python's `pickle module
+<https://docs.python.org/3/library/pickle.html>`_ to handle the
+dirtiest part of the job. In a nutshell, if an object cannot be
+serialized by `pickle` it cannot be installed remotely as a *source*,
+*filter*, *sink*, or *timer*. In this case, it needs to be installed
+as a *device*. If you are curious why
+:py:class:`ctrl.block.clock.TimerClock` cannot be serialized, it is
+because :py:class:`ctrl.block.clock.TimerClock` runs on a separate
+process thread, and there is not way to simply transfer the thread
+information over the network. As for :py:class:`ctrl.block.Printer`,
+it is possible to use its attributes to reconstruct it on the server
+side. Note however that a :py:class:`ctrl.block.Printer` in which you
+have setup the attribute :py:attr:`file` to redirect its output to a
+local file will fail to install as a *sink*. You could instead install
+it as a *device*, but in this case, the output would be redirected to
+a file that lives in the remote server rather than the local client.
+
+Options available with :samp:`ctrl_start_server`
+------------------------------------------------
+
+Options available with :py:class:`ctrl.client.Controller`
+---------------------------------------------------------
+
+::
+	
     from ctrl.client import Controller
 
     # initialize controller
@@ -89,6 +225,7 @@ initialize any relevant paramaters. For instance::
     hello.set_source('clock',period = 1)
 
 will make sure the remote controller clock is running at 1 Hz.
+
 
 
 --------------
