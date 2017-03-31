@@ -15,12 +15,13 @@ def main():
     from ctrl.block.clock import TimerClock
 
     # print message to initialize server
-    print("""Hello World!
+    print("""
+Hello World!
 
 If you have not started a ctrl_server yet open a new terminal
 and start a server by typing:
 
-    ctrl_server -m ctrl.timer -H localhost -P 9999
+    ctrl_start_server -m ctrl.timer
 """)
     input('and hit <ENTER>')
     
