@@ -244,8 +244,9 @@ class Controller:
             
         elif options == 'summary':
         
-            result += '> Controller with: {} device(s), {} timer(s), {} signal(s),\n                   {} source(s), {} filter(s), and {} sink(s)\n' \
-                .format(len(self.devices),
+            result += '{} with:\n  {} device(s), {} timer(s), {} signal(s),\n  {} source(s), {} filter(s), and {} sink(s)\n' \
+                .format(self.__class__,
+                        len(self.devices),
                         len(self.timers),
                         len(self.signals),
                         len(self.sources), 

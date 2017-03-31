@@ -121,13 +121,12 @@ def main():
     print('ctrl_start_server (version {})'.format(ctrl.server.version()))
     if verbose_level > 0:
         print('> Options:')
-        print('  Controller class: {}'.format(module + '.' + ctrl_class))
-        print('    Hostname[port]: {}[{}]'.format(HOST, PORT))
+        print('   Hostname[port]: {}[{}]'.format(HOST, PORT))
         if Ts:
-            print('   Sampling period: {}s'.format(Ts))
+            print('  Sampling period: {}s'.format(Ts))
         else:
-            print('   Sampling period: ---')
-        print('     Verbose level: {}'.format(verbose_level))
+            print('  Sampling period: ---')
+        print('    Verbose level: {}\n'.format(verbose_level))
         print(controller.info('all'))
         print('> Server started...')
         
