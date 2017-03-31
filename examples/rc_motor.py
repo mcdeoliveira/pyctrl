@@ -1,7 +1,7 @@
 def main():
 
     # import python's standard math module and numpy
-    import math, numpy
+    import math, numpy, sys
     
     # import Controller and other blocks from modules
     from ctrl.rc import Controller
@@ -106,12 +106,21 @@ def main():
 
     except:
 
-        import sys
-        print('Could not load matplotlib, skipping plots')
+        print('! Could not load matplotlib, skipping plots')
         sys.exit(0)
-    
-    # start plot
-    plt.figure()
+
+    print('> Will plot')
+        
+    try:
+        
+        # start plot
+        plt.figure()
+
+    except:
+
+        print('! Could not plot graphics')
+        print('> Make sure you have a connection to a windows manager')
+        sys.exit(0)
     
     # plot pwm 
     plt.subplot(2,1,1)
