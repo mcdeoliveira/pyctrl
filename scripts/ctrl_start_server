@@ -21,7 +21,7 @@ def brief_warning(message, category, filename, lineno, line=None):
 
 def usage():
     print('Controller Server (version {})'.format(ctrl.server.version()))
-    print("""usage: ctrl_server [option] ...
+    print("""usage: ctrl_start_server [option] ...
 Options are:
 -c     : skip simulated controller calibration
 -C arg : controller class             (default 'Controller')
