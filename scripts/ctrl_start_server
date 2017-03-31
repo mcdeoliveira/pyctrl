@@ -20,7 +20,7 @@ def brief_warning(message, category, filename, lineno, line=None):
     return "*{}\n".format(message)
 
 def usage():
-    print('Controller Server (version {})'.format(ctrl.server.version()))
+    print('ctrl_start_server (version {})'.format(ctrl.server.version()))
     print("""usage: ctrl_start_server [option] ...
 Options are:
 -c     : skip simulated controller calibration
@@ -118,7 +118,7 @@ def main():
     
     # Initiate server
 
-    print('Controller Server (version {})'.format(ctrl.server.version()))
+    print('ctrl_start_server (version {})'.format(ctrl.server.version()))
     if verbose_level > 0:
         print('> Options:')
         print('  Controller class: {}'.format(module + '.' + ctrl_class))
@@ -137,7 +137,7 @@ def main():
 
     try:
 
-        print("> Hit Ctrl-C or Use 'python kill_server.py' to exit server")
+        print("> Hit Ctrl-C or use 'ctrl_stop_server' to exit the server")
         
         # Wait forever
         thread.join()

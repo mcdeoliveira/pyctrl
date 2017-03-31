@@ -8,20 +8,87 @@ extending Controllers, or writing your own Blocks. Make sure you have
 gone through the :ref:`Tutorial` and have a good understanding of the
 concepts discussed there before reading this chapter.
 
---------------------------
-Client-Server Architecture
---------------------------
+--------------------------------------
+Client-Server Application Architecture
+--------------------------------------
 
 Since the beginnings of the development of this package one goal was
 to be able to deploy and run controllers on embedded systems. With
 that goal in mind we provide two special classes of controllers:
 :py:class:`ctrl.server.Controller` and
-:py:class:`ctrl.client.Controller` that can be used to run
-applications remotely. Using these controller classes is not any more
-difficult than using the regular controlller classes. Consieder for
-example the :ref:`Hello World!` example considered in the
-:ref:`Tutorial`.
+:py:class:`ctrl.client.Controller`, and two scripts:
+:samp:`ctrl_start_server` and :samp:`ctrl_stop_server` to start and
+stop a controller server. Those scripts and classes can be combined to
+run applications remotely.
 
+Starting the server
+-------------------
+
+Start by using the script :samp:`ctrl_start_server` to create a server
+for you. In this tutorial, you will create a server on the same
+machine you will be running the client. The process of initializing a
+server on a remote machine is virtually identical.
+
+    ctrl_start_server
+
+which::
+    
+    ctrl_start_server (version 1.0)
+    > Options:
+      Controller class: ctrl.Controller
+	Hostname[port]: localhost[9999]
+       Sampling period: ---
+	 Verbose level: 1
+    > Controller with: 1 device(s), 0 timer(s), 3 signal(s),
+		       1 source(s), 0 filter(s), and 0 sink(s)
+    > devices
+      1. clock[source]
+    > timers
+    > signals
+      1. clock
+      2. duty
+      3. is_running
+    > sources
+      1. clock[Clock, enabled] >> clock
+    > filters
+    > sinks
+
+    > Server started...
+    > Hit Ctrl-C or Use 'python kill_server.py' to exit server    
+
+
+Connecting a client
+-------------------
+
+Using these controller classes is not any more difficult than using
+the regular controlller classes. Consider for example the :ref:`Hello
+World!` example considered in the :ref:`Tutorial`. Modify the
+controller instantiation to read as follows::
+
+    from ctrl.client import Controller
+
+    # initialize controller
+    hello = Controller(host = 'localhost', port = 9999)
+
+Note that you imported :py:obj:`Controller` from the class
+:py:class:`ctrl.client.Controller` and that you provided the
+initialization attributes :py:data:`host` and :py:data:`port`. The
+attribute :py:data:`host` is qualified name or valid ip address of the
+machine you're connecting to and :py:data:`port` is the port you would
+like to connect. The connection is established using a `TCP network
+socket <https://en.wikipedia.org/wiki/Network_socket>`_.
+
+In the client-server framework the client has little control over the
+type of controller that has been instantiated in the remote server. It
+also does not have control over when and what parameters it was
+inititialized to. For this reason, it is always safe to call
+:py:meth:`ctrl.Controller.reset` to reset the remote controller and
+initialize any relevant paramaters. For instance::
+    
+    hello.reset()
+    hello.set_source('clock',period = 1)
+
+will make sure the remote controller clock is running at 1 Hz.
 
 
 --------------

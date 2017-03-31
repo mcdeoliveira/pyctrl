@@ -44,15 +44,14 @@ and start a server by typing:
         with hello:
             # do nothing for 5 seconds
             time.sleep(5)
+            # disable Printer
             hello.set_sink('message', enabled = False)
 
     except KeyboardInterrupt:
         pass
 
     finally:
-        # disable Printer and TimerClock
-        hello.set_sink('message', enabled = False)
-        time.sleep(1)
+        # disable TimerClock
         hello.set_source('clock', enabled = False)
     
 if __name__ == "__main__":

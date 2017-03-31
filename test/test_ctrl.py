@@ -372,10 +372,7 @@ def test_client_server():
         print('> Starting server')
 
         import subprocess
-        server = subprocess.Popen(["python3", 
-                                   "./server.py",
-                                   "-m",
-                                   "ctrl.sim"], 
+        server = subprocess.Popen(["ctrl_start_server"], 
                                   stdout = subprocess.PIPE)
 
         time.sleep(1)

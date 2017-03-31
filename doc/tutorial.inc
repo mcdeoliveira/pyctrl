@@ -44,13 +44,14 @@ Start with the following simple *Hello World!* example::
         with hello:
 	    # do nothing for 5 seconds
 	    time.sleep(5)
+	    # disable Printer
+	    hello.set_sink('message', enabled = False)
 
     except KeyboardInterrupt:
         pass
 
     finally:
-        # disable Printer and TimerClock
-        hello.set_sink('message', enabled = False)
+        # disable TimerClock
         hello.set_source('myclock', enabled = False)
 
 Depending on the platform you're running this program will print the
@@ -131,13 +132,18 @@ Having created a *source* and a *sink* you are ready to run the controller::
   with hello:
       # do nothing for 5 seconds
       time.sleep(5)
-
+      # disable Printer
+      hello.set_sink('message', enabled = False)
 Python's :py:obj:`with` statement automatically *start* and *stop* the
 controller. Inside the :py:obj:`with`, the statement
 :samp:`time.sleep(5)` pauses the program for 5 seconds to let the
 controller run its loop and print `Hello World!` about 5 times. The
 actual number of times depends on the accuracy of the timer in your
-platform. Pause for 5.1 seconds instead if you would like to make sure it is printed exactly 5 times.
+platform. Pause for 5.1 seconds instead if you would like to make sure it is printed exactly 5 times. Before leaving the :py:obj:`with` statement you called::
+
+  hello.set_sink('message', enabled = False)
+
+to disable the *sink* :py:data:`message`, which stops the :py:class:`ctrl.block.Printer` from printing any more messages on the screen. 
 
 Secretly behind the statement :samp:`with hello` is a call to the
 pair of methods :py:meth:`ctrl.Controller.start` and
@@ -154,15 +160,14 @@ Note that you should enclose the controller action inside a Python :py:obj:`try`
     try:
         # run the controller
         with hello:
-	    # do other things
+	    # do things
 	    pass
     
     except KeyboardInterrupt:
         pass
 
     finally:
-        # disable Printer and TimerClock
-        hello.set_sink('message', enabled = False)
+        # disable TimerClock
         hello.set_source('myclock', enabled = False)
 	
 This construction allows the controller to be stopped in a predictable
@@ -341,9 +346,7 @@ construction is provided as a module in :py:mod:`ctrl.timer`. Using
 The complete code is in :ref:`hello_timer_1.py`. Note that you no
 longer have to disable the `clock` *source*, which is handled
 automatically when exiting the :py:obj:`with` statement by calling
-:py:meth:`ctrl.Controller.stop`. However, disabling the clock causes
-an additional clock read, which would print one extra message on the
-screen. This is avoided by calling::
+:py:meth:`ctrl.Controller.stop`. As before, you call::
 
   hello.set_sink('message', enabled = False)
 
@@ -379,8 +382,8 @@ providing the module and class names as strings to
 :py:data:`'ctrl.block.clock'` and :py:data:`'TimerClock'` above, it
 will be possible to remotely initialize blocks that rely on the
 presence of specific hardware using our :ref:`Client-Server
-Architecture`, as you will learn later. Note that you do not have to
-directly import any modules when using
+Application Architecture`, as you will learn later. Note that you do
+not have to directly import any modules when using
 :py:meth:`ctrl.Controller.add_device`.
 
 In some situations it might be helpful to be able to reset a
@@ -634,7 +637,7 @@ retrieve and set block attributes using the family of methods
 depending on the context, the block instance owned by the controller
 might be different than the one you originally installed. This is the
 case, for example, when you run a controller remotely using the
-:ref:`Client-Server Architecture`.
+:ref:`Client-Server Application Architecture`.
 
 For example, for the same controller you implemented in Section :ref:`Filters`::
 
