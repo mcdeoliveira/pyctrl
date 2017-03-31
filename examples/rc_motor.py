@@ -1,9 +1,3 @@
-if __name__ == "__main__":
-
-    # This is only necessary if package has not been installed
-    import sys
-    sys.path.append('..')
-
 def main():
 
     # import python's standard math module and numpy
@@ -104,9 +98,17 @@ def main():
     encoder = data[:,2]
     speed = data[:,3]
     fspeed = data[:,4]
-    
-    # import matplotlib
-    import matplotlib.pyplot as plt
+
+    try:
+
+        # import matplotlib
+        import matplotlib.pyplot as plt
+
+    except:
+
+        import sys
+        print('Could not load matplotlib, skipping plots')
+        sys.exit(0)
     
     # start plot
     plt.figure()

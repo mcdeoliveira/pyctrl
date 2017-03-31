@@ -136,6 +136,9 @@ def main():
 """)
 
         input('Hold your MIP upright and hit <ENTER> to start balancing')
+
+        print('\nUse the UP and DOWN arrows to move forward and back')
+        print('Use the LEFT and RIGHT arrows to steer\n')
         
         # reset everything
         mip.set_source('clock',reset=True)
