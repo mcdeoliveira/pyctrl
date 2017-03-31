@@ -113,7 +113,11 @@ def main():
     # Initiate server
 
     print('ctrl_start_server (version {})'.format(ctrl.server.version()))
+    
     if verbose_level > 0:
+
+        print("\nType 'ctrl_start_server -h' for more options\n")
+
         print('> Options:')
         print('   Hostname[port]: {}[{}]'.format(HOST, PORT))
         if Ts:
@@ -122,7 +126,7 @@ def main():
             print('  Sampling period: ---')
         print('    Verbose level: {}\n'.format(verbose_level))
         print(controller.info('all'))
-        print('> Server started...')
+        print('> Starting server...',end = '')
         
     # run server in a separate thread
     thread = threading.Thread(target=server.serve_forever)
@@ -130,6 +134,7 @@ def main():
 
     try:
 
+        print(' done')
         print("> Hit Ctrl-C or use 'ctrl_stop_server' to exit the server")
         
         # Wait forever

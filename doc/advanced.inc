@@ -41,6 +41,8 @@ which start the server and produces the following output:
       Sampling period: ---
         Verbose level: 1
     
+    Type 'ctrl_start_server -h' for more options
+    
     <class 'ctrl.Controller'> with:
       1 device(s), 0 timer(s), 3 signal(s),
       1 source(s), 0 filter(s), and 0 sink(s)
@@ -55,8 +57,8 @@ which start the server and produces the following output:
       1. clock[Clock, enabled] >> clock
     > filters
     > sinks
-    
-    > Server started...
+
+    > Starting server... done
     > Hit Ctrl-C or use 'ctrl_stop_server' to exit the server
 
 showing that a server has been started at the :py:data:`localhost` at
