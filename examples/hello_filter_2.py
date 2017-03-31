@@ -1,5 +1,7 @@
 def main():
 
+    import sys
+    
     # import Controller and other blocks from modules
     from ctrl.timer import Controller
     from ctrl.block import Interp, Printer, Constant, Logger

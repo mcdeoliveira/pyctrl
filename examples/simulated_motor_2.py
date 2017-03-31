@@ -1,7 +1,7 @@
 def main():
 
     # import python's standard math module and numpy
-    import math, numpy
+    import math, numpy, sys
     
     # import Controller and other blocks from modules
     from ctrl.timer import Controller
