@@ -1,13 +1,7 @@
-if __name__ == "__main__":
-
-    # This is only necessary if package has not been installed
-    import sys
-    sys.path.append('..')
-
 def main():
 
     # import python's standard math module and numpy
-    import math, numpy
+    import math, numpy, sys
     
     # import Controller and other blocks from modules
     from ctrl.rc import Controller
@@ -119,11 +113,28 @@ def main():
     speed = data[:,3]
     speed_reference = data[:,4]
     
-    # import matplotlib
-    import matplotlib.pyplot as plt
+    try:
+
+        # import matplotlib
+        import matplotlib.pyplot as plt
     
-    # start plot
-    plt.figure()
+    except:
+
+        print('! Could not load matplotlib, skipping plots')
+        sys.exit(0)
+
+    print('> Will plot')
+
+    try:
+        
+        # start plot
+        plt.figure()
+
+    except:
+
+        print('! Could not plot graphics')
+        print('> Make sure you have a connection to a windows manager')
+        sys.exit(0)
     
     # plot pwm 
     plt.subplot(2,1,1)

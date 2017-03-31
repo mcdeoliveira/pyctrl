@@ -1,9 +1,3 @@
-if __name__ == "__main__":
-
-    # This is only necessary if package has not been installed
-    import sys
-    sys.path.append('..')
-
 def main():
 
     # import python's standard time module
@@ -14,17 +8,6 @@ def main():
     from ctrl.block import Printer
     from ctrl.block.clock import TimerClock
 
-    # print message to initialize server
-    print("""
-Hello World!
-
-If you have not started a ctrl_server yet open a new terminal
-and start a server by typing:
-
-    ctrl_start_server -m ctrl.timer
-""")
-    input('and hit <ENTER>')
-    
     # initialize controller
     hello = Controller(host = 'localhost', port = 9999)
     hello.reset()
@@ -56,4 +39,16 @@ and start a server by typing:
     
 if __name__ == "__main__":
     
+    # print message to initialize server
+    print("""
+Hello World!
+
+If you have not started a ctrl_server yet open a new terminal
+and start a server by typing:
+
+    ctrl_start_server -m ctrl.timer
+""")
+    input('and hit <ENTER>')
+
+    # run main    
     main()
