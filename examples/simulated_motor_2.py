@@ -100,11 +100,28 @@ def main():
     speed = data[:,3]
     fspeed = data[:,4]
     
-    # import matplotlib
-    import matplotlib.pyplot as plt
-    
-    # start plot
-    plt.figure()
+    try:
+
+        # import matplotlib
+        import matplotlib.pyplot as plt
+
+    except:
+
+        print('! Could not load matplotlib, skipping plots')
+        sys.exit(0)
+
+    print('> Will plot')
+        
+    try:
+        
+        # start plot
+        plt.figure()
+
+    except:
+
+        print('! Could not plot graphics')
+        print('> Make sure you have a connection to a windows manager')
+        sys.exit(0)
     
     # plot pwm
     ax1 = plt.gca()

@@ -80,11 +80,28 @@ def main():
     pwm = data[:,1]
     encoder = data[:,2]
     
-    # import matplotlib
-    import matplotlib.pyplot as plt
-    
-    # start plot
-    plt.figure()
+    try:
+
+        # import matplotlib
+        import matplotlib.pyplot as plt
+
+    except:
+
+        print('! Could not load matplotlib, skipping plots')
+        sys.exit(0)
+
+    print('> Will plot')
+        
+    try:
+        
+        # start plot
+        plt.figure()
+
+    except:
+
+        print('! Could not plot graphics')
+        print('> Make sure you have a connection to a windows manager')
+        sys.exit(0)
     
     # plot pwm 
     plt.subplot(2,1,1)
