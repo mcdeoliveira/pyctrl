@@ -1,3 +1,5 @@
+#!/bin/usr/env python
+
 from ctrl.client import Controller
 
 def main():

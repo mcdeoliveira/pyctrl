@@ -49,6 +49,9 @@ class Controller:
         # duty
         self.duty = 0
 
+        # noclock
+        self.noclock = kwargs.pop('noclock', False)
+        
         # no arguments are supposed to be left out
         if len(kwargs) > 0:
             raise ControllerException("Unknown parameter(s) '{}'".format(', '.join(str(k) for k in kwargs.keys())))
@@ -81,13 +84,17 @@ class Controller:
         self.timers = { }
         self.running_timers = { }
 
-        # add device clock
-        self.add_device('clock',
-                        'ctrl.block.clock', 'Clock',
-                        type = 'source', 
-                        outputs = ['clock'],
-                        enable = True)
-        self.set_source('clock', reset=True)
+        if not self.noclock:
+
+            # add device clock
+            self.add_device('clock',
+                            'ctrl.block.clock', 'Clock',
+                            type = 'source', 
+                            outputs = ['clock'],
+                            enable = True)
+
+            # reset clock
+            self.set_source('clock', reset=True)
         
     # __str__ and __repr__
     def __str__(self):
@@ -913,7 +920,8 @@ class Controller:
         while self.is_running and self.state != EXITING:
 
             # Run the loop
-
+            #print("*** LOOP ****")
+            
             # Read all sources
             first = True
             t0 = 0

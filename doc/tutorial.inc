@@ -594,7 +594,7 @@ The key aspect in this example is how *filters* process
       1. clock
       2. duty
       3. is_running
-      4. motor
+      4. pwm
     > sources
       1. clock[TimerClock, enabled] >> clock
     > filters

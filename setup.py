@@ -5,6 +5,7 @@ setup(
     name="ctrl",
     version="0.1a",
     packages=find_packages(),
+    scripts=['scripts/ctrl_server', 'scripts/kill_ctrl_server'],
 
     # metadata
     author="Mauricio C. de Oliveira",

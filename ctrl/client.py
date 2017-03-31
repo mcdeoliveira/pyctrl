@@ -19,7 +19,7 @@ class WrapSocket:
 
 class Controller(ctrl.Controller):
 
-    def __init__(self, *vargs, **kwargs):
+    def __init__(self, **kwargs):
 
         # parameters
         self.host = kwargs.pop('host', 'localhost')
@@ -29,7 +29,7 @@ class Controller(ctrl.Controller):
         self.shutdown_request = False
 
         # Initialize controller
-        super().__init__(*vargs, **kwargs)
+        super().__init__(noclock = True, **kwargs)
 
         self.debug = 0
 

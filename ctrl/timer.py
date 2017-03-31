@@ -17,16 +17,13 @@ class Controller(ctrl.Controller):
         self.period = kwargs.pop('period', 0.01)
 
         # Initialize controller
-        super().__init__(**kwargs)
+        super().__init__(noclock = True, **kwargs)
 
     def __reset(self):
 
         # call super
         super().__reset()
 
-        # remove current clock
-        self.remove_source('clock')
-        
         # add device clock
         self.add_device('clock',
                         'ctrl.block.clock', 'TimerClock',

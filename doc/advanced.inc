@@ -12,6 +12,22 @@ concepts discussed there before reading this chapter.
 Client-Server Architecture
 --------------------------
 
+Since the beginnings of the development of this package one goal was
+to be able to deploy and run controllers on embedded systems. With
+that goal in mind we provide two special classes of controllers:
+:py:class:`ctrl.server.Controller` and
+:py:class:`ctrl.client.Controller` that can be used to run
+applications remotely. Using these controller classes is not any more
+difficult than using the regular controlller classes. Consieder for
+example the :ref:`Hello World!` example considered in the
+:ref:`Tutorial`.
+
+
+
+--------------
+Error Handling
+--------------
+
 ---------------------
 Extending Controllers
 ---------------------

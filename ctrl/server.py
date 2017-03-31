@@ -41,7 +41,15 @@ Available commands:
 """.format(version()) + help_str
 
     return help_str
-        
+
+# log decorator
+def log(message, func):
+    def func_wrapper(*vargs, **kwargs):
+        if verbose_level > 1:
+            print(message)
+        return func(*vargs, **kwargs)
+    return func_wrapper
+
 def set_controller(_controller = ctrl.Controller()):
 
     # initialize controller
@@ -53,7 +61,7 @@ def set_controller(_controller = ctrl.Controller()):
         'A': ('S',  'S', help,
               'Help'),
 
-        'B': ('S',  'S', controller.info,
+        'B': ('S', 'S', controller.info,
               'Controller info'),
         'Z': ('',  '', controller.reset,
               'Reset controller'),
@@ -134,10 +142,10 @@ def set_controller(_controller = ctrl.Controller()):
         'y': ('S', 'P', controller.read_timer,
               'Read timer'),
         
-        'c': ('',  '',  controller.start,
+        'c': ('',  '',  log('*> Starting loop', controller.start),
               'Start control loop'),
 
-        'd': ('',  '',  controller.stop,
+        'd': ('',  '',  log('*< Stoping loop', controller.stop),
               'Stop control loop'),
 
         'j': ('',  '',  controller.join,

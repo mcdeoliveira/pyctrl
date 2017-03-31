@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import warnings
 import socketserver
 import platform
@@ -19,7 +21,7 @@ def brief_warning(message, category, filename, lineno, line=None):
 
 def usage():
     print('Controller Server (version {})'.format(ctrl.server.version()))
-    print("""usage: python server [option] ...
+    print("""usage: ctrl_server [option] ...
 Options are:
 -c     : skip simulated controller calibration
 -C arg : controller class             (default 'Controller')
@@ -43,8 +45,8 @@ def main():
         usage()
         sys.exit(2)
 
-    # Sampling period and log size (s)
-    Ts, log_size = 0.01, 120
+    # Sampling period
+    Ts = 0.01
 
     # HOST AND PORT
     HOST, PORT = "localhost", 9999
@@ -65,8 +67,6 @@ def main():
             sys.exit()
         elif o == "-H":
             HOST = a
-        elif o in "-l":
-            log_size = float(a)
         elif o in "-p":
             PORT = int(a)
         elif o in "-t":
@@ -96,8 +96,16 @@ def main():
     obj_class = getattr(importlib.import_module(module),
                         ctrl_class)
     controller = obj_class()
-    controller.set_period(Ts)
-    controller.reset()
+
+    # set period
+    try:
+        controller.get_source('clock','period')
+        controller.set_source('clock',period = Ts)
+        Ts = controller.get_source('clock','period')
+    except:
+        warnings.warn('Could not set period of the controller clock.')
+        Ts = None
+    
     ctrl.server.set_controller(controller)
     ctrl.server.verbose(verbose_level)
 
@@ -113,10 +121,13 @@ def main():
     print('Controller Server (version {})'.format(ctrl.server.version()))
     if verbose_level > 0:
         print('> Options:')
+        print('  Controller class: {}'.format(module + '.' + ctrl_class))
         print('    Hostname[port]: {}[{}]'.format(HOST, PORT))
-        print('    Sampling rate : {}s'.format(controller.get_period()))
-        print('    Log size      : {}s'.format(log_size))
-        print('    Verbose level : {}'.format(verbose_level))
+        if Ts:
+            print('   Sampling period: {}s'.format(Ts))
+        else:
+            print('   Sampling period: ---')
+        print('     Verbose level: {}'.format(verbose_level))
         print(controller.info('all'))
         print('> Server started...')
         

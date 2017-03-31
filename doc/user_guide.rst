@@ -28,6 +28,18 @@ MacOSX. It has also been tested and deployed in the `Beaglebobe Black
 Blue <https://beagleboard.org/blue>`_. See Section :ref:`Installation`
 for details. 
 
+Mauricio de Oliveira
+
+---------------
+Acknowledgments
+---------------
+
+The following people contributed significantly to the developement of
+parts of this package:
+
+1. Gabriel Fernandes
+2. Zhu Zhuo
+
 ============
 Installation
 ============

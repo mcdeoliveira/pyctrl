@@ -211,32 +211,19 @@ class TimerClock(Clock):
 
         # Acquire lock
         self.condition.acquire()
+        
+        # print('> TICK')
+        
+        # Got a tick
+        self.time = perf_counter()
 
-        # Get time
-        t = perf_counter()
-        dt = t - self.time
+        # Add to count
+        self.count += 1
 
-        if dt < .9 * self.period and self.running and self.enabled:
+        # print('> tick {}'.format(self.time))
 
-            # reload timer
-            #self.timer = Timer(self.period - dt, self.tick)
-            #self.timer.start()
-
-            #print('would reload {}'.format(dt))
-            pass
-
-        else:
-
-            # Got a tick
-            self.time = t
-
-            # Add to count
-            self.count += 1
-
-            #print('> tick {}'.format(self.time))
-
-            # Notify lock
-            self.condition.notify_all()
+        # Notify lock
+        self.condition.notify_all()
 
         # Release lock
         self.condition.release()
@@ -250,10 +237,14 @@ class TimerClock(Clock):
             # Acquire condition
             self.condition.acquire()
 
+            # print('> WILL TICK')
+
             # Setup timer
             self.timer = Timer(self.period, self.tick)
             self.timer.start()
 
+            # print('> WAITING')
+            
             # Wait 
             self.condition.wait()
 
@@ -261,7 +252,8 @@ class TimerClock(Clock):
             self.condition.release()
 
         self.running = False
-        #print('> Disabled!')
+        
+        # print('> END OF RUN!')
 
     def set_enabled(self, enabled = True):
         """
@@ -277,7 +269,7 @@ class TimerClock(Clock):
         # enable
         if enabled:
             
-            #print('> Enabling clock')
+            # print('> Enabling TimerClock')
             
             # set enabled
             super().set_enabled(enabled)
@@ -292,7 +284,7 @@ class TimerClock(Clock):
             # Acquire condition
             self.condition.acquire()
 
-            #print('> Will disable')
+            # print('> Disabling TimerClock')
 
             # Prepare to stop
             self.running = False
