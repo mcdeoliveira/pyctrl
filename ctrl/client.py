@@ -18,7 +18,14 @@ class WrapSocket:
         return buffer
 
 class Controller(ctrl.Controller):
+    """
+    :py:class:`ctrl.client.Controller` provides a controller that can
+    remotely interact with a server.
 
+    :param host: host name or id address (default: 'localhost')
+    :param port: port numer (default: 9999)
+    """
+    
     def __init__(self, **kwargs):
 
         # parameters
@@ -133,7 +140,7 @@ class Controller(ctrl.Controller):
     def info(self, options = 'summary'):
         return self.send('B', 'S', options)
 
-    def reset(self):
+    def reset(self, module = None, ctrl_class = None):
         return self.send('Z')
 
     # signals
@@ -231,7 +238,7 @@ class Controller(ctrl.Controller):
     def add_device(self, label, device_module, device_class, **kwargs):
         self.send('z', 'S', label, 'S', device_module, 'S', device_class, 'K', kwargs)
 
-    # timres
+    # timers
     def add_timer(self, label, blk, inputs, outputs, period, repeat = True):
         self.send('t', 'S', label,
                   'P', blk, 'P', inputs, 'P', outputs, 

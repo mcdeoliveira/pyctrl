@@ -50,6 +50,13 @@ def log(message, func):
         return func(*vargs, **kwargs)
     return func_wrapper
 
+# reset controller
+def reset(module, ctrl_class):
+    if module or ctrl_class:
+        # initialize new controller
+        set_controller(controller)
+    return controller.reset()
+
 def set_controller(_controller = ctrl.Controller()):
 
     # initialize controller

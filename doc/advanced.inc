@@ -66,7 +66,7 @@ the port :py:data:`9999`. Those are the default values for `host` and
 `port`. It also shows that the server is running a controller which is
 an instance of the basic :py:class:`ctrl.Controller` class.
 
-The attribute :py:data:`host` is qualified name or valid ip address of
+The attribute :py:data:`host` is qualified name or valid IP address of
 the machine you're connecting to and :py:data:`port` is the port you
 would like to connect. The connection is established using a `TCP
 network socket <https://en.wikipedia.org/wiki/Network_socket>`_. See
@@ -77,7 +77,7 @@ options.
 Connecting your client
 ----------------------
 
-Now start a new console and start a new python shell. Proceed as in
+Start a new console and a new python shell. Proceed as in
 Section :ref:`Hello World!` and create a controller::
 
     from ctrl.client import Controller
@@ -86,7 +86,7 @@ Section :ref:`Hello World!` and create a controller::
 The only difference is that you imported :py:obj:`Controller` from the
 class :py:class:`ctrl.client.Controller`, as opposed to from
 :py:class:`ctrl.Controller`. Once you have initialized a controller as
-a *client* and you have a controller running as a server the flow is
+a *client* and you have a controller running as a server,the flow is
 very much like before. For example, we can query the controller using
 :samp:`print(hello.info('all'))`, which in this case should reproduce
 the exact same configuration of the controller running on the server:
@@ -168,6 +168,9 @@ devices, the only difference was importing from
 :py:class:`ctrl.client.Controller` rather than from
 :py:class:`ctrl.Controller`.
 
+What's under the hood?
+----------------------
+    
 Before moving forward, a bit of a technical note. You might be
 wondering why :py:class:`ctrl.block.clock.TimerClock` could not be
 added as a *source* but it is fine to add
@@ -176,59 +179,138 @@ with the ability of the client controller to *transfer* a block to the
 remote controller. In order for that to process to happen, the block
 :py:class:`ctrl.block.Printer` has to be safely deconstructed, packed,
 transmitted over the network socket, unpacked and then reconstructed
-at the server controller. This is done using a technique called
-`serialization <https://en.wikipedia.org/wiki/Serialization>`_. We use
-Python's `pickle module
+at the server controller.
+
+As mentioned earlier, the transmission part is done using a `TCP
+network socket <https://en.wikipedia.org/wiki/Network_socket>`_. The
+packing and unpacking bit is done using a technique called
+`serialization <https://en.wikipedia.org/wiki/Serialization>`_. We
+rely on Python's `pickle module
 <https://docs.python.org/3/library/pickle.html>`_ to handle the
-dirtiest part of the job. In a nutshell, if an object cannot be
-serialized by `pickle` it cannot be installed remotely as a *source*,
-*filter*, *sink*, or *timer*. In this case, it needs to be installed
-as a *device*. If you are curious why
-:py:class:`ctrl.block.clock.TimerClock` cannot be serialized, it is
-because :py:class:`ctrl.block.clock.TimerClock` runs on a separate
-process thread, and there is not way to simply transfer the thread
-information over the network. As for :py:class:`ctrl.block.Printer`,
-it is possible to use its attributes to reconstruct it on the server
-side. Note however that a :py:class:`ctrl.block.Printer` in which you
-have setup the attribute :py:attr:`file` to redirect its output to a
-local file will fail to install as a *sink*. You could instead install
-it as a *device*, but in this case, the output would be redirected to
-a file that lives in the remote server rather than the local client.
+dirtiest parts of this job. In a nutshell, if an object cannot be
+serialized by `pickle`, that is it cannot be *pickled*, then it cannot
+be installed remotely as a *source*, *filter*, *sink*, or *timer*. In
+this case, it needs to be installed as a *device*.
+
+If you are curious why :py:class:`ctrl.block.clock.TimerClock` could
+not be serialized, it is because
+:py:class:`ctrl.block.clock.TimerClock` runs on a separate process
+thread, and there is no way to simply transfer the thread information
+over the network. As for :py:class:`ctrl.block.Printer`, it is
+possible to use its attributes to reconstruct it on the server
+side.
+
+Note however that what decides is an object can be *pickled* or not is
+not its base class but the contents of its attributes *at the time one
+attempts to pickle it*. For example, a :py:class:`ctrl.block.Printer`
+in which you have setup the attribute :py:attr:`file` to redirect its
+output to a local file will fail to install as a *sink*. You could
+instead install it as a *device*, but in this case, the output would
+be redirected to a file that lives in the remote server rather than
+the local client.
+
+A final note about serialization and `pickle` is that this process is
+inherently unsafe from a security standpoint. Code that is embedded in
+a serialized object can be used to take control of or damage the
+server host by running malicious code. If security is a concern, it
+must be addressed at the network level, before a client is allowed to
+connect to a server, for example by setting up a firewall that
+restricts connection to a know number of potential client addresses
+combined with some strong form of authentication.
+
 
 Options available with :samp:`ctrl_start_server`
 ------------------------------------------------
 
-Options available with :py:class:`ctrl.client.Controller`
----------------------------------------------------------
+Starting :samp:`ctrl_start_server` with the :py:data:`-h` flag displays
+the options available:
 
-::
+.. code-block:: none
+
+    usage: ctrl_start_server [-h] [-m MODULE] [-c CONTROLLER] [-H HOST] [-p PORT]
+			     [-v VERBOSE] [-t PERIOD]
+
+    ctrl_start_server (version 1.0)
+    
+    optional arguments:
+      -h, --help            show this help message and exit (default: False)
+      -m MODULE, --module MODULE
+			    controller module (default: ctrl)
+      -c CONTROLLER, --controller CONTROLLER
+			    controller class (default: Controller)
+      -H HOST, --host HOST  host name or IP address (default: localhost)
+      -p PORT, --port PORT  port number (default: 9999)
+      -v VERBOSE, --verbose VERBOSE
+			    level of verbosity (default: 1)
+      -t PERIOD, --period PERIOD
+			    sampling period in seconds (default: 0.01)
+			
+Besides getting help one can initialize a server with any arbitrary
+controller using the :py:data:`-m`, :py:data:`--module` and
+:py:data:`-c`, :py:data:`--controller` options as in::
+
+    ctrl_start_server -m ctrl.timer
+
+which initializes the server controller to be an instance of
+:py:class:`ctrl.timer.Controller` instead of the default
+:py:data:`ctrl.Controller`.
+
+Another useful pair of options is :py:data:`-H`, :py:data:`--host` and
+:py:data:`-p`, :py:data:`--port`, which can be used to change the
+current host name or IP address and port. For example::
+
+    ctrl_start_server -m ctrl.rc.mip -H 192.168.0.132 -p 9090
+
+would initialize the server using an instance of
+:py:class:`ctrl.rc.mip.Controller` at the local network IP address
+`192.168.0.132` at the port `9090`.
+    
+Finally :py:data:`-t`, :py:data:`--period` lets one set the controller
+sampling period and :py:data:`-v`, :py:data:`--verbose` control how
+much messages you would see coming out of the server
+controller. Setting verbose to a number higher than `2` produces an
+enormous amount of information that could be useful for debugging.
+
+Out of all these options, :py:data:`-v`, :py:data:`--verbose`,
+:py:data:`-H`, :py:data:`--host` and :py:data:`-p`, :py:data:`--port`,
+are the ones that cannot be changed by a client connected to the
+controller server after it's been initialized.
+
+Working with :py:class:`ctrl.client.Controller`
+-----------------------------------------------
+
+As shown above, working with an instance of
+:py:class:`ctrl.client.Controller` is for the most part identical to
+working with any other instance of :py:class:`ctrl.Controller`. In
+this section you will learn a couple of useful practices when using a
+client controller.
+
+A first issue is setting the client to talk to the server at the right
+address and port. This can be done by initializing the client with
+attributes :py:attr:`host` and :py:attr:`port`. For example::
 	
     from ctrl.client import Controller
+    client = Controller(host = '192.168.0.132', port = 9090)
 
-    # initialize controller
-    hello = Controller(host = 'localhost', port = 9999)
+would connect the client to a local network server at address
+`192.168.0.132` and port `9090`.
 
-Note that you imported :py:obj:`Controller` from the class
-:py:class:`ctrl.client.Controller` and that you provided the
-initialization attributes :py:data:`host` and :py:data:`port`. The
-attribute :py:data:`host` is qualified name or valid ip address of the
-machine you're connecting to and :py:data:`port` is the port you would
-like to connect. The connection is established using a `TCP network
-socket <https://en.wikipedia.org/wiki/Network_socket>`_.
+Once connected, an usual mistake is to make assumptions about the
+current state of a server controller. Since another client could have
+connected to the server earlier and changed settings in unpredictable
+ways, it might be useful to call
+:py:meth:`ctrl.client.Controller.reset` to *reset* the remote
+controller at the server before doing anything::
 
-In the client-server framework the client has little control over the
-type of controller that has been instantiated in the remote server. It
-also does not have control over when and what parameters it was
-inititialized to. For this reason, it is always safe to call
-:py:meth:`ctrl.Controller.reset` to reset the remote controller and
-initialize any relevant paramaters. For instance::
-    
-    hello.reset()
-    hello.set_source('clock',period = 1)
+    client.reset()
 
-will make sure the remote controller clock is running at 1 Hz.
+For the same reason, one might make sure the sampling period is the
+one desired by calling::
 
+    client.set_source('clock', period = 0.1)
 
+which in this case would make sure the remote controller clock is
+running at 10 Hz.
 
 --------------
 Error Handling

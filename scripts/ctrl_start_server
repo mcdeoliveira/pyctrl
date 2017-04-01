@@ -1,17 +1,7 @@
 #!/usr/bin/env python
 
-import warnings
-import socketserver
-import platform
-import getopt, sys, signal
-import importlib
-import threading
-import time
-
 # from hanging_threads import start_monitoring
 # monitoring_thread = start_monitoring()
-
-import ctrl.server
 
 def one_line_warning(message, category, filename, lineno, line=None):
     return " {}:{}: {}:{}\n".format(filename, lineno, category.__name__, message)
@@ -20,14 +10,21 @@ def brief_warning(message, category, filename, lineno, line=None):
     return "*{}\n".format(message)
 
 def main():
-    
-    import argparse, sys
+
+    import warnings
+    import socketserver
+    import argparse, platform, sys, signal, importlib
+    import threading, time
+
+    import ctrl
     import ctrl.server
 
     # Parse command line
     parser = argparse.ArgumentParser(
         description='ctrl_start_server (version {})'.format(ctrl.server.version()),
-        add_help = False)
+        add_help = False,
+        formatter_class = argparse.ArgumentDefaultsHelpFormatter)
+    
     parser.add_argument('-h', '--help', default=False,
                         action='store_true',
                         help='show this help message and exit')
@@ -39,7 +36,7 @@ def main():
                         help='controller class')
     parser.add_argument('-H', '--host',
                         type=str, default='localhost',
-                        help='host name or ip address')
+                        help='host name or IP address')
     parser.add_argument('-p', '--port',
                         type=int, default=9999,
                         help='port number')
@@ -91,6 +88,11 @@ def main():
                         ctrl_class)
     controller = obj_class()
 
+    # Make sure it is an instance of ctrl.Controller
+    if not isinstance(controller, ctrl.Controller):
+        raise Exception("Object '{}.{}' is not and instance of ctrl.Controller".format(module, ctrl_class))
+        sys.exit(1)
+    
     # set period
     try:
         controller.get_source('clock','period')

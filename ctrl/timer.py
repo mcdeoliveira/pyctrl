@@ -3,7 +3,8 @@ import ctrl.block.clock as clock
 
 class Controller(ctrl.Controller):
     """
-    :py:class:`ctrl.timer.Controller` implements a controller with a :py:class:`ctrl.block.clock.TimerClock`.
+    :py:class:`ctrl.timer.Controller` implements a controller 
+    with a :py:class:`ctrl.block.clock.TimerClock`.
 
     The clock is enabled and disabled automatically when calling
     `start()` and `stop()`.

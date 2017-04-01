@@ -19,16 +19,16 @@ Module `ctrl.timer`
    :members:
    :show-inheritance:
 
-Module `ctrl.server`
-====================
-      
-.. automodule:: ctrl.server
-   :members:
-   :show-inheritance:
-
 Module `ctrl.client`
 ====================
       
 .. automodule:: ctrl.client
+   :members:
+   :show-inheritance:
+
+Module `ctrl.server`
+====================
+      
+.. automodule:: ctrl.server
    :members:
    :show-inheritance:
