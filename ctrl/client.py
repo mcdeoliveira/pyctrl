@@ -35,10 +35,25 @@ class Controller(ctrl.Controller):
         self.socket = None
         self.shutdown_request = False
 
+        # parameters for remote controller initialization
+        ctrl_kwargs = {}
+        if 'module' in kwargs:
+            ctrl_kwargs['module'] = kwargs.pop('module')
+        if 'ctrl_class' in kwargs:
+            ctrl_kwargs['ctrl_class'] = kwargs.pop('ctrl_class')
+        if ctrl_kwargs:
+            # all remaining parameters go to remote
+            ctrl_kwargs.update(kwargs)
+            kwargs = {}
+        
         # Initialize controller
         super().__init__(noclock = True, **kwargs)
 
         self.debug = 0
+
+        # initialize remote controller
+        if ctrl_kwargs:
+            self.reset(**ctrl_kwargs)
 
     def __enter__(self):
         if self.debug > 0:
@@ -140,8 +155,11 @@ class Controller(ctrl.Controller):
     def info(self, options = 'summary'):
         return self.send('B', 'S', options)
 
-    def reset(self, module = None, ctrl_class = None):
-        return self.send('Z')
+    def reset(self, module = 'ctrl', ctrl_class = 'Controller', **kwargs):
+        return self.send('Z',
+                         'S', module,
+                         'S', ctrl_class,
+                         'K', kwargs)
 
     # signals
     def add_signal(self, label):
@@ -236,7 +254,11 @@ class Controller(ctrl.Controller):
 
     # devices
     def add_device(self, label, device_module, device_class, **kwargs):
-        self.send('z', 'S', label, 'S', device_module, 'S', device_class, 'K', kwargs)
+        self.send('z',
+                  'S', label,
+                  'S', device_module,
+                  'S', device_class,
+                  'K', kwargs)
 
     # timers
     def add_timer(self, label, blk, inputs, outputs, period, repeat = True):

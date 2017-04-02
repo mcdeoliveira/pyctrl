@@ -8,6 +8,86 @@ extending Controllers, or writing your own Blocks. Make sure you have
 gone through the :ref:`Tutorial` and have a good understanding of the
 concepts discussed there before reading this chapter.
 
+-------------------------------
+Multiplexing and demultiplexing
+-------------------------------
+
+Blocks that are instances of :py:class:`ctrl.block.BufferBlock`
+support *multiplexing of inputs* and *demultiplexing of
+outputs*.
+
+*Multiplexing* means that all the inputs of a
+:py:class:`ctrl.block.BufferBlock` are collected into a single numpy
+1D-array before the block is evaluated.
+
+*Demultiplexing* means that the outputs of a
+:py:class:`ctrl.block.BufferBlock` are split into multiple outputs
+after the block is evaluated.
+
+For example, the blocks :py:class:`ctrl.block.system.System` and
+:py:class:`ctrl.block.system.TimeVaryingSystem` always multiplexes
+their input. This means that instances of
+:py:class:`ctrl.system.System` can seamlessly handle systems with
+multiple inputs.
+
+The attributes :py:attr:`mux` and :py:attr:`demux` can be also used to
+modify the behavior of existing blocks. For this reason, you will
+rarely need a special block for multiplexing and demultiplexing. If
+you do, just use :py:class:`ctrl.block.BufferBlock`. For example, a
+mux-type block can be created by setting :py:obj:`demux = True` in a
+:py:class:`ctrl.block.BufferBlock` as in::
+
+   from ctrl.block import BufferBlock
+   controller.add_filter('mux',
+                         BufferBlock(mux = True),
+			 ['input1','input2'],
+			 ['muxout'])
+
+Likewise, you could modify an existing block, such as
+:py:class:`ctrl.block.system.Gain` to demultiplex its outputs as in::
+			 
+   from ctrl.block.system import Gain
+   controller.add_filter('gain',
+                         Gain(demux = True),
+			 ['muxout'],
+			 ['output1','output2'])
+
+Because blocks can arbitrarily manipulate signals, it is not possible
+to detect inconsistencies in the sizes of inputs and output until
+execution time. Even then some blocks might simply ignore
+discrepancies without generating any errors! For example, a block like::
+		 
+   controller.add_filter('gain',
+                         Gain(),
+			 ['input1'],
+			 ['output1','output2'])
+
+is not only valid but also does not generate any runtime
+error. However, only the output :py:data:`output1` contains a multiple
+of :py:data:`output2`. Since :py:data:`output2` does not match any
+input it is simply ignored. Likewise, in::
+			 			 
+   controller.add_filter('gain',
+                         Gain(),
+			 ['input1','input2'],
+			 ['output1'])
+
+only the input :py:data:`intput1` gets passed on to the output
+:py:data:`output1`. Again, no runtime errors are ever generated.
+
+Finally, the block::
+    		 
+   controller.add_filter('gain',
+                         Gain(gain = numpy.array([-1,2]), demux = True),
+			 ['input1'],
+			 ['output1','output2'])
+
+leverages demultiplexing and the use of a numpy array as a gain to
+produce a signal :py:data:`output1` which is :py:data:`input1`
+multiplied by `-1` and a signal :py:data:`output2` which is
+:py:data:`input1` multiplied by `2`.
+
+			 
 --------------------------------------
 Client-Server Application Architecture
 --------------------------------------
@@ -304,17 +384,188 @@ controller at the server before doing anything::
 
     client.reset()
 
-For the same reason, one might make sure the sampling period is the
-one desired by calling::
+:py:meth:`ctrl.client.Controller.reset` can also be used to install a
+completely new controller on the server, as if using the :py:data:`-m`,
+:py:data:`--module` and :py:data:`-c`, :py:data:`--controller` options
+in :samp:`ctrl_start_server`. For example::
 
-    client.set_source('clock', period = 0.1)
+    client.reset(module = 'ctrl.timer')
 
-which in this case would make sure the remote controller clock is
-running at 10 Hz.
+install a new instance of :py:class:`ctrl.timer.Controller` in the
+remote server. You can query the server about its controller class by
+using :py:meth:`ctrl.Controller.info` as in::
+    
+    client.info('class')
 
---------------
+which should then return the string :py:data:`"<class
+'ctrl.timer.Controller'>"`. You can also pass arguments to the
+controller constructor. For example::
+
+    client.reset(module = 'ctrl.timer', period = 0.1)
+
+will install a new instance of :py:class:`ctrl.timer.Controller`
+running at 10 Hz on the remote server.
+
+For convenience, all these operations can be performed by the
+:py:class:`ctrl.client.Controller` constructor. For example::
+	
+    from ctrl.client import Controller
+    client = Controller(host = '192.168.0.132', port = 9090,
+                        module = 'ctrl.timer', period = 0.1)
+
+initializes the client and resets the remote controller by installing
+a new instance of :py:class:`ctrl.timer.Controller` running at 10 Hz
+on the remote server.
+
+SSH and port forwarding
+-----------------------
+
+A common setup for is that of a server running on an embedded system,
+such as a Beaglebone Black or a Raspberry Pi, controlled remotely by a
+computer. In most cases, connections to the server will be established
+using `ssh <https://en.wikipedia.org/wiki/Secure_Shell>`_.
+
+The following is a typical session: the user on the client computer,
+`user@client`, establishes a connection to the remote server, in this
+case a Beaglebone Black as `root@192.168.0.68`, using ssh:
+
+.. code-block:: none
+		
+    user@client:~$ ssh -L9999:localhost:9999 root@192.168.0.68
+    Debian GNU/Linux 8
+
+    BeagleBoard.org Debian Image 2016-11-06
+
+    Support/FAQ: http://elinux.org/Beagleboard:BeagleBoneBlack_Debian
+
+    default username:password is [debian:temppwd]
+
+    Last login: Sat Apr  1 17:06:08 2017 from 192.168.0.1
+    root@beaglebone:~#
+
+The important detail here is the argument
+:samp:`-L9999:localhost:9999`, which tells ssh to establish a
+*tunnel*, that is to `forward the port 9999
+<https://www.ssh.com/ssh/tunneling/example>`_ from the server to the
+client.
+    
+Because of that, the user can initiate the server using
+:samp:`localhost` as its host name:
+
+.. code-block:: none
+		
+    root@beaglebone:~# ctrl_start_server
+    ctrl_start_server (version 1.0)
+
+    Type 'ctrl_start_server -h' for more options
+
+    > Options:
+       Hostname[port]: localhost[9999]
+      Sampling period: ---
+	Verbose level: 1
+
+    <class 'ctrl.Controller'> with:
+      1 device(s), 0 timer(s), 3 signal(s),
+      1 source(s), 0 filter(s), and 0 sink(s)
+    > devices
+      1. clock[source]
+    > timers
+    > signals
+      1. clock
+      2. duty
+      3. is_running
+    > sources
+      1. clock[Clock, enabled] >> clock
+    > filters
+    > sinks
+
+    > Starting server... done
+    > Hit Ctrl-C or use 'ctrl_stop_server' to exit the server
+
+After starting the server, on another terminal, the user runs his
+application as a client, also connected to :samp:`localhost`. For
+example, using the interactive shell:
+
+.. code-block:: none
+		
+    user@client:~$ python
+    Python 3.4.5 |Anaconda 2.3.0 (x86_64)| (default, Jul  2 2016, 17:47:57) 
+    [GCC 4.2.1 Compatible Apple LLVM 4.2 (clang-425.0.28)] on darwin
+    Type "help", "copyright", "credits" or "license" for more information.
+    >>> from ctrl.client import Controller
+    >>> hello = Controller()
+    >>> print(hello.info('all'))
+    <class 'ctrl.Controller'> with:
+      1 device(s), 0 timer(s), 3 signal(s),
+      1 source(s), 0 filter(s), and 0 sink(s)
+    > devices
+      1. clock[source]
+    > timers
+    > signals
+      1. clock
+      2. duty
+      3. is_running
+    > sources
+      1. clock[Clock, enabled] >> clock
+    > filters
+    > sinks
+
+    >>> quit()
+    user@client:~$ 
+
+In this way, all network traffic is managed by ssh. An additional
+advantage is that this traffic is also `encrypted and potentially
+compressed <http://www.linuxjournal.com/article/6602>`_, which adds
+efficiency and security to the entire session. With ssh you can also
+forward your X graphics terminal using the :samp:`-X` flag. For
+example:
+        
+.. code-block:: none
+		
+    ssh -X -L9999:localhost:9999 root@192.168.0.68
+
+would forward both the 9999 port and your X terminal session.
+
+
+--------------------------
+Performance considerations
+--------------------------
+
 Error Handling
 --------------
+
+Since you're using Python, error testing and handling can be kept at a
+minimum. Thanks to `duck typing
+<https://en.wikipedia.org/wiki/Duck_typing>`_ and other Python
+features, anything that could go wrong will be dealt with at execution
+time, with errors being propagated using the standard Python
+`exception <https://docs.python.org/3/tutorial/errors.html>`_
+mechanism. As discussed in Section :ref:`What's going on?`, users can
+handle errors by enclosing segments of code using the :py:obj:`try`
+statement::
+
+    try:
+        # do something
+        ...
+	
+    except:
+        # do something if exception was raised
+	...
+	
+    finally:
+        # always do this 
+	...
+
+Most of the time, error checking is limited to operations that could
+invalidate your controller. In particular, very few error checking
+tests are performed in the methods :py:meth:`ctrl.block.Block.read`
+and :py:meth:`ctrl.block.Block.write`. Such tests would be repeated in
+the main controller loop and could potentially impact performance. If
+you need to perform tests in those methods consider using `assertions
+<https://wiki.python.org/moin/UsingAssertionsEffectively>`_. This
+means that those tests could be completely turned off if they are
+impacting performance by invoking Python with the :samp:`-O` flag.
+
 
 ---------------------
 Extending Controllers
@@ -346,6 +597,16 @@ python constructor, which in this case parses the new attribute
       
       super().__init__(**kwargs)
 
+Note that this is done using `pop
+<https://docs.python.org/3/library/stdtypes.html#dict>`_ as in::
+
+    self.period = kwargs.pop('period', 0.01)
+
+Using :py:meth:`pop` makes sure the keyword :py:data:`period` is
+removed from the dictionary :py:data:`kwargs`. Any remaining keywords
+need to be valid attributes of the base class or an exception will be
+raised.
+
 Most of the action is in the method
 :py:meth:`ctrl.Controller.__reset`. In fact, a closer look at
 :py:meth:`ctrl.Controller.__init__`:
@@ -360,14 +621,14 @@ If you overload :py:meth:`ctrl.Controller.__reset` make sure to call::
 
     super().__reset()
 
-before doing any other task. This will make sure that whatever tasks
+*before* doing any other task. This will make sure that whatever tasks
 that need to be performed by the base class have already taken place
 and won't undo any of your own initialization.
 
 The method :py:meth:`ctrl.Controller.__reset` is also called by the
 method :py:meth:`ctrl.Controller.reset`. In fact, one rarely needs to
-:py:overload any method other than :py:meth:`ctrl.Controller.__init__`
-and :py:meth:`ctrl.Controller.__reset`.
+overload any method other than :py:meth:`ctrl.Controller.__init__` and
+:py:meth:`ctrl.Controller.__reset`.
 
 A typical reason for extending :py:class:`ctrl.Controller` is to
 provide the user with a set of devices that continue to exist even
@@ -469,11 +730,6 @@ three input *signals* :py:data:`signal1`, :py:data:`signal2`, and
 first call :py:meth:`MySumBlock.write` then :py:meth:`MySumBlock.read`
 as if running a code similar to the following::
 
-    myfilter = MySymBlock()
-    signal1 = 1
-    signal2 = 2
-    signal3 = 3
-
     myfilter.write(signal1, signal2, signal3)
     (sum, ) = myfilter.read()
 
@@ -491,11 +747,12 @@ learn soon, this facilitates handling errors in the
 constructor. Second the method :py:meth:`MySumBlock.write` should
 always take a variable number of arguments, represented by the python
 construction :samp:`*values`. Inside :py:meth:`MySumBlock.write` the
-variable :py:data:`values` is a *tuple*. Third, because
-:py:meth:`ctrl.block.Block.write` and :py:meth:`ctrl.block.Block.read`
-are called separately, it is often the case that one needs an internal
-variable to store values to be carried from
-:py:meth:`ctrl.block.Block.write` to
+variable :py:data:`values` is a `tuple
+<https://docs.python.org/3/tutorial/datastructures.html>`_. Third,
+because :py:meth:`ctrl.block.Block.write` and
+:py:meth:`ctrl.block.Block.read` are called separately, it is often
+the case that one needs an internal variable to store values to be
+carried from :py:meth:`ctrl.block.Block.write` to
 :py:meth:`ctrl.block.Block.read`. This is so common that
 :py:mod:`ctrl.block` provides a specialized class
 :py:class:`ctrl.block.BufferBlock`, which you will learn about in the
@@ -505,24 +762,41 @@ Extending :py:class:`ctrl.block.BufferBlock`
 --------------------------------------------
 
 The class :py:class:`ctrl.block.BufferBlock` has several features that
-can facilitate the implementation of blocks. First,:
-py:meth:`ctrl.block.BufferBlock.buffer_read` and
-:py:meth:`ctrl.block.BufferBlock.buffer_write` work with a an internal
+can facilitate the implementation of blocks. First,
+py:meth:`ctrl.block.BufferBlock.read` and
+:py:meth:`ctrl.block.BufferBlock.write` work with a an internal
 attribute :py:obj:`buffer`, which can be used to carry values from
-:py:meth:`ctrl.block.BufferBlock.buffer_write` to
-:py:meth:`ctrl.block.BufferBlock.buffer_read`. Second, it support
-*multiplexing* and *demultiplexing* of inputs. You will learn about
-that later.
+:py:meth:`ctrl.block.BufferBlock.write` to
+:py:meth:`ctrl.block.BufferBlock.read`. Second, it support
+*multiplexing* and *demultiplexing* of inputs as discussed in Section
+:ref:`Multiplexing and demultiplexing`.
 
-
-.. literalinclude:: ../ctrl/block/__init__.py
-   :pyobject: Constant
-
-.. literalinclude:: ../ctrl/rc/encoder.py
-   :pyobject: Encoder
+Consider as an example the block :py:class:`ctrl.block.system.Gain`,
+which produces an output which correspond to its inputs multiplied by
+a fixed *gain*. Because :py:class:`ctrl.block.system.Gain` does
+nothing to its inputs when it is written it does not overload
+:py:meth:`ctrl.block.BufferBlock.write`. All the action is on the
+method :py:meth:`ctrl.block.system.Gain.write`:
 
 .. literalinclude:: ../ctrl/block/system.py 
-   :pyobject: Sum
+   :pyobject: Gain.write
+
+Note that it starts by calling :samp:`super().write(*values)`, which
+will take care of any multiplexing at the input, followed by the
+actual calculation, which in this case is performed using a `list
+comprehension
+<https://docs.python.org/3/tutorial/datastructures.html#tut-listcomps>`_::
+
+  self.buffer = tuple(v * self.gain for v in self.buffer)
+
+that produces the desired output tuple.
+
+For another example consider the block
+:py:class:`ctrl.block.system.Sum` and its method
+:py:meth:`ctrl.block.system.Sum.write`:
+
+.. literalinclude:: ../ctrl/block/system.py 
+   :pyobject: Sum.write
 
 
 

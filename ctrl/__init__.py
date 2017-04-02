@@ -22,9 +22,10 @@ EXITING = 2
 
 class Controller:
     """
-    *Controller* provides functionality for running signal flow tasks.
+    :py:class:`ctrl.Controller` provides functionality for running
+    signal flow tasks.
 
-    A `Controller` can be in one of three states:
+    A Controller can be in one of three states:
 
     1. IDLE
     2. RUNNING
@@ -34,6 +35,7 @@ class Controller:
 
     :param kwargs: should be left empty
     :raises: :py:class:`ctrl.ControllerException` if any parameters are passed to py:data`**kwargs`
+
     """
     def __init__(self, **kwargs):
 
@@ -140,7 +142,7 @@ class Controller:
         """
         Returns a string with information on the Controller.
 
-        :param options: can be one of `devices`, `signals`, `sources`, `filters`, `sinks`, `timers`, `all`, or `summary`
+        :param options: can be one of `devices`, `signals`, `sources`, `filters`, `sinks`, `timers`, `all`, `summary`, or `class`
         :return: string with information on the Controller
         """
 
@@ -235,6 +237,10 @@ class Controller:
                                   for k,key in 
                                   enumerate(sorted(self.signals.keys()))) + '\n'
 
+        elif options == 'class':
+
+            result += '{}'.format(self.__class__)
+            
         elif options == 'all':
             
             result = ''.join(map(lambda x: self.info(x), 

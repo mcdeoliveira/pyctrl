@@ -14,42 +14,47 @@ from ctrl.system.ss import DTSS
 
 class System(block.BufferBlock):
     """
-    *System* is a wrapper for a time-invariant dynamic system model. 
+    :py:class:`ctrl.block.system.System` is a wrapper for a time-invariant dynamic system model.  
 
-    :param model: an instance of `ctrl.system.System`
+    Inputs of this block are always multiplexed.
+
+    :param model: an instance of :py:class:`ctrl.system.System`
     """
     
     def __init__(self, **kwargs):
 
         model = kwargs.pop('model', DTTF())
-        assert isinstance(model, system.System)
+        if not isinstance(model, system.System):
+            raise block.BlockException('model must be an instance of ctrl.system.System.')
         self.model = model
 
         # set mux by default
         if 'mux' not in kwargs:
             kwargs['mux'] = True
-        elif not kargs.get('mux'):
-            raise BlockException('System must have `mux` equal to `True`.')
+        elif not kwargs.get('mux'):
+            raise block.BlockException('System must have `mux` equal to `True`.')
             
         super().__init__(**kwargs)
 
     def set(self, exclude = (), **kwargs):
         """
-        Set properties of `System` block.
+        Set properties of :py:class:`ctrl.block.system.System` block.
 
         :param model: an instance of `ctrl.system.System`
         """
         
         if 'model' in kwargs:
             model = kwargs.pop('model')
-            assert isinstance(model, system.System)
+            if not isinstance(model, system.System):
+                raise block.BlockException('model must be an instance of ctrl.system.System.')
+                
             self.model = model
 
         super().set(exclude, **kwargs)
 
     def reset(self):
         """
-        Reset `System` block.
+        Reset :py:class:`ctrl.block.system.System` block.
 
         Calls `model.set_output(0)`.
         """
@@ -67,7 +72,7 @@ class System(block.BufferBlock):
         
 class TimeVaryingSystem(block.BufferBlock):
     """
-    *TimeVarying* is a wrapper for a time-varying dynamic system model.
+    :py:class:`ctrl.block.system.TimeVarying` is a wrapper for a time-varying dynamic system model.
 
     The first signal must be a clock.
 
@@ -77,34 +82,36 @@ class TimeVaryingSystem(block.BufferBlock):
     def __init__(self, **kwargs):
 
         model = kwargs.pop('model', DTTF())
-        assert isinstance(model, system.TVSystem)
+        if not isinstance(model, system.TVSystem):
+            raise block.BlockException('model must be an instance of ctrl.system.TVSystem.')
         self.model = model
 
         # set mux by default
         if 'mux' not in kwargs:
             kwargs['mux'] = True
-        elif not kargs.get('mux'):
-            raise BlockException('System must have `mux` equal to `True`.')
+        elif not kwargs.get('mux'):
+            raise block.BlockException('System must have `mux` equal to `True`.')
         
         super().__init__(**kwargs)
         
     def set(self, exclude = (), **kwargs):
         """
-        Set properties of `TimeVarying` block.
+        Set properties of :py:class:`ctrl.block.system.TimeVarying` block.
 
         :param model: an instance of `ctrl.system.TVSystem`
         """
 
         if 'model' in kwargs:
             model = kwargs.pop('model')
-            assert isinstance(model, system.TVSystem)
+            if not isinstance(model, system.TVSystem):
+                raise block.BlockException('model must be an instance of ctrl.system.TVSystem.')
             self.model = model
 
         super().set(exclude, **kwargs)
 
     def reset(self):
         """
-        Reset `TimeVarying` block.
+        Reset :py:class:`ctrl.block.system.TimeVarying` block.
 
         Calls `model.set_output(0, 0)`.
         """
@@ -138,7 +145,12 @@ class Gain(block.BufferBlock):
     def __init__(self, **kwargs):
 
         gain = kwargs.pop('gain', 1)
-        assert isinstance(gain, (int, float))
+        if isinstance(gain, (list, tuple)):
+            gain = numpy.array(gain)
+        if not isinstance(gain, (int, float, numpy.ndarray)):
+            raise block.BlockException('gain must be int, float or numpy array')
+        if isinstance(gain, numpy.ndarray) and gain.ndim > 1:
+            raise block.BlockException('gain must be 1D numpy array; use ctrl.block.Dot for matrix gains')
         self.gain = gain
 
         super().__init__(**kwargs)
@@ -153,7 +165,7 @@ class Gain(block.BufferBlock):
 
         self.buffer = tuple(v * self.gain for v in self.buffer)
 
-class Affine(block.BufferBlock):
+class Affine(Gain):
     """
     *Affine* multiplies and offset input by a constant gain and offset, that is
 
@@ -167,12 +179,13 @@ class Affine(block.BufferBlock):
 
     def __init__(self, **kwargs):
 
-        gain = kwargs.pop('gain', 1)
-        assert isinstance(gain, (int, float))
-        self.gain = gain
-
         offset = kwargs.pop('offset', 0)
-        assert isinstance(offset, (int, float))
+        if isinstance(offset, (list, tuple)):
+            offset = numpy.array(offset)
+        if not isinstance(offset, (int, float, numpy.ndarray)):
+            raise block.BlockException('offset must be int, float or numpy array')
+        if isinstance(offset, numpy.ndarray) and offset.ndim > 1:
+            raise block.BlockException('offset must be 1D numpy array')
         self.offset = offset
 
         super().__init__(**kwargs)
@@ -184,7 +197,7 @@ class Affine(block.BufferBlock):
         """
 
         # call super
-        super().write(*values)
+        block.BufferBlock.write(self, *values)
 
         self.buffer = tuple(v*self.gain + self.offset for v in self.buffer)
 
@@ -226,7 +239,6 @@ class Differentiator(block.BufferBlock):
         
         #print('values = {}'.format(values))
 
-        assert len(self.buffer) > 1
         t = self.buffer[0]
         x = self.buffer[1:]
 
@@ -350,7 +362,7 @@ class Average(block.BufferBlock):
             self.buffer = (numpy.average(self.buffer, axis=0), )
 
 
-class Sum(block.BufferBlock):
+class Sum(Gain):
     """
     *Sum* adds all inputs and multiplies the result by a constant gain, that is
 
@@ -361,12 +373,6 @@ class Sum(block.BufferBlock):
     :param gain: multiplier (default `1`)
     """
 
-    def __init__(self, **kwargs):
-
-        self.gain = kwargs.pop('gain', 1)
-        
-        super().__init__(**kwargs)
-
     def write(self, *values):
         """
         Writes product of `gain` times the sum of the current input to the private `buffer`.
@@ -375,12 +381,12 @@ class Sum(block.BufferBlock):
         :return: tuple with scaled input
         """
         # call super
-        super().write(*values)
+        super(Gain, self).write(*values)
         
         self.buffer = (self.gain * numpy.sum(self.buffer, axis=0), )
         
 
-class Subtract(block.BufferBlock):
+class Subtract(Gain):
     r"""
     *Subtract* subtracts first input as in
 
@@ -391,12 +397,6 @@ class Subtract(block.BufferBlock):
     :param gain: multiplier (default `1`)
     """
 
-    def __init__(self, **kwargs):
-
-        self.gain = kwargs.pop('gain', 1)
-        
-        super().__init__(**kwargs)
-
     def write(self, *values):
         """
         Writes product of `gain` times the difference of the current input to the private `buffer`.
@@ -406,7 +406,7 @@ class Subtract(block.BufferBlock):
         """
 
         # call super
-        super().write(*values)
+        super(Gain, self).write(*values)
         
         if self.buffer:
             # flip first entry

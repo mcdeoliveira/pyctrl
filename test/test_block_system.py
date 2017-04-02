@@ -28,6 +28,12 @@ def test_System():
     with pytest.raises(block.BlockException):
         blk = system.System(modelo = sys)
 
+    with pytest.raises(block.BlockException):
+        blk = system.System(model = 1)
+        
+    with pytest.raises(block.BlockException):
+        blk = system.System(model = sys, mux = False)
+        
     blk.write([1])
     (yk,) = blk.read()
     state = np.array([1, 0])
@@ -63,6 +69,8 @@ def test_System():
     blk = system.System(model = sys)
     blk.set(model = sys2)
     assert blk.model is sys2
+    with pytest.raises(block.BlockException):
+        blk.set(model = 1)
 
     # State space
 
@@ -250,11 +258,8 @@ def test_Gain():
     blk = system.Gain(gain = -1.2)
     assert blk.gain == -1.2
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(block.BlockException):
         blk = system.Gain(gain = 'asd')
-
-    with pytest.raises(AssertionError):
-        blk = system.Gain(gain = (1,2))
 
     blk = system.Gain(gain = -5.2)
     blk.write(np.array([2]))
@@ -277,7 +282,96 @@ def test_Gain():
     blk.set(gain = 8)
     assert blk.gain == 8
 
+    blk = system.Gain(gain = (-1,2), demux = True)
+    blk.write(1)
+    yk = blk.read()
+    assert yk == (-1, 2)
+
+    blk = system.Gain(gain = np.array([-1,2]), demux = True)
+    blk.write(1)
+    yk = blk.read()
+    assert yk == (-1, 2)
+
+    with pytest.raises(block.BlockException):
+        blk = system.Gain(gain = np.array([[-1,2],[3,1]]),
+                          mux = True, demux = True)
     
+def test_Affine():
+
+    # Affine
+
+    blk = system.Affine()
+    assert blk.gain == 1
+    assert blk.offset == 0
+
+    blk = system.Affine(gain = -1, offset = 2)
+    assert blk.gain == -1
+    assert blk.offset == 2
+
+    blk = system.Affine(offset = 3)
+    assert blk.gain == 1
+    assert blk.offset == 3
+
+    blk = system.Affine(gain = -1.2, offset = 2.2)
+    assert blk.gain == -1.2
+    assert blk.offset == 2.2
+
+    with pytest.raises(block.BlockException):
+        blk = system.Affine(gain = 'asd')
+
+    with pytest.raises(block.BlockException):
+        blk = system.Affine(offset = 'asd')
+        
+    blk = system.Affine(gain = -5.2)
+    blk.write(np.array([2]))
+    (yk,) = blk.read()
+    assert yk == -10.4
+
+    blk = system.Affine(gain = 3)
+    blk.write(2, 4)
+    yk = blk.read()
+    assert yk == (6, 12)
+
+    blk.write(np.array([2, 4]))
+    (yk,) = blk.read()
+    assert np.all(yk == [6, 12])
+
+    blk.write(2, np.array([4,2]))
+    yk = blk.read()
+    assert yk[0] == 6 and np.all(yk[1] == np.array([12, 6]))
+
+    blk.set(gain = 8)
+    assert blk.gain == 8
+
+    blk = system.Affine(gain = (-1,2), offset = 1, demux = True)
+    blk.write(1)
+    yk = blk.read()
+    assert yk == (0, 3)
+
+    blk = system.Affine(gain = np.array([-1,2]), offset = 1, demux = True)
+    blk.write(1)
+    yk = blk.read()
+    assert yk == (0, 3)
+
+    blk = system.Affine(gain = np.array([-1,2]), offset = (3,4), demux = True)
+    blk.write(1)
+    yk = blk.read()
+    assert yk == (2, 6)
+    
+    blk = system.Affine(gain = np.array([-1,2]), offset = np.array([3,4]), demux = True)
+    blk.write(1)
+    yk = blk.read()
+    assert yk == (2, 6)
+    
+    with pytest.raises(block.BlockException):
+        blk = system.Affine(gain = np.array([[-1,2],[3,1]]),
+                          mux = True, demux = True)
+
+    with pytest.raises(block.BlockException):
+        blk = system.Affine(offset = np.array([[-1,2],[3,1]]),
+                          mux = True, demux = True)
+        
+
 def test_ShortCircuit():
 
     # Short-Circuit
@@ -571,6 +665,12 @@ def test_Subtract():
     
 def test_TimeVaryingSystem():
 
+    with pytest.raises(block.BlockException):
+        blk = system.TimeVaryingSystem(modelo = 1)
+
+    with pytest.raises(block.BlockException):
+        blk = system.TimeVaryingSystem(model = 1)
+        
     a = np.array([[-1, 1],[0, -2]])
     b = np.array([[1],[1]])
 
@@ -581,6 +681,9 @@ def test_TimeVaryingSystem():
     xk = np.array([1,-1])
     sys = ode.ODE(shape = (1,2,2), f = f, t0 = tk, x0 = xk, pars = (a,b))
 
+    with pytest.raises(block.BlockException):
+        blk = system.TimeVaryingSystem(model = sys, mux = False)
+        
     uk = [0]
     tk += 1
     yk1 = sys.update(tk, uk)

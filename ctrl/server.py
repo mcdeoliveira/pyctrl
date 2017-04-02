@@ -2,6 +2,7 @@ import warnings
 import socketserver
 import threading
 import time
+import importlib
 
 from . import packet
 import ctrl
@@ -51,10 +52,32 @@ def log(message, func):
     return func_wrapper
 
 # reset controller
-def reset(module, ctrl_class):
+def reset(module = 'ctrl',
+          ctrl_class = 'Controller',
+          **kwargs):
+    global controller
+    
+    # Create new controller
     if module or ctrl_class:
-        # initialize new controller
+        warnings.warn("Will install new instance of '{}.{}' as controller".format(module, ctrl_class))
+        try:
+
+            obj_class = getattr(importlib.import_module(module),
+                                ctrl_class)
+            _controller = obj_class(**kwargs)
+        
+            # Make sure it is an instance of ctrl.Controller
+            if not isinstance(_controller, ctrl.Controller):
+                raise Exception("Object '{}.{}' is not and instance of ctrl.Controller".format(module, ctrl_class))
+
+        except Exception as e:
+
+            raise Exception("Error resetting controller: {}".format(e))
+            
+        controller = _controller
         set_controller(controller)
+
+    # reset controller
     return controller.reset()
 
 def set_controller(_controller = ctrl.Controller()):
@@ -70,7 +93,7 @@ def set_controller(_controller = ctrl.Controller()):
 
         'B': ('S', 'S', controller.info,
               'Controller info'),
-        'Z': ('',  '', controller.reset,
+        'Z': ('SSK',  '', reset,
               'Reset controller'),
 
         'C': ('S', '', controller.add_signal,

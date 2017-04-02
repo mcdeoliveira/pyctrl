@@ -818,6 +818,9 @@ You will now work on a more sophisticated example, in which you will
 combine various filters to produce a simulated model of a
 DC-motor. The complete code is in :ref:`simulated_motor_1.py`.
 
+A transfer-function model
+-------------------------
+
 The beginnig of the code is similar to :ref:`hello_filter_2.py`::
   
     # import Controller and other blocks from modules
@@ -931,6 +934,9 @@ As usual, the simulation is run with::
   with simotor:
       simotor.join()
             
+Collecting and plotting the results
+-----------------------------------
+
 After running the simulation you can read the data collected by the logger::
 
     # read logger
@@ -973,6 +979,10 @@ and the motor output signal :py:data:`encoder`, which predicts that
 the motor will stop at about 13 cycles (revolutions) from its original
 position if the input signal :py:data:`pwm` were applied at its
 input.
+
+
+Calculating velocity and low-pass filtering
+-------------------------------------------
 
 The above setup is one that corresponds to a typical microcontroller
 interface to a DC-motor, in which the motor voltage is controlled
@@ -1755,11 +1765,3 @@ to let you drive the MIP while balancing upright is given in
 controller is available `here
 <http://guitar.ucsd.edu/beaglebone/mip.mpeg>`_.
 
-.. rubric:: References
-
-.. [deO16] M. C. de Oliveira, *Fundamentals of Linear Control: a
-           concise approach*, Cambridge University Press, 2016.
-
-.. [Zhuo16] Zhu Zhuo, *MIP*, M.Sc. Thesis, University of California San
-	    Diego, 2016.
-	   

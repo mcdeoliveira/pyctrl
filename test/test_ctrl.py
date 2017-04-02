@@ -378,10 +378,58 @@ def test_client_server():
         time.sleep(1)
 
     try:
-        run(ctrl.client.Controller(host = HOST, port = PORT))
+
+        client = ctrl.client.Controller(host = HOST, port = PORT)
+
+        # test client
+        run(client)
+
+        assert client.info('class') == "<class 'ctrl.Controller'>"
+        
+        # other tests
+        client.reset('ctrl.timer', 'Controller')
+
+        assert client.info('class') == "<class 'ctrl.timer.Controller'>"
+
+        with pytest.raises(Exception):
+            client.reset('ctrl.timer', 'wrong')
+
+        assert client.info('class') == "<class 'ctrl.timer.Controller'>"
+
+        client.reset()
+        
+        assert client.info('class') == "<class 'ctrl.Controller'>"
+        
+        client.reset('ctrl.timer')
+
+        assert client.info('class') == "<class 'ctrl.timer.Controller'>"
+        
+        client.reset()
+        
+        assert client.info('class') == "<class 'ctrl.Controller'>"
+
+        client.reset(ctrl_class = 'Controller', module = 'ctrl.timer')
+
+        assert client.info('class') == "<class 'ctrl.timer.Controller'>"
+
+        client.reset(module = 'ctrl.timer', period = 2)
+        
+        assert client.info('class') == "<class 'ctrl.timer.Controller'>"
+        assert client.get_source('clock','period') == 2
+
+        client = ctrl.client.Controller(host = HOST, port = PORT,
+                                        module = 'ctrl.timer',
+                                        period = 1)
+
+        assert client.info('class') == "<class 'ctrl.timer.Controller'>"
+        assert client.get_source('clock','period') == 1
+        
     except Exception as e:
+        
         print('** EXCEPTION RAISED **')
+        print(e)
         raise e
+    
     finally:
         if start_server:
             # stop server

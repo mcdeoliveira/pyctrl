@@ -78,4 +78,13 @@ TODO
 	     
 .. include:: examples.inc
 
-     
+==========
+References
+==========
+	    
+.. [deO16] M. C. de Oliveira, *Fundamentals of Linear Control: a
+           concise approach*, Cambridge University Press, 2016.
+
+.. [Zhuo16] Zhu Zhuo, *MIP*, M.Sc. Thesis, University of California San
+	    Diego, 2016.
+	   
