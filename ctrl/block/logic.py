@@ -1,5 +1,5 @@
 """
-This module provide logic Blocks
+This module provide logic blocks.
 """
 
 import numpy
@@ -11,163 +11,179 @@ from .. import block
 
 class Compare(block.BufferBlock):
     """
-    The Block Compare takes two inputs and writes `1` if 
-    
-    input[1] >= input[0] + threshold
+    :py:class:`ctrl.block.logic.Compare` compares inputs. 
 
-    or `0` otherwise.
+    Produces an output with the result of the test
+    
+    :math:`y[:m] = (u[m:] >= u[:m] + \gamma)`
+
+    Output is :py:data:`1` if test return True and :py:data:`0` otherwise.
+
+    :param float threshold: the threshold :math:`\gamma` (default `0`)
+    :param int m: number of inputs to test (default `1`)
     """
     
     def __init__(self, **kwargs):
-        """
-        Constructs a new *Compare* object.
-
-        :param threshold: the threshold to be used for comparison
-        """
-
-        self.threshold = kwargs.pop('threshold', 0)
+        
+        threshold = kwargs.pop('threshold', 0)
+        if not isinstance(threshold, (int, float)):
+            raise block.BlockException('threshold must be int or float')
+        self.threshold = threshold
+        
+        m = kwargs.pop('m', 1)
+        if not isinstance(m, int):
+            raise block.BlockException('m must be int')
+        self.m = m
         
         super().__init__(**kwargs)
 
+    def set(self, exclude = (), **kwargs):
+        """
+        Set properties of :py:class:`ctrl.block.logic.Compare`.
+
+        :param float threshold: threshold
+        :param int m: number of inputs to combine
+        :param kwargs kwargs: other keyword arguments
+        """
+
+        if 'threshold' in kwargs:
+            threshold = kwargs.pop('threshold')
+            if not isinstance(threshold, (int, float)):
+                raise block.BlockException('threshold must be int or float')
+            self.threshold = threshold
+        
+        if 'm' in kwargs:
+            m = kwargs.pop('m', 1)
+            if not isinstance(m, int):
+                raise block.BlockException('m must be int')
+            self.m = m
+
+        super().set(**kwargs)
+        
     def write(self, *values):
         """
-        Returns `1` if
-
-            input[1] >= input[0] + threshold
-
-        or `0` otherwise.
-
-        :param values: list of values of length equal to two
-        :return: tuple with 0 or 1
+        Writes result of comparison to the private :py:attr:`buffer`.
+        
+        :param vararg values: values
         """
 
         # call super
         super().write(*values)
-        
-        assert len(values) == 2
-        if values[1] - values[0] >= self.threshold:
-            self.buffer = (1, )
-        else:
-            self.buffer = (0, )
+
+        self.buffer = tuple(int(v1 - v2 >= self.threshold) for (v1,v2) in zip(values[self.m:], values[:self.m]))
 
 class CompareAbs(block.BufferBlock):
     """
-    The Block *CompareAbs* takes one input and writes `1` if 
+    :py:class:`ctrl.block.logic.CompareAbs` compares the absolute value of its inputs. 
     
-    `fabs(input[0]) <= threshold`
-
-    or `0` otherwise if *invert* is `False`. 
-
-    If *invert* is `True` writes `1` if 
+    Produces an output with the result of the test
     
-    `fabs(input[0]) >= threshold`
+    :math:`y[:] = (|u[:]| <= \gamma)`
 
-    or `0` otherwise.
+    Output is :py:data:`1` if test return True and :py:data:`0` otherwise.
+
+    If :py:attr:`invert` is True performs the test:
+    
+    :math:`y[:] = (|u[:]| >= \gamma)`
+
+    :param float threshold: the threshold :math:`\gamma` (default `0.5`)
+    :param bool invert: whether to invert the sign of the test
     """
 
     def __init__(self, **kwargs):
-        """
-        Constructs a new *CompareAbs* object.
 
-        :param threshold: the threshold to be used for comparison (default 0.5)
-        :param invert: if output is to be inverted or not (default False)
-        """
-
-        self.threshold = kwargs.pop('threshold', 0.5)
+        threshold = kwargs.pop('threshold', 0.5)
+        if not isinstance(threshold, (int, float)):
+            raise block.BlockException('threshold must be int or float')
+        self.threshold = threshold
+        
         self.invert = kwargs.pop('invert', False)
 
         super().__init__(**kwargs)
 
+    def set(self, exclude = (), **kwargs):
+        """
+        Set properties of :py:class:`ctrl.block.logic.CompareAbs`.
+ 
+        :param float threshold: the threshold :math:`\gamma` (default `0.5`)
+        :param bool invert: whether to invert the sign of the test
+        :param kwargs kwargs: other keyword arguments
+        """
+
+        if 'threshold' in kwargs:
+            threshold = kwargs.pop('threshold')
+            if not isinstance(threshold, (int, float)):
+                raise block.BlockException('threshold must be int or float')
+            self.threshold = threshold
+        
+        super().set(**kwargs)
+        
     def write(self, *values):
         """
-        Returns `1` if
-
-        `input[0] <= threshold`
-
-        or `0` otherwise if *invert* is `False`.
-
-        If *invert* is `True` writes `1` if 
-    
-        `fabs(input[0]) >= threshold`
+        Writes result of comparison to the private :py:attr:`buffer`.
         
-        or `0` otherwise.
-
-        :param values: list of values of length equal to one
-        :return: tuple with 0 or 1
+        :param vararg values: values
         """
 
         # call super
         super().write(*values)
-        
-        assert len(values) == 1
-        if math.fabs(values[0]) <= self.threshold:
-            if self.invert:
-                self.buffer = (0, )
-            else:
-                self.buffer = (1, )
+
+        if self.invert:
+            self.buffer = tuple(int(numpy.fabs(v) >= self.threshold) for v in values)
         else:
-            if self.invert:
-                self.buffer = (1, )
-            else:
-                self.buffer = (0, )
+            self.buffer = tuple(int(numpy.fabs(v) <= self.threshold) for v in values)
 
 class Trigger(block.BufferBlock):
-    """
-    The Block *Trigger* writes
+    r"""
+    :py:class:`ctrl.block.logic.Trigger` can be used to switch signals on or off.
     
-    a tuple of zeros of length `len(values)-1`
-    
-    if *state* is `False` and function(values[0]) is
-    False. Otherwise returns
-    
-    `values[1:]`
-    
-    Once function(values[0]) becomes True *state* is set
-    to True and must be reset manually.
-    """
-    
-    def __init__(self, function = (lambda x: x), state = False, **kwargs):
-        """
-        Constructs a new *Trigger* object.
+    Produces the output
 
-        :param function: the test function (default identity)
-        :param state: the initial state (default False)
-        """
+    :math:`y[1:] = \gamma \, u[1:]`
 
-        self.function = function
-        self.state = state
+    where :math:`\gamma = 1` or :math:`\gamma = 0`.
+
+    The value of :math:`\gamma` depends on the attribure
+    :py:attr:`state` as follows
+
+    .. math::
+
+       \gamma = \begin{cases}
+                  1, & \text{if } \text{state} \, \& \, f(u[0]) \\
+                  0, & \text{if } ! \text{state}
+                \end{cases}
+
+    Once :math:`f(u[0])` becomes True :py:attr:`state` is set to True
+    and must be reset manually.
+    
+    :param function: test function (default identity)
+    :param bool state: initial state (default False)
+    """
+    
+    def __init__(self, **kwargs):
+
+        self.function = kwargs.pop('function', (lambda x: x))
+        self.state = kwargs.pop('state', False)
 
         super().__init__(**kwargs)
 
     def reset(self):
         """
-        Reset *Trigger* object state to False.
+        Reset :py:class:`ctrl.block.logic.Trigger` attribute :py:attr:`state` to False.
         """
 
         self.state = False
     
     def write(self, *values):
         """
-        Returns 
-
-        a tuple of zeros of length `len(values)-1`
-
-        if *state* is `False` and function(values[0]) is
-        False. Otherwise returns
-
-        `values[1:]`
-
-        Once function(values[0]) becomes True *state* is set
-        to True and must be reset manually.
+        Writes result of comparison to the private :py:attr:`buffer`.
         
-        :param values: list of values of length greater than one
-        :return: see above
+        :param vararg values: values
         """
 
         # call super
         super().write(*values)
         
-        assert len(values) > 0
         if self.state:
             self.buffer = values[1:]
         elif self.function(values[0]):

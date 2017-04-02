@@ -20,16 +20,20 @@ else:
         return numpy.interp(x,xp,fp,left,right)
 
 class BlockException(Exception):
+    """
+    Exception class for blocks
+    """
     pass
 
 class Block:
     """
-    *Block* provides the basic functionality for all types of blocks.
+    :py:class:`ctrl.block.Block` provides the basic functionality for all types of blocks.
         
-    `Block` does not take any parameters other than `enable`
+    :py:class:`ctrl.block.Block` does not take any parameters other than :py:attr:`enable`
         
-    :param enable: set block as enabled (default True)
-    :raise: `BlockException` if any of the `kwargs` is left unprocessed
+    :param bool enable: set block as enabled (default True)
+    :param kwargs kwargs: additional keyword arguments
+    :raise: :py:class:`ctrl.block.BlockException` if any of the :py:data:`kwargs` is left unprocessed
     """
     
     def __init__(self, **kwargs):
@@ -41,37 +45,37 @@ class Block:
 
     def is_enabled(self):
         """
-        Return *enabled* state.
+        Return :py:attr:`enabled` state.
 
-        :return: enabled
+        :return: :py:attr:`enabled`
         """
         return self.enabled
-        
+    
     def set_enabled(self, enabled  = True):
         """
-        Set *enabled* state.
+        Set :py:attr:`enabled` state.
 
-        :param enabled: True or False (default True)
+        :param bool enabled: True or False (default True)
         """
         self.enabled = enabled
 
     def reset(self):
         """
-        Reset block.
+        Reset :py:class:`ctrl.block.Block`.
 
-        Does nothing here but allows another *Block* to reset itself.
+        Does nothing here but allows another :py:class:`ctrl.block.Block` to reset itself.
         """
         pass
 
     def set(self, exclude = (), **kwargs):
         """
-        Set properties of *Block*.
+        Set properties of :py:class:`ctrl.block.Block`.
 
-        :param tuple exclude: list of attributes to exclude (default ())
-        :param bool reset: if `True` calls `self.reset()`
+        :param tuple exclude: attributes to exclude (default ())
+        :param bool reset: if True calls :py:meth:`reset`
         :param bool enabled: set enabled attribute
-        :param kwargs: other keyword arguments
-        :raise: `BlockException` if any of the `kwargs` is left unprocessed
+        :param kwargs kwargs: other keyword arguments
+        :raise: :py:class:`ctrl.block.BlockException` if any of the kwargs is left unprocessed
         """
 
         if 'reset' in kwargs:
@@ -92,14 +96,14 @@ class Block:
         """
         Get properties of blocks. For example:
 
-        `block.get('enabled')`
+        :samp:`block.get('enabled')`
 
-        will retrieve the value of the property *enabled*. Returns a
-        tuple with key values if argument *keys* is a list.
+        will retrieve the value of the property :py:attr:`enabled`. Returns a
+        tuple with key values if argument :py:attr:`keys` is a list.
 
         :param keys: string or tuple of strings with property names
-        :param exclude: tuple with list of keys never to be returned (Default ())
-        :raise: *KeyError* if `key` is not defined
+        :param tuple exclude: tuple with keys never to be returned (Default ())
+        :raise: :py:class:`KeyError` if :py:attr:`key` is not defined
         """
 
         #print('> keys = {}'.format(keys))
@@ -136,48 +140,45 @@ class Block:
 
     def read(self):
         """
-        Read from *Block*.
+        Read from :py:class:`ctrl.block.Block`.
 
         :return: values
         :retype: tuple
-        :raise: *BlockException* if block does not support read
+        :raise: :py:class:`ctrl.block.BlockException` if block does not support read
         """
         raise BlockException('This block does not support read')
 
     def write(self, *values):
         """
-        Write to *Block*.
+        Write to :py:class:`ctrl.block.Block`.
 
-        :param varag values: values
-        :raise: *BlockException* if block does not support write
+        :param vararg values: values
+        :raise: :py:class:`ctrl.block.BlockException` if block does not support write
         """
         raise BlockException('This block does not support write')
 
 class BufferBlock(Block):
     """
-    *BufferBlock* provides the basic functionality for blocks that
-    implement `read` and `write` through a local `buffer`. 
+    :py:class:`ctrl.block.BufferBlock` provides the basic functionality for blocks that
+    implement :py:class:`ctrl.block.Block.read` and :py:class:`ctrl.block.Block.write` through a local buffer :py:attr:`buffer`. 
 
-    A *BufferBlock* has the property `buffer`.
+    A :py:class:`ctrl.block.BufferBlock` has the property :py:attr:`buffer`.
     
-    Writing from a *BufferBlock* writes to the `buffer`.
+    Writing to a :py:class:`ctrl.block.BufferBlock` writes to the :py:attr:`buffer`.
 
-    Reading from a *BufferBlock* reads from the `buffer`.
+    Reading from a :py:class:`ctrl.block.BufferBlock` reads from the :py:attr:`buffer`.
 
     Multiplexing and demultiplexing options are available.
 
-    If `mux` is `False` (`demux` is `False`) then `read` (`write`) are
-    simply copied to (from) the `buffer`.
+    If :py:attr:`mux` is False (:py:attr:`demux` is False) then :py:meth:`ctrl.block.BufferBlock.read` (:py:meth:`ctrl.block.BufferBlock.write`) are
+    simply copied to (from) the :py:attr:`buffer`.
 
-    If `mux` is `True` then `read` writes a numpy array with the
-    contents of `*values` to `buffer`.
+    If :py:attr:`mux` is True then :py:meth:`ctrl.block.BufferBlock.read` writes a numpy array with the
+    contents of :py:data`*values` to :py:attr:`buffer`.
 
-    If `demux` is `True` then `write` splits `buffer` into a tuple
+    If :py:attr:`demux` is True then :py:meth:`ctrl.block.BufferBlock.write` splits :py:attr:`buffer` into a tuple
     with scalar entries.
 
-    Objects that inherit from *BufferBlock* overwrite the methods
-    `buffer_read` and `buffer_write` instead of `read` and `write`.
-    
     :param bool mux: mux flag (default False)
     :param bool demux: demux flag (default False)
     """
@@ -192,24 +193,24 @@ class BufferBlock(Block):
 
     def get(self, *keys, exclude = ()):
         """
-        Get properties of a *BufferBlock*.
+        Get properties of a :py:class:`ctrl.block.BufferBlock`.
 
-        This method excludes `buffer` from the list of properties. 
+        This method excludes :py:attr:`buffer` from the list of properties. 
 
         :param keys: string or tuple of strings with property names
-        :param exclude: tuple with list of keys never to be returned (Default ())
+        :param tuple exclude: tuple with keys never to be returned (Default ())
         """
         # call super
         return super().get(*keys, exclude = exclude + ('buffer',))
         
     def set(self, exclude = (), **kwargs):
         """
-        Set properties of a *BufferBlock*.
+        Set properties of a :py:class:`ctrl.block.BufferBlock`.
 
-        This method excludes `buffer` from the list of properties. 
+        This method excludes :py:attr:`buffer` from the list of properties. 
 
-        :param tuple exclude: list of attributes to exclude (default ())
-        :param kwargs: other keyword arguments
+        :param tuple exclude: attributes to exclude (default ())
+        :param kwargs kwargs: other keyword arguments
         """
         
         # call super
@@ -217,15 +218,15 @@ class BufferBlock(Block):
 
     def write(self, *values):
         """
-        Writes to the private `buffer` property then call `self.buffer_write`.
+        Writes to the private :py:attr:`buffer` property.
 
-        If `mux` is `False` then `*values` are simply copied to the
-        `buffer`.
+        If :py:attr:`mux` is False then `*values` are simply copied to the
+        :py:attr:`buffer`.
 
-        If `mux` is `True` then `*values` writes a numpy array with the
-        contents of `*values` to the first entry of `buffer`.
+        If :py:attr:`mux` is True then `*values` writes a numpy array with the
+        contents of `*values` to the first entry of :py:attr:`buffer`.
 
-        :param values: list of values
+        :param vararg values: list of values
         """
 
         if self.enabled:
@@ -239,14 +240,14 @@ class BufferBlock(Block):
 
     def read(self):
         """
-        Calls `self.buffer_read` then returns the private `buffer` property.
+        Returns the private :py:attr:`buffer` property.
 
-        If `demux` is `False` then read returns a copy of the local `buffer`. 
+        If :py:attr:`demux` is False then read returns a copy of the local :py:attr:`buffer`. 
 
-        If `demux` is `True` then `buffer` is split into a tuple with
+        If :py:attr:`demux` is True then :py:attr:`buffer` is split into a tuple with
         scalar entries.
 
-        :returns: `buffer`
+        :returns: :py:attr:`buffer`
         """
         if self.enabled:
 
@@ -260,20 +261,20 @@ class BufferBlock(Block):
 
 class ShortCircuit(BufferBlock):
     """
-    *ShortCircuit* copies input to the output, that is
+    :py:class:`ctrl.block.ShortCircuit` copies input to the output, that is
 
     :math:`y = u`
     """
 
 class Printer(Block):
     """
-    A *Printer* block prints the values of signals to the screen.
+    :py:class:`ctrl.block.Printer` prints the values of its input signals.
 
-    :param endln: end-of-line character (default `'\\\\n'`)
-    :param frmt: format string (default `{: 12.4f}`)
-    :param sep: field separator (default `' '`)
-    :param message: message to print (default `None`)
-    :param file: file to print on (default `sys.stdout`)
+    :param str endln: end-of-line character (default `'\\\\n'`)
+    :param str frmt: format string (default `{: 12.4f}`)
+    :param str sep: field separator (default `' '`)
+    :param str message: message to print (default `None`)
+    :param file file: file to print on (default `sys.stdout`)
     """
     
     def __init__(self, **kwargs):
@@ -291,15 +292,15 @@ class Printer(Block):
 
     def set(self, exclude = (), **kwargs):
         """
-        Set properties of *Printer*.
+        Set properties of :py:class:`ctrl.block.Printer`.
 
-        :param tuple exclude: list of attributes to exclude (default ())
-        :param endl: end-of-line character
-        :param frmt: format string
-        :param sep: field separator
-        :param message: message to print
-        :param file: file to print on
-        :param kwargs: other keyword arguments
+        :param tuple exclude: attributes to exclude (default ())
+        :param str endl: end-of-line character
+        :param str frmt: format string
+        :param str sep: field separator
+        :param str message: message to print
+        :param file file: file to print on
+        :param kwargs kwargs: other keyword arguments
         """
         
         if 'file' in kwargs:
@@ -340,7 +341,7 @@ class Printer(Block):
 
 class Constant(BufferBlock):
     """
-    *Constant* outputs a constant.
+    :py:class:`ctrl.block.Constant` outputs a constant.
     
     :param value: constant
     """
@@ -359,13 +360,12 @@ class Constant(BufferBlock):
     
 class Signal(BufferBlock):
     """
-    A *Signal* block outputs values of a vector `signal` sequentially
-    each time `read` is called.
+    :py:class:`ctrl.block.Signal` outputs values corresponding to its attribute :py:attr:`signal` sequentially each time :py:meth:`ctrl.block.BufferBlock.read` is called.
     
-    If `repeat` is True, signal repeats periodically.
+    If :py:attr:`repeat` is True, signal repeats periodically.
 
-    :param signal: `numpy` vector with values
-    :param repeat: if `True` then signal repeats periodically
+    :param signal: :py:class:`numpy.ndarray` or list with values
+    :param bool repeat: if True then signal repeats periodically
     """
 
     def __init__(self, **kwargs):
@@ -383,19 +383,19 @@ class Signal(BufferBlock):
 
     def reset(self):
         """
-        Reset *Signal* index back to `0`.
+        Reset :py:class:`ctrl.block.Signal` index back to :py:data:`0`.
         """
 
         self.index = 0
 
     def set(self, exclude = (), **kwargs):
         """
-        Set properties of *Signal*. 
+        Set properties of :py:class:`ctrl.block.Signal`. 
 
-        :param tuple exclude: list of attributes to exclude (default ())
-        :param signal: `numpy` vector with values
-        :param index: current index
-        :param kwargs: other keyword arguments
+        :param tuple exclude: attributes to exclude (default ())
+        :param signal: :py:class:`numpy.ndarray` or list with values
+        :param bool repeat: if True then signal repeats periodically
+        :param kwargs kwargs: other keyword arguments
         """
 
         if 'signal' in kwargs:
@@ -415,12 +415,12 @@ class Signal(BufferBlock):
         super().set(exclude, **kwargs)
 
     def read(self):
-        """
-        Read from *Signal*.
+        """Read from :py:class:`ctrl.block.Signal`.
 
-        Reading increments current `index`.
+        If :py:attr:`repeat` is True, :py:attr:`index` becomes
+        :py:data:`0` after end of :py:attr:`signal`.
 
-        If `repeat` is True, `index` becomes `0` after end of `signal`.
+        :return: current value of :py:attr:`signal` and increments current :py:attr:`index`.
         """
 
         # read signal sequentially
@@ -450,16 +450,15 @@ class Signal(BufferBlock):
 
 class Interp(BufferBlock):
     """
-    A *Interp* block outputs values of a vector `signal` sequentially
-    each time `read` is called.
+    :py:class:`ctrl.block.Interp` outputs values of a vector :py:attr:`fp` interpolated according to the vector :py:attr:`xp` each time :py:meth:`ctrl.block.BufferBlock.read` is called.
 
-    If `repeat` is True, signal repeats periodically.
+    If :py:attr:`repeat` is True, signal repeats periodically.
 
-    :param xp: `numpy` array with the x-coordinates of the data points, must be increasing
-    :param fp: `numpy` array with the y-coordinates
-    :param left: value to return for x < xp[0] (default is fp[0]).
-    :param right: value to return for x > xp[-1] (default is fp[-1]).
-    :param period: a period for the x-coordinates; parameters left and right are ignored if period is specified (default None)
+    :param xp: :py:class:`numpy.ndarray` or list with the x-coordinates of the data points, must be increasing
+    :param fp: :py:class:`numpy.ndarray` or list with the y-coordinates
+    :param float left: value to return for x < xp[0] (default is fp[0]).
+    :param float right: value to return for x > xp[-1] (default is fp[-1]).
+    :param float period: a period for the x-coordinates; parameters left and right are ignored if period is specified (default None)
     """
 
     def __init__(self, **kwargs):
@@ -488,31 +487,36 @@ class Interp(BufferBlock):
         self.xp_current = None
         
     def reset(self):
-        """
-        Reset *Interp*. Set xp index back to its origin.
+        """Reset :py:class:`ctrl.block.Interp` so that the input of the next
+        call to :py:meth:`ctrl.block.Signal.read` become the origin.
         """
 
         self.xp_current = self.xp_origin = None
 
     def set(self, exclude = (), **kwargs):
         """
-        Set properties of *Interp*. 
+        Set properties of :py:class:`ctrl.block.Interp`. 
 
-        :param tuple exclude: list of attributes to exclude (default ())
-        :param xp: `numpy` array with the x-coordinates of the data points, must be increasing
-        :param fp: `numpy` array with the y-coordinates
-        :param left: value to return for x < xp[0]
-        :param right: value to return for x > xp[-1]
-        :param period: a period for the x-coordinates; parameters left and right are ignored if period is specified
-        :param kwargs: other keyword arguments
+        :param tuple exclude: attributes to exclude (default ())
+        :param xp: :py:class:`numpy.ndarray` or list with the x-coordinates of the data points, must be increasing
+        :param fp: :py:class:`numpy.ndarray` or list with the y-coordinates
+        :param float left: value to return for x < xp[0]
+        :param float right: value to return for x > xp[-1]
+        :param float period: a period for the x-coordinates; parameters left and right are ignored if period is specified
+        :param kwargs kwargs: other keyword arguments
         """
 
+        changes = False
+        
         if 'xp' in kwargs:
             self.xp = numpy.array(kwargs.pop('xp'))
-            self.reset()
+            changes = True
 
         if 'fp' in kwargs:
             self.fp = numpy.array(kwargs.pop('fp'))
+            changes = True
+
+        if changes:
             self.reset()
             
         # make sure they have the same dimensions
@@ -523,7 +527,7 @@ class Interp(BufferBlock):
 
     def write(self, *values):
         """
-        Writes input to the private `buffer`.
+        Writes input to the private :py:attr:`buffer`. Input is the interpolating variable.
         """
 
         # call super
@@ -539,11 +543,9 @@ class Interp(BufferBlock):
         
     def read(self):
         """
-        Read from *Xp*.
+        Read from :py:class:`ctrl.block.Signal`.
 
-        Reading increments current `index`.
-
-        If `repeat` is True, `index` becomes `0` after end of `xp`.
+        :return: current interpolated value using :py:meth:`numpy.iterp`.
         """
 
         # interpolate signal
@@ -559,10 +561,10 @@ class Interp(BufferBlock):
 
 class Map(BufferBlock):
     """
-    A *Map* block applies 'function' to each input and returns tuple
+    A :py:class:`ctrl.block.Map` block applies 'function' to each input and returns tuple
     with results.
 
-    :param function: the function to be applied
+    :param function: the function to be applied (default identity)
     """
 
     def __init__(self,  **kwargs):
@@ -574,8 +576,9 @@ class Map(BufferBlock):
 
     def write(self, *values):
         """
-        Writes a tuple with the result of `function` applied to each
-        input to the private `buffer`.
+        :py:class:`ctrl.block.Map` write.
+
+        :return: tuple with the result of :py:attr:`function` applied to each input.
         """
 
         # call super
@@ -586,8 +589,8 @@ class Map(BufferBlock):
 
 class Apply(BufferBlock):
     """
-    The Block *Apply* applies `function` to all inputs and returns tuple
-    with the result.
+    The Block :py:class:`ctrl.block.Apply` applies :py:attr:`function`
+    to all inputs and returns a tuple with the result.
 
     :param function: the function to be applied (default identity)
     """
@@ -601,8 +604,9 @@ class Apply(BufferBlock):
 
     def write(self, *values):
         """
-        Writes a tuple with the result of `function` applied to all
-        inputs to the private `buffer`.
+        :py:class:`ctrl.block.Apply` write.
+
+        :return: tuple with the result of :py:attr:`function` applied to all inputs.
         """
 
         # call super
@@ -613,10 +617,10 @@ class Apply(BufferBlock):
 
 class Logger(Block):
     """
-    *Logger* stores signals into an array.
+    :py:class:`ctrl.block.Logger` stores signals into an array.
 
-    :param number_of_rows: number of stored rows (default 12000)
-    :param number_of_columns: number of columns (default 0)
+    :param int number_of_rows: number of stored rows (default 12000)
+    :param int number_of_columns: number of columns (default 0)
     """
 
     def __init__(self,
@@ -639,16 +643,14 @@ class Logger(Block):
 
     def set(self, exclude = (), **kwargs):
         """
-        Set properties of *Logger*.
+        Set properties of :py:class:`ctrl.block.Logger`.
 
-        Excludes data.
-
-        :param tuple exclude: list of attributes to exclude
+        :param tuple exclude: attributes to exclude
         :param int current: current index
         :param int page: current page index
         :param bool auto_reset: auto reset flag
-        :param kwargs: other keyword arguments
-        :raise: `BlockException` if any of the `kwargs` is left unprocessed
+        :param kwargs kwargs: other keyword arguments
+        :raise: `BlockException` if any of the :py:data:`kwargs` is left unprocessed
         """
 
         # call super

@@ -50,14 +50,17 @@ def testCompare():
     (answer,) = blk.read()
     assert answer == 0
     
-    with pytest.raises(AssertionError):
-        blk.write()
+    with pytest.raises(block.BlockException):
+        logic.Compare(m = 1.2)
         
-    with pytest.raises(AssertionError):
-        blk.write(1)
+    with pytest.raises(block.BlockException):
+        logic.Compare(threshold = 'as')
 
-    with pytest.raises(AssertionError):
-        blk.write(1, 2, 3)
+    with pytest.raises(block.BlockException):
+        blk.set(m = 1.2)
+        
+    with pytest.raises(block.BlockException):
+        blk.set(threshold = 'as')
         
 def testCompareAbs():
 
@@ -95,7 +98,7 @@ def testCompareAbs():
 
     blk.write(1)
     (answer,) = blk.read()
-    assert answer == 0
+    assert answer == 1
 
     blk.write(0)
     (answer,) = blk.read()
@@ -120,7 +123,7 @@ def testCompareAbs():
 
     blk.write(1)
     (answer,) = blk.read()
-    assert answer == 0
+    assert answer == 1
 
     blk.write(0)
     (answer,) = blk.read()
@@ -130,11 +133,11 @@ def testCompareAbs():
     (answer,) = blk.read()
     assert answer == 0
     
-    with pytest.raises(AssertionError):
-        blk.write()
+    with pytest.raises(block.BlockException):
+        logic.CompareAbs(threshold = 'as')
 
-    with pytest.raises(AssertionError):
-        blk.write(1, 2)
+    with pytest.raises(block.BlockException):
+        blk.set(threshold = 'as')
     
 def testTrigger():
 
@@ -181,9 +184,6 @@ def testTrigger():
     blk.write(-1)
     answer = blk.read()
     assert answer == ()
-    
-    with pytest.raises(AssertionError):
-        blk.write()
     
 if __name__ == "__main__":
 

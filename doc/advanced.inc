@@ -650,7 +650,7 @@ The package :py:mod:`ctrl` is designed so that you can easily extend
 its functionality by writing simple python code for your own
 blocks. You can write blocks to support your specific hardware or
 implement an algorithm that is currently not available in
-:ref:`Package-ctrl.block`.
+:ref:`Module ctrl.block`.
 
 Your blocks should inherit from :py:class:`ctrl.block.Block` or one of
 its derived class, such as :py:class:`ctrl.block.BufferBlock`, which

@@ -906,7 +906,7 @@ to the motor angular position :math:`\theta`.
 		       
 The *block* used in the *filter* :py:data:`motor` is of the class
 :py:class:`ctrl.block.system.System`, which allows one to incorporate
-a variety of system models into filters. See :ref:`Package
+a variety of system models into filters. See :ref:`Module
 ctrl.system` for other types of system models available. The
 particular model you are using is a :py:class:`ctrl.system.DTTF`, in
 which DTTF stands for *Discrete-Time Transfer-Function*. This model

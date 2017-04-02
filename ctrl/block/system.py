@@ -40,7 +40,7 @@ class System(block.BufferBlock):
         """
         Set properties of :py:class:`ctrl.block.system.System` block.
 
-        :param model: an instance of `ctrl.system.System`
+        :param model: an instance of :py:class:`ctrl.system.System`
         """
         
         if 'model' in kwargs:
@@ -56,13 +56,15 @@ class System(block.BufferBlock):
         """
         Reset :py:class:`ctrl.block.system.System` block.
 
-        Calls `model.set_output(0)`.
+        Calls :py:meth:`ctrl.system.System.set_output` for :py:attr:`model` with 0.
         """
         self.model.set_output(numpy.zeros(self.model.shape()[1]))
         
     def write(self, *values):
         """
-        Update `model` and write to the private `buffer`.
+        Update :py:attr:`model` and write to the private :py:attr:`buffer`.
+
+        :param vararg values: values
         """
 
         # call super
@@ -76,7 +78,7 @@ class TimeVaryingSystem(block.BufferBlock):
 
     The first signal must be a clock.
 
-    :param model: an instance of `ctrl.system.TVSystem`
+    :param model: an instance of :py:class:`ctrl.system.TVSystem`
     """
 
     def __init__(self, **kwargs):
@@ -98,7 +100,7 @@ class TimeVaryingSystem(block.BufferBlock):
         """
         Set properties of :py:class:`ctrl.block.system.TimeVarying` block.
 
-        :param model: an instance of `ctrl.system.TVSystem`
+        :param model: an instance of :py:class:`ctrl.system.TVSystem`
         """
 
         if 'model' in kwargs:
@@ -113,15 +115,17 @@ class TimeVaryingSystem(block.BufferBlock):
         """
         Reset :py:class:`ctrl.block.system.TimeVarying` block.
 
-        Calls `model.set_output(0, 0)`.
+        Calls :py:meth:`ctrl.system.System.set_output` for :py:attr:`model` with :py:data:`(0,0)`.
         """
         self.model.set_output(0, numpy.zeros(self.model.shape()[1]))
         
     def write(self, *values):
         """
-        Update `model` and write to the private `buffer`.
+        Update :py:attr:`model` and write to the private :py:attr:`buffer`.
 
         The first signal must be a clock.
+
+        :param vararg values: values
         """
 
         # call super
@@ -154,10 +158,33 @@ class Gain(block.BufferBlock):
         self.gain = gain
 
         super().__init__(**kwargs)
-    
+
+    def set(self, exclude = (), **kwargs):
+        """
+        Set properties of :py:class:`ctrl.block.system.Gain` block.
+
+        :param gain: multiplier (default `1`)
+        :param kwargs kwargs: other keyword arguments
+        """
+
+        if 'gain' in kwargs:
+            gain = kwargs.pop('gain', 1)
+            if isinstance(gain, (list, tuple)):
+                gain = numpy.array(gain)
+            if not isinstance(gain, (int, float, numpy.ndarray)):
+                raise block.BlockException('gain must be int, float or numpy array')
+            if isinstance(gain, numpy.ndarray) and gain.ndim > 1:
+                raise block.BlockException('gain must be 1D numpy array; use ctrl.block.Dot for matrix gains')
+            self.gain = gain
+
+        super().set(**kwargs)
+        
     def write(self, *values):
         """
-        Writes product of `gain` times current input to the private `buffer`.
+        Writes product of :py:attr:`gain` times current input to the 
+        private :py:attr:`buffer`.
+
+        :param vararg values: values
         """
 
         # call super
@@ -173,8 +200,8 @@ class Affine(Gain):
 
     where :math:`a` is the gain and :math:`b` is the offset.
 
-    :param gain: multiplier (default `1`)
-    :param offset: offset (default `0`)
+    :param float gain: multiplier (default `1`)
+    :param float offset: offset (default `0`)
     """
 
     def __init__(self, **kwargs):
@@ -190,10 +217,33 @@ class Affine(Gain):
 
         super().__init__(**kwargs)
     
+    def set(self, exclude = (), **kwargs):
+        """
+        Set properties of :py:class:`ctrl.block.system.Affine` block.
+
+        :param float gain: multiplier (default `1`)
+        :param float offset: offset (default `0`)
+        :param kwargs kwargs: other keyword arguments
+        """
+
+        if 'offset' in kwargs:
+            offset = kwargs.pop('offset', 0)
+            if isinstance(offset, (list, tuple)):
+                offset = numpy.array(offset)
+            if not isinstance(offset, (int, float, numpy.ndarray)):
+                raise block.BlockException('offset must be int, float or numpy array')
+            if isinstance(offset, numpy.ndarray) and offset.ndim > 1:
+                raise block.BlockException('offset must be 1D numpy array')
+            self.offset = offset
+
+        super().set(**kwargs)
+        
     def write(self, *values):
         """
-        Writes product of `gain` times current input plus `offset` to
-        the private `buffer`.
+        Writes product of :py:attr:`gain` times current input plus :py:attr:`offset` to
+        the private :py:attr:`buffer`.
+
+        :param vararg values: values
         """
 
         # call super
@@ -229,9 +279,11 @@ class Differentiator(block.BufferBlock):
     
     def write(self, *values):
         """
-        Writes finite difference derivative to the private `buffer`.
+        Writes finite difference derivative to the private :py:attr:`buffer`.
 
         The first signal must be a clock.
+
+        :param vararg values: values
         """
 
         # call super
@@ -260,17 +312,17 @@ class Differentiator(block.BufferBlock):
 
 class Feedback(block.BufferBlock):
     r"""
-    *Feedback* creates a general feedback connection for a given `block`, that is
+    :py:class:`ctrl.system.Feedback` creates a general feedback connection for a given :py:attr:`block`, that is
 
     .. math::
 
         y = G e, \quad e = \gamma u[m:] + \rho u[:m],
 
-    where :math:`G` represents the `block`, :math:`\gamma` and :math:`\rho` are a constant gains, and :math:`m` is the number of inputs and references.
+    where :math:`G` represents the :py:attr:`block`, :math:`\gamma` and :math:`\rho` are a constant gains, and :math:`m` is the number of inputs and references.
 
-    For the default configuration the first `m` signals are measurements and the last `m` signals are references under standard unit negative feedback.
+    For the default configuration the first :math:`m` signals are measurements and the last :math:`m` signals are references under standard unit negative feedback.
 
-    :param block: an instance of `ctrl.block.Block`
+    :param block: an instance of :py:class:`ctrl.block.Block`
     :param gamma: a constant gain (default `1`)
     :param rho: a constant gain (default `-1`)
     :param m: number of inputs (default `1`)
@@ -295,7 +347,9 @@ class Feedback(block.BufferBlock):
 
     def write(self, *values):
         """
-        Writes feedback signal to the private `buffer`.
+        Writes feedback signal to the private :py:attr:`buffer`.
+
+        :param vararg values: values
         """
 
         # call super
@@ -311,14 +365,14 @@ class Feedback(block.BufferBlock):
         self.buffer = self.block.read()
 
 class Average(block.BufferBlock):
-    """
-    *Average* calculates the (weighted) average of all inputs, that is
+    r"""
+    :py:class:`ctrl.block.system.Average` calculates the (weighted) average of all inputs, that is
 
     :math:`y = \sum_{i = 0}^{m-1} w[i] u[i]`,
 
     where :math:`w` is a vector of weights
 
-    :param weights: weights (default `1/m`)
+    :param weights: weights (default :math:`1/m`)
     """
 
     def __init__(self, **kwargs):
@@ -345,9 +399,9 @@ class Average(block.BufferBlock):
 
     def write(self, *values):
         """
-        Writes average of the current input to the private `buffer`.
+        Writes average of the current input to the private :py:attr:`buffer`.
 
-        :param values: list of values
+        :param vararg values: list of values
         :return: tuple with scaled input
         """
 
@@ -364,20 +418,20 @@ class Average(block.BufferBlock):
 
 class Sum(Gain):
     """
-    *Sum* adds all inputs and multiplies the result by a constant gain, that is
+    :py:class:`ctrl.block.system.Sum` adds all inputs and multiplies the result by a constant gain, that is
 
     :math:`y = a \sum_{i = 0}^{m-1} u[m]`,
 
     where :math:`a` is the gain.
 
-    :param gain: multiplier (default `1`)
+    :param float gain: multiplier (default `1`)
     """
 
     def write(self, *values):
         """
         Writes product of `gain` times the sum of the current input to the private `buffer`.
 
-        :param values: list of values
+        :param vararg values: list of values
         :return: tuple with scaled input
         """
         # call super
@@ -388,20 +442,20 @@ class Sum(Gain):
 
 class Subtract(Gain):
     r"""
-    *Subtract* subtracts first input as in
+    :py:class:`ctrl.block.system.Subtract` subtracts first input as in
 
     :math:`y = a \sum_{i = 1}^{m-1} u[m] - u[0]`,
 
     where :math:`a` is the gain.
 
-    :param gain: multiplier (default `1`)
+    :param float gain: multiplier (default `1`)
     """
 
     def write(self, *values):
         """
         Writes product of `gain` times the difference of the current input to the private `buffer`.
 
-        :param values: list of values
+        :param vararg values: list of values
         :return: tuple with scaled input
         """
 

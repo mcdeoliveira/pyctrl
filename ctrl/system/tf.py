@@ -117,11 +117,6 @@ class DTTF(system.System):
         #print('state = {}'.format(self.state))
     
     def shape(self):
-        """
-        Shape of a *DTTF*
-
-        :return: tuple with number of inputs, number of outputs and order
-        """
         return (1,1,len(self.state))
     
     def update(self, uk):

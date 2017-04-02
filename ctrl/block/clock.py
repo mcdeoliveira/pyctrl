@@ -9,8 +9,7 @@ from time import perf_counter
 
 class Clock(block.Block):
     """
-    `Clock` provides a basic clock that writes the current time to its
-    output.
+    :py:class:`ctrl.block.clock.Clock` provides a basic clock that writes the current time to its output.
     """
     def __init__(self, **kwargs):
 
@@ -26,8 +25,9 @@ class Clock(block.Block):
         
     def reset(self):
         """
-        Reset `Clock` by setting the origin of time to the present time
-        and the clock count to zero.
+        Reset :py:class:`ctrl.block.clock.Clock` by setting the origin of
+        time to the present time and the clock count to zero.
+
         """
 
         # Make sure time is current
@@ -39,19 +39,19 @@ class Clock(block.Block):
 
     def get(self, *keys, exclude = ()):
         """
-        Get properties of `Clock`. 
+        Get properties of :py:class:`ctrl.block.clock.Clock`. 
 
-        Available properties are:
+        Available attributes are:
 
-        1. `average_period`
-        2. `time_origin`
-        3. `count`
+        1. :py:attr:`average_period`
+        2. :py:attr:`time_origin`
+        3. :py:attr:`count`
 
         The elapsed time since initialization or last reset can be
-        obtained using the method `read()`
+        obtained using the method :py:meth:`ctrl.block.clock.Clock.read`.
 
         :param keys: string or tuple of strings with property names
-        :param exclude: tuple with list of keys never to be returned (Default ())
+        :param tuple exclude: keys never to be returned (default ())
         """
 
         if keys is None or 'average_period' in keys:
@@ -62,7 +62,7 @@ class Clock(block.Block):
         
     def read(self):
         """
-        Read from `Clock`.
+        Read from :py:class:`ctrl.block.clock.Clock`.
 
         :return: tuple with elapsed time since initialization or last reset
         """
@@ -77,11 +77,12 @@ class Clock(block.Block):
     
     def calculate_average_period(self):
         """
-        Calculate the average period since the clock was initialized
-        or reset.
+        Calculate the average period since
+        :py:class:`ctrl.block.clock.Clock` was initialized or reset.
         
         :return: average period
         :retype: float
+
         """
         if self.count:
             self.average_period = (self.time - self.time_origin) / self.count
@@ -93,10 +94,11 @@ class Clock(block.Block):
     def calibrate(self, eps = 1/100, N = 100, K = 20):
         """
         Calibration routine that attempts to callibrate clock
-        by fine tuning the `clock`'s period.
+        by fine tuning the clock's period.
 
-        `Clock` must support `get('period')` and `set(period = float)` must
-        be able to accept arbitrary floats as periods.
+        :py:class:`ctrl.block.clock.Clock` must support
+        `get('period')` and `set(period = float)` must be able to
+        accept arbitrary floats as periods.
         """
         enabled = self.enabled
         if not enabled:
@@ -150,12 +152,12 @@ from threading import Thread, Timer, Condition
 
 class TimerClock(Clock):
     """
-    `TimerClock` provides a clock that reads the current time
-    periodically.
+    :py:class:`ctrl.block.clock.TimerClock` provides a clock that
+    reads the current time periodically.
 
     :param float period: period in seconds
+
     """
-    
     def __init__(self, **kwargs):
 
         self.period = kwargs.pop('period', 0.01)
@@ -172,12 +174,12 @@ class TimerClock(Clock):
     
     def set(self, exclude = (), **kwargs):
         """
-        Set properties of `TimerClock`. 
+        Set properties of :py:class:`ctrl.block.clock.TimerClock`. 
 
-        :param tuple exclude: list of attributes to exclude
+        :param tuple exclude: attributes to exclude
         :param float period: clock period
-        :param kwargs: other keyword arguments
-        :raise: `BlockException` if any of the `kwargs` is left unprocessed
+        :param kwargs kwargs: other keyword arguments
+        :raise: :py:class:`ctrl.block.BlockException` if any of the :py:attr:`kwargs` is left unprocessed
         """
 
         if 'period' in kwargs:
@@ -188,17 +190,17 @@ class TimerClock(Clock):
     
     def get(self, *keys, exclude = ()):
         """
-        Get properties of `TimerClock`. 
+        Get properties of :py:class:`ctrl.block.clock.TimerClock`. 
 
-        Available properties are those from :py:meth:`ctrl.block.clock.Clock.get` and:
+        Available attributes are those from :py:meth:`ctrl.block.clock.Clock.get` and:
 
-        1. `period`
+        1. :py:attr:`period`
 
         The elapsed time since initialization or last reset can be
-        obtained using the method `read()`
+        obtained using the method :py:meth:`ctrl.block.clock.TimerClock.read`.
 
         :param keys: string or tuple of strings with property names
-        :param exclude: tuple with list of keys never to be returned (Default ())
+        :param tuple exclude: keys never to be returned (Default ())
         """
         
         # call super excluding time and last
@@ -257,9 +259,9 @@ class TimerClock(Clock):
 
     def set_enabled(self, enabled = True):
         """
-        Set `TimerClock` *enabled* state.
+        Set :py:class:`ctrl.block.clock.TimerClock` :py:attr:`enabled` state.
 
-        :param enabled: True or False (default True)
+        :param bool enabled: True or False (default True)
         """
 
         # quick return
@@ -300,7 +302,7 @@ class TimerClock(Clock):
 
     def read(self):
         """
-        Read from `TimerClock`.
+        Read from :py:class:`ctrl.block.clock.TimerClock`.
 
         :return: tuple with elapsed time since initialization or last reset
         """

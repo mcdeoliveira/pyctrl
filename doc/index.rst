@@ -6,14 +6,13 @@
 ============================================   
 ctrl: A Python Suite for Systems and Control
 ============================================
-
 .. toctree::
    :maxdepth: 4
    :caption: Contents
 
    user_guide
    reference_guide
-   
+
 Indices and tables
 ==================
 

@@ -1,10 +1,3 @@
-==============
-Package `ctrl`
-==============
-
-This package provides the *ctrl.Block* objects to be used as sources,
-filters and sinks in controllers.
-
 Module `ctrl`
 =============
 

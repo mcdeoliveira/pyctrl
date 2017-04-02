@@ -106,11 +106,19 @@ def test3():
 
     blk.write(2, 2, 3)
     answer = blk.read()
-    assert answer == (4, 6)
+    assert answer == (4,)
 
-    with pytest.raises(AssertionError):
-        blk.write(1)
-        answer = blk.read()
+    with pytest.raises(block.BlockException):
+        nonlinear.ControlledGain(m = 1.5)
+        
+    with pytest.raises(block.BlockException):
+        blk.set(m = 1.5)
+        
+    blk.set(m = 2)
+    
+    blk.write(2, -1, 2, 3)
+    answer = blk.read()
+    assert answer == (4,-3)
 
 def test5():
 
@@ -127,14 +135,6 @@ def test5():
     blk.write(.5, 2, 4)
     answer = blk.read()
     assert answer == (1., 2.)
-    
-    with pytest.raises(AssertionError):
-        blk.write(1)
-        answer = blk.read()
-
-    with pytest.raises(AssertionError):
-        blk.write(1, 2)
-        answer = blk.read()
 
     blk = nonlinear.ControlledCombination(gain = 100)
 
@@ -145,7 +145,19 @@ def test5():
     blk.write(100, 2, 4)
     answer = blk.read()
     assert answer == (0, 4)
-          
+
+    with pytest.raises(block.BlockException):
+        nonlinear.ControlledCombination(gain = 100, m = 1.2)
+
+    with pytest.raises(block.BlockException):
+        nonlinear.ControlledCombination(gain = 'sda', m = 1)
+    
+    with pytest.raises(block.BlockException):
+        blk.set(gain = 100, m = 1.2)
+
+    with pytest.raises(block.BlockException):
+        blk.set(gain = 'sda', m = 1)
+        
 if __name__ == "__main__":
 
     test1()

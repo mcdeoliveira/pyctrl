@@ -2,10 +2,6 @@
 Reference Guide
 ###############
    
-========
-Preamble
-========
-
 .. include:: ctrl.inc
 
 .. include:: ctrl.block.inc

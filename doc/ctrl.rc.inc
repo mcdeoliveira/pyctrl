@@ -1,17 +1,13 @@
-=================
-Package `ctrl.rc`
-=================
+Module `ctrl.rc`
+================
 
-This package supports the hardware on the `Robotics Cape
+This module supports the hardware on the `Robotics Cape
 <http://www.strawsondesign.com/>`_ running on a `Beaglebone Black
 <https://beagleboard.org/black>`_ or a `Beaglebone Blue
 <https://beagleboard.org/blue>`_. It also provides a controller suited
 for the configuration of the `Educational MIP (Mobile Inverted
 Pendulum) kit <https://github.com/StrawsonDesign/EduMiP>`_. For
 installation instructions see Section :ref:`Installation`.
-
-Module `ctrl.rc`
-================
 
 .. py:class:: ctrl.rc.Controller(**kwargs)
 

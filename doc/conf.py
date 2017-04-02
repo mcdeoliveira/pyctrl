@@ -34,7 +34,11 @@
 extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.mathjax',
               'sphinx.ext.autosectionlabel',
-              'sphinxcontrib.tikz']
+              'sphinxcontrib.tikz',
+              'sphinx.ext.autosummary']
+
+#autodoc_default_flags = ['members']
+#autosummary_gerenerate = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

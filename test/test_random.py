@@ -6,22 +6,22 @@ import ctrl.block.random as blkrnd
 
 def test_random_uniform():
 
-    blk = blkrnd.RandomUniform()
+    blk = blkrnd.Uniform()
     (x,) = blk.read()
     assert x >= 0 and x <= 1
-    assert blk.a == 0 and blk.b == 1
+    assert blk.low == 0 and blk.high == 1
 
-    blk = blkrnd.RandomUniform(a = -1, b = 1)
+    blk = blkrnd.Uniform(low = -1, high = 1)
     (x,) = blk.read()
     assert x >= -1 and x <= 1
-    assert blk.a == -1 and blk.b == 1
+    assert blk.low == -1 and blk.high == 1
 
-    blk = blkrnd.RandomUniform(a = -1, b = 1,seed = 5)
+    blk = blkrnd.Uniform(low = -1, high = 1,seed = 5)
     (x,) = blk.read()
     assert x >= -1 and x <= 1
-    assert blk.a == -1 and blk.b == 1
+    assert blk.low == -1 and blk.high == 1
 
-    blk = blkrnd.RandomUniform(a = -1, b = 1,seed = 5)
+    blk = blkrnd.Uniform(low = -1, high = 1,seed = 5)
     (y,) = blk.read()
     assert x == y
 
@@ -32,39 +32,39 @@ def test_random_uniform():
     (y,) = blk.read()
     assert x == y
     
-    blk = blkrnd.RandomUniform(a = -1, b = 1)
+    blk = blkrnd.Uniform(low = -1, high = 1)
     blk.set(seed = 5)
     (y,) = blk.read()
     assert x == y
 
-    blk.set(a = -3)
-    assert blk.a == -3
+    blk.set(low = -3)
+    assert blk.low == -3
 
-    blk.set(b = 3)
-    assert blk.b == 3
+    blk.set(high = 3)
+    assert blk.high == 3
 
 def test_random_gaussian():
 
-    blk = blkrnd.RandomGaussian()
+    blk = blkrnd.Gaussian()
     (x,) = blk.read()
     assert isinstance(x, float)
     assert blk.mu == 0 and blk.sigma == 1
 
-    blk = blkrnd.RandomGaussian(mu = -1, sigma = 1)
+    blk = blkrnd.Gaussian(mu = -1, sigma = 1)
     (x,) = blk.read()
     assert isinstance(x, float)
     assert blk.mu == -1 and blk.sigma == 1
 
-    blk = blkrnd.RandomGaussian(mu = -1, sigma = 1, seed = 5)
+    blk = blkrnd.Gaussian(mu = -1, sigma = 1, seed = 5)
     (x,) = blk.read()
     assert isinstance(x, float)
     assert blk.mu == -1 and blk.sigma == 1
 
-    blk = blkrnd.RandomGaussian(mu = -1, sigma = 1,seed = 5)
+    blk = blkrnd.Gaussian(mu = -1, sigma = 1,seed = 5)
     (y,) = blk.read()
     assert x == y
     
-    blk = blkrnd.RandomGaussian(mu = -1, sigma = 1)
+    blk = blkrnd.Gaussian(mu = -1, sigma = 1)
     blk.set(seed = 5)
     (y,) = blk.read()
     assert x == y
