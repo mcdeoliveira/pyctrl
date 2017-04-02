@@ -25,11 +25,15 @@ class Controller(ctrl.Controller):
         # call super
         super().__reset()
 
+        # add signal clock
+        self.add_signal('clock')
+        
         # add device clock
         self.add_device('clock',
                         'ctrl.block.clock', 'TimerClock',
                         type = 'source', 
                         outputs = ['clock'],
+                        verbose = False,
                         enable = True,
                         period = self.period)
         

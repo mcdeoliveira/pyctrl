@@ -9,9 +9,9 @@ def main():
     from ctrl.block.clock import TimerClock
 
     # initialize controller
-    hello = Controller(host = 'localhost', port = 9999)
-    hello.reset()
-    hello.set_source('clock',period = 1)
+    hello = Controller(host = 'localhost', port = 9999,
+                       module = 'ctrl.timer',
+                       period = 1)
 
     # add a Printer as a sink
     hello.add_sink('message',
@@ -46,7 +46,7 @@ Hello World!
 If you have not started a ctrl_server yet open a new terminal
 and start a server by typing:
 
-    ctrl_start_server -m ctrl.timer
+    ctrl_start_server
 """)
     input('and hit <ENTER>')
 

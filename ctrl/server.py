@@ -59,7 +59,8 @@ def reset(module = 'ctrl',
     
     # Create new controller
     if module or ctrl_class:
-        warnings.warn("Will install new instance of '{}.{}' as controller".format(module, ctrl_class))
+        if verbose_level > 0:
+            warnings.warn("Installing new instance of '{}.{}' as controller".format(module, ctrl_class))
         try:
 
             obj_class = getattr(importlib.import_module(module),
@@ -80,7 +81,7 @@ def reset(module = 'ctrl',
     # reset controller
     return controller.reset()
 
-def set_controller(_controller = ctrl.Controller()):
+def set_controller(_controller = ctrl.Controller(noclock = True)):
 
     # initialize controller
     global controller, commands

@@ -798,5 +798,10 @@ For another example consider the block
 .. literalinclude:: ../ctrl/block/system.py 
    :pyobject: Sum.write
 
-
+The only new detail here is the use of :samp:`super(Gain,
+self).write(*values)`. This is because
+:py:class:`ctrl.block.system.Sum` inherits from
+:py:class:`ctrl.block.system.Gain`, and you would like to call
+:py:meth:`ctrl.block.BufferBlock.write` instead of
+:py:class:`ctrl.block.system.Gain.write`.
 

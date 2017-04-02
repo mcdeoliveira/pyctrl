@@ -88,11 +88,15 @@ class Controller:
 
         if not self.noclock:
 
+            # add signal clock
+            self.add_signal('clock')
+
             # add device clock
             self.add_device('clock',
                             'ctrl.block.clock', 'Clock',
                             type = 'source', 
                             outputs = ['clock'],
+                            verbose = False,
                             enable = True)
 
             # reset clock
@@ -708,6 +712,7 @@ class Controller:
         :param bool enable: if the device needs to be enable at `start()` and disabled at `stop()` (default False)
         :param list inputs: a list of input signals (default `[]`)
         :param list outputs: a list of output signals (default `[]`)
+        :param bool verbose: if verbose issue warning (default `False`)
         :param kwargs kwargs: parameters to be passed to the device class initialization
         """
 
@@ -719,8 +724,11 @@ class Controller:
         inputs = kwargs.pop('inputs', [])
         outputs = kwargs.pop('outputs', [])
 
+        verbose = kwargs.pop('verbose', True)
+        
         # Install device
-        warnings.warn("> Installing device '{}'".format(label))
+        if verbose:
+            warnings.warn("> Installing device '{}'".format(label))
 
         try:
 

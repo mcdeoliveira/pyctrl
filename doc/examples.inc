@@ -2,6 +2,9 @@
 Examples
 ========
 
+The following examples can be found in the directory
+:py:data:`examples`.
+
 --------------
 hello_world.py
 --------------
@@ -35,6 +38,13 @@ hello_filter_2.py
 -----------------
 
 .. literalinclude:: ../examples/hello_filter_2.py
+   :pyobject: main
+
+-----------------
+hello_client.py
+-----------------
+
+.. literalinclude:: ../examples/hello_client.py
    :pyobject: main
 
 --------------------

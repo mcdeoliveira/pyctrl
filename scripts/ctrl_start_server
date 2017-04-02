@@ -44,7 +44,7 @@ def main():
                         type=int, default=1,
                         help='level of verbosity')
     parser.add_argument('-t', '--period',
-                        type=float, default=0.01,
+                        type=float, default=None,
                         help='sampling period in seconds')
                                      
     try:
@@ -59,9 +59,6 @@ def main():
         parser.print_help()
         sys.exit(0)
         
-    # Sampling period
-    Ts = args.period
-
     # HOST AND PORT
     HOST = args.host
     PORT = args.port
@@ -83,26 +80,16 @@ def main():
         # brief
         warnings.formatwarning = brief_warning
 
-    # Create controller
-    obj_class = getattr(importlib.import_module(module),
-                        ctrl_class)
-    controller = obj_class()
+    # install controller
+    if args.period:
+        ctrl.server.reset(module = module,
+                          ctrl_class = ctrl_class,
+                          period = args.period)
+    else:
+        ctrl.server.reset(module = module,
+                          ctrl_class = ctrl_class)
 
-    # Make sure it is an instance of ctrl.Controller
-    if not isinstance(controller, ctrl.Controller):
-        raise Exception("Object '{}.{}' is not and instance of ctrl.Controller".format(module, ctrl_class))
-        sys.exit(1)
-    
-    # set period
-    try:
-        controller.get_source('clock','period')
-        controller.set_source('clock',period = Ts)
-        Ts = controller.get_source('clock','period')
-    except:
-        warnings.warn('Could not set period of the controller clock.')
-        Ts = None
-    
-    ctrl.server.set_controller(controller)
+    # set verbose level
     ctrl.server.verbose(verbose_level)
 
     # Start server
@@ -113,7 +100,6 @@ def main():
                                     ctrl.server.Handler)
     
     # Initiate server
-
     print('ctrl_start_server (version {})'.format(ctrl.server.version()))
     
     if verbose_level > 0:
@@ -122,12 +108,12 @@ def main():
 
         print('> Options:')
         print('   Hostname[port]: {}[{}]'.format(HOST, PORT))
-        if Ts:
-            print('  Sampling period: {}s'.format(Ts))
+        if args.period:
+            print('  Sampling period: {}s'.format(args.period))
         else:
             print('  Sampling period: ---')
         print('    Verbose level: {}\n'.format(verbose_level))
-        print(controller.info('all'))
+        print(ctrl.server.controller.info('all'))
         print('> Starting server...',end = '')
         
     # run server in a separate thread
@@ -136,7 +122,9 @@ def main():
 
     try:
 
-        print(' done')
+        if verbose_level > 0:
+            print(' done')
+            
         print("> Hit Ctrl-C or use 'ctrl_stop_server' to exit the server")
         
         # Wait forever
@@ -149,7 +137,7 @@ def main():
     finally:
 
         # shutdown server
-        controller.stop()
+        ctrl.server.controller.stop()
         server.shutdown()
         thread.join()
             
