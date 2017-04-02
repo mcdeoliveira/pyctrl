@@ -180,21 +180,21 @@ def run(controller):
 
     # test source
 
-    controller.add_source('_rand_', blkrnd.RandomUniform(), ['clock'])
+    controller.add_source('_rand_', blkrnd.Uniform(), ['clock'])
     assert '_rand_' in controller.list_sources()
 
-    controller.add_source('_rand_', blkrnd.RandomUniform(), ['_test_'])
+    controller.add_source('_rand_', blkrnd.Uniform(), ['_test_'])
     assert '_rand_' in controller.list_sources()
 
-    assert controller.get_source('_rand_') == {'a': 0, 'b': 1, 'enabled': True, 'seed': None}
+    assert controller.get_source('_rand_') == {'demux': False, 'mux': False, 'low': 0, 'high': 1, 'enabled': True, 'seed': None, 'm': 1}
 
-    assert controller.get_source('_rand_', 'a', 'b') == {'a': 0, 'b': 1}
+    assert controller.get_source('_rand_', 'low', 'high') == {'low': 0, 'high': 1}
     
-    assert controller.get_source('_rand_','a') == 0
+    assert controller.get_source('_rand_','low') == 0
 
-    controller.set_source('_rand_',a = 1)
+    controller.set_source('_rand_', low = 1)
 
-    assert controller.get_source('_rand_','a') == 1
+    assert controller.get_source('_rand_','low') == 1
     
     # TODO: test for changed signals
 
@@ -214,7 +214,7 @@ def run(controller):
 
     controller.add_signal('_output_')
 
-    controller.add_source('_rand_', blkrnd.RandomUniform(), ['_test_'])
+    controller.add_source('_rand_', blkrnd.Uniform(), ['_test_'])
     assert '_rand_' in controller.list_sources()
 
     controller.add_filter('_gain_', block.ShortCircuit(), 
