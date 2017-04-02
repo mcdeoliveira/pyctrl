@@ -1,5 +1,5 @@
 """
-This module provides blocks for linear dynamic systems.
+This module provides blocks for dynamic systems.
 """
 
 import numpy

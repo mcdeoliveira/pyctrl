@@ -92,7 +92,7 @@ class DeadZone(block.BufferBlock):
 
     .. math::
         
-        f_{XY}^{-1} &= f_{YX}^{}
+        f_{XY}^{-1} = f_{YX}^{}
 
     When :math:`X = 0` then :math:`c` is `NaN`.
     """

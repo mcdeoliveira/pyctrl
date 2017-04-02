@@ -4,13 +4,21 @@
 Package `ctrl.block`
 ====================
 
-This package provides the *ctrl.Block* objects to be used as sources,
-filters and sinks in controllers.
+This package provides the :py:class:`ctrl.block.Block` objects to be
+used as *sources*, *filters*, *sinks*, and *timers* in controllers.
 
 Module `ctrl.block`
 ===================
       
 .. automodule:: ctrl.block
+   :members:
+   :show-inheritance:
+   :inherited-members:
+
+Module `ctrl.block.clock`
+=========================
+      
+.. automodule:: ctrl.block.clock
    :members:
    :show-inheritance:
    :inherited-members:
@@ -35,14 +43,6 @@ Module `ctrl.block.logic`
 =========================
       
 .. automodule:: ctrl.block.logic
-   :members:
-   :show-inheritance:
-   :inherited-members:
-
-Module `ctrl.block.clock`
-=========================
-      
-.. automodule:: ctrl.block.clock
    :members:
    :show-inheritance:
    :inherited-members:

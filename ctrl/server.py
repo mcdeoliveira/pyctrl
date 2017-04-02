@@ -12,21 +12,36 @@ controller = ctrl.Controller()
 commands = {}
 
 def verbose(value = 1):
+    """
+    Set verbose level
+
+    :param value: verbose level (default = 1)
+    """
     global verbose_level
     verbose_level = value
 
 def version():
+    """
+    Return server version
+
+    :return: server version
+    :retype: str
+    """
     return '1.0'
 
-def help(value):
+def help(key):
+    """
+    Return help on available commands
 
+    :param key: command key
+    """
     global commands
     help_str = ''
 
-    if value:
-        function = commands.get(value, ('', '', None, ''))[2]
+    if key:
+        function = commands.get(key, ('', '', None, ''))[2]
         if not function:
-            help_str += "Error: '{}' is not a command\n".format(value)
+            help_str += "Error: '{}' is not a command\n".format(key)
         if function.__doc__:
             return function.__doc__
         else:
@@ -55,6 +70,14 @@ def log(message, func):
 def reset(module = 'ctrl',
           ctrl_class = 'Controller',
           **kwargs):
+    """
+    Reset controller
+
+    :param str module: name of the controller module (default = 'ctrl')
+    :param str ctrl_class: name of the controller class (default = 'Controller')
+    :param kwargs kwargs: other key-value pairs of attributes
+    """
+    
     global controller
     
     # Create new controller
@@ -82,6 +105,11 @@ def reset(module = 'ctrl',
     return controller.reset()
 
 def set_controller(_controller = ctrl.Controller(noclock = True)):
+    """
+    Set controller commands
+    
+    :param _controller: an instance of :py:class:`ctrl.Controller`
+    """
 
     # initialize controller
     global controller, commands
@@ -193,6 +221,10 @@ set_controller(controller)
 exiting = False
 
 class Handler(socketserver.StreamRequestHandler):
+    """
+    Handles socket controller requests
+
+    """
 
     #def __init__(self, request, client_address, server):
         #super().__init__(request, client_address, server)
