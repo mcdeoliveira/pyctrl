@@ -6,7 +6,12 @@ import ctrl.block as block
 import ctrl.system as system
 import ctrl.system.tf as tf
 import ctrl.system.ss as ss
-import ctrl.system.ode as ode
+
+test_ode = True
+try:
+    import ctrl.system.ode as ode
+except:
+    test_ode = False
 
 def test1():
 
@@ -524,7 +529,7 @@ def test3():
     assert np.all(sys.state == np.array([10,-15]))
     assert isinstance(y2, np.ndarray) and np.all(y2 == np.array([-15,8]))
 
-def test4(oode = ode.ODE):
+def dotest4(oode):
 
     # \dot{x} = 1
 
@@ -605,12 +610,21 @@ def test4(oode = ode.ODE):
     yyk = uk * (1 - math.exp(-a*tk)) + x0 * math.exp(-a*tk)
     assert np.abs(yk - np.array([yyk])) < 1e-4
 
+def test4():
+
+    if test_ode:
+        dotest4(ode.ODE)
+        
 def test5():
 
-    test4(ode.ODEINT)
-
+    if test_ode:
+        dotest4(ode.ODEINT)
+    
 def test6():
 
+    if not test_ode:
+        return
+    
     a = np.array([[-1, 0],[0, -2]])
     b = np.array([[1],[1]])
 

@@ -5,7 +5,12 @@ import ctrl.block as block
 import ctrl.block.system as system
 import ctrl.system.tf as tf
 import ctrl.system.ss as ss
-import ctrl.system.ode as ode
+
+test_ode = True
+try:
+    import ctrl.system.ode as ode
+except:
+    test_ode = False
 
 def test_System():
 
@@ -670,59 +675,61 @@ def test_TimeVaryingSystem():
 
     with pytest.raises(block.BlockException):
         blk = system.TimeVaryingSystem(model = 1)
+
+    if test_ode:
         
-    a = np.array([[-1, 1],[0, -2]])
-    b = np.array([[1],[1]])
+        a = np.array([[-1, 1],[0, -2]])
+        b = np.array([[1],[1]])
 
-    def f(t, x, u, a, b):
-        return a.dot(x) + b.dot(u)
-    
-    tk = 0
-    xk = np.array([1,-1])
-    sys = ode.ODE(shape = (1,2,2), f = f, t0 = tk, x0 = xk, pars = (a,b))
+        def f(t, x, u, a, b):
+            return a.dot(x) + b.dot(u)
 
-    with pytest.raises(block.BlockException):
-        blk = system.TimeVaryingSystem(model = sys, mux = False)
-        
-    uk = [0]
-    tk += 1
-    yk1 = sys.update(tk, uk)
-    #print(yk1)
+        tk = 0
+        xk = np.array([1,-1])
+        sys = ode.ODE(shape = (1,2,2), f = f, t0 = tk, x0 = xk, pars = (a,b))
 
-    uk = [0]
-    tk += 10
-    yk2 = sys.update(tk, uk)
-    #print(yk2)
+        with pytest.raises(block.BlockException):
+            blk = system.TimeVaryingSystem(model = sys, mux = False)
 
-    uk = [1]
-    tk += 3
-    yk3 = sys.update(tk, uk)
-    #print(yk3)
+        uk = [0]
+        tk += 1
+        yk1 = sys.update(tk, uk)
+        #print(yk1)
 
-    # Repeat with TimeVaryingSystem block
+        uk = [0]
+        tk += 10
+        yk2 = sys.update(tk, uk)
+        #print(yk2)
 
-    tk = 0
-    blk = system.TimeVaryingSystem(model = ode.ODE(shape = (1,2,2), f = f, t0 = tk, x0 = xk, pars = (a,b)))
+        uk = [1]
+        tk += 3
+        yk3 = sys.update(tk, uk)
+        #print(yk3)
 
-    # u1 = 1   =>  y1 = 1
+        # Repeat with TimeVaryingSystem block
 
-    uk = [0]
-    tk += 1
-    blk.write(tk, uk)
-    yk = blk.read()
-    assert np.all(np.abs(yk - yk1) < 1e-4)
+        tk = 0
+        blk = system.TimeVaryingSystem(model = ode.ODE(shape = (1,2,2), f = f, t0 = tk, x0 = xk, pars = (a,b)))
 
-    uk = 0
-    tk += 10
-    blk.write(tk, uk)
-    yk = blk.read()
-    assert np.all(np.abs(yk - yk2) < 1e-4)
+        # u1 = 1   =>  y1 = 1
 
-    uk = [1]
-    tk += 3
-    blk.write(tk, uk)
-    yk = blk.read()
-    assert np.all(np.abs(yk - yk3) < 1e-4)
+        uk = [0]
+        tk += 1
+        blk.write(tk, uk)
+        yk = blk.read()
+        assert np.all(np.abs(yk - yk1) < 1e-4)
+
+        uk = 0
+        tk += 10
+        blk.write(tk, uk)
+        yk = blk.read()
+        assert np.all(np.abs(yk - yk2) < 1e-4)
+
+        uk = [1]
+        tk += 3
+        blk.write(tk, uk)
+        yk = blk.read()
+        assert np.all(np.abs(yk - yk3) < 1e-4)
 
 if __name__ == "__main__":
 

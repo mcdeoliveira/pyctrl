@@ -7,11 +7,19 @@ import numpy.linalg as la
 
 from ctrl.block.clock import Clock, TimerClock
 from ctrl.block import Map, Constant, Logger
-from ctrl.system.ode import ODE, ODEINT
 from ctrl.block.system import TimeVaryingSystem
 
+test_ode = True
+try:
+    from ctrl.system.ode import ODE, ODEINT
+except:
+    test_ode = False
+    
 def test1():
 
+    if not test_ode:
+        return
+    
     from ctrl import Controller
     controller = Controller()
 
@@ -105,6 +113,9 @@ def test1():
 
 def test2():
 
+    if not test_ode:
+        return
+    
     m1 = 30/1000
     l1 = 7.6/100
     r1 = (5-(10-7.6)/2)/100
