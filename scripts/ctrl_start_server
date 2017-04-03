@@ -92,6 +92,12 @@ def main():
     # set verbose level
     ctrl.server.verbose(verbose_level)
 
+    # get actual period
+    try:
+        args.period = ctrl.server.controller.get_source('clock','period')
+    except:
+        pass
+
     # Start server
 
     # Create the server, binding to HOST and PORT
