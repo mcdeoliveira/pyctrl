@@ -31,7 +31,7 @@ class Controller(ctrl.Controller):
         # call super
         super().__reset()
       
-        # print("ctrl.bbb.reset: PERIOD = {}".format(self.period))
+        print("ctrl.rc.__reset: PERIOD = {}".format(self.period))
         
         # add device clock
         self.add_device('clock',
