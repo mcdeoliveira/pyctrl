@@ -115,7 +115,7 @@ class MPU9250(clock.Clock):
                           'accel_dlpf', 'gyro_dlpf',
                           'enable_magnetometer', 'orientation',
                           'compass_time_constant',
-                          'dmp_interrupt_priority','dmp_sample_rate',
+                          'dmp_interrupt_priority','period',
                           'show_warnings','enable_dmp',
                           'enable_fusion')).intersection(kwargs.keys())
        
