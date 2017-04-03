@@ -19,6 +19,8 @@ class MPU9250(clock.Clock):
 
     def __init__(self, **kwargs):
 
+        print('MPU9250.__init__')
+        
         # Makes sure clock is a singleton
         self.__dict__ = self._shared_state
 
@@ -28,6 +30,8 @@ class MPU9250(clock.Clock):
             self.set(**kwargs)
             return
 
+        print('MPU9250.__init__.defaults')
+        
         # get defaults
         defaults = mpu9250.get()
 
@@ -103,6 +107,8 @@ class MPU9250(clock.Clock):
                                                        '_shared_state'))
     
     def set(self, exclude = (), **kwargs):
+        
+        print('MPU9250.set()')
         
         # will need to initialize
         initialize = set(('accel_fsr', 'gyro_fsr',
