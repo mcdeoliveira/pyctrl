@@ -93,8 +93,8 @@ def reset(**kwargs):
                                 ctrl_class)
             _controller = obj_class(**kwargs)
 
-            print('obj_class = {}'.format(obj_class))
-            print('_controller = {}'.format(_controller))
+            # print('obj_class = {}'.format(obj_class))
+            # print('_controller = {}'.format(_controller))
             
             # Make sure it is an instance of ctrl.Controller
             if not isinstance(_controller, ctrl.Controller):

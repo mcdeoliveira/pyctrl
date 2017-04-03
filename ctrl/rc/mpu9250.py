@@ -19,7 +19,7 @@ class MPU9250(clock.Clock):
 
     def __init__(self, **kwargs):
 
-        print('MPU9250.__init__')
+        #print('MPU9250.__init__')
         
         # Makes sure clock is a singleton
         self.__dict__ = self._shared_state
@@ -30,7 +30,7 @@ class MPU9250(clock.Clock):
             self.set(**kwargs)
             return
 
-        print('MPU9250.__init__.defaults')
+        #print('MPU9250.__init__.defaults')
         
         # get defaults
         defaults = mpu9250.get()
@@ -81,23 +81,9 @@ class MPU9250(clock.Clock):
         # call super
         super().__init__(**kwargs)
 
-        print('WILL CALL __init__.INITIALIZE, PERIOD = {}'.format(self.period))
-
+        # call set
+        self.set(initialize = True)
         
-        # initialize mpu9250
-        mpu9250.initialize(accel_fsr = self.accel_fsr,
-                           gyro_fsr = self.gyro_fsr,
-                           accel_dlpf = self.accel_dlpf,
-                           gyro_dlpf = self.gyro_dlpf,
-                           orientation = self.orientation,
-                           compass_time_constant = self.compass_time_constant,
-                           dmp_interrupt_priority = self.dmp_interrupt_priority,
-                           dmp_sample_rate = int(1/self.period),
-                           enable_magnetometer = self.enable_magnetometer,
-                           enable_dmp = self.enable_dmp,
-                           show_warnings = self.show_warnings,
-                           enable_fusion = self.enable_fusion)
-                                 
         self.data = {}
                                           
     def get(self, *keys, exclude = ()):
@@ -108,25 +94,29 @@ class MPU9250(clock.Clock):
     
     def set(self, exclude = (), **kwargs):
         
-        print('MPU9250.set()')
-        
-        # will need to initialize
-        initialize = set(('accel_fsr', 'gyro_fsr',
-                          'accel_dlpf', 'gyro_dlpf',
-                          'enable_magnetometer', 'orientation',
-                          'compass_time_constant',
-                          'dmp_interrupt_priority','period',
-                          'show_warnings','enable_dmp',
-                          'enable_fusion')).intersection(kwargs.keys())
+        #print('MPU9250.set()')
+
+        # initialize?
+        initialize = kwargs.pop('initialize', False)
+
+        if not initialize:
+            
+            # look for change
+            initialize = set(('accel_fsr', 'gyro_fsr',
+                              'accel_dlpf', 'gyro_dlpf',
+                              'enable_magnetometer', 'orientation',
+                              'compass_time_constant',
+                              'dmp_interrupt_priority','period',
+                              'show_warnings','enable_dmp',
+                              'enable_fusion')).intersection(kwargs.keys())
        
         # call super
         super().set(exclude + ('data',
                                '_shared_state'), **kwargs)
 
+        # do initialize?
         if initialize:
 
-            print('WILL CALL set().INITIALIZE, PERIOD = {}'.format(self.period))
-            
             # initialize mpu9250
             mpu9250.initialize(accel_fsr = self.accel_fsr,
                                gyro_fsr = self.gyro_fsr,
