@@ -101,13 +101,13 @@ class MPU9250(clock.Clock):
     def set(self, exclude = (), **kwargs):
         
         # will need to initialize
-        initialize = set('accel_fsr', 'gyro_fsr',
-                         'accel_dlpf', 'gyro_dlpf',
-                         'enable_magnetometer', 'orientation',
-                         'compass_time_constant',
-                         'dmp_interrupt_priority','dmp_sample_rate',
-                         'show_warnings','enable_dmp',
-                         'enable_fusion').intersection(kwargs.keys())
+        initialize = set(('accel_fsr', 'gyro_fsr',
+                          'accel_dlpf', 'gyro_dlpf',
+                          'enable_magnetometer', 'orientation',
+                          'compass_time_constant',
+                          'dmp_interrupt_priority','dmp_sample_rate',
+                          'show_warnings','enable_dmp',
+                          'enable_fusion')).intersection(kwargs.keys())
        
         # call super
         super().set(exclude + ('data',
