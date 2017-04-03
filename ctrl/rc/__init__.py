@@ -45,4 +45,4 @@ class Controller(ctrl.Controller):
         # self.set_source('clock', period = self.period)
         
         # reset clock
-        self.set_source('clock', reset=True)
+        # self.set_source('clock', reset=True)
