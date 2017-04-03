@@ -104,9 +104,11 @@ def reset(module = 'ctrl',
         except Exception as e:
 
             raise Exception("Error resetting controller: {}".format(e))
-            
-    # reset controller
-    return controller.reset()
+
+    else:
+        
+        # reset controller
+        return controller.reset()
 
 def set_controller(_controller = ctrl.Controller(noclock = True)):
     """
