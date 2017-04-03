@@ -77,6 +77,9 @@ class MPU9250(clock.Clock):
         # call super
         super().__init__(**kwargs)
 
+        print('WILL CALL __init__.INITIALIZE, PERIOD = {}'.format(self.period))
+
+        
         # initialize mpu9250
         mpu9250.initialize(accel_fsr = self.accel_fsr,
                            gyro_fsr = self.gyro_fsr,
@@ -115,6 +118,9 @@ class MPU9250(clock.Clock):
                                '_shared_state'), **kwargs)
 
         if initialize:
+
+            print('WILL CALL set().INITIALIZE, PERIOD = {}'.format(self.period))
+            
             # initialize mpu9250
             mpu9250.initialize(accel_fsr = self.accel_fsr,
                                gyro_fsr = self.gyro_fsr,

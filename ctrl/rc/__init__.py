@@ -18,7 +18,7 @@ class Controller(ctrl.Controller):
         self.period = kwargs.pop('period', 0.01)
 
         # Initialize controller
-        super().__init__(**kwargs)
+        super().__init__(noclock = True, **kwargs)
 
         # set state as RUNNING
         rcpy.set_state(rcpy.RUNNING)
@@ -33,9 +33,6 @@ class Controller(ctrl.Controller):
       
         # print("ctrl.bbb.reset: PERIOD = {}".format(self.period))
         
-        # remove current clock
-        self.remove_source('clock')
-        
         # add device clock
         self.add_device('clock',
                         'ctrl.rc.mpu9250', 'MPU9250',
@@ -45,7 +42,7 @@ class Controller(ctrl.Controller):
 
         # set clock period: it will be ignored at the construction time
         # because MPU9250 is a singleton
-        self.set_source('clock', period = self.period)
+        # self.set_source('clock', period = self.period)
         
         # reset clock
         self.set_source('clock', reset=True)
