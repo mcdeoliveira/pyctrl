@@ -1,6 +1,7 @@
 import warnings
 import time
 import math
+import copy
 
 from time import perf_counter
 
@@ -96,26 +97,36 @@ class MPU9250(clock.Clock):
         # call super excluding time and last
         return super().get(*keys, exclude = exclude + ('data',
                                                        '_shared_state'))
-                                          
+    
     def set(self, exclude = (), **kwargs):
-
+        
+        # will need to initialize
+        initialize = set('accel_fsr', 'gyro_fsr',
+                         'accel_dlpf', 'gyro_dlpf',
+                         'enable_magnetometer', 'orientation',
+                         'compass_time_constant',
+                         'dmp_interrupt_priority','dmp_sample_rate',
+                         'show_warnings','enable_dmp',
+                         'enable_fusion').intersection(kwargs.keys()):
+       
         # call super
         super().set(exclude + ('data',
                                '_shared_state'), **kwargs)
 
-        # initialize mpu9250
-        mpu9250.initialize(accel_fsr = self.accel_fsr,
-                           gyro_fsr = self.gyro_fsr,
-                           accel_dlpf = self.accel_dlpf,
-                           gyro_dlpf = self.gyro_dlpf,
-                           enable_magnetometer = self.enable_magnetometer,
-                           orientation = self.orientation,
-                           compass_time_constant = self.compass_time_constant,
-                           dmp_interrupt_priority = self.dmp_interrupt_priority,
-                           dmp_sample_rate = int(1/self.period),
-                           show_warnings = self.show_warnings,
-                           enable_dmp = self.enable_dmp,
-                           enable_fusion = self.enable_fusion)
+        if initialize:
+            # initialize mpu9250
+            mpu9250.initialize(accel_fsr = self.accel_fsr,
+                               gyro_fsr = self.gyro_fsr,
+                               accel_dlpf = self.accel_dlpf,
+                               gyro_dlpf = self.gyro_dlpf,
+                               enable_magnetometer = self.enable_magnetometer,
+                               orientation = self.orientation,
+                               compass_time_constant = self.compass_time_constant,
+                               dmp_interrupt_priority = self.dmp_interrupt_priority,
+                               dmp_sample_rate = int(1/self.period),
+                               show_warnings = self.show_warnings,
+                               enable_dmp = self.enable_dmp,
+                               enable_fusion = self.enable_fusion)
     
     def get_data(self):
 
