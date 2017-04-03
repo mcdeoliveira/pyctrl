@@ -43,8 +43,8 @@ try:
 
         clock = mpu9250.MPU9250()
 
-        clock.set(period = 0.005)
-        assert clock.get('period') == 0.005
+        #clock.set(period = 0.005)
+        #assert clock.get('period') == 0.005
         
         clock.set(period = 0.02)
         assert clock.get('period') == 0.02
