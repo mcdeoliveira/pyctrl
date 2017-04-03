@@ -82,25 +82,28 @@ def reset(module = 'ctrl',
     
     # Create new controller
     if module or ctrl_class:
-        if verbose_level > 0:
-            warnings.warn("> Installing new instance of '{}.{}({})' as controller".format(module, ctrl_class, kwargs))
         try:
 
+            if verbose_level > 0:
+                warnings.warn("> Installing new instance of '{}.{}({})' as controller".format(module, ctrl_class, kwargs))
+                
             obj_class = getattr(importlib.import_module(module),
                                 ctrl_class)
             _controller = obj_class(**kwargs)
-        
+
+            print('obj_class = {}'.format(obj_class))
+            
             # Make sure it is an instance of ctrl.Controller
             if not isinstance(_controller, ctrl.Controller):
                 raise Exception("Object '{}.{}' is not and instance of ctrl.Controller".format(module, ctrl_class))
+
+            controller = _controller
+            set_controller(controller)
 
         except Exception as e:
 
             raise Exception("Error resetting controller: {}".format(e))
             
-        controller = _controller
-        set_controller(controller)
-
     # reset controller
     return controller.reset()
 
