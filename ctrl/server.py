@@ -67,9 +67,7 @@ def log(message, func):
     return func_wrapper
 
 # reset controller
-def reset(module = 'ctrl',
-          ctrl_class = 'Controller',
-          **kwargs):
+def reset(**kwargs):
     """
     Reset controller
 
@@ -81,7 +79,11 @@ def reset(module = 'ctrl',
     global controller
     
     # Create new controller
-    if module or ctrl_class:
+    if 'module' in kwargs or 'ctrl_class' in kwargs:
+
+        module = kwargs.pop('module', 'ctrl')
+        ctrl_class = kwargs.pop('ctrl_class', 'Controller')
+        
         try:
 
             if verbose_level > 0:
@@ -128,7 +130,7 @@ def set_controller(_controller = ctrl.Controller(noclock = True)):
 
         'B': ('S', 'S', controller.info,
               'Controller info'),
-        'Z': ('SSK',  '', reset,
+        'Z': ('K',  '', reset,
               'Reset controller'),
 
         'C': ('S', '', controller.add_signal,

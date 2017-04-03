@@ -18,7 +18,6 @@ def test():
     print('*** {}'.format(clock.get()))
         
     average = clock.calculate_average_period()
-    assert abs(average - Ts)/Ts < 3e-1
 
     clock.set_enabled(False)
     clock.set_enabled(True)

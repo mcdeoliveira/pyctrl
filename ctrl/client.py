@@ -155,11 +155,8 @@ class Controller(ctrl.Controller):
     def info(self, options = 'summary'):
         return self.send('B', 'S', options)
 
-    def reset(self, module = 'ctrl', ctrl_class = 'Controller', **kwargs):
-        return self.send('Z',
-                         'S', module,
-                         'S', ctrl_class,
-                         'K', kwargs)
+    def reset(self, **kwargs):
+        return self.send('Z', 'K', kwargs)
 
     # signals
     def add_signal(self, label):

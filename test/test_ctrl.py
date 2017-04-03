@@ -1,7 +1,7 @@
 import pytest
 import time
 
-HOST, PORT = "localhost", 9999
+HOST, PORT = "localhost", 9998
 start_server = True
 #start_server = False
 
@@ -366,13 +366,17 @@ def test_client_server():
 
     import ctrl.client
 
+    
+    
     if start_server:
 
         # initiate server
         print('> Starting server')
 
         import subprocess
-        server = subprocess.Popen(["ctrl_start_server"], 
+        server = subprocess.Popen(["ctrl_start_server",
+                                   "-H{}".format(HOST),
+                                   "-p{}".format(PORT)],
                                   stdout = subprocess.PIPE)
 
         time.sleep(1)
@@ -387,27 +391,27 @@ def test_client_server():
         assert client.info('class') == "<class 'ctrl.Controller'>"
         
         # other tests
-        client.reset('ctrl.timer', 'Controller')
+        client.reset(module = 'ctrl.timer', ctrl_class = 'Controller')
 
         assert client.info('class') == "<class 'ctrl.timer.Controller'>"
 
         with pytest.raises(Exception):
-            client.reset('ctrl.timer', 'wrong')
+            client.reset(module = 'ctrl.timer', ctrl_class = 'wrong')
 
         assert client.info('class') == "<class 'ctrl.timer.Controller'>"
 
-        client.reset()
-        
-        assert client.info('class') == "<class 'ctrl.Controller'>"
-        
-        client.reset('ctrl.timer')
+        client.reset(module = 'ctrl.timer')
 
         assert client.info('class') == "<class 'ctrl.timer.Controller'>"
         
         client.reset()
         
-        assert client.info('class') == "<class 'ctrl.Controller'>"
+        assert client.info('class') == "<class 'ctrl.timer.Controller'>"
 
+        client.reset(ctrl_class = 'Controller')
+
+        assert client.info('class') == "<class 'ctrl.Controller'>"
+        
         client.reset(ctrl_class = 'Controller', module = 'ctrl.timer')
 
         assert client.info('class') == "<class 'ctrl.timer.Controller'>"
