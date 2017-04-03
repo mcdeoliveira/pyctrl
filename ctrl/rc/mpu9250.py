@@ -72,7 +72,7 @@ class MPU9250(clock.Clock):
 
         # enable_dmp 
         self.enable_dmp = kwargs.pop('enable_dmp',
-                                     defaults['enable_dmp'])
+                                     True)
         
         # enable_fusion 
         self.enable_fusion = kwargs.pop('enable_fusion',
