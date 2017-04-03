@@ -107,7 +107,7 @@ class MPU9250(clock.Clock):
                          'compass_time_constant',
                          'dmp_interrupt_priority','dmp_sample_rate',
                          'show_warnings','enable_dmp',
-                         'enable_fusion').intersection(kwargs.keys()):
+                         'enable_fusion').intersection(kwargs.keys())
        
         # call super
         super().set(exclude + ('data',
