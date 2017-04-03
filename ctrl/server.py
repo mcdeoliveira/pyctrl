@@ -83,7 +83,7 @@ def reset(module = 'ctrl',
     # Create new controller
     if module or ctrl_class:
         if verbose_level > 0:
-            warnings.warn("Installing new instance of '{}.{}' as controller".format(module, ctrl_class))
+            warnings.warn("> Installing new instance of '{}.{}({})' as controller".format(module, ctrl_class, kwargs))
         try:
 
             obj_class = getattr(importlib.import_module(module),

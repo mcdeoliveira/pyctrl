@@ -24,7 +24,8 @@ class MPU9250(clock.Clock):
 
         # Do not initialize if already initialized
         if not self.__dict__ == {}:
-            warnings.warn('> Clock is already initialized. Skipping call to __init')
+            warnings.warn('> Clock is already initialized, calling set() instead')
+            self.set(**kwargs)
             return
 
         # get defaults
