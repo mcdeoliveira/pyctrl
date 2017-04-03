@@ -31,6 +31,7 @@ try:
 
         assert avg < Ts*1000
         assert mx < 2*Ts*1000
+        assert avg > 0.8*Ts*1000
 
     def test_clock():
 

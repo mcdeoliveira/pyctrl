@@ -366,8 +366,6 @@ def test_client_server():
 
     import ctrl.client
 
-    
-    
     if start_server:
 
         # initiate server
