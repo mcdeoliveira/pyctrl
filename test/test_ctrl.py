@@ -103,6 +103,11 @@ def run(controller):
     assert '_test1_' not in controller.list_signals()
     assert '_test2_' not in controller.list_signals()
 
+    # test info
+    assert isinstance(controller.info(), str)
+    assert isinstance(controller.info('summary'), str)
+    assert isinstance(controller.info('source','sink'), str)
+    
     # test sink
 
     controller.add_signal('clock')

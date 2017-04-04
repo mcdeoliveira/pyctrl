@@ -152,8 +152,8 @@ class Controller(ctrl.Controller):
     def help(self, value = ''):
         return self.send('A', 'S', value)
 
-    def info(self, options = 'summary'):
-        return self.send('B', 'S', options)
+    def info(self, *options):
+        return self.send('B', 'R', options)
 
     def reset(self, **kwargs):
         return self.send('Z', 'K', kwargs)

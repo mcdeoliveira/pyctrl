@@ -128,7 +128,7 @@ def set_controller(_controller = ctrl.Controller(noclock = True)):
         'A': ('S',  'S', help,
               'Help'),
 
-        'B': ('S', 'S', controller.info,
+        'B': ('R', 'S', controller.info,
               'Controller info'),
         'Z': ('K',  '', reset,
               'Reset controller'),
