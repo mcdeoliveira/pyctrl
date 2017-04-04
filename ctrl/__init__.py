@@ -142,7 +142,7 @@ class Controller:
         self.state = state
     
     # info
-    def info(self, options = 'summary'):
+    def info(self, *vargs):
         """
         Returns a string with information on the Controller.
 
@@ -150,121 +150,128 @@ class Controller:
         :return: string with information on the Controller
         """
 
-        options = options.lower()
+        # default is summary
+        if not vargs:
+            vargs = ('summary',)
+
+        # initialize result
         result = ''
 
-        if options == 'devices':
-
-            result += '> devices\n'
-            k = 1
-            for label, device in self.devices.items():
-                result += '  {}. '.format(k) + \
-                          label + '[' + \
-                          device['type'] + ']\n'
-                k += 1
-            
-        elif options == 'sources':
-
-            result += '> sources\n'
-            for (k, label) in enumerate(self.sources_order):
-                device = self.sources[label]
-                source = device['block']
-                result += '  {}. '.format(k+1) + \
-                          label + '[' + \
-                          type(source).__name__ + ', '
-                if source.is_enabled():
-                    result += 'enabled'
-                else:
-                    result += 'disabled'
-                result += '] >> ' + ', '.join(device['outputs']) + '\n'
-                k += 1
-            
-        elif options == 'filters':
-
-            result += '> filters\n'
-            for (k,label) in enumerate(self.filters_order):
-                device = self.filters[label]
-                filter_ = device['block']
-                result += '  {}. '.format(k+1) + \
-                          ', '.join(device['inputs']) + \
-                          ' >> ' + label + '[' + \
-                          type(filter_).__name__ + ', '
-                if filter_.is_enabled():
-                    result += 'enabled'
-                else:
-                    result += 'disabled'
-                result += '] >> ' + ', '.join(device['outputs']) + '\n'
-
-        elif options == 'sinks':
-
-            result += '> sinks\n'
-            for (k, label) in enumerate(self.sinks_order):
-                device = self.sinks[label]
-                sink = device['block']
-                result += '  {}. '.format(k+1) + \
-                          ', '.join(device['inputs']) + \
-                          ' >> ' + label + '[' + \
-                          type(sink).__name__ + ', '
-                if sink.is_enabled():
-                    result += 'enabled'
-                else:
-                    result += 'disabled'
-                result += ']' + '\n'
-
-        elif options == 'timers':
-
-            result += '> timers\n'
-            for (k,label) in enumerate(self.timers):
-                device = self.timers[label]
-                block_ = device['block']
-                result += '  {}. '.format(k+1)
-                if device['inputs']:
-                    result += ', '.join(device['inputs']) + ' >> '
-                result += label + '[' + \
-                          type(block_).__name__ + ', '
-                result += 'period = {}, '.format(device['period'])
-                if device['repeat']:
-                    result += 'repeat, '
-                if block_.is_enabled():
-                    result += 'enabled'
-                else:
-                    result += 'disabled'
-                result += ']'
-                if device['outputs']:
-                    result += ' >> ' + ', '.join(device['outputs'])
-                result += '\n'
-                
-        elif options == 'signals':
-
-            result += '> signals\n  ' + \
-                      '\n  '.join('{}. {}'.format(k+1,key) 
-                                  for k,key in 
-                                  enumerate(sorted(self.signals.keys()))) + '\n'
-
-        elif options == 'class':
-
-            result += '{}'.format(self.__class__)
-            
-        elif options == 'all':
-            
-            result = ''.join(map(lambda x: self.info(x), 
-                                 ['summary',
-                                  'devices', 'timers', 'signals',
-                                  'sources', 'filters', 'sinks']))
-            
-        elif options == 'summary':
+        # all?
+        if 'all' in vargs:
+            vargs = ('summary',
+                     'devices', 'timers', 'signals',
+                     'sources', 'filters', 'sinks')
         
-            result += '{} with:\n  {} device(s), {} timer(s), {} signal(s),\n  {} source(s), {} filter(s), and {} sink(s)\n' \
-                .format(self.__class__,
-                        len(self.devices),
-                        len(self.timers),
-                        len(self.signals),
-                        len(self.sources), 
-                        len(self.filters),
-                        len(self.sinks))
+        for options in vargs:
+        
+            options = options.lower()
 
-        else:
-            warnings.warn("Unknown option '{}'.".format(options))
+            if options == 'devices':
+
+                result += '> devices\n'
+                k = 1
+                for label, device in self.devices.items():
+                    result += '  {}. '.format(k) + \
+                              label + '[' + \
+                              device['type'] + ']\n'
+                    k += 1
+
+            elif options == 'sources':
+
+                result += '> sources\n'
+                for (k, label) in enumerate(self.sources_order):
+                    device = self.sources[label]
+                    source = device['block']
+                    result += '  {}. '.format(k+1) + \
+                              label + '[' + \
+                              type(source).__name__ + ', '
+                    if source.is_enabled():
+                        result += 'enabled'
+                    else:
+                        result += 'disabled'
+                    result += '] >> ' + ', '.join(device['outputs']) + '\n'
+                    k += 1
+
+            elif options == 'filters':
+
+                result += '> filters\n'
+                for (k,label) in enumerate(self.filters_order):
+                    device = self.filters[label]
+                    filter_ = device['block']
+                    result += '  {}. '.format(k+1) + \
+                              ', '.join(device['inputs']) + \
+                              ' >> ' + label + '[' + \
+                              type(filter_).__name__ + ', '
+                    if filter_.is_enabled():
+                        result += 'enabled'
+                    else:
+                        result += 'disabled'
+                    result += '] >> ' + ', '.join(device['outputs']) + '\n'
+
+            elif options == 'sinks':
+
+                result += '> sinks\n'
+                for (k, label) in enumerate(self.sinks_order):
+                    device = self.sinks[label]
+                    sink = device['block']
+                    result += '  {}. '.format(k+1) + \
+                              ', '.join(device['inputs']) + \
+                              ' >> ' + label + '[' + \
+                              type(sink).__name__ + ', '
+                    if sink.is_enabled():
+                        result += 'enabled'
+                    else:
+                        result += 'disabled'
+                    result += ']' + '\n'
+
+            elif options == 'timers':
+
+                result += '> timers\n'
+                for (k,label) in enumerate(self.timers):
+                    device = self.timers[label]
+                    block_ = device['block']
+                    result += '  {}. '.format(k+1)
+                    if device['inputs']:
+                        result += ', '.join(device['inputs']) + ' >> '
+                    result += label + '[' + \
+                              type(block_).__name__ + ', '
+                    result += 'period = {}, '.format(device['period'])
+                    if device['repeat']:
+                        result += 'repeat, '
+                    if block_.is_enabled():
+                        result += 'enabled'
+                    else:
+                        result += 'disabled'
+                    result += ']'
+                    if device['outputs']:
+                        result += ' >> ' + ', '.join(device['outputs'])
+                    result += '\n'
+
+            elif options == 'signals':
+
+                result += '> signals\n  ' + \
+                          '\n  '.join('{}. {}'.format(k+1,key) 
+                                      for k,key in 
+                                      enumerate(sorted(self.signals.keys()))) + '\n'
+
+            elif options == 'class':
+
+                result += '{}'.format(self.__class__)
+
+            elif options == 'summary':
+
+                result += '{} with:\n  {} device(s), {} timer(s), {} signal(s),\n  {} source(s), {} filter(s), and {} sink(s)\n' \
+                    .format(self.__class__,
+                            len(self.devices),
+                            len(self.timers),
+                            len(self.signals),
+                            len(self.sources), 
+                            len(self.filters),
+                            len(self.sinks))
+
+            else:
+                warnings.warn("Unknown option '{}'.".format(options))
 
         return result
 
