@@ -17,7 +17,7 @@ else:
 
     # handle period
     def interp(x,xp,fp,left,right,period):
-        return numpy.interp(x,xp,fp,left,right)
+        return numpy.interp(numpy.mod(x,period), xp, fp, left, right)
 
 class BlockException(Exception):
     """
