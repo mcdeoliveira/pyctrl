@@ -24,7 +24,7 @@ More details are available in the documentation.
 
 You will need python3 and numpy:
 
-    sudo apt install python3 python3-numpy
+    sudo apt install python3 python3-numpy python3-setuptools
 
 If you want to use it with the Robotics Cape, you will also need to install the [rcpy package](https://github.com/mcdeoliveira/rcpy).
 
