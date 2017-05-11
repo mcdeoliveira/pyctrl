@@ -85,6 +85,8 @@ References
 .. [deO16] M. C. de Oliveira, *Fundamentals of Linear Control: a
            concise approach*, Cambridge University Press, 2016.
 
-.. [Zhuo16] Zhu Zhuo, *MIP*, M.Sc. Thesis, University of California San
+.. [Zhuo16] Zhu Zhuo, *LQG Controller Design of the Mobile Inverted
+	    Pendulum*, M.Sc. Thesis, Department of Mechanical and
+	    Aerospace Engineering, University of California San
 	    Diego, 2016.
 	   
