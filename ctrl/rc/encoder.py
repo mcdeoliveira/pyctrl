@@ -44,7 +44,7 @@ class Encoder(block.BufferBlock):
         #print('> read')
         if self.enabled:
 
-            self.buffer = (encdr.read(self.encoder) / self.ratio, )
+            self.buffer = (encdr.get(self.encoder) / self.ratio, )
         
         return self.buffer
 
@@ -72,9 +72,9 @@ if __name__ == "__main__":
     for k in range(N):
 
         print('\r{:7.3f} | {:7.3f} | {:7.3f} | {:7.3f}'.format(*itertools.chain(e1.read(),
-                                                                       e2.read(),
-                                                                       e3.read(),
-                                                                       e4.read())),
+                                                                                e2.read(),
+                                                                                e3.read(),
+                                                                                e4.read())),
               end='')
 
         time.sleep(1)
