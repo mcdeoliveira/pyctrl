@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     
     name="ctrl",
-    version="0.1a",
+    version="0.2a",
     packages=find_packages(),
     scripts=['scripts/ctrl_start_server',
              'scripts/ctrl_stop_server'],

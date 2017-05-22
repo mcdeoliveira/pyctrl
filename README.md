@@ -1,6 +1,6 @@
 # ctrl: a Python Suite for Systems and Control
 
-**Release 0.1a**
+**Release 0.2a**
 
 This is a Python library for system and control.
 
