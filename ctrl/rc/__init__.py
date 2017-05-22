@@ -24,7 +24,7 @@ class Controller(ctrl.Controller):
         rcpy.run()
 
         # register cleanup function
-        rcpy.add_cleanup(rcpy.exit, ())
+        # rcpy.add_cleanup(rcpy.exit, ())
 
     def __reset(self):
 
