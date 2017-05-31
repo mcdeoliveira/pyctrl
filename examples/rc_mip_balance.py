@@ -60,10 +60,9 @@ def get_arrows(mip, fd):
         elif key == ARROW_DOWN:
             phi_dot_reference = phi_dot_reference - 10/360
             mip.set_signal('phi_dot_reference', - phi_dot_reference)
-            
         elif key == SPACE:
             phi_dot_reference = 0
-            mip.set_signal('phi_dot_reference', phi_dot_reference)
+            mip.set_signal('phi_dot_reference', - phi_dot_reference)
             steer_reference = 0.5
             mip.set_signal('steer_reference', steer_reference)
         elif key == DEL:
@@ -71,7 +70,7 @@ def get_arrows(mip, fd):
             mip.set_signal('steer_reference', steer_reference)
         elif key == END:            
             phi_dot_reference = 0
-            mip.set_signal('phi_dot_reference', phi_dot_reference)
+            mip.set_signal('phi_dot_reference', - phi_dot_reference)
 
 def main():
 
