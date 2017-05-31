@@ -63,7 +63,7 @@ def get_arrows(mip, fd):
             
         elif key == SPACE:
             phi_dot_reference = 0
-            mip.set_signal('phi_dot_reference', - phi_dot_reference)
+            mip.set_signal('phi_dot_reference', phi_dot_reference)
             steer_reference = 0.5
             mip.set_signal('steer_reference', steer_reference)
         elif key == DEL:
@@ -71,7 +71,7 @@ def get_arrows(mip, fd):
             mip.set_signal('steer_reference', steer_reference)
         elif key == END:            
             phi_dot_reference = 0
-            mip.set_signal('phi_dot_reference', - phi_dot_reference)
+            mip.set_signal('phi_dot_reference', phi_dot_reference)
 
 def main():
 
@@ -80,6 +80,7 @@ def main():
     from ctrl.block.system import System, Subtract, Differentiator, Sum, Gain
     from ctrl.block.nl import ControlledCombination
     from ctrl.block import Logger, ShortCircuit
+    from ctrl.block.logic import CompareAbs
     from ctrl.system.ss import DTSS
 
     # create mip
@@ -131,6 +132,12 @@ def main():
     mip.set_signal('phi_dot_reference',0)
     mip.set_signal('steer_reference',0.5)
 
+    # add kill switch
+    mip.add_filter('kill',
+                   CompareAbs(threshold = 0.4),
+                   ['theta'],
+                   ['is_running'])
+    
     # print controller
     print(mip.info('all'))
 
@@ -146,8 +153,16 @@ def main():
 
         input('Hold your MIP upright and hit <ENTER> to start balancing')
 
-        print('\nUse the UP and DOWN arrows to move forward and back')
-        print('Use the LEFT and RIGHT arrows to steer\n')
+        print("""
+Use your keyboard to control the mip:
+
+* UP and DOWN arrows move forward and back
+* LEFT and RIGHT arrows steer
+* END stops forward motion
+* DEL stops steering
+* SPACE resets forward motion and steering
+
+""")
         
         # reset everything
         mip.set_source('clock',reset=True)
