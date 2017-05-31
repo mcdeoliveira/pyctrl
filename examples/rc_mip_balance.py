@@ -15,13 +15,13 @@ warnings.formatwarning = brief_warning
 
 # read key stuff
 
-ARROW_UP = "\033[A"
-ARROW_DOWN = "\033[B"
+ARROW_UP    = "\033[A"
+ARROW_DOWN  = "\033[B"
 ARROW_RIGHT = "\033[C"
-ARROW_LEFT = "\033[D"
-DEL        = "\033[3"
-END        = "\033[F"
-SPACE = " "
+ARROW_LEFT  = "\033[D"
+DEL         = "\033[3"
+END         = "\033[F"
+SPACE       = " "
 
 def read_key():
 
