@@ -20,7 +20,7 @@ ARROW_DOWN = "\033[B"
 ARROW_RIGHT = "\033[C"
 ARROW_LEFT = "\033[D"
 DEL        = "\033[3"
-END        = "\033[4"
+END        = "\033[F"
 SPACE = " "
 
 def read_key():
