@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 def main():
 
     # import python's standard time module
