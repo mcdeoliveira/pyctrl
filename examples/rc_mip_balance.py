@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Makes the robot balance
+# Based on: https://github.com/mcdeoliveira/ctrl/raw/master/examples/rc_mip_balance.py
 import math
 import time
 import warnings
@@ -19,8 +21,8 @@ ARROW_UP    = "\033[A"
 ARROW_DOWN  = "\033[B"
 ARROW_RIGHT = "\033[C"
 ARROW_LEFT  = "\033[D"
-DEL         = "\033[3"
-END         = "\033[F"
+DEL         = "."
+END         = "/"
 SPACE       = " "
 
 def read_key():
@@ -49,16 +51,16 @@ def get_arrows(mip, fd):
         
         key = read_key()
         if key == ARROW_LEFT:
-            steer_reference = max(steer_reference - 0.01, 0)
+            steer_reference = max(steer_reference - 20/360, 0)
             mip.set_signal('steer_reference', steer_reference)
         elif key == ARROW_RIGHT:
-            steer_reference = min(steer_reference + 0.01, 1)
+            steer_reference = min(steer_reference + 20/360, 1)
             mip.set_signal('steer_reference', steer_reference)
         elif key == ARROW_UP:
-            phi_dot_reference = phi_dot_reference + 10/360
+            phi_dot_reference = phi_dot_reference + 0.05
             mip.set_signal('phi_dot_reference', - phi_dot_reference)
         elif key == ARROW_DOWN:
-            phi_dot_reference = phi_dot_reference - 10/360
+            phi_dot_reference = phi_dot_reference - 0.05
             mip.set_signal('phi_dot_reference', - phi_dot_reference)
         elif key == SPACE:
             phi_dot_reference = 0
@@ -133,7 +135,7 @@ def main():
 
     # add kill switch
     mip.add_filter('kill',
-                   CompareAbs(threshold = 0.4),
+                   CompareAbs(threshold = 0.2),
                    ['theta'],
                    ['is_running'])
     
@@ -157,8 +159,8 @@ Use your keyboard to control the mip:
 
 * UP and DOWN arrows move forward and back
 * LEFT and RIGHT arrows steer
-* END stops forward motion
-* DEL stops steering
+* / stops forward motion
+* . stops steering
 * SPACE resets forward motion and steering
 
 """)
