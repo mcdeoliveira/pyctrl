@@ -3,7 +3,7 @@ import math
 import struct
 
 import pyctrl.block as block
-import .pycomms.mpu6050 as mpu6050
+import pycomms.mpu6050 as mpu6050
 
 import numpy
 

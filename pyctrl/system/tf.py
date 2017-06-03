@@ -5,7 +5,7 @@ from . import ss
 
 class DTTF(system.System):
     r"""
-    *DTTF* implements a single-input-single-output (SISO) transfer-function.
+    :py:class:`pyctrl.system.DTTF` implements a single-input-single-output (SISO) transfer-function.
 
     The underlying model is of the form:
 
@@ -84,7 +84,7 @@ class DTTF(system.System):
 
     def set_output(self, yk):
         r"""
-        Sets the internal state of the *DTTF* so that a call to `update` with `uk = 0` yields `yk`.
+        Sets the internal state of the :py:class:`pyctrl.system.DTTF` so that a call to `update` with `uk = 0` yields `yk`.
         
         It is calculated as follows. With :math:`u_k = 0`
 
@@ -121,12 +121,14 @@ class DTTF(system.System):
     
     def update(self, uk):
         r"""
-        Update *DTTF* model. Implements the recursion:
+        Update :py:class:`pyctrl.system.DTTF` model. Implements the recursion:
 
         .. math::
         
             z_k + den[1] z_{k-1} + \cdots + den[n] z_{k-n} &= u_k \\
             y_k &= num[0] z_k + num[1] z_{k-1} + \cdots + den[n] z_{k-n}
+
+        :param numpy.array uk: input at time k
         """
         #print('uk = {}, state = {}'.format(uk, self.state))
         zk = uk - self.state.dot(self.den[1:])
@@ -141,7 +143,7 @@ class DTTF(system.System):
 
     def as_DTSS(self):
         """
-        :returns: a state-space representation (*DTSS*) of the *DTTF*.
+        :returns: a state-space representation (:py:class:`pyctrl.system.DTSS`) of the :py:class:`pyctrl.system.DTTF`.
         """
         
         n = self.num.size - 1
@@ -163,7 +165,7 @@ class DTTF(system.System):
 
 def zDTTF(num, den, state = None):
     r"""
-    *zDTTF* implements a single-input-single-output (SISO) transfer-function.
+    :py:class:`pyctrl.system.zDTTF` implements a single-input-single-output (SISO) transfer-function.
 
     The underlying model is of the form corresponds to the transfer-function:
 
@@ -203,7 +205,7 @@ def zDTTF(num, den, state = None):
 
 class PID(DTTF):
     r"""
-    *PID* implements a PID controller.
+    :py:class:`pyctrl.system.PID` implements a Proportional-Integral-Derivative (PID) controller.
 
     A continuous-time PID implements the following function:
 
@@ -213,13 +215,10 @@ class PID(DTTF):
 
     We provice the following discrete-time version:
 
-
     .. math::
-
                          
         x_k &= x_{k-1} +\frac{T}{2} (e_k + e_{k-1}) \\
         u_k &= K_p e_k + K_i x_k + \frac{K_d}{T} (e_k - e_{k-1})
-
 
     In terms of a transfer-function
 
@@ -298,7 +297,7 @@ import math
 
 class LPF(DTTF):
     r"""
-    *LPF* implements a low pass-filter based on DTTF.
+    :py:class:`pyctrl.system.LPF` implements a low pass-filter based on :py:class:`pyctrl.system.DTTF`.
     
     The first-order filter is a discretized version os the continuous-time filter with transfer-function:
 

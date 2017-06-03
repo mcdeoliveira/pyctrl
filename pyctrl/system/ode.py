@@ -9,19 +9,21 @@ def identity(t, x, u, *pars):
 
 class ODEBase(system.TVSystem):
     r"""
-    *ODE* implements a general nonlinear time-varying continuous-time state-space model of the form:
+    :py:class:`pyctrl.system.ODEBase` implements a general nonlinear time-varying continuous-time state-space model of the form:
 
     .. math::
 
        \dot{x} &= f(t, x, u, *pars) \\
              y &= g(t, x, u, *pars)
 
-    :param shape:
-    :param f:
-    :param g:
-    :param x0:
-    :param t0:
-    :param pars:
+    This base class does not implement any methods.
+
+    :param tuple shape: (m,p) where m is the number of inputs and p is the number of outputs
+    :param f: nonlinear state function :math:`f`
+    :param g: nonlinear state function :math:`g`
+    :param numpy.array x0: initial value of the state vector
+    :param float t0: initial time
+    :param vargs pars: variable positional arguments to be passed to f and g
     """
     
     def __init__(self,
@@ -61,6 +63,25 @@ class ODEBase(system.TVSystem):
         return self.shp
             
     def set_output(self, tk, yk):
+        r"""
+        Sets the internal state of the :py:class:`pyctrl.system.ODE` so that a call to `update` with `uk = 0` yields `yk`.
+        
+        Solves the equation:
+
+        .. math::
+
+            g(x_{k}) = y_{k}
+
+        which leads to 
+
+        .. math::
+
+            y_k &= g(x_k) = y_k
+        
+        when :math:`u_k = 0`
+
+        :param numpy.array yk: desired `yk`
+        """
         
         u0 = numpy.zeros(self.shp[0])
         x0 = self.state
@@ -68,26 +89,26 @@ class ODEBase(system.TVSystem):
     
     def update(self, tk, uk):
         
-        raise Exception('Not implemented yet')
+        raise Exception('Must be implemented by subclass')
 
 
 class ODE(ODEBase):
     r"""
-    ODE(f, state)
-
-    Model is of the form:
+    :py:class:`pyctrl.system.ODE` implements a general nonlinear time-varying continuous-time state-space model of the form:
 
     .. math::
 
        \dot{x} &= f(t, x, u, *pars) \\
              y &= g(t, x, u, *pars)
 
-    :param shape:
-    :param f:
-    :param g:
-    :param x0:
-    :param t0:
-    :param pars:
+    Integration is performed using :py:class:`scipy.integrate.ode`.
+
+    :param tuple shape: (m,p) where m is the number of inputs and p is the number of outputs
+    :param f: nonlinear state function :math:`f`
+    :param g: nonlinear state function :math:`g`
+    :param numpy.array x0: initial value of the state vector
+    :param float t0: initial time
+    :param vargs pars: variable positional arguments to be passed to f and g
     """
     
     def __init__(self,
@@ -128,21 +149,22 @@ class ODE(ODEBase):
         return self.g(tk, self.state, uk, *self.pars)
 
 class ODEINT(ODEBase):
-    r"""ODE(f, state)
-
-    Model is of the form:
+    r"""
+    :py:class:`pyctrl.system.ODEINT` implements a general nonlinear time-varying continuous-time state-space model of the form:
 
     .. math::
 
        \dot{x} &= f(t, x, u, *pars) \\
              y &= g(t, x, u, *pars)
 
-    :param shape:
-    :param f:
-    :param g:
-    :param x0:
-    :param t0:
-    :param pars:
+    Integration is performed using :py:class:`scipy.integrate.odeint`.
+
+    :param tuple shape: (m,p) where m is the number of inputs and p is the number of outputs
+    :param f: nonlinear state function :math:`f`
+    :param g: nonlinear state function :math:`g`
+    :param numpy.array x0: initial value of the state vector
+    :param float t0: initial time
+    :param vargs pars: variable positional arguments to be passed to f and g
     """
     
     def __init__(self,

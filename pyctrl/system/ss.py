@@ -11,11 +11,11 @@ class DTSS(system.System):
       x_{k+1} &= A x_k + B u_k \\
           y_k &= C x_k + D u_k
 
-    :param A:
-    :param B:
-    :param C:
-    :param D:
-    :param state:
+    :param numpy.array A: state space matrix :math:`A` (Default = [])
+    :param numpy.array B: state space matrix :math:`B` (Default = [[0]])
+    :param numpy.array C: state space matrix :math:`C` (Default = [])
+    :param numpy.array D: state space matrix :math:`D` (Default = [[1]])
+    :param numpy.array state: initial value of the state vector
     """
     
     def __init__(self,
@@ -55,6 +55,26 @@ class DTSS(system.System):
         #print('state = {}'.format(self.state))
 
     def set_output(self, yk):
+        r"""
+        Sets the internal state of the :py:class:`pyctrl.system.DTSS` so that a call to `update` with `uk = 0` yields `yk`.
+        
+        It is calculated as follows:
+
+        .. math::
+
+            x_{k} = C^\dag y_{k}
+
+        where :math:`C^\dag` is the pseudo-inverse of :math:`C`, which leads to 
+
+        .. math::
+
+            y_k &= C x_k = y_k
+        
+        when :math:`u_k = 0`
+
+        :param numpy.array yk: desired `yk`
+        """
+        
         # y = C x
         assert isinstance(yk, numpy.ndarray)
         assert yk.shape[0] == self.C.shape[0]
@@ -72,6 +92,21 @@ class DTSS(system.System):
         return (self.B.shape[1], self.C.shape[0], self.A.shape[0])
         
     def update(self, uk):
+        r"""
+        Update :py:class:`pyctrl.system.SSTF` model. Calculates:
+
+        .. math::
+        
+            y_k &= C x_k + D u_k
+
+        then updates
+
+        .. math::
+        
+            x_{k+1} &= A x_k + B u_k
+
+        :param numpy.array uk: input at time k
+        """
         # yk = C xk + D uk
         # xk+1 = A xk + B uk
         if self.state.size > 0:

@@ -14,30 +14,31 @@ OS (including the Beaglebone Black and Blue) type:
     sudo apt install python3 python3-numpy
 
 If you want to use it with the Robotics Cape or on the Beaglebone Blue
-you will also need to install the
-[rcpy package](https://github.com/mcdeoliveira/rcpy).
+you will also need to install the rcpy package
+([github](https://github.com/mcdeoliveira/rcpy),
+[PyPI](https://pypi.python.org/pypi?:action=display&name=rcpy)).
 
 ## Installation
 
 Starting with version 0.3, `pyctrl` is available from
-[PyPI](https://pypi.python.org/pypi?:action=display&name=rcpy). Just
+[PyPI](https://pypi.python.org/pypi?:action=display&name=pyctrl). Just
 type
 
     pip3 install pyctrl
 
 to download and install.
 
-## Available Documentation:
+## Documentation:
 
-* Online:
+Online:
 
-  * [Manual](http://guitar.ucsd.edu/pyctrl/html/index.html)
-  * [User Guide](http://guitar.ucsd.edu/pyctrl/html/user_guide.html)
-  * [Reference Guide](http://guitar.ucsd.edu/pyctrl/html/reference_guide.html)
+* [Manual](http://guitar.ucsd.edu/pyctrl/html/index.html)
+* [User Guide](http://guitar.ucsd.edu/pyctrl/html/user_guide.html)
+* [Reference Guide](http://guitar.ucsd.edu/pyctrl/html/reference_guide.html)
 
-* PDF:
+PDF:
 
-  * [Manual](http://guitar.ucsd.edu/pyctrl/pyctrl.pdf)
+* [Manual](http://guitar.ucsd.edu/pyctrl/pyctrl.pdf)
 
 ## Author:
 
