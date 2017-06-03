@@ -2,11 +2,6 @@ import warnings
 import numpy
 import math
 
-if __name__ == "__main__":
-
-    import sys
-    sys.path.append('.')
-
 import pyctrl
 import pyctrl.block.clock as clock
 import pyctrl.block.system as system

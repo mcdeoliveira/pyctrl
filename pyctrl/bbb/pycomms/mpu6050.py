@@ -4,11 +4,6 @@ from math import atan, atan2, sqrt
 
 import struct
 
-if __name__ == "__main__":
-
-    import sys
-    sys.path.append('.')
-
 # External Imports
 
 # Custom Imports
