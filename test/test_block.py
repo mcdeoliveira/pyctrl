@@ -2,8 +2,8 @@ import pytest
 import sys
 import numpy
 
-import ctrl.block as block
-import ctrl.block.system as system
+import pyctrl.block as block
+import pyctrl.block.system as system
 
 def test_BufferBlock():
 
@@ -154,7 +154,7 @@ def test_set():
 
 def test_logger():
 
-    import ctrl.block as logger
+    import pyctrl.block as logger
     import numpy as np
 
     _logger = logger.Logger()

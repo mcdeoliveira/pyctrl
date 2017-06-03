@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
+
 def main():
 
     import sys
     
     # import Controller and other blocks from modules
-    from ctrl.timer import Controller
-    from ctrl.block import Interp, Printer, Constant, Logger
+    from pyctrl.timer import Controller
+    from pyctrl.block import Interp, Printer, Constant, Logger
 
     # initialize controller
     Ts = 0.01

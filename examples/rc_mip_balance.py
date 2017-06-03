@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
+
 # Makes the robot balance
-# Based on: https://github.com/mcdeoliveira/ctrl/raw/master/examples/rc_mip_balance.py
+
 import math
 import time
 import warnings
@@ -8,7 +9,7 @@ import numpy as np
 import sys, tty, termios
 import threading
 
-import ctrl
+import pyctrl
 
 def brief_warning(message, category, filename, lineno, line=None):
     return "*{}\n".format(message)
@@ -41,7 +42,7 @@ def get_arrows(mip, fd):
     steer_reference = 0.5
     
     tty.setcbreak(fd)
-    while mip.get_state() != ctrl.EXITING:
+    while mip.get_state() != pyctrl.EXITING:
         
         print('\rvelocity = {:+4.0f} deg/s'
               '  steering = {:+4.2f} %'
@@ -77,12 +78,12 @@ def get_arrows(mip, fd):
 def main():
 
     # import blocks and controller
-    from ctrl.rc.mip import Controller
-    from ctrl.block.system import System, Subtract, Differentiator, Sum, Gain
-    from ctrl.block.nl import ControlledCombination
-    from ctrl.block import Logger, ShortCircuit
-    from ctrl.block.logic import CompareAbs
-    from ctrl.system.ss import DTSS
+    from pyctrl.rc.mip import Controller
+    from pyctrl.block.system import System, Subtract, Differentiator, Sum, Gain
+    from pyctrl.block.nl import ControlledCombination
+    from pyctrl.block import Logger, ShortCircuit
+    from pyctrl.block.logic import CompareAbs
+    from pyctrl.system.ss import DTSS
 
     # create mip
     mip = Controller()
@@ -189,7 +190,7 @@ Use your keyboard to control the mip:
     except KeyboardInterrupt:
 
         print("> Balancing aborted")
-        mip.set_state(ctrl.EXITING)
+        mip.set_state(pyctrl.EXITING)
 
     finally:
         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)

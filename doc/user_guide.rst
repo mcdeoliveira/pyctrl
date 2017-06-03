@@ -46,8 +46,7 @@ Installation
 
 The Python source code is available from:
 
-* `ctrl <https://github.com/mcdeoliveira/ctrl>`_
-
+* `pyctrl <https://github.com/mcdeoliveira/pyctrl>`_
 
 ---------------------
 Robotics Cape support

@@ -1,8 +1,8 @@
 import pytest
 
-import ctrl.block as block
-import ctrl.block.system as system
-import ctrl.block.random as blkrnd
+import pyctrl.block as block
+import pyctrl.block.system as system
+import pyctrl.block.random as blkrnd
 
 def test_random_uniform():
 

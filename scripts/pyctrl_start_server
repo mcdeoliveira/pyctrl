@@ -1,0 +1,155 @@
+#!/usr/bin/env python
+
+# from hanging_threads import start_monitoring
+# monitoring_thread = start_monitoring()
+
+def one_line_warning(message, category, filename, lineno, line=None):
+    return " {}:{}: {}:{}\n".format(filename, lineno, category.__name__, message)
+
+def brief_warning(message, category, filename, lineno, line=None):
+    return "*{}\n".format(message)
+
+def main():
+
+    import warnings
+    import socketserver
+    import argparse, platform, sys, signal, importlib
+    import threading, time
+
+    import pyctrl
+    import pyctrl.server
+
+    # Parse command line
+    parser = argparse.ArgumentParser(
+        description='pyctrl_start_server (version {})'.format(pyctrl.server.version()),
+        add_help = False,
+        formatter_class = argparse.ArgumentDefaultsHelpFormatter)
+    
+    parser.add_argument('-h', '--help', default=False,
+                        action='store_true',
+                        help='show this help message and exit')
+    parser.add_argument('-m', '--module',
+                        type=str, default='pyctrl', 
+                        help='controller module')
+    parser.add_argument('-c', '--controller',
+                        type=str, default='Controller',
+                        help='controller class')
+    parser.add_argument('-H', '--host',
+                        type=str, default='localhost',
+                        help='host name or IP address')
+    parser.add_argument('-p', '--port',
+                        type=int, default=9999,
+                        help='port number')
+    parser.add_argument('-v', '--verbose',
+                        type=int, default=1,
+                        help='level of verbosity')
+    parser.add_argument('-t', '--period',
+                        type=float, default=None,
+                        help='sampling period in seconds')
+                                     
+    try:
+        args = parser.parse_args()
+    except:
+        print()
+        parser.print_help()
+        sys.exit(0)
+
+    # help?
+    if args.help:
+        parser.print_help()
+        sys.exit(0)
+        
+    # HOST AND PORT
+    HOST = args.host
+    PORT = args.port
+
+    # verbose_level
+    verbose_level = args.verbose
+
+    # default module
+    module = args.module
+    pyctrl_class = args.controller
+
+    # Modify warnings
+    if verbose_level > 2:
+        pass # standard formating
+    elif verbose_level > 1:
+        # one liner
+        warnings.formatwarning = one_line_warning
+    else:
+        # brief
+        warnings.formatwarning = brief_warning
+
+    # install controller
+    if args.period:
+        pyctrl.server.reset(module = module,
+                          pyctrl_class = pyctrl_class,
+                          period = args.period)
+    else:
+        pyctrl.server.reset(module = module,
+                          pyctrl_class = pyctrl_class)
+
+    # set verbose level
+    pyctrl.server.verbose(verbose_level)
+
+    # get actual period
+    try:
+        args.period = pyctrl.server.controller.get_source('clock','period')
+    except:
+        pass
+
+    # Start server
+
+    # Create the server, binding to HOST and PORT
+    socketserver.ThreadingTCPServer.allow_reuse_address = True
+    server = socketserver.TCPServer((HOST, PORT), 
+                                    pyctrl.server.Handler)
+    
+    # Initiate server
+    print('pyctrl_start_server (version {})'.format(pyctrl.server.version()))
+    
+    if verbose_level > 0:
+
+        print("\nType 'pyctrl_start_server -h' for more options\n")
+
+        print('> Options:')
+        print('   Hostname[port]: {}[{}]'.format(HOST, PORT))
+        if args.period:
+            print('  Sampling period: {}s'.format(args.period))
+        else:
+            print('  Sampling period: ---')
+        print('    Verbose level: {}\n'.format(verbose_level))
+        print(pyctrl.server.controller.info('all'))
+        print('> Starting server...',end = '')
+        
+    # run server in a separate thread
+    thread = threading.Thread(target=server.serve_forever)
+    thread.start()
+
+    try:
+
+        if verbose_level > 0:
+            print(' done')
+            
+        print("> Hit Ctrl-C or use 'pyctrl_stop_server' to exit the server")
+        
+        # Wait forever
+        thread.join()
+
+    except KeyboardInterrupt:
+        # Catch Ctrl-C
+        pass
+            
+    finally:
+
+        # shutdown server
+        pyctrl.server.controller.stop()
+        server.shutdown()
+        thread.join()
+            
+        # say bye
+        print("\n> Goodbye!")
+
+if __name__ == "__main__":
+
+    main()

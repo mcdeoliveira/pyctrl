@@ -5,13 +5,13 @@ import time
 import numpy as np
 import numpy.linalg as la
 
-from ctrl.block.clock import Clock, TimerClock
-from ctrl.block import Map, Constant, Logger
-from ctrl.block.system import TimeVaryingSystem
+from pyctrl.block.clock import Clock, TimerClock
+from pyctrl.block import Map, Constant, Logger
+from pyctrl.block.system import TimeVaryingSystem
 
 test_ode = True
 try:
-    from ctrl.system.ode import ODE, ODEINT
+    from pyctrl.system.ode import ODE, ODEINT
 except:
     test_ode = False
     
@@ -20,7 +20,7 @@ def test1():
     if not test_ode:
         return
     
-    from ctrl import Controller
+    from pyctrl import Controller
     controller = Controller()
 
     Ts = 0.01
@@ -167,7 +167,7 @@ def test2():
 
     print('1. [{:3.2f}, {:3.2f}] = {}'.format(t0, tk, yk))
 
-    from ctrl import Controller
+    from pyctrl import Controller
     controller = Controller()
 
     Ts = 0.01

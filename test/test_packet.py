@@ -3,7 +3,7 @@ import numpy
 import io
 import pickle
 
-import ctrl.packet as packet
+import pyctrl.packet as packet
 
 def testA():
 

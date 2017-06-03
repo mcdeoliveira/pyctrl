@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
+
 def main():
 
     # import python's standard math module and numpy
     import math, numpy, sys
     
     # import Controller and other blocks from modules
-    from ctrl.rc import Controller
-    from ctrl.block import Interp, Logger, Constant
-    from ctrl.block.system import System, Differentiator
-    from ctrl.system.tf import DTTF, LPF
+    from pyctrl.rc import Controller
+    from pyctrl.block import Interp, Logger, Constant
+    from pyctrl.block.system import System, Differentiator
+    from pyctrl.system.tf import DTTF, LPF
 
     # initialize controller
     Ts = 0.01
@@ -16,7 +17,7 @@ def main():
 
     # add encoder as source
     bbb.add_device('encoder1',
-                   'ctrl.rc.encoder', 'Encoder',
+                   'pyctrl.rc.encoder', 'Encoder',
                    type = 'source',
                    outputs = ['encoder'],
                    encoder = 3, 
@@ -24,7 +25,7 @@ def main():
     
     # add motor as sink
     bbb.add_device('motor1', 
-                   'ctrl.rc.motor', 'Motor',
+                   'pyctrl.rc.motor', 'Motor',
                    type = 'sink',
                    enable = True,
                    inputs = ['pwm'],

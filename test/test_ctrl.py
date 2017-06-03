@@ -7,13 +7,13 @@ start_server = True
 
 def test_local():
 
-    from ctrl import Controller
+    from pyctrl import Controller
     run(Controller())
 
 def test_clock():
 
-    from ctrl import Controller
-    from ctrl.block.clock import Clock, TimerClock
+    from pyctrl import Controller
+    from pyctrl.block.clock import Clock, TimerClock
 
     controller = Controller()
     print(controller.info('all'))
@@ -57,11 +57,11 @@ def test_clock():
 
 def run(controller):
 
-    import ctrl
+    import pyctrl
     import numpy
-    import ctrl.block as block
-    import ctrl.block.system as system
-    import ctrl.block.random as blkrnd
+    import pyctrl.block as block
+    import pyctrl.block.system as system
+    import pyctrl.block.random as blkrnd
 
     # initial signals
     _signals = controller.list_signals()
@@ -80,7 +80,7 @@ def run(controller):
     controller.add_signal('_test_')
     assert '_test_' in controller.list_signals()
 
-    #with pytest.raises(ctrl.ControllerException):
+    #with pytest.raises(pyctrl.ControllerException):
     controller.add_signal('_test_')
 
     assert controller.get_signal('_test_') == 0
@@ -91,7 +91,7 @@ def run(controller):
     controller.remove_signal('_test_')
     assert '_test_' not in controller.list_signals()
 
-    with pytest.raises(ctrl.ControllerException):
+    with pytest.raises(pyctrl.ControllerException):
         controller.set_signal('_test_', 1.2)
 
     controller.add_signals('_test1_', '_test2_')
@@ -330,9 +330,9 @@ def run(controller):
     
 def test_run():
 
-    from ctrl import Controller
-    from ctrl.block.clock import Clock, TimerClock
-    from ctrl.block import Map
+    from pyctrl import Controller
+    from pyctrl.block.clock import Clock, TimerClock
+    from pyctrl.block import Map
 
     controller = Controller()
     print(controller.info('all'))
@@ -369,7 +369,7 @@ def test_run():
 
 def test_client_server():
 
-    import ctrl.client
+    import pyctrl.client
 
     if start_server:
 
@@ -377,7 +377,7 @@ def test_client_server():
         print('> Starting server')
 
         import subprocess
-        server = subprocess.Popen(["ctrl_start_server",
+        server = subprocess.Popen(["pyctrl_start_server",
                                    "-H{}".format(HOST),
                                    "-p{}".format(PORT)],
                                   stdout = subprocess.PIPE)
@@ -386,49 +386,49 @@ def test_client_server():
 
     try:
 
-        client = ctrl.client.Controller(host = HOST, port = PORT)
+        client = pyctrl.client.Controller(host = HOST, port = PORT)
 
         # test client
         run(client)
 
-        assert client.info('class') == "<class 'ctrl.Controller'>"
+        assert client.info('class') == "<class 'pyctrl.Controller'>"
         
         # other tests
-        client.reset(module = 'ctrl.timer', ctrl_class = 'Controller')
+        client.reset(module = 'pyctrl.timer', pyctrl_class = 'Controller')
 
-        assert client.info('class') == "<class 'ctrl.timer.Controller'>"
+        assert client.info('class') == "<class 'pyctrl.timer.Controller'>"
 
         with pytest.raises(Exception):
-            client.reset(module = 'ctrl.timer', ctrl_class = 'wrong')
+            client.reset(module = 'pyctrl.timer', pyctrl_class = 'wrong')
 
-        assert client.info('class') == "<class 'ctrl.timer.Controller'>"
+        assert client.info('class') == "<class 'pyctrl.timer.Controller'>"
 
-        client.reset(module = 'ctrl.timer')
+        client.reset(module = 'pyctrl.timer')
 
-        assert client.info('class') == "<class 'ctrl.timer.Controller'>"
+        assert client.info('class') == "<class 'pyctrl.timer.Controller'>"
         
         client.reset()
         
-        assert client.info('class') == "<class 'ctrl.timer.Controller'>"
+        assert client.info('class') == "<class 'pyctrl.timer.Controller'>"
 
-        client.reset(ctrl_class = 'Controller')
+        client.reset(pyctrl_class = 'Controller')
 
-        assert client.info('class') == "<class 'ctrl.Controller'>"
+        assert client.info('class') == "<class 'pyctrl.Controller'>"
         
-        client.reset(ctrl_class = 'Controller', module = 'ctrl.timer')
+        client.reset(pyctrl_class = 'Controller', module = 'pyctrl.timer')
 
-        assert client.info('class') == "<class 'ctrl.timer.Controller'>"
+        assert client.info('class') == "<class 'pyctrl.timer.Controller'>"
 
-        client.reset(module = 'ctrl.timer', period = 2)
+        client.reset(module = 'pyctrl.timer', period = 2)
         
-        assert client.info('class') == "<class 'ctrl.timer.Controller'>"
+        assert client.info('class') == "<class 'pyctrl.timer.Controller'>"
         assert client.get_source('clock','period') == 2
 
-        client = ctrl.client.Controller(host = HOST, port = PORT,
-                                        module = 'ctrl.timer',
+        client = pyctrl.client.Controller(host = HOST, port = PORT,
+                                        module = 'pyctrl.timer',
                                         period = 1)
 
-        assert client.info('class') == "<class 'ctrl.timer.Controller'>"
+        assert client.info('class') == "<class 'pyctrl.timer.Controller'>"
         assert client.get_source('clock','period') == 1
         
     except Exception as e:

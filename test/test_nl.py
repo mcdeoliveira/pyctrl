@@ -2,8 +2,8 @@ import pytest
 
 import numpy as np
 import math
-import ctrl.block.nl as nonlinear
-import ctrl.block as block
+import pyctrl.block.nl as nonlinear
+import pyctrl.block as block
 
 def test1():
 

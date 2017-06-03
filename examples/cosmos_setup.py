@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
+
 import time
 import math
 import numpy
 import platform, sys, select
 
-from ctrl.client import Controller
-import ctrl.block as block
-import ctrl.block.logger as logger
+from pyctrl.client import Controller
+import pyctrl.block as block
+import pyctrl.block.logger as logger
 
 # initialize controller
 HOST, PORT = "192.168.10.105", 9999

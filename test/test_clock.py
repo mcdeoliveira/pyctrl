@@ -1,8 +1,8 @@
 import pytest
 import math
 
-import ctrl.block as block
-import ctrl.block.clock as clk
+import pyctrl.block as block
+import pyctrl.block.clock as clk
 
 def test():
 

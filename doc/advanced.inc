@@ -12,41 +12,41 @@ concepts discussed there before reading this chapter.
 Multiplexing and demultiplexing
 -------------------------------
 
-Blocks that are instances of :py:class:`ctrl.block.BufferBlock`
+Blocks that are instances of :py:class:`pyctrl.block.BufferBlock`
 support *multiplexing of inputs* and *demultiplexing of
 outputs*.
 
 *Multiplexing* means that all the inputs of a
-:py:class:`ctrl.block.BufferBlock` are collected into a single numpy
+:py:class:`pyctrl.block.BufferBlock` are collected into a single numpy
 1D-array before the block is evaluated.
 
 *Demultiplexing* means that the outputs of a
-:py:class:`ctrl.block.BufferBlock` are split into multiple outputs
+:py:class:`pyctrl.block.BufferBlock` are split into multiple outputs
 after the block is evaluated.
 
-For example, the blocks :py:class:`ctrl.block.system.System` and
-:py:class:`ctrl.block.system.TimeVaryingSystem` always multiplexes
+For example, the blocks :py:class:`pyctrl.block.system.System` and
+:py:class:`pyctrl.block.system.TimeVaryingSystem` always multiplexes
 their input. This means that instances of
-:py:class:`ctrl.system.System` can seamlessly handle systems with
+:py:class:`pyctrl.system.System` can seamlessly handle systems with
 multiple inputs.
 
 The attributes :py:attr:`mux` and :py:attr:`demux` can be also used to
 modify the behavior of existing blocks. For this reason, you will
 rarely need a special block for multiplexing and demultiplexing. If
-you do, just use :py:class:`ctrl.block.BufferBlock`. For example, a
+you do, just use :py:class:`pyctrl.block.BufferBlock`. For example, a
 mux-type block can be created by setting :py:obj:`demux = True` in a
-:py:class:`ctrl.block.BufferBlock` as in::
+:py:class:`pyctrl.block.BufferBlock` as in::
 
-   from ctrl.block import BufferBlock
+   from pyctrl.block import BufferBlock
    controller.add_filter('mux',
                          BufferBlock(mux = True),
 			 ['input1','input2'],
 			 ['muxout'])
 
 Likewise, you could modify an existing block, such as
-:py:class:`ctrl.block.system.Gain` to demultiplex its outputs as in::
+:py:class:`pyctrl.block.system.Gain` to demultiplex its outputs as in::
 			 
-   from ctrl.block.system import Gain
+   from pyctrl.block.system import Gain
    controller.add_filter('gain',
                          Gain(demux = True),
 			 ['muxout'],
@@ -95,35 +95,35 @@ Client-Server Application Architecture
 Since the beginnings of the development of this package one goal was
 to be able to deploy and run controllers on embedded systems. With
 that goal in mind we provide two special classes of controllers:
-:py:class:`ctrl.server.Controller` and
-:py:class:`ctrl.client.Controller`, and two scripts:
-:samp:`ctrl_start_server` and :samp:`ctrl_stop_server` to start and
+:py:class:`pyctrl.server.Controller` and
+:py:class:`pyctrl.client.Controller`, and two scripts:
+:samp:`pyctrl_start_server` and :samp:`pyctrl_stop_server` to start and
 stop a controller server. Those scripts and classes can be combined to
 run applications remotely.
 
 Starting the server
 -------------------
 
-Start by using the script :samp:`ctrl_start_server` to create a server
+Start by using the script :samp:`pyctrl_start_server` to create a server
 for you. In this tutorial, you will create a server on the same
 machine you will be running the client. The process of initializing a
 server on a remote machine is virtually identical. Type::
 
-    ctrl_start_server
+    pyctrl_start_server
 
 which start the server and produces the following output:
 
 .. code-block:: none
   
-    ctrl_start_server (version 1.0)
+    pyctrl_start_server (version 1.0)
     > Options:
        Hostname[port]: localhost[9999]
       Sampling period: ---
         Verbose level: 1
     
-    Type 'ctrl_start_server -h' for more options
+    Type 'pyctrl_start_server -h' for more options
     
-    <class 'ctrl.Controller'> with:
+    <class 'pyctrl.Controller'> with:
       1 device(s), 0 timer(s), 3 signal(s),
       1 source(s), 0 filter(s), and 0 sink(s)
     > devices
@@ -139,18 +139,18 @@ which start the server and produces the following output:
     > sinks
 
     > Starting server... done
-    > Hit Ctrl-C or use 'ctrl_stop_server' to exit the server
+    > Hit Ctrl-C or use 'pyctrl_stop_server' to exit the server
 
 showing that a server has been started at the :py:data:`localhost` at
 the port :py:data:`9999`. Those are the default values for `host` and
 `port`. It also shows that the server is running a controller which is
-an instance of the basic :py:class:`ctrl.Controller` class.
+an instance of the basic :py:class:`pyctrl.Controller` class.
 
 The attribute :py:data:`host` is qualified name or valid IP address of
 the machine you're connecting to and :py:data:`port` is the port you
 would like to connect. The connection is established using a `TCP
 network socket <https://en.wikipedia.org/wiki/Network_socket>`_. See
-:ref:`Options available with ctrl_start_server` for how to set these
+:ref:`Options available with pyctrl_start_server` for how to set these
 options.
 
 
@@ -160,12 +160,12 @@ Connecting your client
 Start a new console and a new python shell. Proceed as in
 Section :ref:`Hello World!` and create a controller::
 
-    from ctrl.client import Controller
+    from pyctrl.client import Controller
     hello = Controller()
 
 The only difference is that you imported :py:obj:`Controller` from the
-class :py:class:`ctrl.client.Controller`, as opposed to from
-:py:class:`ctrl.Controller`. Once you have initialized a controller as
+class :py:class:`pyctrl.client.Controller`, as opposed to from
+:py:class:`pyctrl.Controller`. Once you have initialized a controller as
 a *client* and you have a controller running as a server,the flow is
 very much like before. For example, we can query the controller using
 :samp:`print(hello.info('all'))`, which in this case should reproduce
@@ -173,13 +173,13 @@ the exact same configuration of the controller running on the server:
 
 .. code-block:: none
   
-    ctrl_start_server (version 1.0)
+    pyctrl_start_server (version 1.0)
     > Options:
        Hostname[port]: localhost[9999]
       Sampling period: ---
 	Verbose level: 1
 
-    <class 'ctrl.Controller'> with:
+    <class 'pyctrl.Controller'> with:
       1 device(s), 0 timer(s), 3 signal(s),
       1 source(s), 0 filter(s), and 0 sink(s)
     > devices
@@ -195,36 +195,36 @@ the exact same configuration of the controller running on the server:
     > sinks
 	
 Programming a client controller is, for the most part, just like
-programming a local controller. However, there are some important caveats you should be aware of. For instance, attempting to install an instance :py:class:`ctrl.block.clock.TimerClock` as a *source*  by typing::
+programming a local controller. However, there are some important caveats you should be aware of. For instance, attempting to install an instance :py:class:`pyctrl.block.clock.TimerClock` as a *source*  by typing::
     
-    from ctrl.block.clock import TimerClock
+    from pyctrl.block.clock import TimerClock
     hello.add_source('myclock',
 		     TimerClock(period = 1),
 		     ['myclock'])
 		     
 will fail. The reason for the failure is because an instance of the
-class :py:class:`ctrl.block.clock.TimerClock` cannot be transported
+class :py:class:`pyctrl.block.clock.TimerClock` cannot be transported
 from your hardware to another, that is from the *client* to the
 *server*. Here is where the notion of a *device* comes in
 handy. Instead of instantiating
-:py:class:`ctrl.block.clock.TimerClock` on the client, you can use
-:py:meth:`ctrl.Controller.add_device` to have the remote controller
+:py:class:`pyctrl.block.clock.TimerClock` on the client, you can use
+:py:meth:`pyctrl.Controller.add_device` to have the remote controller
 instantiate it directly on the server hardware! That can be done
 easily. As in Section :ref:`Devices and Controllers` type::
 
     hello.add_device('myclock',
-                     'ctrl.block.clock', 'TimerClock',
+                     'pyctrl.block.clock', 'TimerClock',
 		     type = 'source', 
 		     outputs = ['myclock'],
 		     enable = True,
 		     period = 1)
 
-to add a *device* :py:class:`ctrl.block.clock.TimerClock` by letting
+to add a *device* :py:class:`pyctrl.block.clock.TimerClock` by letting
 the remote server instantiate the object. From this point on, just
 proceed as in :ref:`Hello World!` to add a
-:py:class:`ctrl.block.Printer`::
+:py:class:`pyctrl.block.Printer`::
 		     
-    from ctrl.block import Printer
+    from pyctrl.block import Printer
     hello.add_sink('message',
 		   Printer(message = 'Hello World!'),
 		   ['myclock'])
@@ -245,19 +245,19 @@ printed there a couple of times. What you have accomplished is running
 a task on the remote server controller by programming it on the client
 controller. Effectively, and appart from some subtleties concerning
 devices, the only difference was importing from
-:py:class:`ctrl.client.Controller` rather than from
-:py:class:`ctrl.Controller`.
+:py:class:`pyctrl.client.Controller` rather than from
+:py:class:`pyctrl.Controller`.
 
 What's under the hood?
 ----------------------
     
 Before moving forward, a bit of a technical note. You might be
-wondering why :py:class:`ctrl.block.clock.TimerClock` could not be
+wondering why :py:class:`pyctrl.block.clock.TimerClock` could not be
 added as a *source* but it is fine to add
-:py:class:`ctrl.block.Printer` as a *sink*. The difference has to do
+:py:class:`pyctrl.block.Printer` as a *sink*. The difference has to do
 with the ability of the client controller to *transfer* a block to the
 remote controller. In order for that to process to happen, the block
-:py:class:`ctrl.block.Printer` has to be safely deconstructed, packed,
+:py:class:`pyctrl.block.Printer` has to be safely deconstructed, packed,
 transmitted over the network socket, unpacked and then reconstructed
 at the server controller.
 
@@ -272,17 +272,17 @@ serialized by `pickle`, that is it cannot be *pickled*, then it cannot
 be installed remotely as a *source*, *filter*, *sink*, or *timer*. In
 this case, it needs to be installed as a *device*.
 
-If you are curious why :py:class:`ctrl.block.clock.TimerClock` could
+If you are curious why :py:class:`pyctrl.block.clock.TimerClock` could
 not be serialized, it is because
-:py:class:`ctrl.block.clock.TimerClock` runs on a separate process
+:py:class:`pyctrl.block.clock.TimerClock` runs on a separate process
 thread, and there is no way to simply transfer the thread information
-over the network. As for :py:class:`ctrl.block.Printer`, it is
+over the network. As for :py:class:`pyctrl.block.Printer`, it is
 possible to use its attributes to reconstruct it on the server
 side.
 
 Note however that what decides is an object can be *pickled* or not is
 not its base class but the contents of its attributes *at the time one
-attempts to pickle it*. For example, a :py:class:`ctrl.block.Printer`
+attempts to pickle it*. For example, a :py:class:`pyctrl.block.Printer`
 in which you have setup the attribute :py:attr:`file` to redirect its
 output to a local file will fail to install as a *sink*. You could
 instead install it as a *device*, but in this case, the output would
@@ -299,23 +299,23 @@ restricts connection to a know number of potential client addresses
 combined with some strong form of authentication.
 
 
-Options available with :samp:`ctrl_start_server`
-------------------------------------------------
+Options available with :samp:`pyctrl_start_server`
+--------------------------------------------------
 
-Starting :samp:`ctrl_start_server` with the :py:data:`-h` flag displays
+Starting :samp:`pyctrl_start_server` with the :py:data:`-h` flag displays
 the options available:
 
 .. code-block:: none
 
-    usage: ctrl_start_server [-h] [-m MODULE] [-c CONTROLLER] [-H HOST] [-p PORT]
+    usage: pyctrl_start_server [-h] [-m MODULE] [-c CONTROLLER] [-H HOST] [-p PORT]
 			     [-v VERBOSE] [-t PERIOD]
 
-    ctrl_start_server (version 1.0)
+    pyctrl_start_server (version 1.0)
     
     optional arguments:
       -h, --help            show this help message and exit (default: False)
       -m MODULE, --module MODULE
-			    controller module (default: ctrl)
+			    controller module (default: pyctrl)
       -c CONTROLLER, --controller CONTROLLER
 			    controller class (default: Controller)
       -H HOST, --host HOST  host name or IP address (default: localhost)
@@ -329,20 +329,20 @@ Besides getting help one can initialize a server with any arbitrary
 controller using the :py:data:`-m`, :py:data:`--module` and
 :py:data:`-c`, :py:data:`--controller` options as in::
 
-    ctrl_start_server -m ctrl.timer
+    pyctrl_start_server -m pyctrl.timer
 
 which initializes the server controller to be an instance of
-:py:class:`ctrl.timer.Controller` instead of the default
-:py:data:`ctrl.Controller`.
+:py:class:`pyctrl.timer.Controller` instead of the default
+:py:data:`pyctrl.Controller`.
 
 Another useful pair of options is :py:data:`-H`, :py:data:`--host` and
 :py:data:`-p`, :py:data:`--port`, which can be used to change the
 current host name or IP address and port. For example::
 
-    ctrl_start_server -m ctrl.rc.mip -H 192.168.0.132 -p 9090
+    pyctrl_start_server -m pyctrl.rc.mip -H 192.168.0.132 -p 9090
 
 would initialize the server using an instance of
-:py:class:`ctrl.rc.mip.Controller` at the local network IP address
+:py:class:`pyctrl.rc.mip.Controller` at the local network IP address
 `192.168.0.132` at the port `9090`.
     
 Finally :py:data:`-t`, :py:data:`--period` lets one set the controller
@@ -356,12 +356,12 @@ Out of all these options, :py:data:`-v`, :py:data:`--verbose`,
 are the ones that cannot be changed by a client connected to the
 controller server after it's been initialized.
 
-Working with :py:class:`ctrl.client.Controller`
------------------------------------------------
+Working with :py:class:`pyctrl.client.Controller`
+-------------------------------------------------
 
 As shown above, working with an instance of
-:py:class:`ctrl.client.Controller` is for the most part identical to
-working with any other instance of :py:class:`ctrl.Controller`. In
+:py:class:`pyctrl.client.Controller` is for the most part identical to
+working with any other instance of :py:class:`pyctrl.Controller`. In
 this section you will learn a couple of useful practices when using a
 client controller.
 
@@ -369,7 +369,7 @@ A first issue is setting the client to talk to the server at the right
 address and port. This can be done by initializing the client with
 attributes :py:attr:`host` and :py:attr:`port`. For example::
 	
-    from ctrl.client import Controller
+    from pyctrl.client import Controller
     client = Controller(host = '192.168.0.132', port = 9090)
 
 would connect the client to a local network server at address
@@ -379,42 +379,42 @@ Once connected, an usual mistake is to make assumptions about the
 current state of a server controller. Since another client could have
 connected to the server earlier and changed settings in unpredictable
 ways, it might be useful to call
-:py:meth:`ctrl.client.Controller.reset` to *reset* the remote
+:py:meth:`pyctrl.client.Controller.reset` to *reset* the remote
 controller at the server before doing anything::
 
     client.reset()
 
-:py:meth:`ctrl.client.Controller.reset` can also be used to install a
+:py:meth:`pyctrl.client.Controller.reset` can also be used to install a
 completely new controller on the server, as if using the :py:data:`-m`,
 :py:data:`--module` and :py:data:`-c`, :py:data:`--controller` options
-in :samp:`ctrl_start_server`. For example::
+in :samp:`pyctrl_start_server`. For example::
 
-    client.reset(module = 'ctrl.timer')
+    client.reset(module = 'pyctrl.timer')
 
-install a new instance of :py:class:`ctrl.timer.Controller` in the
+install a new instance of :py:class:`pyctrl.timer.Controller` in the
 remote server. You can query the server about its controller class by
-using :py:meth:`ctrl.Controller.info` as in::
+using :py:meth:`pyctrl.Controller.info` as in::
     
     client.info('class')
 
 which should then return the string :py:data:`"<class
-'ctrl.timer.Controller'>"`. You can also pass arguments to the
+'pyctrl.timer.Controller'>"`. You can also pass arguments to the
 controller constructor. For example::
 
-    client.reset(module = 'ctrl.timer', period = 0.1)
+    client.reset(module = 'pyctrl.timer', period = 0.1)
 
-will install a new instance of :py:class:`ctrl.timer.Controller`
+will install a new instance of :py:class:`pyctrl.timer.Controller`
 running at 10 Hz on the remote server.
 
 For convenience, all these operations can be performed by the
-:py:class:`ctrl.client.Controller` constructor. For example::
+:py:class:`pyctrl.client.Controller` constructor. For example::
 	
-    from ctrl.client import Controller
+    from pyctrl.client import Controller
     client = Controller(host = '192.168.0.132', port = 9090,
-                        module = 'ctrl.timer', period = 0.1)
+                        module = 'pyctrl.timer', period = 0.1)
 
 initializes the client and resets the remote controller by installing
-a new instance of :py:class:`ctrl.timer.Controller` running at 10 Hz
+a new instance of :py:class:`pyctrl.timer.Controller` running at 10 Hz
 on the remote server.
 
 SSH and port forwarding
@@ -454,17 +454,17 @@ Because of that, the user can initiate the server using
 
 .. code-block:: none
 		
-    root@beaglebone:~# ctrl_start_server
-    ctrl_start_server (version 1.0)
+    root@beaglebone:~# pyctrl_start_server
+    pyctrl_start_server (version 1.0)
 
-    Type 'ctrl_start_server -h' for more options
+    Type 'pyctrl_start_server -h' for more options
 
     > Options:
        Hostname[port]: localhost[9999]
       Sampling period: ---
 	Verbose level: 1
 
-    <class 'ctrl.Controller'> with:
+    <class 'pyctrl.Controller'> with:
       1 device(s), 0 timer(s), 3 signal(s),
       1 source(s), 0 filter(s), and 0 sink(s)
     > devices
@@ -480,7 +480,7 @@ Because of that, the user can initiate the server using
     > sinks
 
     > Starting server... done
-    > Hit Ctrl-C or use 'ctrl_stop_server' to exit the server
+    > Hit Ctrl-C or use 'pyctrl_stop_server' to exit the server
 
 After starting the server, on another terminal, the user runs his
 application as a client, also connected to :samp:`localhost`. For
@@ -492,10 +492,10 @@ example, using the interactive shell:
     Python 3.4.5 |Anaconda 2.3.0 (x86_64)| (default, Jul  2 2016, 17:47:57) 
     [GCC 4.2.1 Compatible Apple LLVM 4.2 (clang-425.0.28)] on darwin
     Type "help", "copyright", "credits" or "license" for more information.
-    >>> from ctrl.client import Controller
+    >>> from pyctrl.client import Controller
     >>> hello = Controller()
     >>> print(hello.info('all'))
-    <class 'ctrl.Controller'> with:
+    <class 'pyctrl.Controller'> with:
       1 device(s), 0 timer(s), 3 signal(s),
       1 source(s), 0 filter(s), and 0 sink(s)
     > devices
@@ -540,7 +540,7 @@ minimum. Thanks to `duck typing
 features, anything that could go wrong will be dealt with at execution
 time, with errors being propagated using the standard Python
 `exception <https://docs.python.org/3/tutorial/errors.html>`_
-mechanism. As discussed in Section :ref:`What's going on?`, users can
+mechanism. As discussed in Section :ref:`whatsgoingon`, users can
 handle errors by enclosing segments of code using the :py:obj:`try`
 statement::
 
@@ -558,8 +558,8 @@ statement::
 
 Most of the time, error checking is limited to operations that could
 invalidate your controller. In particular, very few error checking
-tests are performed in the methods :py:meth:`ctrl.block.Block.read`
-and :py:meth:`ctrl.block.Block.write`. Such tests would be repeated in
+tests are performed in the methods :py:meth:`pyctrl.block.Block.read`
+and :py:meth:`pyctrl.block.Block.write`. Such tests would be repeated in
 the main controller loop and could potentially impact performance. If
 you need to perform tests in those methods consider using `assertions
 <https://wiki.python.org/moin/UsingAssertionsEffectively>`_. This
@@ -572,28 +572,28 @@ Extending Controllers
 ---------------------
 
 One can take advantage of python's object oriented features to extend
-the functionality of the basic :py:class:`ctrl.Controller`. All that
+the functionality of the basic :py:class:`pyctrl.Controller`. All that
 is necessary is to inherit from
-:py:class:`ctrl.Controller`.
+:py:class:`pyctrl.Controller`.
 
 Inheritance is an easy way to equip controllers with special
 hardware capabilities. That was the case, for example, with the class
-:py:class:`ctrl.timer.Controller` described in :ref:`Devices and
+:py:class:`pyctrl.timer.Controller` described in :ref:`Devices and
 Controllers`. In fact, this new class is so simple that its entire
 code easily fits here:
 
-.. literalinclude:: ../ctrl/timer.py
+.. literalinclude:: ../pyctrl/timer.py
    :pyobject: Controller
 
 Virtually all functionality is provided by the base class
-:py:class:`ctrl.Controller`. The only methods overloaded are
-:py:meth:`ctrl.Controller.__init__` and
-:py:meth:`ctrl.Controller.__reset`.
+:py:class:`pyctrl.Controller`. The only methods overloaded are
+:py:meth:`pyctrl.Controller.__init__` and
+:py:meth:`pyctrl.Controller.__reset`.
 
-The method :py:meth:`ctrl.timer.Controller.__init__` is the standard
+The method :py:meth:`pyctrl.timer.Controller.__init__` is the standard
 python constructor, which in this case parses the new attribute
 :py:attr:`period` before calling the base class
-:py:meth:`ctrl.Controller.__init__` using::
+:py:meth:`pyctrl.Controller.__init__` using::
       
       super().__init__(**kwargs)
 
@@ -608,16 +608,16 @@ need to be valid attributes of the base class or an exception will be
 raised.
 
 Most of the action is in the method
-:py:meth:`ctrl.Controller.__reset`. In fact, a closer look at
-:py:meth:`ctrl.Controller.__init__`:
+:py:meth:`pyctrl.Controller.__reset`. In fact, a closer look at
+:py:meth:`pyctrl.Controller.__init__`:
 
-.. literalinclude:: ../ctrl/__init__.py
+.. literalinclude:: ../pyctrl/__init__.py
    :pyobject: Controller.__init__
 
-reveals that :py:meth:`ctrl.Controller.__init__` calls
-:py:meth:`ctrl.Controller.__reset__` after a couple of definitions.
+reveals that :py:meth:`pyctrl.Controller.__init__` calls
+:py:meth:`pyctrl.Controller.__reset__` after a couple of definitions.
 	      
-If you overload :py:meth:`ctrl.Controller.__reset` make sure to call::
+If you overload :py:meth:`pyctrl.Controller.__reset` make sure to call::
 
     super().__reset()
 
@@ -625,52 +625,52 @@ If you overload :py:meth:`ctrl.Controller.__reset` make sure to call::
 that need to be performed by the base class have already taken place
 and won't undo any of your own initialization.
 
-The method :py:meth:`ctrl.Controller.__reset` is also called by the
-method :py:meth:`ctrl.Controller.reset`. In fact, one rarely needs to
-overload any method other than :py:meth:`ctrl.Controller.__init__` and
-:py:meth:`ctrl.Controller.__reset`.
+The method :py:meth:`pyctrl.Controller.__reset` is also called by the
+method :py:meth:`pyctrl.Controller.reset`. In fact, one rarely needs to
+overload any method other than :py:meth:`pyctrl.Controller.__init__` and
+:py:meth:`pyctrl.Controller.__reset`.
 
-A typical reason for extending :py:class:`ctrl.Controller` is to
+A typical reason for extending :py:class:`pyctrl.Controller` is to
 provide the user with a set of devices that continue to exist even
-after a call to :py:meth:`ctrl.Controller.reset`. For example, the
-following code is from :py:meth:`ctrl.rc.mip.Controller`:
+after a call to :py:meth:`pyctrl.Controller.reset`. For example, the
+following code is from :py:meth:`pyctrl.rc.mip.Controller`:
 
-.. literalinclude:: ../ctrl/rc/mip.py
+.. literalinclude:: ../pyctrl/rc/mip.py
    :pyobject: Controller
 
 which adds a number of devices to the base class
-:py:meth:`ctrl.rc.Controller` that can be used with the Robotics Cape
+:py:meth:`pyctrl.rc.Controller` that can be used with the Robotics Cape
 and the Educational MIP as described in :ref:`Interfacing with Hardware`.
 
 ------------------------
 Writting your own Blocks
 ------------------------
 
-The package :py:mod:`ctrl` is designed so that you can easily extend
+The package :py:mod:`pyctrl` is designed so that you can easily extend
 its functionality by writing simple python code for your own
 blocks. You can write blocks to support your specific hardware or
 implement an algorithm that is currently not available in
-:ref:`Module ctrl.block`.
+:ref:`Module pyctrl.block`.
 
-Your blocks should inherit from :py:class:`ctrl.block.Block` or one of
-its derived class, such as :py:class:`ctrl.block.BufferBlock`, which
+Your blocks should inherit from :py:class:`pyctrl.block.Block` or one of
+its derived class, such as :py:class:`pyctrl.block.BufferBlock`, which
 are described next.
 
-Extending :py:class:`ctrl.block.Block`
---------------------------------------
+Extending :py:class:`pyctrl.block.Block`
+----------------------------------------
 
-A :py:class:`ctrl.block.Block` needs to know how to do two things:
-respond to calls to :py:meth:`ctrl.block.Block.read` and/or
-:py:meth:`ctrl.block.Block.write`. If a block is to be used as a *source*
-then it needs to respond to :py:meth:`ctrl.block.Block.read`, if it is to be
-used as a *sink* it needs to respond to :py:meth:`ctrl.block.Block.write`,
+A :py:class:`pyctrl.block.Block` needs to know how to do two things:
+respond to calls to :py:meth:`pyctrl.block.Block.read` and/or
+:py:meth:`pyctrl.block.Block.write`. If a block is to be used as a *source*
+then it needs to respond to :py:meth:`pyctrl.block.Block.read`, if it is to be
+used as a *sink* it needs to respond to :py:meth:`pyctrl.block.Block.write`,
 and it if is to be used as a *filter* it needs to respond to both.
 
 For example consider the following code for a simple block::
 
-    import ctrl.block
+    import pyctrl.block
   
-    class MyOneBlock(ctrl.block.Block):
+    class MyOneBlock(pyctrl.block.Block):
 
         def read(self):
 	    return (1,)
@@ -678,8 +678,8 @@ For example consider the following code for a simple block::
 that can be used as a *source* whose output *signal* is the constant
 `1`. If you try to use :py:class:`MyOneBlock` as a *sink* an exception
 will be raised since :py:class:`MyOneBlock` does not overload
-:py:meth:`ctrl.block.Block.write`. Note that the return value of
-:py:meth:`ctrl.block.Block.read` must be a tuple with numbers or numpy
+:py:meth:`pyctrl.block.Block.write`. Note that the return value of
+:py:meth:`pyctrl.block.Block.read` must be a tuple with numbers or numpy
 1D-arrays. You could use your block in a controller like this::
   
     # add a MyOneBlock as a source
@@ -692,9 +692,9 @@ controller loop is run.
 
 Consider now the slightest more sophisticated block::
 
-    import ctrl.block
+    import pyctrl.block
     
-    class MySumBlock(ctrl.block.Block):
+    class MySumBlock(pyctrl.block.Block):
 
         def __init__(self, **kwargs):
 
@@ -715,7 +715,7 @@ Consider now the slightest more sophisticated block::
 	    return (sum(self.buffer), )
 
 Because :py:class:`MySumBlock` overloads both
-:py:meth:`ctrl.block.Block.write` and :py:meth:`ctrl.block.Block.read`
+:py:meth:`pyctrl.block.Block.write` and :py:meth:`pyctrl.block.Block.read`
 it can be used a *filter*. For instance::
   
     # add a MySumBlock as a filter
@@ -736,12 +736,12 @@ as if running a code similar to the following::
 At the end of a loop iteration the variable :py:data:`sum` would
 contain the sum of the three variables :py:data:`signal1`,
 :py:data:`signal2`, and :py:data:`signal3`. Of course the code run by
-:py:class:`ctrl.Controller` is never explicitly expanded as above.
+:py:class:`pyctrl.Controller` is never explicitly expanded as above.
     
 A couple of important details here. First
 :py:meth:`MySumBlock.__init__` calls
-:py:meth:`ctrl.block.Block.__init__` then proceeds to create its own
-attribute :py:obj:`buffer`. Note that :py:meth:`ctrl.block.Block` does
+:py:meth:`pyctrl.block.Block.__init__` then proceeds to create its own
+attribute :py:obj:`buffer`. Note that :py:meth:`pyctrl.block.Block` does
 not accept positional arguments, only keyword arguments. As you will
 learn soon, this facilitates handling errors in the
 constructor. Second the method :py:meth:`MySumBlock.write` should
@@ -749,36 +749,36 @@ always take a variable number of arguments, represented by the python
 construction :samp:`*values`. Inside :py:meth:`MySumBlock.write` the
 variable :py:data:`values` is a `tuple
 <https://docs.python.org/3/tutorial/datastructures.html>`_. Third,
-because :py:meth:`ctrl.block.Block.write` and
-:py:meth:`ctrl.block.Block.read` are called separately, it is often
+because :py:meth:`pyctrl.block.Block.write` and
+:py:meth:`pyctrl.block.Block.read` are called separately, it is often
 the case that one needs an internal variable to store values to be
-carried from :py:meth:`ctrl.block.Block.write` to
-:py:meth:`ctrl.block.Block.read`. This is so common that
-:py:mod:`ctrl.block` provides a specialized class
-:py:class:`ctrl.block.BufferBlock`, which you will learn about in the
+carried from :py:meth:`pyctrl.block.Block.write` to
+:py:meth:`pyctrl.block.Block.read`. This is so common that
+:py:mod:`pyctrl.block` provides a specialized class
+:py:class:`pyctrl.block.BufferBlock`, which you will learn about in the
 next section.
     
-Extending :py:class:`ctrl.block.BufferBlock`
---------------------------------------------
+Extending :py:class:`pyctrl.block.BufferBlock`
+----------------------------------------------
 
-The class :py:class:`ctrl.block.BufferBlock` has several features that
+The class :py:class:`pyctrl.block.BufferBlock` has several features that
 can facilitate the implementation of blocks. First,
-py:meth:`ctrl.block.BufferBlock.read` and
-:py:meth:`ctrl.block.BufferBlock.write` work with a an internal
+py:meth:`pyctrl.block.BufferBlock.read` and
+:py:meth:`pyctrl.block.BufferBlock.write` work with a an internal
 attribute :py:obj:`buffer`, which can be used to carry values from
-:py:meth:`ctrl.block.BufferBlock.write` to
-:py:meth:`ctrl.block.BufferBlock.read`. Second, it support
+:py:meth:`pyctrl.block.BufferBlock.write` to
+:py:meth:`pyctrl.block.BufferBlock.read`. Second, it support
 *multiplexing* and *demultiplexing* of inputs as discussed in Section
 :ref:`Multiplexing and demultiplexing`.
 
-Consider as an example the block :py:class:`ctrl.block.system.Gain`,
+Consider as an example the block :py:class:`pyctrl.block.system.Gain`,
 which produces an output which correspond to its inputs multiplied by
-a fixed *gain*. Because :py:class:`ctrl.block.system.Gain` does
+a fixed *gain*. Because :py:class:`pyctrl.block.system.Gain` does
 nothing to its inputs when it is written it does not overload
-:py:meth:`ctrl.block.BufferBlock.write`. All the action is on the
-method :py:meth:`ctrl.block.system.Gain.write`:
+:py:meth:`pyctrl.block.BufferBlock.write`. All the action is on the
+method :py:meth:`pyctrl.block.system.Gain.write`:
 
-.. literalinclude:: ../ctrl/block/system.py 
+.. literalinclude:: ../pyctrl/block/system.py 
    :pyobject: Gain.write
 
 Note that it starts by calling :samp:`super().write(*values)`, which
@@ -792,16 +792,16 @@ comprehension
 that produces the desired output tuple.
 
 For another example consider the block
-:py:class:`ctrl.block.system.Sum` and its method
-:py:meth:`ctrl.block.system.Sum.write`:
+:py:class:`pyctrl.block.system.Sum` and its method
+:py:meth:`pyctrl.block.system.Sum.write`:
 
-.. literalinclude:: ../ctrl/block/system.py 
+.. literalinclude:: ../pyctrl/block/system.py 
    :pyobject: Sum.write
 
 The only new detail here is the use of :samp:`super(Gain,
 self).write(*values)`. This is because
-:py:class:`ctrl.block.system.Sum` inherits from
-:py:class:`ctrl.block.system.Gain`, and you would like to call
-:py:meth:`ctrl.block.BufferBlock.write` instead of
-:py:class:`ctrl.block.system.Gain.write`.
+:py:class:`pyctrl.block.system.Sum` inherits from
+:py:class:`pyctrl.block.system.Gain`, and you would like to call
+:py:meth:`pyctrl.block.BufferBlock.write` instead of
+:py:class:`pyctrl.block.system.Gain.write`.
 

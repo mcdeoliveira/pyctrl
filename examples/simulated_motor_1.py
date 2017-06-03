@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
+
 def main():
 
     # import python's standard math module and numpy
     import math, numpy, sys
     
     # import Controller and other blocks from modules
-    from ctrl.timer import Controller
-    from ctrl.block import Interp, Logger, Constant
-    from ctrl.block.system import System
-    from ctrl.system.tf import DTTF
+    from pyctrl.timer import Controller
+    from pyctrl.block import Interp, Logger, Constant
+    from pyctrl.block.system import System
+    from pyctrl.system.tf import DTTF
 
     # initialize controller
     Ts = 0.01

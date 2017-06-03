@@ -2,14 +2,14 @@ import pytest
 
 import math
 import numpy as np
-import ctrl.block as block
-import ctrl.system as system
-import ctrl.system.tf as tf
-import ctrl.system.ss as ss
+import pyctrl.block as block
+import pyctrl.system as system
+import pyctrl.system.tf as tf
+import pyctrl.system.ss as ss
 
 test_ode = True
 try:
-    import ctrl.system.ode as ode
+    import pyctrl.system.ode as ode
 except:
     test_ode = False
 

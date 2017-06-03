@@ -2,11 +2,11 @@
 Reference Guide
 ###############
    
-.. include:: ctrl.inc
+.. include:: pyctrl.inc
 
-.. include:: ctrl.block.inc
+.. include:: pyctrl.block.inc
 
-.. include:: ctrl.rc.inc
+.. include:: pyctrl.rc.inc
 	     
-.. include:: ctrl.system.inc
+.. include:: pyctrl.system.inc
 

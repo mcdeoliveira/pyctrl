@@ -11,8 +11,8 @@ def brief_warning(message, category, filename, lineno, line=None):
 
 warnings.formatwarning = brief_warning
 
-from ctrl.rc.mip import Controller
-import ctrl.block as block
+from pyctrl.rc.mip import Controller
+import pyctrl.block as block
 
 # initialize mip
 Ts = 0.25

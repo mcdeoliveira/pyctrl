@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
+
 def main():
 
     # import python's standard time module
     import time
 
     # import Controller and other blocks from modules
-    from ctrl import Controller
-    from ctrl.block import Printer
-    from ctrl.block.clock import TimerClock
+    from pyctrl import Controller
+    from pyctrl.block import Printer
+    from pyctrl.block.clock import TimerClock
 
     # initialize controller
     hello = Controller()

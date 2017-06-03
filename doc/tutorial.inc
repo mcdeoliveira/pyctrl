@@ -4,7 +4,7 @@ Tutorial
 
 In this tutorial you will learn how to use Controllers, work with
 *signals* and the various *blocks* available with the package
-:py:mod:`ctrl`. You will also learn how to implement controllers that interact
+:py:mod:`pyctrl`. You will also learn how to implement controllers that interact
 with hardware devices. You can run the code in this tutorial
 interactively using the python interpreter or by running them as
 scripts. All code is available in the Section :ref:`Examples`.
@@ -19,9 +19,9 @@ Start with the following simple *Hello World!* example::
     import time
 
     # import Controller and other blocks from modules
-    from ctrl import Controller
-    from ctrl.block import Printer
-    from ctrl.block.clock import TimerClock
+    from pyctrl import Controller
+    from pyctrl.block import Printer
+    from pyctrl.block.clock import TimerClock
 
     # initialize controller
     hello = Controller()
@@ -60,25 +60,27 @@ program is in :ref:`hello_world.py`. You might see some warnings about
 existing *signals* and *sources* which can be safely disregarded at
 this stage.
 
+.. _whatsgoingon:
+
 ----------------
 What's going on?
 ----------------
 
 Let's analyze each part of the above code to make sense of what is
 going on. The first couple lines import the modules to be used from
-the standard Python's :py:class:`time` and various :py:mod:`ctrl` libraries::
+the standard Python's :py:class:`time` and various :py:mod:`pyctrl` libraries::
 
     import time
-    from ctrl import Controller
-    from ctrl.block import Printer
-    from ctrl.block.clock import TimerClock
+    from pyctrl import Controller
+    from pyctrl.block import Printer
+    from pyctrl.block.clock import TimerClock
 
 After importing :py:class:`Controller` you can initialize the Python
-variable :py:data:`hello` as being a :py:class:`Controller`, more specifically an instance of the class :py:class:`ctrl.Controller`::
+variable :py:data:`hello` as being a :py:class:`Controller`, more specifically an instance of the class :py:class:`pyctrl.Controller`::
     
     hello = Controller()
 
-A :py:class:`ctrl.Controller`, by itself, does nothing useful, so let's add some
+A :py:class:`pyctrl.Controller`, by itself, does nothing useful, so let's add some
 *signals* and *blocks* that you can interact with. The line::
 
     hello.add_signal('myclock')
@@ -95,12 +97,12 @@ communicate between *blocks*. The next lines::
 add a :py:class:`TimerClock` as a *source*. A *source* is a type of
 block that produces at least one *output* and has *no inputs*.
 
-The parameters to :py:meth:`ctrl.Controller.add_source` are a *label*,
-in this case :py:data:`myclock`, a :py:mod:`ctrl.block` object, in this
-case :py:class:`ctrl.block.clock.TimerClock`, and a *list of signal outputs*, in this
+The parameters to :py:meth:`pyctrl.Controller.add_source` are a *label*,
+in this case :py:data:`myclock`, a :py:mod:`pyctrl.block` object, in this
+case :py:class:`pyctrl.block.clock.TimerClock`, and a *list of signal outputs*, in this
 case the list containg a single *signal* :py:data:`['myclock']`. 
 
-An instance of the class :py:class:`ctrl.block.clock.TimerClock`
+An instance of the class :py:class:`pyctrl.block.clock.TimerClock`
 implements a clock based on Python's :py:class:`threading.Timer`
 class. It's performance and accuracy can vary depending on the
 particular implementation for your platform. The parameter
@@ -114,15 +116,15 @@ The following line::
 		   Printer(message = 'Hello World!'),
 		   ['myclock'])
 
-adds a :py:class:`ctrl.block.Printer` as a *sink*. A *sink* is a type
+adds a :py:class:`pyctrl.block.Printer` as a *sink*. A *sink* is a type
 of block that takes at least one *input* but produces *no output*.
 
-The parameters to :py:meth:`ctrl.Controller.add_sink` are a *label*,
-in this case :py:data:`'message'`, a :py:mod:`ctrl.block` object, in this
-case :py:class:`ctrl.block.Printer`, and a *list of inputs*, in this case
+The parameters to :py:meth:`pyctrl.Controller.add_sink` are a *label*,
+in this case :py:data:`'message'`, a :py:mod:`pyctrl.block` object, in this
+case :py:class:`pyctrl.block.Printer`, and a *list of inputs*, in this case
 :py:data:`['myclock']`.
 		   
-An instance of the class :py:class:`ctrl.block.Printer` implements a
+An instance of the class :py:class:`pyctrl.block.Printer` implements a
 *sink* that prints messages and the signals appearing at its input. In
 this case, the attribute :py:attr:`message = 'Hello World!'` is the
 message to be printed.
@@ -144,11 +146,11 @@ platform. Pause for 5.1 seconds instead if you would like to make sure it is pri
 
   hello.set_sink('message', enabled = False)
 
-to disable the *sink* :py:data:`message`, which stops the :py:class:`ctrl.block.Printer` from printing any more messages on the screen. 
+to disable the *sink* :py:data:`message`, which stops the :py:class:`pyctrl.block.Printer` from printing any more messages on the screen. 
 
 Secretly behind the statement :samp:`with hello` is a call to the
-pair of methods :py:meth:`ctrl.Controller.start` and
-:py:meth:`ctrl.Controller.stop`. In fact, alternatively, one could have
+pair of methods :py:meth:`pyctrl.Controller.start` and
+:py:meth:`pyctrl.Controller.stop`. In fact, alternatively, one could have
 written the not so clean::
 
     hello.start()
@@ -180,11 +182,11 @@ Otherwise, the clock would continue to run even as the program
 terminates, most likely locking your terminal, which is not the
 desired behavior you're after in your first example.
 
-The method :py:meth:`ctrl.Controller.set_source` allows you to set up
+The method :py:meth:`pyctrl.Controller.set_source` allows you to set up
 attributes of your *source*, in the case the :py:data:`enabled`
 attribute that effectively stops the clock. Likewise,
-:py:meth:`ctrl.Controller.set_sink` and
-:py:meth:`ctrl.Controller.set_filter` allow you to set up attributes in *sinks* and *filters*.
+:py:meth:`pyctrl.Controller.set_sink` and
+:py:meth:`pyctrl.Controller.set_filter` allow you to set up attributes in *sinks* and *filters*.
 
 -------------------
 The controller loop
@@ -201,12 +203,12 @@ produces the output:
 
 .. code-block:: none
 		
-    <class 'ctrl.Controller'> with:
+    <class 'pyctrl.Controller'> with:
       1 device(s), 0 timer(s), 4 signal(s),
       2 source(s), 0 filter(s), and 1 sink(s)
 
 For more information you can use the method
-:py:meth:`ctrl.Controller.info`. For example::
+:py:meth:`pyctrl.Controller.info`. For example::
 
     print(hello.info('all'))
 
@@ -214,7 +216,7 @@ produces the output:
 
 .. code-block:: none
 
-    <class 'ctrl.Controller'> with:
+    <class 'pyctrl.Controller'> with:
       1 device(s), 0 timer(s), 4 signal(s),
       2 source(s), 0 filter(s), and 1 sink(s)
     > devices
@@ -246,7 +248,7 @@ the *sink* :py:data:`message` has as input the same *signal*
 :py:data:`myclock`.
 
 Starting the controller :py:data:`hello` with the statement
-:py:obj:`with` or :py:meth:`ctrl.Controller.start` fires up the
+:py:obj:`with` or :py:meth:`pyctrl.Controller.start` fires up the
 following sequence of events:
 
 1. Every *source* is *read* and its outputs are copied to the
@@ -268,7 +270,7 @@ following sequence of events:
    step 1, otherwise stop.
 
 The *signal* :py:data:`is_running` can be set to `False` by calling 
-:py:meth:`ctrl.Controller.stop` or exiting the :py:obj:`with`
+:py:meth:`pyctrl.Controller.stop` or exiting the :py:obj:`with`
 statement. In the `Hello World!` example this is done after doing
 nothing for 5 seconds inside the :py:obj:`with` statement.
 
@@ -296,39 +298,39 @@ Devices and Controllers
 As you might have suspect after going through the :ref:`Hello World!`
 example, it is useful to have a controller with a clock. In fact, as
 you will learn later in :ref:`Timers`, every
-:py:class:`ctrl.Controller` comes equipped with some kind of
-clock. The method :py:meth:`ctrl.Controller.add_device` automates the
+:py:class:`pyctrl.Controller` comes equipped with some kind of
+clock. The method :py:meth:`pyctrl.Controller.add_device` automates the
 process of adding blocks to a controller and is typically used when
 adding blocks that should behave as hardware devices, like a
 clock. For example, the following code::
 
-  from ctrl import Controller
+  from pyctrl import Controller
 
   hello = Controller()
   hello.add_device('clock',
-                   'ctrl.block.clock', 'TimerClock',
+                   'pyctrl.block.clock', 'TimerClock',
 		   type = 'source', 
 		   outputs = ['clock'],
 		   enable = True,
 		   period = 1)
 			    
-automatically creates a :py:class:`ctrl.block.clock.TimerClock` which
+automatically creates a :py:class:`pyctrl.block.clock.TimerClock` which
 is added to :py:data:`controller` as the *source* labeled
 :py:data:`clock` with *output signal* :py:data:`clock`. Setting the
 attribute :py:data:`enable` equal to `True` makes sure that the device
-is *enabled* at every call to :py:meth:`ctrl.Controller.start` and *disabled* at
-every call to :py:meth:`ctrl.Controller.stop`.
+is *enabled* at every call to :py:meth:`pyctrl.Controller.start` and *disabled* at
+every call to :py:meth:`pyctrl.Controller.stop`.
 
 A controller with a timer based clock is so common that the above
-construction is provided as a module in :py:mod:`ctrl.timer`. Using
-:py:mod:`ctrl.timer` the `Hello World!` example can be simplified to::
+construction is provided as a module in :py:mod:`pyctrl.timer`. Using
+:py:mod:`pyctrl.timer` the `Hello World!` example can be simplified to::
 
     # import Python's standard time module
     import time
 
     # import Controller and other blocks from modules
-    from ctrl.timer import Controller
-    from ctrl.block import Printer
+    from pyctrl.timer import Controller
+    from pyctrl.block import Printer
 
     # initialize controller
     hello = Controller(period = 1)
@@ -351,7 +353,7 @@ construction is provided as a module in :py:mod:`ctrl.timer`. Using
 The complete code is in :ref:`hello_timer_1.py`. Note that you no
 longer have to disable the `clock` *source*, which is handled
 automatically when exiting the :py:obj:`with` statement by calling
-:py:meth:`ctrl.Controller.stop`. As before, you call::
+:py:meth:`pyctrl.Controller.stop`. As before, you call::
 
   hello.set_sink('message', enabled = False)
 
@@ -362,7 +364,7 @@ A call to :samp:`print(hello.info('all'))` produces:
 
 .. code-block:: none
 	       
-    <class 'ctrl.timer.Controller'> with:
+    <class 'pyctrl.timer.Controller'> with:
       1 device(s), 0 timer(s), 3 signal(s),
       1 source(s), 0 filter(s), and 1 sink(s)
     > devices
@@ -379,22 +381,22 @@ A call to :samp:`print(hello.info('all'))` produces:
       1. clock >> message[Printer, disabled]
 
 which reveals the presence of the signal :py:data:`clock` and the
-*device* :py:class:`ctrl.block.clock.TimerClock` as a *source*.
+*device* :py:class:`pyctrl.block.clock.TimerClock` as a *source*.
 
 The notion of *device* is much more than a simple convenience
 though. By having the controller dynamically initialize a block by
 providing the module and class names as strings to
-:py:meth:`ctrl.Controller.add_device`, i.e. the arguments
-:py:data:`'ctrl.block.clock'` and :py:data:`'TimerClock'` above, it
+:py:meth:`pyctrl.Controller.add_device`, i.e. the arguments
+:py:data:`'pyctrl.block.clock'` and :py:data:`'TimerClock'` above, it
 will be possible to remotely initialize blocks that rely on the
 presence of specific hardware using our :ref:`Client-Server
 Application Architecture`, as you will learn later. Note that you do
 not have to directly import any modules when using
-:py:meth:`ctrl.Controller.add_device`.
+:py:meth:`pyctrl.Controller.add_device`.
 
 In some situations it might be helpful to be able to reset a
 controller to its original configuration. This can be done using the
-method :py:meth:`ctrl.Controller.reset`. For example, after
+method :py:meth:`pyctrl.Controller.reset`. For example, after
 initialization or after calling::
 
     hello.reset()
@@ -403,7 +405,7 @@ initialization or after calling::
 
 .. code-block:: none
 	       
-    <class 'ctrl.timer.Controller'> with:
+    <class 'pyctrl.timer.Controller'> with:
       1 device(s), 0 timer(s), 3 signal(s),
       1 source(s), 0 filter(s), and 0 sink(s)
     > devices
@@ -429,13 +431,13 @@ Timers
 As you have learned so far, all *sources*, *filters*, and *sinks* are
 continually processed in a loop. In the above example you have
 equipped the controller :py:data:`hello` with a
-:py:class:`ctrl.block.clock.TimerClock`, either explicitly, as in
+:py:class:`pyctrl.block.clock.TimerClock`, either explicitly, as in
 :ref:`Hello World!`, or implicitly, by loading
-:py:class:`ctrl.timer.Controller`. Note that the controller itself has
+:py:class:`pyctrl.timer.Controller`. Note that the controller itself has
 no notion of time and that events happen periodically simply because
-of the presence of a :py:class:`ctrl.block.clock.TimerClock`, which
+of the presence of a :py:class:`pyctrl.block.clock.TimerClock`, which
 will stop processing until the set period has elapsed. In fact, the
-base class :py:class:`ctrl.timer.Controller` is also equipped with a
+base class :py:class:`pyctrl.timer.Controller` is also equipped with a
 clock *source* except that this clock does not attempt to interrupt
 processing, but simply writes the current time into the *signal*
 :py:data:`clock` every time the controller loop is restarted. A
@@ -447,8 +449,8 @@ For example, the code::
     import time
 
     # import Controller and other blocks from modules
-    from ctrl import Controller
-    from ctrl.block import Printer
+    from pyctrl import Controller
+    from pyctrl.block import Printer
 
     # initialize controller
     hello = Controller()
@@ -486,9 +488,9 @@ controller::
 
 to see the `Hello World` message printing every second as the main
 loop prints the `Current time` message as fast as possible. The
-parameters of the method :py:meth:`ctrl.Controller.add_timer` are the
+parameters of the method :py:meth:`pyctrl.Controller.add_timer` are the
 *label* and *block*, in the case :py:data:`'message'` and the
-:py:class:`ctrl.block.Printer` object, followed by a *list of signal inputs*, in
+:py:class:`pyctrl.block.Printer` object, followed by a *list of signal inputs*, in
 this case :py:data:`['clock']`, and a *list of signal outputs*, in
 this case :py:data:`None`, then the *timer* period in seconds, and a
 flag to tell whether the execution of the *block* should repeat
@@ -496,7 +498,7 @@ periodically, as opposed to just once.
 
 An example of a useful *timer* event to be run only once is the following::
 
-    from ctrl.block import Constant
+    from pyctrl.block import Constant
     
     # Add a timer to stop the controller
     hello.add_timer('stop',
@@ -507,14 +509,14 @@ An example of a useful *timer* event to be run only once is the following::
 which will stop the controller after 5 seconds by setting the *signal*
 :py:data:`is_running` to zero. In fact, after adding the above timer
 one could run the controller loop by simply waiting for the controller
-to terminate using :py:meth:`ctrl.Controller.join` as in::
+to terminate using :py:meth:`pyctrl.Controller.join` as in::
 
     with hello:
         hello.join()
 
 Note that your program will not terminate until all *blocks* and
 *timers* terminate, so it is still important that you always call
-:py:meth:`ctrl.Controller.stop` or use the :py:obj:`with` statement to
+:py:meth:`pyctrl.Controller.stop` or use the :py:obj:`with` statement to
 exit cleanly.
 
 A complete example with all the ideas discussed above can be found in
@@ -525,16 +527,16 @@ Filters
 -------
 
 So far you have used only *sources*, like
-:py:class:`ctrl.block.clock.TimerClock`, and *sinks*, like
-:py:class:`ctrl.block.Printer`. *Sources* produce outputs and take no
+:py:class:`pyctrl.block.clock.TimerClock`, and *sinks*, like
+:py:class:`pyctrl.block.Printer`. *Sources* produce outputs and take no
 input and *sinks* take inputs but produce no output. *Filters* take
 inputs *and* produce outputs. Your first *filter* will be used to
 construct a signal which you will later apply to a motor. Consider the
 following code::
 
     # import Controller and other blocks from modules
-    from ctrl.timer import Controller
-    from ctrl.block import Interp, Constant, Printer
+    from pyctrl.timer import Controller
+    from pyctrl.block import Interp, Constant, Printer
 
     # initialize controller
     Ts = 0.1
@@ -582,7 +584,7 @@ time *signal* :py:data:`clock` and the value of the *signal*
 :py:data:`pwm` on the screen, and the *timer* :py:data:`stop` will
 shutdown the controller after 6 seconds. The new block here is the
 *filter* :py:data:`input`, which uses the block
-:py:class:`ctrl.block.Interp`. This block will take as input the time
+:py:class:`pyctrl.block.Interp`. This block will take as input the time
 given by the *signal* :py:data:`clock` and produce as a result a value
 that interpolates the values given in the arrays :py:data:`ts` and
 :py:data:`us`. Internally it uses :py:func:`numpy.interp`
@@ -590,7 +592,7 @@ function. See `the numpy documentation
 <https://docs.scipy.org/doc/numpy/reference/generated/numpy.interp.html>`_
 for details. The reason for the name :py:data:`pwm` will be explained
 later in Section :ref:`Simulated motor example`. The block
-:py:class:`ctrl.block.Interp` will always consider its `x` argument to
+:py:class:`pyctrl.block.Interp` will always consider its `x` argument to
 be relative to the first time the *filter* is written to. That's why
 you :py:data:`ts` starts at 0. If you need to run it again just reset
 the block calling::
@@ -605,7 +607,7 @@ The key aspect in this example is how *filters* process
 
 .. code-block:: none
 
-    <class 'ctrl.timer.Controller'> with:
+    <class 'pyctrl.timer.Controller'> with:
       1 device(s), 1 timer(s), 4 signal(s),
       1 source(s), 1 filter(s), and 1 sink(s)
     > devices
@@ -633,7 +635,7 @@ Because of the way the controller loop proceeds (see :ref:`The
 controller loop`), you can use the same *signal* as both input and
 output of a filter. For example, the *filter*::
 
-    from ctrl.block.system import Gain
+    from pyctrl.block.system import Gain
     hello.add_filter('gain',
                      Gain(gain = .5),
 		     ['pwm'],
@@ -646,26 +648,26 @@ scales the *signal* :py:data:`pwm` by a factor of 0.5 and has the
 Modifying Blocks
 ----------------
 
-Instances of :py:class:`ctrl.block.Block` can have its attributes
+Instances of :py:class:`pyctrl.block.Block` can have its attributes
 retrieved and modified using the methods
-:py:meth:`ctrl.block.Block.get` and
-:py:meth:`ctrl.block.Block.set`. There is also the special methods
-:py:meth:`ctrl.block.Block.reset`,
-:py:meth:`ctrl.block.Block.is_enabled` and
-:py:meth:`ctrl.block.Block.set_enabled`.
+:py:meth:`pyctrl.block.Block.get` and
+:py:meth:`pyctrl.block.Block.set`. There is also the special methods
+:py:meth:`pyctrl.block.Block.reset`,
+:py:meth:`pyctrl.block.Block.is_enabled` and
+:py:meth:`pyctrl.block.Block.set_enabled`.
 
-However, once you install an instance of :py:class:`ctrl.block.Block`
+However, once you install an instance of :py:class:`pyctrl.block.Block`
 in a controller as a *source*, *filter*, *sink*, or *timer*, you
 should no longer directly call those methods. Instead you should
 retrieve and set block attributes using the family of methods
-:py:meth:`ctrl.Controller.get_source`,
-:py:meth:`ctrl.Controller.get_filter`,
-:py:meth:`ctrl.Controller.get_sink`,
-:py:meth:`ctrl.Controller.get_timer`,
-:py:meth:`ctrl.Controller.set_source`,
-:py:meth:`ctrl.Controller.set_filter`,
-:py:meth:`ctrl.Controller.set_sink`, and
-:py:meth:`ctrl.Controller.set_timer`. The reason for this is that,
+:py:meth:`pyctrl.Controller.get_source`,
+:py:meth:`pyctrl.Controller.get_filter`,
+:py:meth:`pyctrl.Controller.get_sink`,
+:py:meth:`pyctrl.Controller.get_timer`,
+:py:meth:`pyctrl.Controller.set_source`,
+:py:meth:`pyctrl.Controller.set_filter`,
+:py:meth:`pyctrl.Controller.set_sink`, and
+:py:meth:`pyctrl.Controller.set_timer`. The reason for this is that,
 depending on the context, the block instance owned by the controller
 might be different than the one you originally installed. This is the
 case, for example, when you run a controller remotely using the
@@ -688,12 +690,12 @@ would produce something like:
 
 which is a dictionary with all public properties of the source
 :py:data:`clock`, an instance of
-:py:class:`ctrl.block.clock.TimerClock`. If only one attribute is
+:py:class:`pyctrl.block.clock.TimerClock`. If only one attribute is
 sought, as in::
      
     hello.get_source('clock', 'count')
 
-then :py:meth:`ctrl.Controller.get_source` returns simply
+then :py:meth:`pyctrl.Controller.get_source` returns simply
 :py:data:`33`.
 
 Likewise::
@@ -711,31 +713,31 @@ There are two special attributes that can be invoked for any block:
 
     hello.set_source('clock', reset = True)
 
-will internally call :py:meth:`ctrl.block.Block.reset` and:: 
+will internally call :py:meth:`pyctrl.block.Block.reset` and:: 
 
     hello.set_source('clock', enabled = False)
 
-will call :py:meth:`ctrl.block.Block.set_enabled`.
+will call :py:meth:`pyctrl.block.Block.set_enabled`.
   
 *Sources*, *filters*, *sinks*, and *timers* can also be removed using
-:py:meth:`ctrl.Controller.remove_source`,
-:py:meth:`ctrl.Controller.remove_filter`,
-:py:meth:`ctrl.Controller.remove_sink`, and
-:py:meth:`ctrl.Controller.remove_timer`. For example::
+:py:meth:`pyctrl.Controller.remove_source`,
+:py:meth:`pyctrl.Controller.remove_filter`,
+:py:meth:`pyctrl.Controller.remove_sink`, and
+:py:meth:`pyctrl.Controller.remove_timer`. For example::
 
   hello.remove_sink('printer')
 
 removes the *sink* :py:data:`printer` from the controller loop.
 
 Finally, one can also read and write to blocks using
-:py:meth:`ctrl.Controller.read_source`,
-:py:meth:`ctrl.Controller.read_filter`,
-:py:meth:`ctrl.Controller.read_sink`,
-:py:meth:`ctrl.Controller.read_timer`,
-:py:meth:`ctrl.Controller.write_source`,
-:py:meth:`ctrl.Controller.write_filter`,
-:py:meth:`ctrl.Controller.write_sink`, and
-:py:meth:`ctrl.Controller.write_timer`. These will be used in the next
+:py:meth:`pyctrl.Controller.read_source`,
+:py:meth:`pyctrl.Controller.read_filter`,
+:py:meth:`pyctrl.Controller.read_sink`,
+:py:meth:`pyctrl.Controller.read_timer`,
+:py:meth:`pyctrl.Controller.write_source`,
+:py:meth:`pyctrl.Controller.write_filter`,
+:py:meth:`pyctrl.Controller.write_sink`, and
+:py:meth:`pyctrl.Controller.write_timer`. These will be used in the next
 section to read values from a block that logs running data.
     
 -----------------
@@ -743,14 +745,14 @@ Working with data
 -----------------
 
 So far you have been running blocks and displaying the results on your
-screen using :py:class:`ctrl.block.Printer`. If you would want to
+screen using :py:class:`pyctrl.block.Printer`. If you would want to
 store the generated data for further processing you should instead use
-the block :py:class:`ctrl.block.Logger`. Let us revisit the example
+the block :py:class:`pyctrl.block.Logger`. Let us revisit the example
 from Section :ref:`Filters`, this time adding also a
-:py:class:`ctrl.block.Logger`. The only difference is the introduction
+:py:class:`pyctrl.block.Logger`. The only difference is the introduction
 of the additional *sink*::
 
-    from ctrl.block import Logger
+    from pyctrl.block import Logger
     
     # add logger
     hello.add_sink('logger',
@@ -770,7 +772,7 @@ or set data as in this case. For example::
 retrieves the data stored in :py:data:`logger` and copy it to
 the numpy array :py:data:`data`. Data is stored by rows, with each
 column representing one of the signals used as inputs to the
-:py:class:`ctrl.block.Logger`. In this case, the first column will
+:py:class:`pyctrl.block.Logger`. In this case, the first column will
 contain the signal :py:data:`clock` and the second column will contain
 the signal :py:data:`pwm`. One can use standard numpy indexing
 to conveniently access the data::
@@ -805,7 +807,7 @@ should produce a plot like the one below:
 .. image:: figures/hello_filter_2.png
 
 from which you can visualize the input signal :py:data:`pwm`
-constructed by the :py:class:`ctrl.block.Interp` block. Note that for
+constructed by the :py:class:`pyctrl.block.Interp` block. Note that for
 better granularity the sampling period used in
 :ref:`hello_filter_2.py` is 0.01 s, whereas the one used in
 :ref:`hello_filter_1.py` was only 0.1 s.
@@ -824,9 +826,9 @@ A transfer-function model
 The beginnig of the code is similar to :ref:`hello_filter_2.py`::
   
     # import Controller and other blocks from modules
-    from ctrl.timer import Controller
-    from ctrl.block import Interp, Logger, Constant
-    from ctrl.system.tf import DTTF, LPF
+    from pyctrl.timer import Controller
+    from pyctrl.block import Interp, Logger, Constant
+    from pyctrl.system.tf import DTTF, LPF
 
     # initialize controller
     Ts = 0.01
@@ -878,8 +880,8 @@ will simulate by creating the following *filter*::
     # import math and numpy
     import math, numpy
     
-    from ctrl.block.system import System
-    from ctrl.system.tf import DTTF
+    from pyctrl.block.system import System
+    from pyctrl.system.tf import DTTF
 
     # Motor model parameters
     tau = 1/55   # time constant (s)
@@ -905,15 +907,15 @@ input data you created earlier. The ouput of the *filter*
 to the motor angular position :math:`\theta`.
 		       
 The *block* used in the *filter* :py:data:`motor` is of the class
-:py:class:`ctrl.block.system.System`, which allows one to incorporate
+:py:class:`pyctrl.block.system.System`, which allows one to incorporate
 a variety of system models into filters. See :ref:`Module
-ctrl.system` for other types of system models available. The
-particular model you are using is a :py:class:`ctrl.system.DTTF`, in
+pyctrl.system` for other types of system models available. The
+particular model you are using is a :py:class:`pyctrl.system.DTTF`, in
 which DTTF stands for *Discrete-Time Transfer-Function*. This model
 corresponds to the difference equation discussed above. Note
 dependency on Python's math library and `numpy <http:www.numpy.org>`_.
 
-To wrap it up you will add a *sink* :py:class:`ctrl.block.Logger` to
+To wrap it up you will add a *sink* :py:class:`pyctrl.block.Logger` to
 collect the data generated during the simulation and a *timer* to stop
 the controller::
 
@@ -999,7 +1001,7 @@ After introducing *filters* to produce the *signals* :py:data:`pwm`
 and :py:data:`encoder`, you will add another filter to calculate the
 speed by *differentiating* the :py:data:`encoder` *signal*::
 
-    from ctrl.block.system import Differentiator
+    from pyctrl.block.system import Differentiator
     
     # add motor speed signal
     simotor.add_signal('speed')
@@ -1011,7 +1013,7 @@ speed by *differentiating* the :py:data:`encoder` *signal*::
                        ['speed'])
 
 The *filter* :py:data:`speed` uses a block
-:py:class:`ctrl.block.system.Differentiator` that takes as input both
+:py:class:`pyctrl.block.system.Differentiator` that takes as input both
 the :py:data:`clock` signal and the *signal* :py:data:`encoder`, which
 is the one being differentiated, and produces the output *signal*
 :py:data:`speed`.
@@ -1023,7 +1025,7 @@ floating-point calculations will give rise to noise in the *signal*
 :py:data:`speed`. In some cases one can get around by filtering the
 *signal*. For example, by introducing a *low-pass filter* as in::
     
-    from ctrl.system.tf import LPF
+    from pyctrl.system.tf import LPF
     
     # add low-pass signal
     simotor.add_signal('fspeed')
@@ -1035,12 +1037,12 @@ floating-point calculations will give rise to noise in the *signal*
                        ['fspeed'])
 
 The *filter* :py:data:`LPF` uses a block
-:py:class:`ctrl.block.system.System` that takes as input the
+:py:class:`pyctrl.block.system.System` that takes as input the
 :py:data:`speeed` signal and produces the output *signal*
 :py:data:`fspeed`, which is the filtered version of the input
 :py:data:`speeed`. The model used in
-:py:class:`ctrl.block.system.System` is the low-pass filter
-:py:class:`ctrl.system.tf.LPF` with cutoff frequency :py:data:`fc` equal
+:py:class:`pyctrl.block.system.System` is the low-pass filter
+:py:class:`pyctrl.system.tf.LPF` with cutoff frequency :py:data:`fc` equal
 to 5 Hz.
 
 Finally collect all the data in the logger::
@@ -1054,7 +1056,7 @@ After all that you should have a controller with the following blocks:
 
 .. code-block:: none
 
-    <class 'ctrl.timer.Controller'> with:
+    <class 'pyctrl.timer.Controller'> with:
       1 device(s), 1 timer(s), 7 signal(s),
       1 source(s), 4 filter(s), and 1 sink(s)
     > devices
@@ -1144,22 +1146,22 @@ that can interface with the `Robotics Cape
 <http://www.strawsondesign.com/>`_::
    
     # import Controller and other blocks from modules
-    from ctrl.rc import Controller
+    from pyctrl.rc import Controller
 
     # initialize controller
     Ts = 0.01
     bbb = Controller(period = Ts)
 
 Note that the code is virtually the same as used before except that
-you are importing `Controller` from :py:mod:`ctrl.rc` rather than from
-:py:mod:`ctrl` or :py:mod:`ctrl.timer`. It is now time to install the
+you are importing `Controller` from :py:mod:`pyctrl.rc` rather than from
+:py:mod:`pyctrl` or :py:mod:`pyctrl.timer`. It is now time to install the
 devices you will be using. For this demonstration you will use one of
 the `MIP's <https://github.com/StrawsonDesign/EduMiP>`_ motor and the corresponding encoder. First load the
 encoder::
    
     # add encoder as source
     bbb.add_device('encoder1',
-                   'ctrl.rc.encoder', 'Encoder',
+                   'pyctrl.rc.encoder', 'Encoder',
                    type = 'source',
                    outputs = ['encoder'],
                    encoder = 3, 
@@ -1169,7 +1171,7 @@ which will appear as a *source* labeled :py:data:`encoder1` connected
 to the output *signal* :py:data:`encoder`.
 
 You install devices using the same method
-:py:meth:`ctrl.Controller.add_device` you already worked with
+:py:meth:`pyctrl.Controller.add_device` you already worked with
 before. Besides the mandatory parameters `label`, `device_module`, and
 `device_class`, you have to provide the type of block the device will
 be installed as, i.e. *source*, *filter*, or *sink*, and the corresponding
@@ -1192,7 +1194,7 @@ You load the motor as::
 
     # add motor as sink
     bbb.add_device('motor1', 
-                   'ctrl.rc.motor', 'Motor',
+                   'pyctrl.rc.motor', 'Motor',
                    type = 'sink',
                    enable = True,
                    inputs = ['pwm'],
@@ -1201,8 +1203,8 @@ You load the motor as::
 which will appear as the *sink* :py:data:`motor1` connected to the
 input *signal* :py:data:`pwm`. Note that the above code makes use of
 the parameter :py:data:`enable`, which controls whether the device
-should be enabled at :py:meth:`ctrl.Controller.start` and disabled at
-:py:meth:`ctrl.Controller.stop`. In the case of motors or other
+should be enabled at :py:meth:`pyctrl.Controller.start` and disabled at
+:py:meth:`pyctrl.Controller.stop`. In the case of motors or other
 devices that can present danger if left in some unknown state, this is
 done for safety: terminating or aborting your code will automatically
 turn off the physical motor. Note that the *source*
@@ -1228,7 +1230,7 @@ devices is shown in the output of :samp:`print(bbb.info('all'))`:
 
 .. code-block:: none
 
-    <class 'ctrl.rc.Controller'> with:
+    <class 'pyctrl.rc.Controller'> with:
       3 device(s), 0 timer(s), 5 signal(s),
       2 source(s), 0 filter(s), and 1 sink(s)
     > devices
@@ -1263,9 +1265,9 @@ and motor devices as the ones used in the Section
 to repeat the motor experiment, this time using real hardware. For example,
 the code::
 
-    from ctrl.block import Interp, Logger, Constant
-    from ctrl.block.system import System, Differentiator
-    from ctrl.system.tf import LPF
+    from pyctrl.block import Interp, Logger, Constant
+    from pyctrl.block.system import System, Differentiator
+    from pyctrl.system.tf import LPF
 
     # build interpolated input signal
     ts = [0, 1, 2,   3,   4,   5,   5, 6]
@@ -1310,7 +1312,7 @@ will produce a controller with the following connections:
 
 .. code-block:: none
 
-    <class 'ctrl.rc.Controller'> with:
+    <class 'pyctrl.rc.Controller'> with:
       3 device(s), 1 timer(s), 7 signal(s),
       2 source(s), 3 filter(s), and 2 sink(s)
     > devices
@@ -1398,7 +1400,7 @@ hardware`. Start by installing the same devices as before, one motor and
 one encoder::
 
     # import Controller and other blocks from modules
-    from ctrl.rc import Controller
+    from pyctrl.rc import Controller
 
     # initialize controller
     Ts = 0.01
@@ -1406,7 +1408,7 @@ one encoder::
 
     # add encoder as source
     bbb.add_device('encoder1',
-                   'ctrl.rc.encoder', 'Encoder',
+                   'pyctrl.rc.encoder', 'Encoder',
                    type = 'source',
                    outputs = ['encoder'],
                    encoder = 3, 
@@ -1414,7 +1416,7 @@ one encoder::
     
     # add motor as sink
     bbb.add_device('motor1', 
-                   'ctrl.rc.motor', 'Motor',
+                   'pyctrl.rc.motor', 'Motor',
                    type = 'sink',
                    enable = True,
                    inputs = ['pwm'],
@@ -1422,7 +1424,7 @@ one encoder::
 
 Because you will be controlling the motor speed, add also a differentiator::
 		   
-    from ctrl.block.system import Differentiator
+    from pyctrl.block.system import Differentiator
     
     # add motor speed signal
     bbb.add_signal('speed')
@@ -1518,13 +1520,13 @@ This will make the motor respond with the same time-constant as if it
 were in open-loop but this time with the ability to *track* a constant
 reference velocity signal :math:`\bar{\omega}`.
 
-Taking advantage of the blocks :py:class:`ctrl.block.system.System`
-and :py:class:`ctrl.block.system.Feedback`, and of the PID control
-algoritm provided in :py:class:`ctrl.system.tf.PID` you can calculate
+Taking advantage of the blocks :py:class:`pyctrl.block.system.System`
+and :py:class:`pyctrl.block.system.Feedback`, and of the PID control
+algoritm provided in :py:class:`pyctrl.system.tf.PID` you can calculate
 and implement this PI controller in only a few lines of code::
 
-    from ctrl.block.system import Feedback, System
-    from ctrl.system.tf import PID
+    from pyctrl.block.system import Feedback, System
+    from pyctrl.system.tf import PID
     
     # calculate PI controller gains
     tau = 1/55   # time constant (s)
@@ -1545,13 +1547,13 @@ and implement this PI controller in only a few lines of code::
 		   ['speed','speed_reference'],
                    ['pwm'])
 
-The block :py:class:`ctrl.block.system.Feedback` implements the
+The block :py:class:`pyctrl.block.system.Feedback` implements the
 operations inside the dashed box in the :ref:`feedback diagram
 <FeedbackDiagram>`. That is, it calculates the error signal,
 :math:`e`, and evaluates the block given as the attribute
 :py:data:`block`, in this case the
-:py:class:`ctrl.block.system.System` containing as the attribute
-:py:data:`model` the controller :py:class:`ctrl.system.tf.PID`.
+:py:class:`pyctrl.block.system.System` containing as the attribute
+:py:data:`model` the controller :py:class:`pyctrl.system.tf.PID`.
 		   
 The complete code, including a reference speed that looks like
 the PWM input used before to drive the motor in Sections
@@ -1641,22 +1643,22 @@ Implementing this controller is very simple. First initialize the
 controller as::
 
     # import blocks and controller
-    from ctrl.rc.mip import Controller
-    from ctrl.block.system import System, Subtract, Differentiator, Sum, Gain
-    from ctrl.block.nl import ControlledCombination
-    from ctrl.block import Logger, ShortCircuit
-    from ctrl.system.ss import DTSS
+    from pyctrl.rc.mip import Controller
+    from pyctrl.block.system import System, Subtract, Differentiator, Sum, Gain
+    from pyctrl.block.nl import ControlledCombination
+    from pyctrl.block import Logger, ShortCircuit
+    from pyctrl.system.ss import DTSS
   
     # create mip
     mip = Controller()
 
 Note that you have imported the special
-:py:class:`ctrl.rc.mip.Controller` class that already initializes all
+:py:class:`pyctrl.rc.mip.Controller` class that already initializes all
 devices needed for controlling the MIP. A look at :samp:`mip.info('all')`:
 
 .. code-block:: none
 		
-    <class 'ctrl.rc.mip.Controller'> with:
+    <class 'pyctrl.rc.mip.Controller'> with:
       6 device(s), 0 timer(s), 9 signal(s),
       4 source(s), 0 filter(s), and 2 sink(s)
     > devices
@@ -1687,7 +1689,7 @@ devices needed for controlling the MIP. A look at :samp:`mip.info('all')`:
       1. pwm1 >> motor1[Motor, disabled]
       2. pwm2 >> motor2[Motor, disabled]
 
-reveals that :py:class:`ctrl.rc.mip.Controller` already installed the
+reveals that :py:class:`pyctrl.rc.mip.Controller` already installed the
 following devices:
 
 1. **a clock**;
@@ -1747,7 +1749,7 @@ the feedack controller as follows::
                    ['pwm'])
 
 As a final step connect the *signal* :py:data:`pwm` to both motors
-using a :py:class:`ctrl.block.ShortCircuit`::
+using a :py:class:`pyctrl.block.ShortCircuit`::
    
     # connect to motors
     mip.add_filter('cl1',

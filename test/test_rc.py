@@ -9,7 +9,7 @@ try:
 
     def run_clock(Ts):
 
-        import ctrl.rc.mpu9250 as mpu9250
+        import pyctrl.rc.mpu9250 as mpu9250
 
         clock = mpu9250.MPU9250()
         clock.set(period = Ts)
@@ -39,7 +39,7 @@ try:
         run_clock(0.25)
 
         # change period
-        import ctrl.rc.mpu9250 as mpu9250
+        import pyctrl.rc.mpu9250 as mpu9250
 
         clock = mpu9250.MPU9250()
 
@@ -54,7 +54,7 @@ try:
         
     def test_controller():
 
-        from ctrl.rc import Controller
+        from pyctrl.rc import Controller
 
         # initialize controller
         Ts = 0.01
@@ -71,7 +71,7 @@ try:
 
     def test_mip():
 
-        from ctrl.rc.mip import Controller
+        from pyctrl.rc.mip import Controller
 
         # initialize controller
         Ts = 0.01
@@ -88,8 +88,8 @@ try:
 
     def test_mpu9500():
 
-        import ctrl.block as block
-        import ctrl.rc.mpu9250 as mpu9250
+        import pyctrl.block as block
+        import pyctrl.rc.mpu9250 as mpu9250
 
         clock = mpu9250.MPU9250()
         clock.set(period = 0.25)

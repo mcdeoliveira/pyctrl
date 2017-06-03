@@ -1,8 +1,8 @@
 import pytest
 
 import numpy as np
-import ctrl.block as block
-import ctrl.block.logic as logic
+import pyctrl.block as block
+import pyctrl.block.logic as logic
 
 def testCompare():
 
