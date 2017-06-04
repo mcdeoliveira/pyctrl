@@ -8,10 +8,10 @@ We only support Python 3, and are not interested in Python 2 at all.
 
 ## Preliminaries
 
-You will need to have python3 and numpy installed. On a debian based
+You will need to have python3, pip3 and numpy installed. On a Debian based
 OS (including the Beaglebone Black and Blue) type:
 
-    sudo apt install python3 python3-numpy
+    sudo apt install python3 python3-pip python3-numpy
 
 If you want to use it with the Robotics Cape or on the Beaglebone Blue
 you will also need to install the rcpy package
