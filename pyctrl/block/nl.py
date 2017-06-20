@@ -67,9 +67,9 @@ class ControlledCombination(block.BufferBlock):
         self.buffer = tuple((1-alpha) * v for v in self.buffer[1:self.m+1]) \
                       + tuple(alpha * v for v in self.buffer[self.m+1:])
 
-class ControlledGain(block.BufferBlock):
+class Product(block.BufferBlock):
     r"""
-    :py:class:`pyctrl.block.nl.ControlledGain` implements the controlled gain:
+    :py:class:`pyctrl.block.nl.Product` implements the product:
 
     :math:`y = u[:m] u[m:]`
 
@@ -87,7 +87,7 @@ class ControlledGain(block.BufferBlock):
     
     def set(self, exclude = (), **kwargs):
         """
-        Set properties of :py:class:`pyctrl.block.nl.ControlledGain`.
+        Set properties of :py:class:`pyctrl.block.nl.Product`.
 
         :param int m: number of inputs to combine (default `1`)
         :param kwargs kwargs: other keyword arguments
@@ -103,7 +103,7 @@ class ControlledGain(block.BufferBlock):
         
     def write(self, *values):
         """
-        Writes product of gain times inputs to the private :py:attr:`buffer`.
+        Writes product of inputs to the private :py:attr:`buffer`.
 
         :param vararg values: list of values
         """
@@ -112,7 +112,7 @@ class ControlledGain(block.BufferBlock):
         super().write(*values)
         
         self.buffer = tuple(g*v for (g,v) in zip(self.buffer[:self.m], self.buffer[self.m:]))
-
+        
 class DeadZone(block.BufferBlock):
     r"""
     :py:class:`pyctrl.block.nl.DeadZone` implements the piecewise function:

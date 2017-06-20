@@ -94,7 +94,7 @@ def test2():
 
 def test3():
 
-    blk = nonlinear.ControlledGain()
+    blk = nonlinear.Product()
     
     blk.write(1, 2)
     answer = blk.read()
@@ -109,7 +109,7 @@ def test3():
     assert answer == (4,)
 
     with pytest.raises(block.BlockException):
-        nonlinear.ControlledGain(m = 1.5)
+        nonlinear.Product(m = 1.5)
         
     with pytest.raises(block.BlockException):
         blk.set(m = 1.5)
