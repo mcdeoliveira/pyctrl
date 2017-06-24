@@ -4,8 +4,16 @@ This module provide logic blocks.
 
 import numpy
 import math
+from enum import IntEnum
 
 from .. import block
+from pyctrl import Controller
+
+# State
+
+class State(IntEnum):
+    HIGH = 1
+    LOW = 0
 
 # Blocks
 
@@ -116,7 +124,7 @@ class CompareWithHysterisis(Compare):
         super().__init__(**kwargs)
 
         # initialize state
-        self.state = tuple(self.m*[1])
+        self.state = tuple(self.m*[State.HIGH])
         
     def set(self, exclude = (), **kwargs):
         """
@@ -141,14 +149,14 @@ class CompareWithHysterisis(Compare):
     def __test(self,v1,v2,s):
         if s:
             if v1 - v2 >= self.threshold + self.hysterisis:
-                return (1, 0)
+                return (1, State.LOW)
             else:
-                return (0, 1)
+                return (0, State.HIGH)
         else:
             if v1 - v2 >= self.threshold - self.hysterisis:
-                return (1, 0)
+                return (1, State.LOW)
             else:
-                return (0, 1)
+                return (0, State.HIGH)
 
     def write(self, *values):
         """
@@ -297,26 +305,26 @@ class CompareAbsWithHysterisis(CompareAbs):
     def __test(self,v,s):
         if s:
             if v <= self.threshold - self.hysterisis:
-                return (1, 0)
+                return (1, State.LOW)
             else:
-                return (0, 1)
+                return (0, State.HIGH)
         else:
             if v <= self.threshold + self.hysterisis:
-                return (1, 0)
+                return (1, State.LOW)
             else:
-                return (0, 1)
+                return (0, State.HIGH)
 
     def __test_invert(self,v,s):
         if s:
             if v >= self.threshold + self.hysterisis:
-                return (1, 0)
+                return (1, State.LOW)
             else:
-                return (0, 1)
+                return (0, State.HIGH)
         else:
             if v >= self.threshold - self.hysterisis:
-                return (1, 0)
+                return (1, State.LOW)
             else:
-                return (0, 1)
+                return (0, State.HIGH)
             
     def write(self, *values):
         """
@@ -330,7 +338,7 @@ class CompareAbsWithHysterisis(CompareAbs):
 
         # initialize state?
         if self.state is None:
-            self.state = tuple(len(self.buffer)*[1])
+            self.state = tuple(len(self.buffer)*[State.HIGH])
 
         # perform test
         if self.invert:
@@ -362,13 +370,13 @@ class Trigger(block.BufferBlock):
     and must be reset manually.
     
     :param function: test function (default identity)
-    :param bool state: initial state (default False)
+    :param bool state: initial state (default State.LOW)
     """
     
     def __init__(self, **kwargs):
 
         self.function = kwargs.pop('function', (lambda x: x))
-        self.state = kwargs.pop('state', False)
+        self.state = kwargs.pop('state', State.LOW)
 
         super().__init__(**kwargs)
 
@@ -377,7 +385,7 @@ class Trigger(block.BufferBlock):
         Reset :py:class:`pyctrl.block.logic.Trigger` attribute :py:attr:`state` to False.
         """
 
-        self.state = False
+        self.state = State.LOW
     
     def write(self, *values):
         """
@@ -392,58 +400,77 @@ class Trigger(block.BufferBlock):
         if self.state:
             self.buffer = values[1:]
         elif self.function(values[0]):
-            self.state = True
+            self.state = State.HIGH
             self.buffer = values[1:]
         else:
             self.buffer = tuple((len(values)-1)*[0])
 
-
-class Set(block.BufferBlock):
+class Event(block.BufferBlock):
     """
-    :py:class:`pyctrl.block.logic.Set` set block when input changes. 
+    :py:class:`pyctrl.block.logic.Event` runs actions based on event. 
 
-    :param str event: type of event: `rise`, `fall`, or `both` (default `rise`)
-    :param block: an instance of :py:class:`pyctrl.block.Block`
-    :param kwargs: keyword parameters to set
+    Produces no output but calls
+    :py:meth:`pyctrl.block.logic.Event.rise_event` if
+
+    :py:attr:`state` is :py:attr:`pyctrl.block.logic.State.LOW` and :math:`u[m:] >= high`
+
+    or :py:meth:`pyctrl.block.logic.Event.fall_event` if
+
+    :py:attr:`state` is :py:attr:`pyctrl.block.logic.State.HIGH` and :math:`u[m:] <= low`
+
+    :param float low: the low threshold
+    :param float high: the high threshold
     """
-    
+
     def __init__(self, **kwargs):
         
-        self.event = kwargs.pop('event', 'rise')
-        self.block = kwargs.pop('block', None)
-        self.kwargs = kwargs.pop('kwargs', None)
+        low = kwargs.pop('low', 0.2)
+        if not isinstance(low, (int, float)):
+            raise block.BlockException('low must be int or float')
+        self.low = low
+        
+        high = kwargs.pop('high', 0.8)
+        if not isinstance(high, (int, float)):
+            raise block.BlockException('high must be int or float')
+        self.high = high
+
+        self.state = kwargs.pop('state', State.LOW)
         
         super().__init__(**kwargs)
 
     def set(self, exclude = (), **kwargs):
         """
-        Set properties of :py:class:`pyctrl.block.logic.Set`.
+        Set properties of :py:class:`pyctrl.block.logic.Event`.
 
-        :param str event: type of event: `rise`, `fall`, or `both` (default `rise`)
-        :param block: an instance of :py:class:`pyctrl.block.Block`
-        :param kwargs: keyword parameters to set
+        :param float low: low threshold
+        :param float high: high threshold
+        :param state: state (HIGH or LOW)
+        :param kwargs kwargs: other keyword arguments
         """
 
-        if 'event' in kwargs:
-            event = kwargs.pop('event')
-            if event not in set('rise','fall','both'):
-                raise block.BlockException("event must be 'rise', 'fall', or 'both'")
-            self.event = event
+        if 'low' in kwargs:
+            low = kwargs.pop('low')
+            if not isinstance(low, (int, float)):
+                raise block.BlockException('low must be int or float')
+            self.low = low
         
-        if 'block' in kwargs:
-            block = kwargs.pop('block')
-            if block and block not isinstance(block, block.Block):
-                raise block.BlockException("block must be and instance of pyctrl.block.Block")
-            self.block = block
+        if 'high' in kwargs:
+            high = kwargs.pop('high')
+            if not isinstance(high, (int, float)):
+                raise block.BlockException('high must be int or float')
+            self.high = high
 
-        if 'kwargs' in kwargs:
-            _kwargs = kwargs.pop('kwargs')
-            if _kwargs and _kwargs not isinstance(_kwargs, dict):
-                raise block.BlockException("kwargs must be a dictionary")
-            self.kwargs = _kwargs
+        if 'state' in kwargs:
+            self.state = kwargs.pop('state')
             
         super().set(**kwargs)
+
+    def rise_event(self):
+        pass
         
+    def fall_event(self):
+        pass
+    
     def write(self, *values):
         """
         Writes result of comparison to the private :py:attr:`buffer`.
@@ -454,4 +481,80 @@ class Set(block.BufferBlock):
         # call super
         super().write(*values)
 
-        self.buffer = tuple(int(v1 - v2 >= self.threshold) for (v1,v2) in zip(self.buffer[self.m:], self.buffer[:self.m]))
+        if self.state is State.LOW and self.buffer[0] > self.high:
+            # gone high
+            self.state = State.HIGH
+            self.rise_event()
+
+        elif self.state is State.HIGH and self.buffer[0] < self.low:
+            # gone low
+            self.state = State.LOW
+            self.fall_event()
+        
+class Set(Event):
+    """
+    :py:class:`pyctrl.block.logic.Set` set block based on event. 
+    """
+
+    def __init__(self, **kwargs):
+        
+        blocktype = kwargs.pop('blocktype')
+        if not isinstance(blocktype, Controller.BlockType):
+            raise block.BlockException('blocktype must be pyctrl.Controller.BlockType')
+        self.blocktype = blocktype
+
+        self.label = kwargs.pop('label')
+        
+        self.kwargs = kwargs.pop('kwargs', {})
+        
+        super().__init__(**kwargs)
+
+    def set(self, exclude = (), **kwargs):
+        """
+        Set properties of :py:class:`pyctrl.block.logic.Event`.
+
+        :param pyctrl.Controller.BlockType blocktype: block type (source, sink, filter, timer)
+        :param kwargs kwargs: other keyword arguments
+        """
+
+        if 'blocktype' in kwargs:
+            blocktype = kwargs.pop('blocktype')
+            if not isinstance(blocktype, Controller.BlockType):
+                raise block.BlockException('blocktype must be pyctrl.Controller.BlockType')
+            self.blocktype = blocktype
+            
+        if 'label' in kwargs:
+            self.label = kwargs.pop('label')
+        
+        if 'kwargs' in kwargs:
+            self.kwargs = kwargs.pop('kwargs')
+            
+        super().set(**kwargs)
+
+    def rise_event(self):
+
+        # call set
+        if self.blocktype is Controller.BlockType.SINK:
+            self.controller.set_sink(self.label, **self.kwargs)
+        elif self.blocktype is Controller.BlockType.FILTER:
+            self.controller.set_filter(self.label, **self.kwargs)
+        elif self.blocktype is Controller.BlockType.SOURCE:
+            self.controller.set_source(self.label, **self.kwargs)
+        elif self.blocktype is Controller.BlockType.TIMER:
+            self.controller.set_timer(self.label, **self.kwargs)
+        else:
+            raise block.BlockException('Unknown blocktype' + self.blocktype)
+        
+    fall_event = rise_event
+    
+class OnRiseSet(Set):
+
+    def fall_event(self):
+        pass
+    
+class OnFallSet(Set):
+
+    def rise_event(self):
+        pass
+    
+    

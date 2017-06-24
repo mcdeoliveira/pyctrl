@@ -42,6 +42,7 @@ class Block:
     def __init__(self, **kwargs):
         
         self.enabled = kwargs.pop('enabled', True)
+        self.controller = kwargs.pop('controller', None)
 
         if len(kwargs) > 0:
             raise BlockException("Unknown parameter(s) '{}'".format(', '.join(str(k) for k in kwargs.keys())))
@@ -62,6 +63,22 @@ class Block:
         """
         self.enabled = enabled
 
+    def set_controller(self, controller):
+        """
+        Set :py:attr:`controlller` reference.
+
+        :param :py:class:`pyctrl.Controller` controller: parent controller
+        """
+        self.controller = controller
+
+    def get_controller(self):
+        """
+        Get :py:attr:`controlller` reference.
+
+        :return: :py:attr:`controller`
+        """
+        return self.controller
+
     def reset(self):
         """
         Reset :py:class:`pyctrl.block.Block`.
@@ -77,6 +94,7 @@ class Block:
         :param tuple exclude: attributes to exclude (default ())
         :param bool reset: if True calls :py:meth:`reset`
         :param bool enabled: set enabled attribute
+        :param :py:class:`pyctrl.Controller` controller: set controller attribute
         :param kwargs kwargs: other keyword arguments
         :raise: :py:class:`pyctrl.block.BlockException` if any of the kwargs is left unprocessed
         """
@@ -88,6 +106,9 @@ class Block:
         if 'enabled' in kwargs:
             self.set_enabled(kwargs.pop('enabled'))
 
+        if 'controller' in kwargs:
+            self.set_controller(kwargs.pop('controller'))
+            
         for k in kwargs:
             if k in exclude or k not in self.__dict__:
                 raise BlockException("Does not know how to set attribute '{}'".format(kwargs))

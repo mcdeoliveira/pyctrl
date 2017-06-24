@@ -2,6 +2,7 @@ import warnings
 from threading import Thread, Timer, Condition
 import numpy
 import importlib
+from enum import Enum
 
 from . import block
 
@@ -37,6 +38,13 @@ class Controller:
     :raises: :py:class:`pyctrl.ControllerException` if any parameters are passed to py:data`**kwargs`
 
     """
+
+    class BlockType(Enum):
+        SOURCE = 0
+        FILTER = 1
+        SINK = 2
+        TIMER = 3
+    
     def __init__(self, **kwargs):
 
         # debug
@@ -401,6 +409,9 @@ class Controller:
         else:
             self.sources_order.insert(order, label)
 
+        # reference controller
+        source.set_controller(self)
+        
         # make sure output signals exist
         for s in outputs:
             if s not in self.signals:
@@ -506,6 +517,9 @@ class Controller:
         else:
             self.sinks_order.insert(order, label)
 
+        # reference controller
+        sink.set_controller(self)
+        
         # make sure input signals exist
         for s in inputs:
             if s not in self.signals:
@@ -615,6 +629,9 @@ class Controller:
         else:
             self.filters_order.insert(order, label)
 
+        # reference controller
+        filter_.set_controller(self)
+            
         # make sure input signals exist
         for s in inputs:
             if s not in self.signals:
@@ -843,6 +860,9 @@ class Controller:
             'period': period,
             'repeat': repeat
         }
+
+        # reference controller
+        blk.set_controller(self)
 
     def remove_timer(self, label):
         """

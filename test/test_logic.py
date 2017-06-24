@@ -518,6 +518,108 @@ def testTrigger():
     answer = blk.read()
     assert answer == ()
     
+def testEvent():
+
+    class myEvent(logic.Event):
+
+        def __init__(self, **kwargs):
+        
+            self.value = False
+            super().__init__(**kwargs)
+        
+        def rise_event(self):
+            self.value = True
+
+        def fall_event(self):
+            self.value = False
+            
+    blk = myEvent()
+
+    assert blk.value == False
+    assert blk.state == logic.State.LOW
+    assert blk.high == 0.8
+    assert blk.low == 0.2
+
+    blk.write(1)
+    assert blk.value == True
+    assert blk.state == logic.State.HIGH
+
+    blk.write(1)
+    assert blk.value == True
+    assert blk.state == logic.State.HIGH
+
+    blk.write(0)
+    assert blk.value == False
+    assert blk.state == logic.State.LOW
+
+    blk.write(0.8)
+    assert blk.value == False
+    assert blk.state == logic.State.LOW
+
+    blk.write(0.9)
+    assert blk.value == True
+    assert blk.state == logic.State.HIGH
+
+    blk.write(0.8)
+    assert blk.value == True
+    assert blk.state == logic.State.HIGH
+
+    blk.write(0.5)
+    assert blk.value == True
+    assert blk.state == logic.State.HIGH
+    
+    blk.write(0.2)
+    assert blk.value == True
+    assert blk.state == logic.State.HIGH
+    
+    blk.write(0.1)
+    assert blk.value == False
+    assert blk.state == logic.State.LOW
+
+def testSet():
+
+    from pyctrl import Controller
+
+    controller = Controller()
+    
+    controller.add_source('block',
+                          block.Block(),
+                          ['s1'])
+    assert controller.get_source('block', 'enabled')
+
+    blk = logic.Set(controller = controller,
+                    blocktype = Controller.BlockType.SOURCE,
+                    label = 'block',
+                    kwargs = {'enabled': False} )
+
+    assert blk.state is logic.State.LOW
+
+    blk.write(1)
+    assert not controller.get_source('block', 'enabled')
+    assert blk.state is logic.State.HIGH
+
+    controller.set_source('block', enabled = True)
+    assert controller.get_source('block', 'enabled')
+    
+    blk.write(0.5)
+    assert controller.get_source('block', 'enabled')
+    assert blk.state is logic.State.HIGH
+
+    blk.write(0.1)
+    assert not controller.get_source('block', 'enabled')
+    assert blk.state is logic.State.LOW
+
+    controller.set_source('block', enabled = True)
+    assert controller.get_source('block', 'enabled')
+
+    blk.write(0.5)
+    assert controller.get_source('block', 'enabled')
+    assert blk.state is logic.State.LOW
+
+    blk.write(0.9)
+    assert not controller.get_source('block', 'enabled')
+    assert blk.state is logic.State.HIGH
+    
 if __name__ == "__main__":
 
     testCompare()
@@ -525,3 +627,5 @@ if __name__ == "__main__":
     testCompareAbs()
     testCompareAbsWithHysterisis()
     testTrigger()
+    testEvent()
+    testSet()

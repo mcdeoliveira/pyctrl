@@ -5,6 +5,8 @@ HOST, PORT = "localhost", 9998
 start_server = True
 #start_server = False
 
+import pyctrl.client as clnt
+
 def test_local():
 
     from pyctrl import Controller
@@ -116,7 +118,11 @@ def run(controller):
     assert '_logger_' in controller.list_sinks()
     assert '_test_' in controller.list_signals()
 
-    assert controller.get_sink('_logger_') == {'current': 0, 'auto_reset': False, 'page': 0, 'enabled': True}
+    ctr = controller
+    if isinstance(controller, clnt.Controller):
+        ctr = None
+    
+    assert controller.get_sink('_logger_') == {'current': 0, 'auto_reset': False, 'page': 0, 'enabled': True, 'controller': ctr}
 
     assert controller.get_sink('_logger_', 'current', 'auto_reset') == {'current': 0, 'auto_reset': False}
     
@@ -191,7 +197,7 @@ def run(controller):
     controller.add_source('_rand_', blkrnd.Uniform(), ['_test_'])
     assert '_rand_' in controller.list_sources()
 
-    assert controller.get_source('_rand_') == {'demux': False, 'mux': False, 'low': 0, 'high': 1, 'enabled': True, 'seed': None, 'm': 1}
+    assert controller.get_source('_rand_') == {'demux': False, 'mux': False, 'low': 0, 'high': 1, 'enabled': True, 'seed': None, 'm': 1, 'controller': ctr}
 
     assert controller.get_source('_rand_', 'low', 'high') == {'low': 0, 'high': 1}
     
@@ -234,7 +240,7 @@ def run(controller):
                           ['_output_'])
     assert '_gain_' in controller.list_filters()
         
-    assert controller.get_filter('_gain_') == {'demux': False, 'enabled': True, 'gain': 2, 'mux': False}
+    assert controller.get_filter('_gain_') == {'demux': False, 'enabled': True, 'gain': 2, 'mux': False, 'controller': ctr}
 
     assert controller.get_filter('_gain_', 'demux', 'gain') == {'demux': False, 'gain': 2}
     
@@ -296,7 +302,7 @@ def run(controller):
 
     assert controller.get_signal('timer') == 0
 
-    assert controller.get_timer('timer') == {'enabled': True, 'demux': False, 'mux': False}
+    assert controller.get_timer('timer') == {'enabled': True, 'demux': False, 'mux': False, 'controller': ctr}
 
     assert controller.get_timer('timer', 'enabled', 'demux') == {'enabled': True, 'demux': False}
     
