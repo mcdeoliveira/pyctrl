@@ -35,7 +35,7 @@ class Button(block.Block):
         #print('> write to led')
         if self.enabled:
 
-            if self.is_pressed():
+            if self.button.is_pressed():
                 return (1,)
             else:
                 return (0,)
