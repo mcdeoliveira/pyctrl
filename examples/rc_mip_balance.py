@@ -159,9 +159,9 @@ def main():
                           label = 'controller',
                           on_rise = {'reset': True}),
                  ['small_angle'])
-
+    
     # add led as sink
-    bbb.add_device('ledgreen', 
+    mip.add_device('ledgreen', 
                    'pyctrl.rc.led', 'LED',
                    type = BlockType.SINK,
                    enable = True,
