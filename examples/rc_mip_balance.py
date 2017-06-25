@@ -125,7 +125,7 @@ def main():
                    ['pwm'])
 
     # enable pwm based on small_angle
-    mip.add_signal('small_angle_pwm')
+    mip.add_signals('small_angle', 'small_angle_pwm')
     mip.add_filter('small_angle_pwm',
                    Product(),
                    ['small_angle', 'pwm'],
@@ -143,7 +143,6 @@ def main():
     mip.set_signal('steer_reference',0.5)
 
     # add small angle sensor
-    mip.add_signal('small_angle')
     mip.add_timer('small_angle',
                   CompareAbsWithHysterisis(threshold = 0.135,
                                            hysterisis = 0.115,
