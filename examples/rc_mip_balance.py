@@ -127,8 +127,8 @@ def main():
     # add small angle sensor
     mip.add_signal('small_angle')
     mip.add_filter('small_angle',
-                   CompareAbsWithHysterisis(threshold = 0.2,
-                                            hysterisis = 0.1,
+                   CompareAbsWithHysterisis(threshold = 0.185,
+                                            hysterisis = 0.065,
                                             state = (State.LOW,)),
                    ['theta'],
                    ['small_angle'])
