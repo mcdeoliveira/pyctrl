@@ -177,7 +177,7 @@ def main():
                   SetBlock(blocktype = BlockType.SOURCE,
                            label = 'inclinometer',
                            on_rise = {'reset': True}),
-                  ['large_angle'],
+                  ['large_angle'], None,
                   period = 1, repeat = True)
     
     # add printer as timer
