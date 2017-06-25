@@ -85,7 +85,7 @@ def main():
     from pyctrl.block import Printer
     from pyctrl.system.ss import DTSS
     from pyctrl.block.logic import CompareAbsWithHysterisis, SetBlock, State
-    from rc.gpio import GRN_LED
+    from rcpy.gpio import GRN_LED
 
     # create mip
     mip = Controller()
