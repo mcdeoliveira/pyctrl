@@ -86,6 +86,7 @@ def main():
     from pyctrl.system.ss import DTSS
     from pyctrl.block.logic import CompareAbsWithHysterisis, SetBlock, State
     from rcpy.gpio import GRN_LED, red, PAUSE_BTN
+    from rcpy.led import red
 
     # create mip
     mip = Controller()
