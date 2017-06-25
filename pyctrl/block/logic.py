@@ -7,7 +7,7 @@ import math
 from enum import IntEnum
 
 from .. import block
-from pyctrl import Controller
+from pyctrl import BlockType
 
 # State
 
@@ -491,21 +491,26 @@ class Event(block.BufferBlock):
             self.state = State.LOW
             self.fall_event()
         
-class Set(Event):
+class SetBlock(Event):
     """
-    :py:class:`pyctrl.block.logic.Set` set block based on event. 
+    :py:class:`pyctrl.block.logic.SetBlock` set block based on event. 
     """
 
     def __init__(self, **kwargs):
         
         blocktype = kwargs.pop('blocktype')
-        if not isinstance(blocktype, Controller.BlockType):
-            raise block.BlockException('blocktype must be pyctrl.Controller.BlockType')
+        if not isinstance(blocktype, BlockType):
+            raise block.BlockException('blocktype must be pyctrl.BlockType')
         self.blocktype = blocktype
 
         self.label = kwargs.pop('label')
-        
-        self.kwargs = kwargs.pop('kwargs', {})
+
+        if 'on_rise_and_fall' in kwargs:
+            self.on_rise = kwargs.pop('on_rise_and_fall', {})
+            self.on_fall = self.on_rise
+        else:
+            self.on_rise = kwargs.pop('on_rise', {})
+            self.on_fall = kwargs.pop('on_fall', {})
         
         super().__init__(**kwargs)
 
@@ -513,48 +518,58 @@ class Set(Event):
         """
         Set properties of :py:class:`pyctrl.block.logic.Event`.
 
-        :param pyctrl.Controller.BlockType blocktype: block type (source, sink, filter, timer)
+        :param pyctrl.BlockType blocktype: block type (source, sink, filter, timer)
         :param kwargs kwargs: other keyword arguments
         """
 
         if 'blocktype' in kwargs:
             blocktype = kwargs.pop('blocktype')
-            if not isinstance(blocktype, Controller.BlockType):
-                raise block.BlockException('blocktype must be pyctrl.Controller.BlockType')
+            if not isinstance(blocktype, BlockType):
+                raise block.BlockException('blocktype must be pyctrl.BlockType')
             self.blocktype = blocktype
             
         if 'label' in kwargs:
             self.label = kwargs.pop('label')
         
-        if 'kwargs' in kwargs:
-            self.kwargs = kwargs.pop('kwargs')
+        if 'on_rise_and_fall' in kwargs:
+            self.on_rise = kwargs.pop('on_rise_and_fall', {})
+            self.on_fall = self.on_rise
+        else:
+            if 'on_rise' in kwargs:
+                self.on_rise = kwargs.pop('on_rise', {})
+            if 'on_fall' in kwargs:
+                self.on_fall = kwargs.pop('on_fall', {})
             
         super().set(**kwargs)
 
     def rise_event(self):
 
-        # call set
-        if self.blocktype is Controller.BlockType.SINK:
-            self.controller.set_sink(self.label, **self.kwargs)
-        elif self.blocktype is Controller.BlockType.FILTER:
-            self.controller.set_filter(self.label, **self.kwargs)
-        elif self.blocktype is Controller.BlockType.SOURCE:
-            self.controller.set_source(self.label, **self.kwargs)
-        elif self.blocktype is Controller.BlockType.TIMER:
-            self.controller.set_timer(self.label, **self.kwargs)
-        else:
-            raise block.BlockException('Unknown blocktype' + self.blocktype)
+        if self.on_rise:
         
-    fall_event = rise_event
-    
-class OnRiseSet(Set):
-
+            # call set
+            if self.blocktype is BlockType.SINK:
+                self.controller.set_sink(self.label, **self.on_rise)
+            elif self.blocktype is BlockType.FILTER:
+                self.controller.set_filter(self.label, **self.on_rise)
+            elif self.blocktype is BlockType.SOURCE:
+                self.controller.set_source(self.label, **self.on_rise)
+            elif self.blocktype is BlockType.TIMER:
+                self.controller.set_timer(self.label, **self.on_rise)
+            else:
+                raise block.BlockException('Unknown blocktype' + self.blocktype)
+        
     def fall_event(self):
-        pass
-    
-class OnFallSet(Set):
 
-    def rise_event(self):
-        pass
-    
+        if self.on_fall:
+            # call set
+            if self.blocktype is BlockType.SINK:
+                self.controller.set_sink(self.label, **self.on_fall)
+            elif self.blocktype is BlockType.FILTER:
+                self.controller.set_filter(self.label, **self.on_fall)
+            elif self.blocktype is BlockType.SOURCE:
+                self.controller.set_source(self.label, **self.on_fall)
+            elif self.blocktype is BlockType.TIMER:
+                self.controller.set_timer(self.label, **self.on_fall)
+            else:
+                raise block.BlockException('Unknown blocktype' + self.blocktype)
     

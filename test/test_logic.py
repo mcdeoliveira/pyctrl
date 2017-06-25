@@ -1,6 +1,7 @@
 import pytest
 
 import numpy as np
+import pyctrl
 import pyctrl.block as block
 import pyctrl.block.logic as logic
 
@@ -576,7 +577,7 @@ def testEvent():
     assert blk.value == False
     assert blk.state == logic.State.LOW
 
-def testSet():
+def testSetBlock():
 
     from pyctrl import Controller
 
@@ -587,10 +588,10 @@ def testSet():
                           ['s1'])
     assert controller.get_source('block', 'enabled')
 
-    blk = logic.Set(controller = controller,
-                    blocktype = Controller.BlockType.SOURCE,
-                    label = 'block',
-                    kwargs = {'enabled': False} )
+    blk = logic.SetBlock(controller = controller,
+                         blocktype = pyctrl.BlockType.SOURCE,
+                         label = 'block',
+                         on_rise_and_fall = {'enabled': False} )
 
     assert blk.state is logic.State.LOW
 
@@ -619,6 +620,82 @@ def testSet():
     blk.write(0.9)
     assert not controller.get_source('block', 'enabled')
     assert blk.state is logic.State.HIGH
+
+    # OnRiseSet
+    
+    blk = logic.SetBlock(controller = controller,
+                         blocktype = pyctrl.BlockType.SOURCE,
+                         label = 'block',
+                         on_rise = {'enabled': False} )
+    
+    assert blk.state is logic.State.LOW
+
+    blk.write(1)
+    assert not controller.get_source('block', 'enabled')
+    assert blk.state is logic.State.HIGH
+
+    controller.set_source('block', enabled = True)
+    assert controller.get_source('block', 'enabled')
+    
+    blk.write(0.5)
+    assert controller.get_source('block', 'enabled')
+    assert blk.state is logic.State.HIGH
+
+    blk.write(0.1)
+    assert controller.get_source('block', 'enabled')
+    assert blk.state is logic.State.LOW
+
+    controller.set_source('block', enabled = True)
+    assert controller.get_source('block', 'enabled')
+
+    blk.write(0.5)
+    assert controller.get_source('block', 'enabled')
+    assert blk.state is logic.State.LOW
+
+    blk.write(0.9)
+    assert not controller.get_source('block', 'enabled')
+    assert blk.state is logic.State.HIGH
+
+    # OnFallSet
+    
+    blk = logic.SetBlock(controller = controller,
+                         blocktype = pyctrl.BlockType.SOURCE,
+                         label = 'block',
+                         on_fall = {'enabled': False} )
+    
+    controller.set_source('block', enabled = True)
+
+    assert blk.state is logic.State.LOW
+
+    blk.write(1)
+    assert controller.get_source('block', 'enabled')
+    assert blk.state is logic.State.HIGH
+
+    assert controller.get_source('block', 'enabled')
+    
+    blk.write(0.5)
+    assert controller.get_source('block', 'enabled')
+    assert blk.state is logic.State.HIGH
+
+    blk.write(0.1)
+    assert not controller.get_source('block', 'enabled')
+    assert blk.state is logic.State.LOW
+
+    controller.set_source('block', enabled = True)
+    assert controller.get_source('block', 'enabled')
+
+    blk.write(0.5)
+    assert controller.get_source('block', 'enabled')
+    assert blk.state is logic.State.LOW
+
+    blk.write(0.9)
+    assert controller.get_source('block', 'enabled')
+    assert blk.state is logic.State.HIGH
+
+    # try pickling
+    import pickle
+
+    pickle.dumps(blk)
     
 if __name__ == "__main__":
 
@@ -628,4 +705,5 @@ if __name__ == "__main__":
     testCompareAbsWithHysterisis()
     testTrigger()
     testEvent()
-    testSet()
+    testSetBlock()
+

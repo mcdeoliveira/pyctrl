@@ -5,7 +5,9 @@ HOST, PORT = "localhost", 9998
 start_server = True
 #start_server = False
 
+from pyctrl import BlockType
 import pyctrl.client as clnt
+import pyctrl.block.logic as logic
 
 def test_local():
 
@@ -118,11 +120,7 @@ def run(controller):
     assert '_logger_' in controller.list_sinks()
     assert '_test_' in controller.list_signals()
 
-    ctr = controller
-    if isinstance(controller, clnt.Controller):
-        ctr = None
-    
-    assert controller.get_sink('_logger_') == {'current': 0, 'auto_reset': False, 'page': 0, 'enabled': True, 'controller': ctr}
+    assert controller.get_sink('_logger_') == {'current': 0, 'auto_reset': False, 'page': 0, 'enabled': True}
 
     assert controller.get_sink('_logger_', 'current', 'auto_reset') == {'current': 0, 'auto_reset': False}
     
@@ -197,7 +195,7 @@ def run(controller):
     controller.add_source('_rand_', blkrnd.Uniform(), ['_test_'])
     assert '_rand_' in controller.list_sources()
 
-    assert controller.get_source('_rand_') == {'demux': False, 'mux': False, 'low': 0, 'high': 1, 'enabled': True, 'seed': None, 'm': 1, 'controller': ctr}
+    assert controller.get_source('_rand_') == {'demux': False, 'mux': False, 'low': 0, 'high': 1, 'enabled': True, 'seed': None, 'm': 1}
 
     assert controller.get_source('_rand_', 'low', 'high') == {'low': 0, 'high': 1}
     
@@ -240,7 +238,7 @@ def run(controller):
                           ['_output_'])
     assert '_gain_' in controller.list_filters()
         
-    assert controller.get_filter('_gain_') == {'demux': False, 'enabled': True, 'gain': 2, 'mux': False, 'controller': ctr}
+    assert controller.get_filter('_gain_') == {'demux': False, 'enabled': True, 'gain': 2, 'mux': False}
 
     assert controller.get_filter('_gain_', 'demux', 'gain') == {'demux': False, 'gain': 2}
     
@@ -302,7 +300,7 @@ def run(controller):
 
     assert controller.get_signal('timer') == 0
 
-    assert controller.get_timer('timer') == {'enabled': True, 'demux': False, 'mux': False, 'controller': ctr}
+    assert controller.get_timer('timer') == {'enabled': True, 'demux': False, 'mux': False, 'value': 1}
 
     assert controller.get_timer('timer', 'enabled', 'demux') == {'enabled': True, 'demux': False}
     
@@ -332,7 +330,50 @@ def run(controller):
         controller.join()
 
     assert controller.get_signal('timer') == 1
-   
+
+    # test set
+    import pyctrl
+    
+    controller.reset()
+
+    print('* * * TEST SET * * *')
+
+    print(controller.info('all'))
+
+    controller.add_signals('s1', 's2')
+    
+    controller.add_source('const',
+                          block.Constant(value = 1),
+                          ['s1'])
+    
+    controller.add_sink('set1',
+                        logic.SetBlock(blocktype = BlockType.SOURCE,
+                                       label = 'const',
+                                       on_rise = {'value': 0.6},
+                                       on_fall = {'value': 0.4}),
+                        ['s2'])
+
+    with controller:
+        time.sleep(.5)
+
+    print(controller.get_source('const'))
+        
+    assert controller.get_signal('s2') == 0
+    assert controller.get_source('const', 'value') == 1
+
+    with controller:
+        controller.set_signal('s2', 1)
+        time.sleep(.5)
+
+    assert controller.get_signal('s2') == 1
+    assert controller.get_source('const', 'value') == 0.6
+    
+    with controller:
+        controller.set_signal('s2', 0)
+        time.sleep(.5)
+
+    assert controller.get_signal('s2') == 0
+    assert controller.get_source('const', 'value') == 0.4
     
 def test_run():
 

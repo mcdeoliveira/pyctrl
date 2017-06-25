@@ -21,6 +21,12 @@ IDLE = 0
 RUNNING = 1
 EXITING = 2
 
+class BlockType(Enum):
+    SOURCE = 0
+    FILTER = 1
+    SINK = 2
+    TIMER = 3
+    
 class Controller:
     """
     :py:class:`pyctrl.Controller` provides functionality for running
@@ -39,12 +45,6 @@ class Controller:
 
     """
 
-    class BlockType(Enum):
-        SOURCE = 0
-        FILTER = 1
-        SINK = 2
-        TIMER = 3
-    
     def __init__(self, **kwargs):
 
         # debug

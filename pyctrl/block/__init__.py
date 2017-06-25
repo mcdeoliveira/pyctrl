@@ -106,9 +106,9 @@ class Block:
         if 'enabled' in kwargs:
             self.set_enabled(kwargs.pop('enabled'))
 
-        if 'controller' in kwargs:
-            self.set_controller(kwargs.pop('controller'))
-            
+        # add controller to list of excluded properties
+        exclude += ('controller',)
+        
         for k in kwargs:
             if k in exclude or k not in self.__dict__:
                 raise BlockException("Does not know how to set attribute '{}'".format(kwargs))
@@ -132,6 +132,9 @@ class Block:
 
         #print('> keys = {}'.format(keys))
 
+        # add controller to list of excluded properties
+        exclude += ('controller',)
+        
         if len(keys) == 0:
             
             # all keys
@@ -372,15 +375,33 @@ class Constant(BufferBlock):
 
     def __init__(self, **kwargs):
 
-        value = kwargs.pop('value', 1)
+        self.value = kwargs.pop('value', 1)
         
         super().__init__(**kwargs)
 
-        if isinstance(value, (tuple, list)):
-            self.buffer = value
+        if isinstance(self.value, (tuple, list)):
+            self.buffer = self.value
         else:
-            self.buffer = (value, )
+            self.buffer = (self.value, )
+
+    def set(self, exclude = (), **kwargs):
+        """
+        Set properties of :py:class:`pyctrl.block.Constant`. 
+
+        :param tuple exclude: attributes to exclude (default ())
+        :param value: value or list with values
+        :param kwargs kwargs: other keyword arguments
+        """
+
+        if 'value' in kwargs:
+            self.value = numpy.array(kwargs.pop('value'))
+            if isinstance(self.value, (tuple, list)):
+                self.buffer = self.value
+            else:
+                self.buffer = (self.value, )
             
+        # call super
+        super().set(exclude, **kwargs)
     
 class Signal(BufferBlock):
     """

@@ -80,9 +80,9 @@ def main():
     # import blocks and controller
     from pyctrl.rc.mip import Controller
     from pyctrl.block.system import System, Subtract, Differentiator, Sum, Gain
-    from pyctrl.block.nl import ControlledCombination
+    from pyctrl.block.nl import ControlledCombination, Product
     from pyctrl.block import Logger, ShortCircuit
-    from pyctrl.block.logic import CompareAbs
+    from pyctrl.block.logic import CompareAbs, SetBlock
     from pyctrl.system.ss import DTSS
 
     # create mip
@@ -122,23 +122,38 @@ def main():
                    System(model = ssctrl),
                    ['theta_dot','phi_dot','phi_dot_reference'],
                    ['pwm'])
+
+    # add small angle sensor
+    mip.add_signal('small_angle')
+    mip.add_filter('small_angle',
+                   CompareAbs(threshold = 0.2),
+                   ['theta'],
+                   ['small_angle'])
+
+    # enable pwm based on small_angle
+    mip.add_signal('small_angle_pwm')
+    mip.add_filter('small_angle_pwm',
+                   Product(),
+                   ['small_angle', 'pwm'],
+                   ['small_angle_pwm'])
     
     # steering biasing
     mip.add_signal('steer_reference')
     mip.add_filter('steer',
                    ControlledCombination(),
-                   ['steer_reference', 'pwm','pwm'],
+                   ['steer_reference', 'small_angle_pwm','small_angle_pwm'],
                    ['pwm1','pwm2'])
 
     # set references
     mip.set_signal('phi_dot_reference',0)
     mip.set_signal('steer_reference',0.5)
 
-    # add kill switch
-    mip.add_filter('kill',
-                   CompareAbs(threshold = 0.2),
-                   ['theta'],
-                   ['is_running'])
+    # reset controller logic
+    mip.add_sink('reset_controller',
+                 SetBlock(blocktype = BlockType.SOURCE,
+                          label = 'controller',
+                          on_rise = {'reset': True}),
+                 ['small_angle'])
     
     # print controller
     print(mip.info('all'))

@@ -189,16 +189,29 @@ def pack(type, content):
         except pickle.PicklingError:
             # try wrapping in list
             bmessage = pickle.dumps(list(content))
+        except:
+            print('*** PACKET FAILED TO PICKLE ***')
+            print('content = {}'.format(content))
+            bmessage = pickle.dumps()
         return struct.pack('<cI', b'P', len(bmessage)) + bmessage
 
     # pickle (Exception)
     elif type == 'E':
-        bmessage = pickle.dumps(content)
+        try:
+            bmessage = pickle.dumps(content)
+        except:
+            print('*** PACKET FAILED TO PICKLE ***')
+            print('content = {}'.format(content))
         return struct.pack('<cI', b'E', len(bmessage)) + bmessage
 
     # pickle (kwargs)
     elif type == 'K':
-        bmessage = pickle.dumps(content)
+        try:
+            bmessage = pickle.dumps(content)
+        except:
+            print('*** PACKET FAILED TO PICKLE ***')
+            print('content = {}'.format(content))
+            bmessage = pickle.dumps({})
         return struct.pack('<cI', b'K', len(bmessage)) + bmessage
 
     # pickle (vargs)
