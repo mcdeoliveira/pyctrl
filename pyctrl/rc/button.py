@@ -30,12 +30,11 @@ class Button(block.Block):
         # call super
         return super().get(*keys, exclude = exclude + ('button',))
         
-    def read(self, *values):
+    def read(self):
 
         #print('> write to led')
         if self.enabled:
 
-            assert len(values) == 1
             if self.is_pressed():
                 return (1,)
             else:
