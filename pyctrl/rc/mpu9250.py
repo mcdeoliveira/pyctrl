@@ -183,6 +183,26 @@ class Raw(block.BufferBlock):
 
 class Inclinometer(Raw):
 
+    def read(self):
+
+        #print('> read')
+        if self.enabled:
+
+            # read imu
+            data = self.mpu9250.get_data()
+        
+            # read IMU
+            ax, ay, az = data['accel']
+            gx, gy, gz = data['gyro']
+
+            # units (turns) and (1/s)
+            self.buffer = (-math.atan2(az, ay) / (2 * math.pi), gx / 360)
+        
+        # call super
+        return super(Raw, self).read()
+                        
+class InclinometerContinuous(Raw):
+
     def __init__(self, **kwargs):
 
         # turns initialization
