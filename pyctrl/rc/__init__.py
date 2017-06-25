@@ -36,7 +36,7 @@ class Controller(pyctrl.Controller):
         # add device clock
         self.add_device('clock',
                         'pyctrl.rc.mpu9250', 'MPU9250',
-                        type = 'source',
+                        type = BlockType.SOURCE,
                         outputs = ['clock'],
                         period = self.period)
 

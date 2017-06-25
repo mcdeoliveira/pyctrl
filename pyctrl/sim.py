@@ -95,7 +95,7 @@ class Controller(pyctrl.Controller):
         # self.time_origin = self.clock.time_origin
         self.clock = self.add_device('clock',
                                      'pyctrl.block.clock', 'TimerClock',
-                                     type = 'source', 
+                                     type = pyctrl.BlockType.SOURCE, 
                                      outputs = ['clock'],
                                      enable = True,
                                      period = self.period)

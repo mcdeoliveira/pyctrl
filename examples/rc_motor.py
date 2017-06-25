@@ -10,6 +10,7 @@ def main():
     from pyctrl.block import Interp, Logger, Constant
     from pyctrl.block.system import System, Differentiator
     from pyctrl.system.tf import DTTF, LPF
+    from pyctlr import BlockType
 
     # initialize controller
     Ts = 0.01
@@ -18,7 +19,7 @@ def main():
     # add encoder as source
     bbb.add_device('encoder1',
                    'pyctrl.rc.encoder', 'Encoder',
-                   type = 'source',
+                   type = BlockType.SOURCE,
                    outputs = ['encoder'],
                    encoder = 3, 
                    ratio = 60 * 35.557)
@@ -26,7 +27,7 @@ def main():
     # add motor as sink
     bbb.add_device('motor1', 
                    'pyctrl.rc.motor', 'Motor',
-                   type = 'sink',
+                   type = BlockType.SINK,
                    enable = True,
                    inputs = ['pwm'],
                    motor = 3)

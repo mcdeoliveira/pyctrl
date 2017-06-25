@@ -31,7 +31,7 @@ class Controller(pyctrl.Controller):
         # add device clock
         self.add_device('clock',
                         'pyctrl.block.clock', 'TimerClock',
-                        type = 'source', 
+                        type = pyctrl.BlockType.SOURCE, 
                         outputs = ['clock'],
                         verbose = False,
                         enable = True,

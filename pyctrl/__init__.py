@@ -102,7 +102,7 @@ class Controller:
             # add device clock
             self.add_device('clock',
                             'pyctrl.block.clock', 'Clock',
-                            type = 'source', 
+                            type = BlockType.SOURCE, 
                             outputs = ['clock'],
                             verbose = False,
                             enable = True)
@@ -182,7 +182,7 @@ class Controller:
                 for label, device in self.devices.items():
                     result += '  {}. '.format(k) + \
                               label + '[' + \
-                              device['type'] + ']\n'
+                              device['type'].name + ']\n'
                     k += 1
 
             elif options == 'sources':
@@ -732,7 +732,7 @@ class Controller:
         :param str label: the device label
         :param str device_module: the device module
         :param str device_class: the device class
-        :param str type: the device type, `source`, `filter`, or `sink` (default `source`)
+        :param BlockType type: the device type, BlockType.SOURCE, BlockType.FILTER, BlockType.SINK, or BlockType.TIMER (default BlockType.SOURCE)
         :param bool enable: if the device needs to be enable at `start()` and disabled at `stop()` (default False)
         :param list inputs: a list of input signals (default `[]`)
         :param list outputs: a list of output signals (default `[]`)
@@ -741,7 +741,7 @@ class Controller:
         """
 
         # parameters
-        devtype = kwargs.pop('type', 'source')
+        devtype = kwargs.pop('type', BlockType.SOURCE)
         enable = kwargs.pop('enable', False)
         force = kwargs.pop('force', False)
 
@@ -768,7 +768,7 @@ class Controller:
             return None
 
         # add device to controller
-        if devtype == 'source':
+        if devtype is BlockType.SOURCE:
 
             # warn if inputs are defined
             if inputs:
@@ -778,7 +778,7 @@ class Controller:
             # add device as source
             self.add_source(label, instance, outputs)
             
-        elif devtype == 'sink':
+        elif devtype is BlockType.SINK:
 
             # warn if inputs are defined
             if outputs:
@@ -788,14 +788,14 @@ class Controller:
             # add device as sink
             self.add_sink(label, instance, inputs)
 
-        elif devtype == 'filter':
+        elif devtype is BlockType.FILTER:
 
             # add device as filter
             self.add_filter(label, instance, inputs, outputs)
 
         else:
             
-            raise NameError("Unknown device type '{}'. Must be sink, source or filter.".format(devtype))
+            raise NameError("Unknown device type '{}'. Must be sink, source, filter or timer.".format(devtype))
 
         # add signals
         #self.add_signals(*outputs)

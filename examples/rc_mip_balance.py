@@ -85,6 +85,7 @@ def main():
     from pyctrl.block import Printer
     from pyctrl.system.ss import DTSS
     from pyctrl.block.logic import CompareAbsWithHysterisis, SetBlock, State
+    from rc.gpio import GRN_LED
 
     # create mip
     mip = Controller()
@@ -159,12 +160,13 @@ def main():
                           on_rise = {'reset': True}),
                  ['small_angle'])
 
-    # add printer as timer
-    mip.add_timer('printer',
-                  Printer(),
-                  ['clock','theta','small_angle',
-                   'pwm','small_angle_pwm'], None,
-                  period = 1, repeat = True)
+    # add led as sink
+    bbb.add_device('ledgreen', 
+                   'pyctrl.rc.led', 'LED',
+                   type = BlockType.SINK,
+                   enable = True,
+                   inputs = ['small_angle'],
+                   pin = GRN_LED)
     
     # print controller
     print(mip.info('all'))
