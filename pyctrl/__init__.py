@@ -750,6 +750,12 @@ class Controller:
 
         verbose = kwargs.pop('verbose', True)
         
+        if devtype is BlockType.TIMER:
+
+            # look for period and repeat
+            period = kwargs.pop('period')
+            repeat = kwargs.pop('repeat', False)
+            
         # Install device
         if verbose:
             warnings.warn("> Installing device '{}'".format(label))
@@ -792,6 +798,11 @@ class Controller:
 
             # add device as filter
             self.add_filter(label, instance, inputs, outputs)
+
+        elif devtype is BlockType.TIMER:
+
+            # add device as timer
+            self.add_timer(label, instance, inputs, outputs, period, repeat)
 
         else:
             

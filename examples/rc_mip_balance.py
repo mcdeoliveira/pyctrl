@@ -160,13 +160,14 @@ def main():
                           on_rise = {'reset': True}),
                  ['small_angle'])
     
-    # add led as sink
+    # add led as timer
     mip.add_device('ledgreen', 
                    'pyctrl.rc.led', 'LED',
-                   type = BlockType.SINK,
+                   type = BlockType.TIMER,
                    enable = True,
                    inputs = ['small_angle'],
-                   pin = GRN_LED)
+                   pin = GRN_LED,
+                   period = 1, repeat = True)
     
     # print controller
     print(mip.info('all'))
