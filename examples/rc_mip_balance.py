@@ -78,6 +78,7 @@ def get_arrows(mip, fd):
 def main():
 
     # import blocks and controller
+    from pyctrl import BlockType
     from pyctrl.rc.mip import Controller
     from pyctrl.block.system import System, Subtract, Differentiator, Sum, Gain
     from pyctrl.block.nl import ControlledCombination, Product
