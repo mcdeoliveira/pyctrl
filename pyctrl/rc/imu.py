@@ -36,6 +36,29 @@ class Raw(block.BufferBlock):
 
 class Inclinometer(Raw):
 
+    def read(self):
+
+        #print('> read')
+        if self.enabled:
+
+            # read imu
+            data = self.clock.get_imu()
+        
+            # read IMU
+            ax, ay, az = data['accel']
+            gx, gy, gz = data['gyro']
+
+            # calculate angle
+            theta = -math.atan2(az, ay) / (2 * math.pi)
+
+            # units (turns) and (1/s)
+            self.buffer = (theta, gx / 360)
+        
+        #print('< read')
+        return self.buffer
+    
+class InclinometerContinuous(Raw):
+
     def __init__(self, **kwargs):
 
         # turns initialization
