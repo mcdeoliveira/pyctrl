@@ -125,7 +125,7 @@ def main():
                    ['theta_dot','phi_dot','phi_dot_reference'],
                    ['pwm'])
 
-    # enable pwm based on small_angle
+    # enable pwm only if about small_angle
     mip.add_signals('small_angle', 'small_angle_pwm')
     mip.add_filter('small_angle_pwm',
                    Product(),
@@ -154,11 +154,12 @@ def main():
                   period = 0.5, repeat = True)
     
     # reset controller logic
-    mip.add_sink('reset_controller',
-                 SetBlock(blocktype = BlockType.FILTER,
-                          label = 'controller',
-                          on_rise = {'reset': True}),
-                 ['small_angle'])
+    mip.add_timer('reset_controller',
+                  SetBlock(blocktype = BlockType.FILTER,
+                           label = 'controller',
+                           on_rise = {'reset': True}),
+                  ['small_angle'], None,
+                  period = 0.5, repeat = True)
     
     # add led as timer
     mip.add_device('ledgreen', 
