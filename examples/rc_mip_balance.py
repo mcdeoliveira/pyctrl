@@ -124,17 +124,6 @@ def main():
                    ['theta_dot','phi_dot','phi_dot_reference'],
                    ['pwm'])
 
-    # add small angle sensor
-    mip.add_signal('small_angle')
-    mip.add_timer('small_angle',
-                  CompareAbsWithHysterisis(threshold = 0.135,
-                                           hysterisis = 0.115,
-                                           offset = -0.07,
-                                           state = (State.LOW,)),
-                  ['theta'],
-                  ['small_angle'],
-                  period = 0.5, repeat = True)
-    
     # enable pwm based on small_angle
     mip.add_signal('small_angle_pwm')
     mip.add_filter('small_angle_pwm',
@@ -153,6 +142,17 @@ def main():
     mip.set_signal('phi_dot_reference',0)
     mip.set_signal('steer_reference',0.5)
 
+    # add small angle sensor
+    mip.add_signal('small_angle')
+    mip.add_timer('small_angle',
+                  CompareAbsWithHysterisis(threshold = 0.135,
+                                           hysterisis = 0.115,
+                                           offset = -0.07,
+                                           state = (State.LOW,)),
+                  ['theta'],
+                  ['small_angle'],
+                  period = 0.5, repeat = True)
+    
     # reset controller logic
     mip.add_sink('reset_controller',
                  SetBlock(blocktype = BlockType.FILTER,
