@@ -82,7 +82,7 @@ def main():
     from pyctrl.rc.mip import Controller
     from pyctrl.block.system import System, Subtract, Differentiator, Sum, Gain
     from pyctrl.block.nl import ControlledCombination, Product
-    from pyctrl.block import Logger, ShortCircuit
+    from pyctrl.block import Printer
     from pyctrl.block.logic import CompareAbsWithHysterisis, SetBlock
     from pyctrl.system.ss import DTSS
 
@@ -156,6 +156,13 @@ def main():
                           label = 'controller',
                           on_rise = {'reset': True}),
                  ['small_angle'])
+
+    # add printer as timer
+    hello.add_timer('printer',
+                    Printer(message = 'time = {:3.1f} s, motor = {:+6.1f} %',
+                            endln = '\r'),
+                    ['clock','pwm','small_angle','small_angle_pwm'], None,
+                    period = 1, repeat = True)
     
     # print controller
     print(mip.info('all'))
