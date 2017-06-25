@@ -167,7 +167,7 @@ def main():
                    enable = True,
                    inputs = ['small_angle'],
                    pin = GRN_LED,
-                   period = 1, repeat = True)
+                   period = 0.5, repeat = True)
     
     # print controller
     print(mip.info('all'))
