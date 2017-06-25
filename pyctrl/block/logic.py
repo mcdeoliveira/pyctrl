@@ -304,27 +304,27 @@ class CompareAbsWithHysterisis(CompareAbs):
 
     def __test(self,v,s):
         if s:
-            if v <= self.threshold - self.hysterisis:
-                return (1, State.LOW)
+            if numpy.fabs(v) <= self.threshold + self.hysterisis:
+                return (1, State.HIGH)
             else:
-                return (0, State.HIGH)
+                return (0, State.LOW)
         else:
-            if v <= self.threshold + self.hysterisis:
-                return (1, State.LOW)
+            if numpy.fabs(v) <= self.threshold - self.hysterisis:
+                return (1, State.HIGH)
             else:
-                return (0, State.HIGH)
+                return (0, State.LOW)
 
     def __test_invert(self,v,s):
         if s:
-            if v >= self.threshold + self.hysterisis:
-                return (1, State.LOW)
+            if numpy.fabs(v) >= self.threshold - self.hysterisis:
+                return (1, State.HIGH)
             else:
-                return (0, State.HIGH)
+                return (0, State.LOW)
         else:
-            if v >= self.threshold - self.hysterisis:
-                return (1, State.LOW)
+            if numpy.fabs(v) >= self.threshold + self.hysterisis:
+                return (1, State.HIGH)
             else:
-                return (0, State.HIGH)
+                return (0, State.LOW)
             
     def write(self, *values):
         """

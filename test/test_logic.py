@@ -271,84 +271,84 @@ def testCompareAbsWithHysterisis():
     blk.write(2)
     (answer,) = blk.read()
     assert answer == 0
-    assert blk.state == (1,)
+    assert blk.state == (0,)
 
     blk.write(3)
     (answer,) = blk.read()
     assert answer == 0
-    assert blk.state == (1,)
+    assert blk.state == (0,)
 
     blk.write(1)
     (answer,) = blk.read()
     assert answer == 1
-    assert blk.state == (0,)
+    assert blk.state == (1,)
 
     blk.write(0.9)
     (answer,) = blk.read()
     assert answer == 1
-    assert blk.state == (0,)
+    assert blk.state == (1,)
 
     blk.write(0)
     (answer,) = blk.read()
     assert answer == 1
-    assert blk.state == (0,)
+    assert blk.state == (1,)
 
     blk.write(0.5)
     (answer,) = blk.read()
     assert answer == 1
-    assert blk.state == (0,)
+    assert blk.state == (1,)
 
     blk.write(1.05)
     (answer,) = blk.read()
     assert answer == 0
-    assert blk.state == (1,)
+    assert blk.state == (0,)
 
     blk.write(1.1)
     (answer,) = blk.read()
     assert answer == 0
-    assert blk.state == (1,)
+    assert blk.state == (0,)
     
     blk = logic.CompareAbsWithHysterisis(threshold = 1, invert = True, hysterisis = 0)
 
     blk.write(2)
     (answer,) = blk.read()
     assert answer == 1
-    assert blk.state == (0,)
+    assert blk.state == (1,)
 
     blk.write(3)
     (answer,) = blk.read()
     assert answer == 1
-    assert blk.state == (0,)
+    assert blk.state == (1,)
 
     blk.write(1)
     (answer,) = blk.read()
     assert answer == 1
-    assert blk.state == (0,)
+    assert blk.state == (1,)
 
     blk.write(0.9)
     (answer,) = blk.read()
     assert answer == 0
-    assert blk.state == (1,)
+    assert blk.state == (0,)
 
     blk.write(0)
     (answer,) = blk.read()
     assert answer == 0
-    assert blk.state == (1,)
+    assert blk.state == (0,)
 
     blk.write(0.5)
     (answer,) = blk.read()
     assert answer == 0
-    assert blk.state == (1,)
+    assert blk.state == (0,)
 
     blk.write(1.05)
     (answer,) = blk.read()
     assert answer == 1
-    assert blk.state == (0,)
+    assert blk.state == (1,)
 
     blk.write(1.1)
     (answer,) = blk.read()
     assert answer == 1
-    assert blk.state == (0,)
+    assert blk.state == (1,)
 
     blk = logic.CompareAbsWithHysterisis(threshold = 0, invert = False, hysterisis = 0)
 
@@ -393,42 +393,42 @@ def testCompareAbsWithHysterisis():
     blk.write(2)
     (answer,) = blk.read()
     assert answer == 0
-    assert blk.state == (1,)
+    assert blk.state == (0,)
 
     blk.write(3)
     (answer,) = blk.read()
     assert answer == 0
-    assert blk.state == (1,)
+    assert blk.state == (0,)
 
     blk.write(1)
     (answer,) = blk.read()
     assert answer == 0
-    assert blk.state == (1,)
+    assert blk.state == (0,)
 
     blk.write(0.9)
     (answer,) = blk.read()
     assert answer == 1
-    assert blk.state == (0,)
+    assert blk.state == (1,)
 
     blk.write(0)
     (answer,) = blk.read()
     assert answer == 1
-    assert blk.state == (0,)
+    assert blk.state == (1,)
 
     blk.write(0.5)
     (answer,) = blk.read()
     assert answer == 1
-    assert blk.state == (0,)
+    assert blk.state == (1,)
 
     blk.write(1.05)
     (answer,) = blk.read()
     assert answer == 1
-    assert blk.state == (0,)
+    assert blk.state == (1,)
 
     blk.write(1.11)
     (answer,) = blk.read()
     assert answer == 0
-    assert blk.state == (1,)
+    assert blk.state == (0,)
     
     blk = logic.CompareAbsWithHysterisis(threshold = 1, invert = True)
     assert blk.hysterisis == 0.1
@@ -436,43 +436,116 @@ def testCompareAbsWithHysterisis():
     blk.write(2)
     (answer,) = blk.read()
     assert answer == 1
-    assert blk.state == (0,)
+    assert blk.state == (1,)
 
     blk.write(3)
     (answer,) = blk.read()
     assert answer == 1
-    assert blk.state == (0,)
+    assert blk.state == (1,)
 
     blk.write(1)
     (answer,) = blk.read()
     assert answer == 1
-    assert blk.state == (0,)
+    assert blk.state == (1,)
 
     blk.write(0.9)
     (answer,) = blk.read()
     assert answer == 1
-    assert blk.state == (0,)
+    assert blk.state == (1,)
 
     blk.write(0)
     (answer,) = blk.read()
     assert answer == 0
-    assert blk.state == (1,)
+    assert blk.state == (0,)
 
     blk.write(0.5)
     (answer,) = blk.read()
     assert answer == 0
-    assert blk.state == (1,)
+    assert blk.state == (0,)
 
     blk.write(1.05)
     (answer,) = blk.read()
     assert answer == 0
-    assert blk.state == (1,)
+    assert blk.state == (0,)
 
     blk.write(1.1)
     (answer,) = blk.read()
     assert answer == 1
-    assert blk.state == (0,)
+    assert blk.state == (1,)
+
+    # with hysterisis
         
+    blk = logic.CompareAbsWithHysterisis(threshold = 0.2,
+                                         hysterisis = 0.1)
+    assert blk.state == None
+    assert blk.threshold == 0.2
+    assert blk.hysterisis == 0.1
+
+    blk.write(-0.3)
+    (answer,) = blk.read()
+    assert answer == 1
+    assert blk.state == (logic.State.HIGH,)
+    
+    blk.write(-0.31)
+    (answer,) = blk.read()
+    assert answer == 0
+    assert blk.state == (logic.State.LOW,)
+
+    blk.write(-0.41)
+    (answer,) = blk.read()
+    assert answer == 0
+    assert blk.state == (logic.State.LOW,)
+
+    blk.write(-0.3)
+    (answer,) = blk.read()
+    assert answer == 0
+    assert blk.state == (logic.State.LOW,)
+
+    blk.write(-0.1)
+    (answer,) = blk.read()
+    assert answer == 1
+    assert blk.state == (logic.State.HIGH,)
+
+    blk.write(-0)
+    (answer,) = blk.read()
+    assert answer == 1
+    assert blk.state == (logic.State.HIGH,)
+
+    blk.write(-0.3)
+    (answer,) = blk.read()
+    assert answer == 1
+    assert blk.state == (logic.State.HIGH,)
+
+    blk.write(-0.31)
+    (answer,) = blk.read()
+    assert answer == 0
+    assert blk.state == (logic.State.LOW,)
+
+    blk.write(0)
+    (answer,) = blk.read()
+    assert answer == 1
+    assert blk.state == (logic.State.HIGH,)
+
+    blk.write(0.3)
+    (answer,) = blk.read()
+    assert answer == 1
+    assert blk.state == (logic.State.HIGH,)
+
+    blk.write(0.31)
+    (answer,) = blk.read()
+    assert answer == 0
+    assert blk.state == (logic.State.LOW,)
+
+    blk.write(0.11)
+    (answer,) = blk.read()
+    assert answer == 0
+    assert blk.state == (logic.State.LOW,)
+
+    blk.write(0.1)
+    (answer,) = blk.read()
+    assert answer == 1
+    assert blk.state == (logic.State.HIGH,)
+    
 def testTrigger():
 
     import math
