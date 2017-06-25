@@ -85,7 +85,7 @@ def main():
     from pyctrl.block import Printer
     from pyctrl.system.ss import DTSS
     from pyctrl.block.logic import CompareAbsWithHysterisis, SetBlock, State
-    from rcpy.gpio import GRN_LED
+    from rcpy.gpio import GRN_LED, red, PAUSE_BTN
 
     # create mip
     mip = Controller()
@@ -161,13 +161,22 @@ def main():
                   ['small_angle'], None,
                   period = 0.5, repeat = True)
     
-    # add led as timer
-    mip.add_device('ledgreen', 
+    # add green led on a timer
+    mip.add_device('greenled', 
                    'pyctrl.rc.led', 'LED',
                    type = BlockType.TIMER,
                    enable = True,
                    inputs = ['small_angle'],
                    pin = GRN_LED,
+                   period = 0.5, repeat = True)
+
+    # add pause button on a timer
+    mip.add_device('pause', 
+                   'pyctrl.rc.button', 'Button',
+                   type = BlockType.TIMER,
+                   enable = True,
+                   outputs = ['is_running'],
+                   pin = PAUSE_BTN,
                    period = 0.5, repeat = True)
     
     # print controller
@@ -183,8 +192,6 @@ def main():
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 """)
 
-        input('Hold your MIP upright and hit <ENTER> to start balancing')
-
         print("""
 Use your keyboard to control the mip:
 
@@ -196,6 +203,8 @@ Use your keyboard to control the mip:
 
 """)
         
+        print('Hold your MIP upright to start balancing')
+
         # reset everything
         mip.set_source('clock',reset=True)
         mip.set_source('encoder1',reset=True)
@@ -203,6 +212,9 @@ Use your keyboard to control the mip:
         mip.set_filter('controller',reset=True)
         mip.set_source('inclinometer',reset=True)
 
+        # turn on red led
+        red.on()
+        
         # start the controller
         mip.start()
 
@@ -216,7 +228,7 @@ Use your keyboard to control the mip:
         
         # and wait until controller dies
         mip.join()
-        
+
     except KeyboardInterrupt:
 
         print("> Balancing aborted")
@@ -224,6 +236,9 @@ Use your keyboard to control the mip:
 
     finally:
         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+
+        # turn off red led
+        red.off()
         
 if __name__ == "__main__":
     main()
