@@ -276,11 +276,11 @@ class CompareAbsWithHysterisis(CompareAbs):
         if hysterisis < 0:
             raise block.BlockException('hysterisis must be nonnegative')
         self.hysterisis = hysterisis
-        
-        super().__init__(**kwargs)
 
         # initialize state
-        self.state = None
+        self.state = kwargs.pop('state', None)
+        
+        super().__init__(**kwargs)
 
     def set(self, exclude = (), **kwargs):
         """
