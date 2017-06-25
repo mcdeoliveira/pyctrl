@@ -158,11 +158,10 @@ def main():
                  ['small_angle'])
 
     # add printer as timer
-    hello.add_timer('printer',
-                    Printer(message = 'time = {:3.1f} s, motor = {:+6.1f} %',
-                            endln = '\r'),
-                    ['clock','pwm','small_angle','small_angle_pwm'], None,
-                    period = 1, repeat = True)
+    mip.add_timer('printer',
+                  Printer(),
+                  ['clock','pwm','small_angle','small_angle_pwm'], None,
+                  period = 1, repeat = True)
     
     # print controller
     print(mip.info('all'))
