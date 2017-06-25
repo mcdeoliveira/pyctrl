@@ -83,7 +83,7 @@ def main():
     from pyctrl.block.system import System, Subtract, Differentiator, Sum, Gain
     from pyctrl.block.nl import ControlledCombination, Product
     from pyctrl.block import Logger, ShortCircuit
-    from pyctrl.block.logic import CompareAbs, SetBlock
+    from pyctrl.block.logic import CompareAbsWithHysterisis, SetBlock
     from pyctrl.system.ss import DTSS
 
     # create mip
@@ -127,7 +127,8 @@ def main():
     # add small angle sensor
     mip.add_signal('small_angle')
     mip.add_filter('small_angle',
-                   CompareAbs(threshold = 0.2),
+                   CompareAbsWithHysterisis(threshold = 0.2,
+                                            hysterisis = 0.1),
                    ['theta'],
                    ['small_angle'])
 
@@ -151,7 +152,7 @@ def main():
 
     # reset controller logic
     mip.add_sink('reset_controller',
-                 SetBlock(blocktype = BlockType.SOURCE,
+                 SetBlock(blocktype = BlockType.FILTER,
                           label = 'controller',
                           on_rise = {'reset': True}),
                  ['small_angle'])
