@@ -160,7 +160,8 @@ def main():
     # add printer as timer
     mip.add_timer('printer',
                   Printer(),
-                  ['clock','pwm','small_angle','small_angle_pwm'], None,
+                  ['clock','theta','small_angle',
+                   'pwm','small_angle_pwm'], None,
                   period = 1, repeat = True)
     
     # print controller
