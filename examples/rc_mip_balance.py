@@ -129,6 +129,7 @@ def main():
     mip.add_filter('small_angle',
                    CompareAbsWithHysterisis(threshold = 0.185,
                                             hysterisis = 0.065,
+                                            offset = -0.07,
                                             state = (State.LOW,)),
                    ['theta'],
                    ['small_angle'])

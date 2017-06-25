@@ -270,6 +270,11 @@ class CompareAbsWithHysterisis(CompareAbs):
 
     def __init__(self, **kwargs):
 
+        offset = kwargs.pop('offset', 0)
+        if not isinstance(offset, (int, float)):
+            raise block.BlockException('offset must be int or float')
+        self.offset = offset
+        
         hysterisis = kwargs.pop('hysterisis', 0.1)
         if not isinstance(hysterisis, (int, float)):
             raise block.BlockException('hysterisis must be int or float')
@@ -300,28 +305,34 @@ class CompareAbsWithHysterisis(CompareAbs):
                 raise block.BlockException('hysterisis must be nonnegative')
             self.hysterisis = hysterisis
         
+        if 'offset' in kwargs:
+            offset = kwargs.pop('offset', 0)
+            if not isinstance(offset, (int, float)):
+                raise block.BlockException('offset must be int or float')
+            self.offset = offset
+        
         super().set(**kwargs)
 
     def __test(self,v,s):
         if s:
-            if numpy.fabs(v) <= self.threshold + self.hysterisis:
+            if numpy.fabs(v - self.offset) <= self.threshold + self.hysterisis:
                 return (1, State.HIGH)
             else:
                 return (0, State.LOW)
         else:
-            if numpy.fabs(v) <= self.threshold - self.hysterisis:
+            if numpy.fabs(v - self.offset) <= self.threshold - self.hysterisis:
                 return (1, State.HIGH)
             else:
                 return (0, State.LOW)
 
     def __test_invert(self,v,s):
         if s:
-            if numpy.fabs(v) >= self.threshold - self.hysterisis:
+            if numpy.fabs(v - self.offset) >= self.threshold - self.hysterisis:
                 return (1, State.HIGH)
             else:
                 return (0, State.LOW)
         else:
-            if numpy.fabs(v) >= self.threshold + self.hysterisis:
+            if numpy.fabs(v - self.offset) >= self.threshold + self.hysterisis:
                 return (1, State.HIGH)
             else:
                 return (0, State.LOW)
