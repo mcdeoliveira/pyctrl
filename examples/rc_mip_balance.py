@@ -160,6 +160,26 @@ def main():
                           on_rise = {'reset': True}),
                  ['small_angle'])
 
+    # add large angle sensor
+    mip.add_signal('large_angle')
+    mip.add_timer('large_angle',
+                  CompareAbsWithHysterisis(threshold = 0.5,
+                                           hysterisis = 0.1,
+                                           offset = -0.07,
+                                           invert = True,
+                                           state = (State.LOW,)),
+                  ['theta'],
+                  ['large_angle'],
+                  period = 1, repeat = True)
+    
+    # reset inclinometer logic
+    mip.add_timer('reset_inclinometer',
+                  SetBlock(blocktype = BlockType.SOURCE,
+                           label = 'inclinometer',
+                           on_rise = {'reset': True}),
+                  ['large_angle'],
+                  period = 1, repeat = True)
+    
     # add printer as timer
     mip.add_timer('printer',
                   Printer(),
