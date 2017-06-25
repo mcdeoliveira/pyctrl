@@ -129,10 +129,10 @@ def main():
     mip.add_filter('small_angle',
                    CompareAbsWithHysterisis(threshold = 0.2,
                                             hysterisis = 0.1,
-                                            state = (State.LOW,),
+                                            state = (State.LOW,)),
                    ['theta'],
                    ['small_angle'])
-
+    
     # enable pwm based on small_angle
     mip.add_signal('small_angle_pwm')
     mip.add_filter('small_angle_pwm',
