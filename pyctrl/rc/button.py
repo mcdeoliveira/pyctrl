@@ -38,13 +38,13 @@ class Button(block.Block):
 
             if self.invert:
                 if self.button.is_pressed():
-                    return (1,)
-                else:
                     return (0,)
+                else:
+                    return (1,)
             else:
                 if self.button.is_pressed():
-                    return (0,)
-                else:
                     return (1,)
+                else:
+                    return (0,)
 
 

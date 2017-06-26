@@ -178,6 +178,7 @@ def main():
                    enable = True,
                    outputs = ['is_running'],
                    pin = PAUSE_BTN,
+                   invert = True,
                    period = 0.5, repeat = True)
     
     # print controller
