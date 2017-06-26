@@ -628,6 +628,9 @@ class FadeIn(BufferBlock):
         # period?
         self.period = kwargs.pop('period')
 
+        # hold?
+        self.hold = kwargs.pop('hold', False)
+        
         # xp
         self.xp = numpy.array([0, self.period])
         
@@ -707,8 +710,10 @@ class FadeIn(BufferBlock):
             # interpolate signal
             x = self.xp_current - self.xp_origin
             self.buffer = tuple(numpy.interp(x, self.xp, f) for f in self.fp)
-        else:
+        elif self.hold:
             self.buffer = self.target
+        else
+            self.buffer = self.buffer[1:]
         
         # call super
         return super().read()
