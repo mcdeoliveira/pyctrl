@@ -169,6 +169,14 @@ def main():
                   ['small_angle'], None,
                   period = 0.5, repeat = True)
     
+    # reset controller logic
+    mip.add_timer('reset_fade',
+                  SetBlock(blocktype = BlockType.FILTER,
+                           label = 'fade',
+                           on_rise = {'reset': True}),
+                  ['small_angle'], None,
+                  period = 0.5, repeat = True)
+    
     # add green led on a timer
     mip.add_device('greenled', 
                    'pyctrl.rc.led', 'LED',
