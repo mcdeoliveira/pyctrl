@@ -111,7 +111,7 @@ def main():
 
     # add fade in filter
     mip.add_filter('fade',
-                   FadeIn(origin = [0, 0.5], period = 3),
+                   FadeIn(origin = [0, 0.5], period = 5),
                    ['clock','phi_dot_reference','steer_reference'],
                    ['phi_dot_reference_fade','steer_reference_fade'])
     
