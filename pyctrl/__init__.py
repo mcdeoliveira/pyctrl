@@ -1128,7 +1128,7 @@ class Controller:
         if self.thread:
             self.thread.join()
 
-import .block.container
+from .block import container
             
 class ContainerController(container.Container):
     """
@@ -1158,13 +1158,13 @@ class ContainerController(container.Container):
 
         # duty
         self.duty = 0
-
+        
         # noclock
         self.noclock = kwargs.pop('noclock', False)
-
+        
         # call super
         super().__init__(kwargs)
-
+        
         # call __reset
         self.__reset()
 
@@ -1172,11 +1172,8 @@ class ContainerController(container.Container):
 
         # signals
         self.signals.update({ 'is_running': self.is_running, 
-                              'duty': self.duty }
-
-
+                              'duty': self.duty })
                             
-
 
         if not self.noclock:
 
