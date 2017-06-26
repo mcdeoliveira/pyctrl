@@ -712,7 +712,7 @@ class FadeIn(BufferBlock):
             self.buffer = tuple(numpy.interp(x, self.xp, f) for f in self.fp)
         elif self.hold:
             self.buffer = self.target
-        else
+        else:
             self.buffer = self.buffer[1:]
         
         # call super
