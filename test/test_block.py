@@ -322,6 +322,68 @@ def test_Interp():
     (y,) = obj.read()
     assert y == 0.75
     
+def test_FadeIn():
+
+    import numpy as np
+
+    t = np.array([0,1,2])
+    x = np.array([1,1.5,2])
+    obj = block.FadeIn(origin = 1, period = 2)
+
+    for k in range(len(t)):
+        tk = t[k]
+        obj.write(tk, 2)
+        (y,) = obj.read()
+        assert y == x[k]
+
+    obj.reset()
+
+    t = t + 2
+    for k in range(len(t)):
+        tk = t[k]
+        obj.write(tk, 2)
+        (y,) = obj.read()
+        assert y == x[k]
+
+    obj.reset()
+    
+    x = np.array([1,2.5,4])
+    t = t + 2
+    for k in range(len(t)):
+        tk = t[k]
+        obj.write(tk, 4)
+        (y,) = obj.read()
+        assert y == x[k]
+        
+    t = np.array([0,1,2])
+    x = np.array([0,1,2])
+    obj = block.FadeIn(period = 2)
+
+    for k in range(len(t)):
+        tk = t[k]
+        obj.write(tk, 2)
+        (y,) = obj.read()
+        assert y == x[k]
+
+    t = np.array([0,1,2])
+    x = np.array([[1,1.5,2],[0,2,4]])
+    obj = block.FadeIn(origin = [1,0], period = 2)
+
+    for k in range(len(t)):
+        tk = t[k]
+        obj.write(tk, 2, 4)
+        y = obj.read()
+        assert not np.any(x[:,k] - numpy.array(y))
+        
+    obj.reset()
+
+    t = t + 2
+    for k in range(len(t)):
+        tk = t[k]
+        obj.write(tk, 2, 4)
+        y = obj.read()
+        assert not np.any(x[:,k] - numpy.array(y))
+        
 def test_apply():
 
     def f(*x):

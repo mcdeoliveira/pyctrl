@@ -82,7 +82,7 @@ def main():
     from pyctrl.rc.mip import Controller
     from pyctrl.block.system import System, Subtract, Differentiator, Sum, Gain
     from pyctrl.block.nl import ControlledCombination, Product
-    from pyctrl.block import Printer
+    from pyctrl.block import FadeIn, Printer
     from pyctrl.system.ss import DTSS
     from pyctrl.block.logic import CompareAbsWithHysterisis, SetBlock, State
     from rcpy.gpio import GRN_LED, PAUSE_BTN
@@ -105,9 +105,16 @@ def main():
                    ['clock','phi'],
                    ['phi_dot'])
 
-    # phi dot reference
-    mip.add_signal('phi_dot_reference')
+    # phi dot and steer reference
+    mip.add_signals('phi_dot_reference', 'phi_dot_reference_fade')
+    mip.add_signals('steer_reference', 'steer_reference_fade')
 
+    # add fade in filter
+    mip.add_filter('fade',
+                   FadeIn(origin = [0, 0.5], period = 2),
+                   ['clock','phi_dot_reference','steer_reference'],
+                   ['phi_dot_reference_fade','steer_reference_fade'])
+    
     # state-space matrices
     A = np.array([[0.913134, 0.0363383],[-0.0692862, 0.994003]])
     B = np.array([[0.00284353, -0.000539063], [0.00162443, -0.00128745]])
@@ -123,7 +130,7 @@ def main():
     mip.add_signals('pwm')
     mip.add_filter('controller',
                    System(model = ssctrl),
-                   ['theta_dot','phi_dot','phi_dot_reference'],
+                   ['theta_dot','phi_dot','phi_dot_reference_fade'],
                    ['pwm'])
 
     # enable pwm only if about small_angle
@@ -134,10 +141,10 @@ def main():
                    ['small_angle_pwm'])
     
     # steering biasing
-    mip.add_signal('steer_reference')
     mip.add_filter('steer',
                    ControlledCombination(),
-                   ['steer_reference', 'small_angle_pwm','small_angle_pwm'],
+                   ['steer_reference_fade',
+                    'small_angle_pwm','small_angle_pwm'],
                    ['pwm1','pwm2'])
 
     # set references
