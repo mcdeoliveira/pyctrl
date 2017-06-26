@@ -196,13 +196,13 @@ def main():
                    invert = True,
                    period = 0.5, repeat = True)
 
-    # add printer
-    mip.add_timer('printer',
-                  Printer(),
-                  ['clock','small_angle',
-                   'phi_dot_reference','phi_dot_reference_fade',
-                   'steer_reference','steer_reference_fade'], None,
-                  period = 1, repeat = True)
+    # # add printer
+    # mip.add_timer('printer',
+    #               Printer(),
+    #               ['clock','small_angle',
+    #                'phi_dot_reference','phi_dot_reference_fade',
+    #                'steer_reference','steer_reference_fade'], None,
+    #               period = 1, repeat = True)
     
     # print controller
     print(mip.info('all'))
