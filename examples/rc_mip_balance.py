@@ -111,7 +111,7 @@ def main():
 
     # add fade in filter
     mip.add_filter('fade',
-                   FadeIn(origin = [0, 0.5], period = 2),
+                   FadeIn(origin = [0, 0.5], period = 3),
                    ['clock','phi_dot_reference','steer_reference'],
                    ['phi_dot_reference_fade','steer_reference_fade'])
     
@@ -161,18 +161,10 @@ def main():
                   ['small_angle'],
                   period = 0.5, repeat = True)
     
-    # reset controller logic
+    # reset controller and fade
     mip.add_timer('reset_controller',
                   SetBlock(blocktype = BlockType.FILTER,
-                           label = 'controller',
-                           on_rise = {'reset': True}),
-                  ['small_angle'], None,
-                  period = 0.5, repeat = True)
-    
-    # reset controller logic
-    mip.add_timer('reset_fade',
-                  SetBlock(blocktype = BlockType.FILTER,
-                           label = 'fade',
+                           label = ['controller','fade']
                            on_rise = {'reset': True}),
                   ['small_angle'], None,
                   period = 0.5, repeat = True)

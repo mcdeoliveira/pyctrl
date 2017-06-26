@@ -515,6 +515,8 @@ class SetBlock(Event):
         self.blocktype = blocktype
 
         self.label = kwargs.pop('label')
+        if not isinstance(self.label, (tuple, list)):
+            self.label = (self.label,)
 
         if 'on_rise_and_fall' in kwargs:
             self.on_rise = kwargs.pop('on_rise_and_fall', {})
@@ -541,6 +543,8 @@ class SetBlock(Event):
             
         if 'label' in kwargs:
             self.label = kwargs.pop('label')
+            if not isinstance(self.label, (tuple, list)):
+                self.label = (self.label,)
         
         if 'on_rise_and_fall' in kwargs:
             self.on_rise = kwargs.pop('on_rise_and_fall', {})
@@ -559,28 +563,37 @@ class SetBlock(Event):
         
             # call set
             if self.blocktype is BlockType.SINK:
-                self.controller.set_sink(self.label, **self.on_rise)
+                for l in self.label:
+                    self.controller.set_sink(l, **self.on_rise)
             elif self.blocktype is BlockType.FILTER:
-                self.controller.set_filter(self.label, **self.on_rise)
+                for l in self.label:
+                    self.controller.set_filter(l, **self.on_rise)
             elif self.blocktype is BlockType.SOURCE:
-                self.controller.set_source(self.label, **self.on_rise)
+                for l in self.label:
+                    self.controller.set_source(l, **self.on_rise)
             elif self.blocktype is BlockType.TIMER:
-                self.controller.set_timer(self.label, **self.on_rise)
+                for l in self.label:
+                    self.controller.set_timer(l, **self.on_rise)
             else:
                 raise block.BlockException('Unknown blocktype' + self.blocktype)
         
     def fall_event(self):
 
         if self.on_fall:
+
             # call set
             if self.blocktype is BlockType.SINK:
-                self.controller.set_sink(self.label, **self.on_fall)
+                for l in self.label:
+                    self.controller.set_sink(l, **self.on_fall)
             elif self.blocktype is BlockType.FILTER:
-                self.controller.set_filter(self.label, **self.on_fall)
+                for l in self.label:
+                    self.controller.set_filter(l, **self.on_fall)
             elif self.blocktype is BlockType.SOURCE:
-                self.controller.set_source(self.label, **self.on_fall)
+                for l in self.label:
+                    self.controller.set_source(l, **self.on_fall)
             elif self.blocktype is BlockType.TIMER:
-                self.controller.set_timer(self.label, **self.on_fall)
+                for l in self.label:
+                    self.controller.set_timer(l, **self.on_fall)
             else:
                 raise block.BlockException('Unknown blocktype' + self.blocktype)
     
