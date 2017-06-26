@@ -10,6 +10,7 @@ class Button(block.Block):
 
         self.pin = kwargs.pop('pin', gpio.PAUSE_BTN)
         self.button = button.Button(self.pin)
+        self.invert = kwargs.pop('invert', False)
 
         # call super
         super().__init__(**kwargs)
@@ -35,8 +36,15 @@ class Button(block.Block):
         #print('> write to led')
         if self.enabled:
 
-            if self.button.is_pressed():
-                return (1,)
+            if self.invert:
+                if self.button.is_pressed():
+                    return (1,)
+                else:
+                    return (0,)
             else:
-                return (0,)
+                if self.button.is_pressed():
+                    return (0,)
+                else:
+                    return (1,)
+
 
