@@ -326,8 +326,8 @@ def test_FadeIn():
 
     import numpy as np
 
-    t = np.array([0,1,2])
-    x = np.array([1,1.5,2])
+    t = np.array([0,1,2,3,4])
+    x = np.array([1,1.5,2,2,2])
     obj = block.FadeIn(origin = 1, period = 2)
 
     for k in range(len(t)):
@@ -347,7 +347,7 @@ def test_FadeIn():
 
     obj.reset()
     
-    x = np.array([1,2.5,4])
+    x = np.array([1,2.5,4,4,4])
     t = t + 2
     for k in range(len(t)):
         tk = t[k]
