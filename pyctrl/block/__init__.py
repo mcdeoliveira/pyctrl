@@ -2,6 +2,7 @@
 This module provides the basic building blocks for implementing controllers.
 """
 
+import warnings
 import contextlib
 import numpy
 import sys
@@ -25,6 +26,12 @@ else:
 class BlockException(Exception):
     """
     Exception class for blocks
+    """
+    pass
+
+class BlockWarning(Warning):
+    """
+    Warning class for blocks
     """
     pass
 
@@ -588,7 +595,7 @@ class Interp(BufferBlock):
         
     def read(self):
         """
-        Read from :py:class:`pyctrl.block.Signal`.
+        Read from :py:class:`pyctrl.block.Interp`.
 
         :return: current interpolated value using :py:meth:`numpy.iterp`.
         """
@@ -604,39 +611,40 @@ class Interp(BufferBlock):
         # call super
         return super().read()
 
-class FadeIn(BufferBlock):
+class Fade(BufferBlock):
     """
-    :py:class:`pyctrl.block.Interp` outputs values of a vector :py:attr:`fp` interpolated according to the vector :py:attr:`xp` each time :py:meth:`pyctrl.block.BufferBlock.read` is called.
+    :py:class:`pyctrl.block.FadeIn` outputs values of a vector :py:attr:`fp` interpolated according to the vector :py:attr:`xp` each time :py:meth:`pyctrl.block.BufferBlock.read` is called.
 
     If :py:attr:`repeat` is True, signal repeats periodically.
 
-    :param xp: :py:class:`numpy.ndarray` or list with the x-coordinates of the data points, must be increasing
-    :param fp: :py:class:`numpy.ndarray` or list with the y-coordinates
-    :param float left: value to return for x < xp[0] (default is fp[0]).
-    :param float right: value to return for x > xp[-1] (default is fp[-1]).
     :param float period: a period for the x-coordinates; parameters left and right are ignored if period is specified (default None)
     """
 
     def __init__(self, **kwargs):
 
-        # origin
-        origin = kwargs.pop('origin', [])
-        if numpy.isscalar(origin):
-            origin = [origin]
-        self.origin = numpy.array(origin)
+        # target
+        target = kwargs.pop('target', [])
+        if numpy.isscalar(target):
+            target = [target]
+        self.target = numpy.array(target)
 
-        # period?
+        # period
         self.period = kwargs.pop('period')
 
-        # hold?
-        self.hold = kwargs.pop('hold', False)
-        
-        # xp
-        self.xp = numpy.array([0, self.period])
+        # direction
+        self.direction = kwargs.pop('direction', 'in').lower()
         
         super().__init__(**kwargs)
 
-        self.target = None
+        # xp and fp
+        self.xp = numpy.array([0, self.period])
+        if self.direction == 'in':
+            self.fp = numpy.array([0, 1])
+        elif self.direction == 'out':
+            self.fp = numpy.array([1, 0])
+        else:
+            raise BlockException("Unknown direction; must be 'in' or 'out'")
+            
         self.xp_origin = None
         self.xp_current = None
         
@@ -647,34 +655,41 @@ class FadeIn(BufferBlock):
 
         self.xp_current = self.xp_origin = None
 
+        if self.direction == 'in':
+            self.fp = numpy.array([0, 1])
+        elif self.direction == 'out':
+            self.fp = numpy.array([1, 0])
+        else:
+            raise BlockException("Unknown direction; must be 'in' or 'out'")
+        
     def set(self, exclude = (), **kwargs):
         """
         Set properties of :py:class:`pyctrl.block.Interp`. 
 
         :param tuple exclude: attributes to exclude (default ())
-        :param xp: :py:class:`numpy.ndarray` or list with the x-coordinates of the data points, must be increasing
-        :param fp: :py:class:`numpy.ndarray` or list with the y-coordinates
-        :param float left: value to return for x < xp[0]
-        :param float right: value to return for x > xp[-1]
         :param float period: a period for the x-coordinates; parameters left and right are ignored if period is specified
         :param kwargs kwargs: other keyword arguments
         """
 
         changes = False
         
-        if 'origin' in kwargs:
-            self.origin = numpy.array(kwargs.pop('origin'))
+        if 'target' in kwargs:
+            self.target = numpy.array(kwargs.pop('target'))
             changes = True
 
         if 'period' in kwargs:
             self.period = numpy.array(kwargs.pop('fp'))
             changes = True
 
+        if 'direction' in kwargs:
+            self.direction = kwargs.pop('direction')
+            changes = True
+            
         if changes:
             self.reset()
             
         # call super
-        super().set(exclude + ('xp', 'xp_current', 'xp_origin', 'target'), **kwargs)
+        super().set(exclude + ('xp', 'fp', 'xp_current', 'xp_origin'), **kwargs)
 
     def write(self, *values):
         """
@@ -691,14 +706,10 @@ class FadeIn(BufferBlock):
         if self.xp_origin is None:
             
             self.xp_origin = self.xp_current
-            self.target = self.buffer[1:]
             
-            if not len(self.origin):
-                self.origin = len(self.target) * [0]
+            if not len(self.target):
+                self.target = (len(self.buffer) - 1) * [0]
                 
-            self.fp = numpy.vstack((self.origin,
-                                    self.target)).transpose().tolist()
-
     def read(self):
         """
         Read from :py:class:`pyctrl.block.Signal`.
@@ -709,11 +720,12 @@ class FadeIn(BufferBlock):
         if self.xp_current - self.xp_origin <= self.period:
             # interpolate signal
             x = self.xp_current - self.xp_origin
-            self.buffer = tuple(numpy.interp(x, self.xp, f) for f in self.fp)
-        elif self.hold:
-            self.buffer = self.target
-        else:
+            f = numpy.interp(x, self.xp, self.fp)
+            self.buffer = tuple(f*y+(1-f)*o for (o,y) in zip(self.target,self.buffer[1:]))
+        elif self.direction == 'in':
             self.buffer = self.buffer[1:]
+        elif self.direction == 'out':
+            self.buffer = self.target
         
         # call super
         return super().read()

@@ -327,12 +327,13 @@ def test_FadeIn():
     import numpy as np
 
     t = np.array([0,1,2,3,4])
-    x = np.array([1,1.5,2,2,2])
-    obj = block.FadeIn(origin = 1, period = 2)
+    yy = np.array([2,2,2,2,2])
+    x = np.array([1,0.5,0,0,0]) + (1 - np.array([1,0.5,0,0,0])) * yy
+    obj = block.Fade(target = 1, period = 2)
 
     for k in range(len(t)):
         tk = t[k]
-        obj.write(tk, 2)
+        obj.write(tk, yy[k])
         (y,) = obj.read()
         assert y == x[k]
 
@@ -341,33 +342,54 @@ def test_FadeIn():
     t = t + 2
     for k in range(len(t)):
         tk = t[k]
-        obj.write(tk, 2)
+        obj.write(tk, yy[k])
         (y,) = obj.read()
         assert y == x[k]
 
+    yy = np.array([2,3,4,1,0])
+    x = np.array([1,0.5,0,0,0]) + (1 - np.array([1,0.5,0,0,0])) * yy
+    obj = block.Fade(target = 1, period = 2)
+
+    for k in range(len(t)):
+        tk = t[k]
+        obj.write(tk, yy[k])
+        (y,) = obj.read()
+        assert y == x[k]
+
+    obj.reset()
+
+    t = t + 2
+    for k in range(len(t)):
+        tk = t[k]
+        obj.write(tk, yy[k])
+        (y,) = obj.read()
+        assert y == x[k]
+        
     obj.reset()
     
-    x = np.array([1,2.5,4,4,4])
+    yy = np.array([4,4,4,4,4])
+    x = np.array([1,0.5,0,0,0]) + (1 - np.array([1,0.5,0,0,0])) * yy
     t = t + 2
     for k in range(len(t)):
         tk = t[k]
-        obj.write(tk, 4)
+        obj.write(tk, yy[k])
         (y,) = obj.read()
         assert y == x[k]
         
-    t = np.array([0,1,2])
-    x = np.array([0,1,2])
-    obj = block.FadeIn(period = 2)
+    yy = np.array([2,2,2,2,2])
+    x = np.array([0,0,0,0,0]) + (1 - np.array([1,0.5,0,0,0])) * yy
+    obj = block.Fade(period = 2)
 
     for k in range(len(t)):
         tk = t[k]
-        obj.write(tk, 2)
+        obj.write(tk, yy[k])
         (y,) = obj.read()
         assert y == x[k]
 
-    t = np.array([0,1,2])
-    x = np.array([[1,1.5,2],[0,2,4]])
-    obj = block.FadeIn(origin = [1,0], period = 2)
+    yy = np.array([[2],[4]])
+    oo = np.array([[1],[0]])
+    x = np.dot(oo, np.array([[1,0.5,0,0,0]])) + np.dot(yy, (1 - np.array([[1,0.5,0,0,0]])))
+    obj = block.Fade(target = [1,0], period = 2)
 
     for k in range(len(t)):
         tk = t[k]
@@ -383,6 +405,25 @@ def test_FadeIn():
         obj.write(tk, 2, 4)
         y = obj.read()
         assert not np.any(x[:,k] - numpy.array(y))
+        
+    yy = np.array([2,3,4,1,0])
+    x = (1 - np.array([1,0.5,0,0,0])) + np.array([1,0.5,0,0,0]) * yy
+    obj = block.Fade(target = 1, direction = 'out', period = 2)
+
+    for k in range(len(t)):
+        tk = t[k]
+        obj.write(tk, yy[k])
+        (y,) = obj.read()
+        assert y == x[k]
+
+    obj.reset()
+
+    t = t + 2
+    for k in range(len(t)):
+        tk = t[k]
+        obj.write(tk, yy[k])
+        (y,) = obj.read()
+        assert y == x[k]
         
 def test_apply():
 
