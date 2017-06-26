@@ -706,7 +706,7 @@ class FadeIn(BufferBlock):
         if self.xp_current - self.xp_origin <= self.period:
             # interpolate signal
             x = self.xp_current - self.xp_origin
-            self.buffer = tuple(interp(x, self.xp, f) for f in self.fp)
+            self.buffer = tuple(numpy.interp(x, self.xp, f) for f in self.fp)
         else:
             self.buffer = self.target
         
