@@ -1,55 +1,26 @@
 """
-This module provides the basic building blocks for implementing controllers.
+This module provides the basic building blocks for implementing Containers.
 """
 
 import warnings
 import sys
 import numpy
 import math
+from threading import Thread, Timer, Condition
 
 from .. import block
 
-class Input(block.Block):
+class ContainerWarning(block.BlockWarning):
+    pass
 
-    def write(self, *values):
-        """
-        Write to :py:class:`pyctrl.block.container.Input`.
+class ContainerException(block.BlockException):
+    pass
 
-        :param vararg values: values
-        :raise: :py:class:`pyctrl.block.BlockException` if block does not support write
-        """
-        pass
-        
-    def read(self):
-        """
-        Read from :py:class:`pyctrl.block.container.Input`.
+class Input(block.BufferBlock):
+    pass
 
-        :return: values
-        :retype: tuple
-        :raise: :py:class:`pyctrl.block.BlockException` if block does not support read
-        """
-        pass
-
-class Output(block.Block):
-
-    def write(self, *values):
-        """
-        Write to :py:class:`pyctrl.block.container.Output`.
-
-        :param vararg values: values
-        :raise: :py:class:`pyctrl.block.BlockException` if block does not support write
-        """
-        pass
-        
-    def read(self):
-        """
-        Read from :py:class:`pyctrl.block.container.Output`.
-
-        :return: values
-        :retype: tuple
-        :raise: :py:class:`pyctrl.block.BlockException` if block does not support read
-        """
-        pass
+class Output(block.BufferBlock):
+    pass
     
 class Container(block.Block):
     """
@@ -60,7 +31,6 @@ class Container(block.Block):
 
         # signals
         self.signals = { }
-        self.signals_order = [ ]
 
         # devices
         self.devices = { }
@@ -79,8 +49,12 @@ class Container(block.Block):
 
         # timers
         self.timers = { }
-        self.timer_order = [ ]
+        self.running_timers = { }
 
+        # set enabled as False by default
+        if 'enabled' not in kwargs:
+            kwargs['enabled'] = False
+        
         # call super
         super().__init__(**kwargs)
         
@@ -91,17 +65,17 @@ class Container(block.Block):
         """
 
         # call reset for each block
-        for block in self.sources:
-            block.reset()
-            
-        for block in self.sinks:
-            block.reset()
-            
-        for block in self.filters:
-            block.reset()
+        for label in self.sources_order:
+            self.sources[label]['block'].reset()
 
-        for block in self.timers:
-            block.reset()
+        for label in self.filters_order:
+            self.filters[label]['block'].reset()
+
+        for label in self.sinks_order:
+            self.sinks[label]['block'].reset()
+
+        for label, device in self.timers.items():
+            device['block'].reset()
 
     # info
     def info(self, *vargs):
@@ -237,26 +211,19 @@ class Container(block.Block):
         return result
 
     # signals
-    def add_signal(self, label, order = -1):
+    def add_signal(self, label):
         """
         Add signal to Container.
 
         :param str label: the signal label
-        :param int order: if positive, set execution order, otherwise add as last (default `-1`)
         """
         assert isinstance(label, str)
         if label in self.signals:
-            warnings.warn("Signal '{}' already present and is been replaced.".format(label),
-                          BlockWarning)
-            self.remove_signal(label)
-
-        self.signals[label] = 0
-        
-        if order < 0:
-            self.signals_order.append(label)
+            warnings.warn("Signal '{}' already present.".format(label),
+                          ContainerWarning)
         else:
-            self.signals_order.insert(order, label)
-            
+            self.signals[label] = 0
+
     def add_signals(self, *labels):
         """
         Add multiple signal to Container.
@@ -276,32 +243,31 @@ class Container(block.Block):
         for (l, device) in self.sources.items():
             if label in device['outputs']:
                 warnings.warn("Signal '{}' still in use by source '{}' and can't be removed.".format(label, l),
-                              BlockWarning)
+                              ContainerWarning)
                 return
 
         # used in a filter?
         for (l, device) in self.filters.items():
             if label in device['outputs'] or label in device['inputs']:
                 warnings.warn("Signal '{}' still in use by filter '{}' and can't be removed.".format(label, l),
-                              BlockWarning)
+                              ContainerWarning)
                 return
                 
         # used in a sink?
         for (l, device) in self.sinks.items():
             if label in device['inputs']:
                 warnings.warn("Signal '{}' still in use by sink '{}' and can't be removed.".format(label, l),
-                              BlockWarning)
+                              ContainerWarning)
                 return
                 
         # used in a filter?
         for (l, device) in self.timers.items():
             if label in device['outputs'] or label in device['inputs']:
                 warnings.warn("Signal '{}' still in use by timer '{}' and can't be removed.".format(label, l),
-                              BlockWarning)
+                              ContainerWarning)
                 return
 
         # otherwise go ahead
-        self.signals_order.remove(label)
         self.signals.pop(label)
 
     def set_signal(self, label, value):
@@ -312,7 +278,7 @@ class Container(block.Block):
         :param value: the value to be set
         """
         if label not in self.signals:
-            raise BlockException("Signal '{}' does not exist".format(label))
+            raise ContainerException("Signal '{}' does not exist".format(label))
         self.signals[label] = value
 
     def get_signal(self, label):
@@ -356,7 +322,7 @@ class Container(block.Block):
         assert isinstance(label, str)
         if label in self.sources:
             warnings.warn("Source '{}' already exists and is been replaced.".format(label),
-                          BlockWarning)
+                          ContainerWarning)
             self.remove_source(label)
 
         assert isinstance(source, block.Block)
@@ -377,7 +343,7 @@ class Container(block.Block):
         for s in outputs:
             if s not in self.signals:
                 warnings.warn("Signal '{}' was not present and is being automatically added.".format(s),
-                              BlockWarning)
+                              ContainerWarning)
                 self.add_signal(s)
 
     def remove_source(self, label):
@@ -401,7 +367,7 @@ class Container(block.Block):
         :param kwargs kwargs: other key-value pairs of attributes
         """
         if label not in self.sources:
-            raise BlockException("Source '{}' does not exist".format(label))
+            raise ContainerException("Source '{}' does not exist".format(label))
 
         if 'outputs' in kwargs:
             values = kwargs.pop('outputs')
@@ -420,7 +386,7 @@ class Container(block.Block):
         :rtype: dict or value
         """
         if label not in self.sources:
-            raise BlockException("Source '{}' does not exist".format(label))
+            raise ContainerException("Source '{}' does not exist".format(label))
 
         return self.sources[label]['block'].get(*keys)
 
@@ -463,7 +429,7 @@ class Container(block.Block):
         assert isinstance(label, str)
         if label in self.sinks:
             warnings.warn("Sink '{}' already exists and is been replaced.".format(label), 
-                          BlockWarning)
+                          ContainerWarning)
             self.remove_sink(label)
 
         assert isinstance(sink, block.Block)
@@ -484,7 +450,7 @@ class Container(block.Block):
         for s in inputs:
             if s not in self.signals:
                 warnings.warn("Signal '{}' was not present and is being automatically added.".format(s),
-                              BlockWarning)
+                              ContainerWarning)
                 self.add_signal(s)
                 
     def remove_sink(self, label):
@@ -508,7 +474,7 @@ class Container(block.Block):
         :param kwargs kwargs: other key-value pairs of attributes
         """
         if label not in self.sinks:
-            raise BlockException("Sink '{}' does not exist".format(label))
+            raise ContainerException("Sink '{}' does not exist".format(label))
 
         if 'inputs' in kwargs:
             values = kwargs.pop('inputs')
@@ -527,7 +493,7 @@ class Container(block.Block):
         :rtype: dict
         """
         if label not in self.sinks:
-            raise BlockException("Sink '{}' does not exist".format(label))
+            raise ContainerException("Sink '{}' does not exist".format(label))
 
         return self.sinks[label]['block'].get(*keys)
 
@@ -573,7 +539,7 @@ class Container(block.Block):
         assert isinstance(label, str)
         if label in self.filters:
             warnings.warn("Filter '{}' already exists and is been replaced.".format(label),
-                          BlockWarning)
+                          ContainerWarning)
             self.remove_filter(label)
 
         assert isinstance(filter_, block.Block)
@@ -596,14 +562,14 @@ class Container(block.Block):
         for s in inputs:
             if s not in self.signals:
                 warnings.warn("Signal '{}' was not present and is being automatically added.".format(s),
-                              BlockWarning)
+                              ContainerWarning)
                 self.add_signal(s)
                 
         # make sure output signals exist
         for s in outputs:
             if s not in self.signals:
                 warnings.warn("Signal '{}' was not present and is being automatically added".format(s),
-                              BlockWarning)
+                              ContainerWarning)
                 self.add_signal(s)
             
     def remove_filter(self, label):
@@ -628,7 +594,7 @@ class Container(block.Block):
         :param kwargs kwargs: other key-value pairs of attributes
         """
         if label not in self.filters:
-            raise BlockException("Filter '{}' does not exist".format(label))
+            raise ContainerException("Filter '{}' does not exist".format(label))
 
         if 'inputs' in kwargs:
             values = kwargs.pop('inputs')
@@ -652,7 +618,7 @@ class Container(block.Block):
         :rtype: dict
         """
         if label not in self.filters:
-            raise BlockException("Filter '{}' does not exist".format(label))
+            raise ContainerException("Filter '{}' does not exist".format(label))
 
         return self.filters[label]['block'].get(*keys)
 
@@ -739,7 +705,7 @@ class Container(block.Block):
             # warn if inputs are defined
             if inputs:
                 warnings.warn("Sources do not have inputs. Inputs ignored.",
-                              BlockWarning)
+                              ContainerWarning)
 
             # add device as source
             self.add_source(label, instance, outputs)
@@ -749,7 +715,7 @@ class Container(block.Block):
             # warn if inputs are defined
             if outputs:
                 warnings.warn("Sinks do not have outputs. Outputs ignored.",
-                              BlockWarning)
+                              ContainerWarning)
 
             # add device as sink
             self.add_sink(label, instance, inputs)
@@ -814,7 +780,7 @@ class Container(block.Block):
         assert isinstance(label, str)
         if label in self.timers:
             warnings.warn("Timer '{}' already exists and is been replaced.".format(label),
-                          BlockWarning)
+                          ContainerWarning)
             self.remove_timer(label)
 
         assert isinstance(blk, block.Block)
@@ -856,7 +822,7 @@ class Container(block.Block):
         :param kwargs kwargs: other key-value pairs of attributes
         """
         if label not in self.timers:
-            raise BlockException("Timer '{}' does not exist".format(label))
+            raise ContainerException("Timer '{}' does not exist".format(label))
 
         if 'inputs' in kwargs:
             values = kwargs.pop('inputs')
@@ -880,7 +846,7 @@ class Container(block.Block):
         :rtype: dict
         """
         if label not in self.timers:
-            raise BlockException("Timer '{}' does not exist".format(label))
+            raise ContainerException("Timer '{}' does not exist".format(label))
 
         return self.timers[label]['block'].get(*keys)
 
@@ -912,22 +878,59 @@ class Container(block.Block):
         
     def write(self, *values):
         """
-        Write to :py:class:`pyctrl.block.Block`.
+        Write to :py:class:`pyctrl.block.container.Container`.
 
         :param vararg values: values
-        :raise: :py:class:`pyctrl.block.BlockException` if block does not support write
+        :raise: :py:class:`pyctrl.block.container.ContainerException` if block does not support write
         """
-        pass
-        
+
+        # Iterate on inputs
+        value = iter(values)
+
+        try:
+
+            # Write to all sources of type Input
+            for label in self.sources_order:
+                block = self.sources[label]
+                source = block['block']
+                if isinstance(source, Input):
+                    # write to Input
+                    source.write(next(value))
+
+        except StopIteration:
+
+            raise ContainerException('Number of inputs exceeds Input sources')
+
+        # warn if there are inputs left without an Input source
+        if next(value, None) is not None:
+            
+            warnings.warn('Number of Input sources is smaller than the number of inputs',
+                          ContainerWarning)
+            
     def read(self):
         """
-        Read from :py:class:`pyctrl.block.Block`.
+        Read from :py:class:`pyctrl.block.container.Container`.
 
         :return: values
         :retype: tuple
-        :raise: :py:class:`pyctrl.block.BlockException` if block does not support read
+        :raise: :py:class:`pyctrl.block.container.ContainerException` if block does not support read
         """
-        pass
+
+        # run container
+        self.run()
+        
+        # create empty buffer
+        buffer = ()
+        
+        # Read from all sinks of type Output
+        for label in self.sinks_order:
+            block = self.sinks[label]
+            sink = block['block']
+            if isinstance(sink, Output):
+                # read from Output
+                buffer += sink.read()
+
+        return buffer
 
     def run(self):
         
@@ -988,7 +991,7 @@ class Container(block.Block):
     
     def run_timer(self, label, device):
 
-        while self.is_running and self.state != EXITING:
+        while self.enabled:
 
             # Acquire condition
             device['condition'].acquire()
@@ -1009,63 +1012,49 @@ class Container(block.Block):
             if not device['repeat']:
                 break
             
-    def start(self):
+    def set_enabled(self, enabled = True):
         """
-        Start Container.
+        Enable Container.
         """
 
-        # enable devices
-        for label, device in self.devices.items():
-            if device['enable']:
-                device['instance'].set_enabled(True)
+        # does nothing if already enabled or disabled
+        if self.enabled == enabled:
+            return
+            
+        # call super
+        super().set_enabled(enabled)
 
-        # Start thread
-        self.thread = Thread(target = self.run)
-        self.thread.start()
-
-        # start timer threads
-        for label, device in self.timers.items():
-            device['condition'] = Condition()
-            thread = Thread(target = self.run_timer,
-                            args = (label, device))
-            thread.start()
+        # enable
+        if self.enabled:
         
-        # change state to running
-        self.state = RUNNING
+            # enable devices
+            for label, device in self.devices.items():
+                if device['enable']:
+                    device['instance'].set_enabled(True)
 
-    def stop(self):
-        """
-        Stop Container loop.
-        """
+            # start timer threads
+            for label, device in self.timers.items():
+                device['condition'] = Condition()
+                thread = Thread(target = self.run_timer,
+                                args = (label, device))
+                thread.start()
 
-        # Stop thread
-        if self.is_running:
-            self.is_running = False
-            self.signals['is_running'] = self.is_running
+        # disable
+        else:
 
-        # start timer threads
-        for (label,t) in self.running_timers.items():
-            # Try cancelling timer
-            t.cancel()
-            # Release condition
-            device = self.timers[label]
-            device['condition'].acquire()
-            device['condition'].notify_all()
-            device['condition'].release()
+            # start timer threads
+            for (label,t) in self.running_timers.items():
+                # Try cancelling timer
+                t.cancel()
+                # Release condition
+                device = self.timers[label]
+                device['condition'].acquire()
+                device['condition'].notify_all()
+                device['condition'].release()
 
-        self.running_timers = { }
+            self.running_timers = { }
 
-        # then disable devices
-        for label, device in self.devices.items():
-            if device['enable']:
-                device['instance'].set_enabled(False)
-
-        # change state to idle
-        self.state = IDLE
-
-    def join(self):
-        """
-        Wait for Container thread to terminate.
-        """
-        if self.thread:
-            self.thread.join()
+            # then disable devices
+            for label, device in self.devices.items():
+                if device['enable']:
+                    device['instance'].set_enabled(False)
