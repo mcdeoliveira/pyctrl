@@ -195,6 +195,8 @@ def main():
 """)
 
         print("""
+Hold your MIP upright to start balancing
+
 Use your keyboard to control the mip:
 
 * UP and DOWN arrows move forward and back
@@ -205,7 +207,6 @@ Use your keyboard to control the mip:
 
 """)
         
-        print('Hold your MIP upright to start balancing')
 
         # reset everything
         mip.set_source('clock',reset=True)
@@ -220,7 +221,7 @@ Use your keyboard to control the mip:
         # start the controller
         mip.start()
 
-        print("Press Ctrl-C to exit")
+        print("Press Ctrl-C or press the <PAUSE> button to exit")
 
         # fire thread to update velocities
         thread = threading.Thread(target = get_arrows,
