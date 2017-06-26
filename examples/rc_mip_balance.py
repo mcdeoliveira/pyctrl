@@ -164,7 +164,7 @@ def main():
     # reset controller and fade
     mip.add_timer('reset_controller',
                   SetBlock(blocktype = BlockType.FILTER,
-                           label = ['controller','fade']
+                           label = ['controller','fade'],
                            on_rise = {'reset': True}),
                   ['small_angle'], None,
                   period = 0.5, repeat = True)
