@@ -5,7 +5,7 @@ HOST, PORT = "localhost", 9998
 start_server = True
 #start_server = False
 
-def test_container():
+def _test_container():
 
     import pyctrl
     import numpy
@@ -275,15 +275,14 @@ def test_container():
                          block.Constant(value = 0),
                          None, ['is_running'], 2, False)
     
-    print('##########')
+    #print('##########')
     container.set_enabled(True)
     container.run()
-    print('##########')
+    #print('##########')
 
     time.sleep(3)
     
     container.run()
-
 
     container.set_enabled(False)
 
@@ -339,7 +338,7 @@ def test_container():
     assert container.get_signal('s2') == 0
     assert container.get_source('const', 'value') == 0.4
             
-def test_container_input_output():
+def _test_container_input_output():
 
     import pyctrl
     import pyctrl.block as block
@@ -417,3 +416,143 @@ def test_container_input_output():
     container.set_enabled(False)
     
     assert values == (2,3)
+
+def test_enable():
+
+    import pyctrl
+    import pyctrl.block as block
+
+    from pyctrl.block.container import Container, Input, Output
+    from pyctrl.block.system import Gain
+
+    # create subcontainer first
+    
+    subcontainer = Container()
+    
+    subcontainer.add_signals('s1', 's2')
+    
+    subcontainer.add_source('input1',
+                            Input(),
+                            ['s1'],
+                            enable = True)
+    
+    subcontainer.add_filter('gain1',
+                            Gain(gain = 3),
+                            ['s1'],['s2'])
+    
+    subcontainer.add_sink('output1',
+                          Output(),
+                          ['s2'])
+
+    subcontainer.set_enabled(True)
+    subcontainer.write(1)
+    values = subcontainer.read()
+    subcontainer.set_enabled(False)
+    
+    assert values == (3,)
+
+    subcontainer.set_source('input1', enable = False)
+    subcontainer.set_signal('s1', 0)
+
+    subcontainer.set_enabled(True)
+    subcontainer.write(1)
+    values = subcontainer.read()
+    subcontainer.set_enabled(False)
+    
+    assert values == (0,)
+
+    subcontainer.set_source('input1', enable = True)
+    subcontainer.set_filter('gain1', enable = True)
+
+    subcontainer.set_enabled(True)
+    subcontainer.write(1)
+    values = subcontainer.read()
+    subcontainer.set_enabled(False)
+    
+    assert values == (3,)
+
+    subcontainer.set_filter('gain1', enable = False)
+    subcontainer.set_signal('s2', 0)
+
+    subcontainer.set_enabled(True)
+    subcontainer.write(1)
+    values = subcontainer.read()
+    subcontainer.set_enabled(False)
+    
+    assert values == (0,)
+
+    subcontainer.set_filter('gain1', enable = True)
+    subcontainer.set_sink('output1', enable = True)
+    subcontainer.set_signal('s2', 0)
+
+    subcontainer.set_enabled(True)
+    subcontainer.write(1)
+    values = subcontainer.read()
+    subcontainer.set_enabled(False)
+    
+    assert values == (3,)
+
+    subcontainer.set_sink('output1', enable = False)
+    subcontainer.set_signal('s2', 0)
+
+    subcontainer.set_enabled(True)
+    subcontainer.write(1)
+    values = subcontainer.read()
+    subcontainer.set_enabled(False)
+
+    assert values == (None,)
+    
+def test_sub_container():
+
+    import pyctrl
+    import pyctrl.block as block
+
+    from pyctrl.block.container import Container, Input, Output
+    from pyctrl.block.system import Gain
+
+    # create subcontainer first
+    
+    subcontainer = Container()
+    
+    subcontainer.add_signals('s1', 's2')
+    
+    subcontainer.add_source('input1',
+                            Input(),
+                            ['s1'])
+    
+    subcontainer.add_filter('gain1',
+                            Gain(gain = 3),
+                            ['s1'],['s2'])
+    
+    subcontainer.add_sink('output1',
+                          Output(),
+                          ['s2'])
+    
+    subcontainer.set_enabled(True)
+    subcontainer.write(1)
+    values = subcontainer.read()
+    subcontainer.set_enabled(False)
+    
+    assert values == (3,)
+
+    # add to container
+    
+    container = Container()
+
+    container.add_signals('s1', 's2')
+    
+    container.add_filter('container',
+                         subcontainer,
+                         ['s1'], ['s2'])
+    
+    print(container.info('all'))
+    
+    container.set_enabled(True)
+    container.set_signal('s1', 1)
+    container.run()
+    container.set_enabled(False)
+
+    return
+
+    assert container.get_signal('s2') == 3
+

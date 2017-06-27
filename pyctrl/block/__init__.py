@@ -360,7 +360,9 @@ class BufferBlock(Block):
                 
             return self.buffer
 
-        # else return None
+        # else
+
+        return (None, )
 
 class ShortCircuit(Filter, BufferBlock):
     """
