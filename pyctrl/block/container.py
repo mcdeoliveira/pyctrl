@@ -25,7 +25,7 @@ class Input(block.BufferBlock):
 class Output(block.BufferBlock):
     pass
     
-class Container(block.Block):
+class Container(block.Filter, block.Block):
     """
     :py:class:`pyctrl.block.Container` provides a block that can contain other blocks.
     """

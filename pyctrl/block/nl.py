@@ -5,7 +5,7 @@ from .. import block
 
 # Blocks
 
-class ControlledCombination(block.BufferBlock):
+class ControlledCombination(block.Filter, block.BufferBlock):
     r"""
     :py:class:`pyctrl.block.nl.ControlledCombination` implements the combination:
 
@@ -67,7 +67,7 @@ class ControlledCombination(block.BufferBlock):
         self.buffer = tuple((1-alpha) * v for v in self.buffer[1:self.m+1]) \
                       + tuple(alpha * v for v in self.buffer[self.m+1:])
 
-class Product(block.BufferBlock):
+class Product(block.Filter, block.BufferBlock):
     r"""
     :py:class:`pyctrl.block.nl.Product` implements the product:
 
@@ -113,7 +113,7 @@ class Product(block.BufferBlock):
         
         self.buffer = tuple(g*v for (g,v) in zip(self.buffer[:self.m], self.buffer[self.m:]))
         
-class DeadZone(block.BufferBlock):
+class DeadZone(block.Filter, block.BufferBlock):
     r"""
     :py:class:`pyctrl.block.nl.DeadZone` implements the piecewise function:
 

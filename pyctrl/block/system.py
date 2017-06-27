@@ -12,7 +12,7 @@ from pyctrl.system.ss import DTSS
 
 # Blocks
 
-class System(block.BufferBlock):
+class System(block.Filter, block.BufferBlock):
     """
     :py:class:`pyctrl.block.system.System` is a wrapper for a time-invariant dynamic system model.  
 
@@ -72,7 +72,7 @@ class System(block.BufferBlock):
         
         self.buffer = (self.model.update(self.buffer[0]), )
         
-class TimeVaryingSystem(block.BufferBlock):
+class TimeVaryingSystem(block.Filter, block.BufferBlock):
     """
     :py:class:`pyctrl.block.system.TimeVarying` is a wrapper for a time-varying dynamic system model.
 
@@ -136,7 +136,7 @@ class TimeVaryingSystem(block.BufferBlock):
         uk = self.buffer[0]
         self.buffer = (self.model.update(uk[0], uk[1:]), )
 
-class Gain(block.BufferBlock):
+class Gain(block.Filter, block.BufferBlock):
     """
     *Gain* multiplies input by a constant gain, that is
 
@@ -251,7 +251,7 @@ class Affine(Gain):
 
         self.buffer = tuple(v*self.gain + self.offset for v in self.buffer)
 
-class Differentiator(block.BufferBlock):
+class Differentiator(block.Filter, block.BufferBlock):
     r"""
     *Differentiator* differentiates the input, that is
 
@@ -310,7 +310,7 @@ class Differentiator(block.BufferBlock):
             self.time, self.last, self.buffer = t, x, \
                 [0*v for v in x]
 
-class Feedback(block.BufferBlock):
+class Feedback(block.Filter, block.BufferBlock):
     r"""
     :py:class:`pyctrl.system.Feedback` creates a general feedback connection for a given :py:attr:`block`, that is
 
@@ -364,7 +364,7 @@ class Feedback(block.BufferBlock):
         # then read
         self.buffer = self.block.read()
 
-class Average(block.BufferBlock):
+class Average(block.Filter, block.BufferBlock):
     r"""
     :py:class:`pyctrl.block.system.Average` calculates the (weighted) average of all inputs, that is
 

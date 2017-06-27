@@ -4,7 +4,7 @@ import rcpy
 import rcpy.gpio as gpio
 import rcpy.button as button
 
-class Button(block.Block):
+class Button(block.Source, block.Block):
 
     def __init__(self, **kwargs):
 

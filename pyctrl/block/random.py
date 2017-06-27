@@ -2,7 +2,7 @@ import numpy.random
 
 from .. import block
 
-class Uniform(block.BufferBlock):
+class Uniform(block.Source, block.BufferBlock):
     """
     :py:class:`pyctrl.block.random.Uniform` produces an output with random entries uniformly distributed between :py:attr:`low` and :py:attr:`high`.
 
@@ -75,7 +75,7 @@ class Uniform(block.BufferBlock):
         # call super
         return super().read()
     
-class Gaussian(block.BufferBlock):
+class Gaussian(block.Source, block.BufferBlock):
     """
     :py:class:`pyctrl.block.random.Gaussian` produces an output with random entries normally distributed with parameters :py:attr:`mu` and :py:attr:`sigma`.
 

@@ -3,7 +3,7 @@ import pyctrl.block as block
 import rcpy
 import rcpy.encoder as encdr
 
-class Encoder(block.BufferBlock):
+class Encoder(block.Source, block.BufferBlock):
         
     def __init__(self, **kwargs):
         

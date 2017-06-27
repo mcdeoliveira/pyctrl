@@ -1,8 +1,8 @@
 import pyctrl.block as block
 
-import rc.GPIO as GPIO
+import rc.gpio as GPIO
 
-class Input(block.BufferBlock):
+class Input(block.Source, block.BufferBlock):
 
     def __init__(self,
                  pin = GPIO.PAUSE_BTN,
@@ -27,7 +27,7 @@ class Input(block.BufferBlock):
         
         return self.buffer
 
-class Output(block.BufferBlock):
+class Output(block.Sink, block.BufferBlock):
 
     def __init__(self,
                  pin = GPIO.RED_LED,

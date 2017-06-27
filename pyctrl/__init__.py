@@ -4,7 +4,7 @@ import numpy
 import importlib
 from enum import Enum
 
-from .block import Block
+from .block import Block, BlockType
 
 # alternative perf_counter
 import sys
@@ -20,12 +20,6 @@ class ControllerException(Exception):
 IDLE = 0
 RUNNING = 1
 EXITING = 2
-
-class BlockType(Enum):
-    SOURCE = 0
-    FILTER = 1
-    SINK = 2
-    TIMER = 3
 
 class Controller:
     """

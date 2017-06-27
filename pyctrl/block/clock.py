@@ -7,7 +7,7 @@ from .. import block
 import sys
 from time import perf_counter
 
-class Clock(block.Block):
+class Clock(block.Source, block.Block):
     """
     :py:class:`pyctrl.block.clock.Clock` provides a basic clock that writes the current time to its output.
     """

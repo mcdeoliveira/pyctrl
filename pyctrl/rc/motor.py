@@ -9,7 +9,7 @@ mtr.enable()
 # make sure it is disabled when destroyed
 import atexit; atexit.register(mtr.disable)
 
-class Motor(block.Block):
+class Motor(block.Sink, block.Block):
 
     def __init__(self, **kwargs):
 

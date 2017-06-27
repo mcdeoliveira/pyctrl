@@ -17,7 +17,7 @@ class State(IntEnum):
 
 # Blocks
 
-class Compare(block.BufferBlock):
+class Compare(block.Filter, block.BufferBlock):
     """
     :py:class:`pyctrl.block.logic.Compare` compares inputs. 
 
@@ -170,7 +170,7 @@ class CompareWithHysterisis(Compare):
 
         self.buffer, self.state = zip(*list(self.__test(v1,v2,s) for (v1,v2,s) in zip(self.buffer[self.m:], self.buffer[:self.m], self.state)))
         
-class CompareAbs(block.BufferBlock):
+class CompareAbs(block.Filter, block.BufferBlock):
     """
     :py:class:`pyctrl.block.logic.CompareAbs` compares the absolute value of its inputs. 
     
@@ -357,7 +357,7 @@ class CompareAbsWithHysterisis(CompareAbs):
         else:
             self.buffer, self.state = zip(*list(self.__test(v,s) for (v,s) in zip(self.buffer, self.state)))
 
-class Trigger(block.BufferBlock):
+class Trigger(block.Filter, block.BufferBlock):
     r"""
     :py:class:`pyctrl.block.logic.Trigger` can be used to switch signals on or off.
     
@@ -416,7 +416,7 @@ class Trigger(block.BufferBlock):
         else:
             self.buffer = tuple((len(values)-1)*[0])
 
-class Event(block.BufferBlock):
+class Event(block.Sink, block.BufferBlock):
     """
     :py:class:`pyctrl.block.logic.Event` runs actions based on event. 
 

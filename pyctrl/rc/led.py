@@ -4,7 +4,7 @@ import rcpy
 import rcpy.gpio as gpio
 import rcpy.led as led
 
-class LED(block.Block):
+class LED(block.Sink, block.Block):
 
     def __init__(self, **kwargs):
 

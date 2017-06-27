@@ -7,6 +7,8 @@ import contextlib
 import numpy
 import sys
 
+from enum import Enum
+
 np_major, np_minor, np_release = numpy.version.version.split('.')
 if int(np_major) == 1 and int(np_minor) >= 10:
 
@@ -23,6 +25,12 @@ else:
         else:
             return numpy.interp(x, xp, fp, left, right)
 
+class BlockType(Enum):
+    SOURCE = 0
+    FILTER = 1
+    SINK = 2
+    TIMER = 3
+        
 class BlockException(Exception):
     """
     Exception class for blocks
@@ -35,6 +43,67 @@ class BlockWarning(Warning):
     """
     pass
 
+class Source:
+
+    def __init__(self, **kwargs):
+
+        super().__init__(**kwargs)
+    
+    def get_type(self):
+        """
+        Get block :py:attr:`type`. :py:attr:`type` is a member of class :py:class:`pyctrl.block.BlockType`
+
+        :return: :py:attr:`type`
+        """
+        return BlockType.SOURCE
+
+    def write(self, *values):
+        """
+        Write to :py:class:`pyctrl.block.Block`.
+
+        :param vararg values: values
+        :raise: :py:class:`pyctrl.block.BlockException` if block does not support write
+        """
+        raise BlockException('This block does not support write')
+
+class Sink:
+
+    def __init__(self, **kwargs):
+
+        super().__init__(**kwargs)
+    
+    def get_type(self):
+        """
+        Get block :py:attr:`type`. :py:attr:`type` is a member of class :py:class:`pyctrl.block.BlockType`
+
+        :return: :py:attr:`type`
+        """
+        return BlockType.SINK
+
+    def read(self):
+        """
+        Read from :py:class:`pyctrl.block.Block`.
+
+        :return: values
+        :retype: tuple
+        :raise: :py:class:`pyctrl.block.BlockException` if block does not support read
+        """
+        raise BlockException('This block does not support read')
+    
+class Filter:
+
+    def __init__(self, **kwargs):
+
+        super().__init__(**kwargs)
+    
+    def get_type(self):
+        """
+        Get block :py:attr:`type`. :py:attr:`type` is a member of class :py:class:`pyctrl.block.BlockType`
+
+        :return: :py:attr:`type`
+        """
+        return BlockType.FILTER
+    
 class Block:
     """
     :py:class:`pyctrl.block.Block` provides the basic functionality for all types of blocks.
@@ -293,14 +362,14 @@ class BufferBlock(Block):
 
         # else return None
 
-class ShortCircuit(BufferBlock):
+class ShortCircuit(Filter, BufferBlock):
     """
     :py:class:`pyctrl.block.ShortCircuit` copies input to the output, that is
 
     :math:`y = u`
     """
 
-class Printer(Block):
+class Printer(Sink, Block):
     """
     :py:class:`pyctrl.block.Printer` prints the values of its input signals.
 
@@ -373,7 +442,7 @@ class Printer(Block):
                 print(self.sep.join(self.frmt.format(val) for val in row),
                       file=file, end=self.endln)
 
-class Constant(BufferBlock):
+class Constant(Source, BufferBlock):
     """
     :py:class:`pyctrl.block.Constant` outputs a constant.
     
@@ -410,7 +479,7 @@ class Constant(BufferBlock):
         # call super
         super().set(exclude, **kwargs)
     
-class Signal(BufferBlock):
+class Signal(Source, BufferBlock):
     """
     :py:class:`pyctrl.block.Signal` outputs values corresponding to its attribute :py:attr:`signal` sequentially each time :py:meth:`pyctrl.block.BufferBlock.read` is called.
     
@@ -500,7 +569,7 @@ class Signal(BufferBlock):
         # call super
         return super().read()
 
-class Interp(BufferBlock):
+class Interp(Filter, BufferBlock):
     """
     :py:class:`pyctrl.block.Interp` outputs values of a vector :py:attr:`fp` interpolated according to the vector :py:attr:`xp` each time :py:meth:`pyctrl.block.BufferBlock.read` is called.
 
@@ -611,7 +680,7 @@ class Interp(BufferBlock):
         # call super
         return super().read()
 
-class Fade(BufferBlock):
+class Fade(Filter, BufferBlock):
     """
     :py:class:`pyctrl.block.FadeIn` outputs values of a vector :py:attr:`fp` interpolated according to the vector :py:attr:`xp` each time :py:meth:`pyctrl.block.BufferBlock.read` is called.
 
@@ -730,7 +799,7 @@ class Fade(BufferBlock):
         # call super
         return super().read()
     
-class Map(BufferBlock):
+class Map(Filter, BufferBlock):
     """
     A :py:class:`pyctrl.block.Map` block applies 'function' to each input and returns tuple
     with results.
@@ -758,7 +827,7 @@ class Map(BufferBlock):
         # map onto buffer
         self.buffer = tuple(map(self.function, self.buffer))
 
-class Apply(BufferBlock):
+class Apply(Filter, BufferBlock):
     """
     The Block :py:class:`pyctrl.block.Apply` applies :py:attr:`function`
     to all inputs and returns a tuple with the result.
@@ -786,7 +855,7 @@ class Apply(BufferBlock):
         # apply on buffer
         self.buffer = (self.function(*self.buffer), )
 
-class Logger(Block):
+class Logger(Sink, Block):
     """
     :py:class:`pyctrl.block.Logger` stores signals into an array.
 

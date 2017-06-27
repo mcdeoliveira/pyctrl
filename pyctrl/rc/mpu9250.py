@@ -147,7 +147,7 @@ class MPU9250(clock.Clock):
         return super().read()
 
 
-class Raw(block.BufferBlock):
+class Raw(block.Source, block.BufferBlock):
         
     def __init__(self, **kwargs):
 
