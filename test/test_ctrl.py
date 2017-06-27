@@ -14,6 +14,11 @@ def test_local():
     from pyctrl import Controller
     run(Controller())
 
+def test_local2():
+
+    from pyctrl import ContainerController
+    run(ContainerController())
+    
 def test_clock():
 
     from pyctrl import Controller
@@ -95,7 +100,7 @@ def run(controller):
     controller.remove_signal('_test_')
     assert '_test_' not in controller.list_signals()
 
-    with pytest.raises(pyctrl.ControllerException):
+    with pytest.raises(Exception):
         controller.set_signal('_test_', 1.2)
 
     controller.add_signals('_test1_', '_test2_')

@@ -6,9 +6,12 @@ import warnings
 import sys
 import numpy
 import math
+import importlib
 from threading import Thread, Timer, Condition
+from time import perf_counter
 
 from .. import block
+from .. import BlockType
 
 class ContainerWarning(block.BlockWarning):
     pass
@@ -29,6 +32,18 @@ class Container(block.Block):
 
     def __init__(self, **kwargs):
 
+        # set enabled as False by default
+        if 'enabled' not in kwargs:
+            kwargs['enabled'] = False
+        
+        # call super
+        super().__init__(**kwargs)
+
+        # call _reset
+        self._reset()
+        
+    def _reset(self):
+        
         # signals
         self.signals = { }
 
@@ -50,13 +65,6 @@ class Container(block.Block):
         # timers
         self.timers = { }
         self.running_timers = { }
-
-        # set enabled as False by default
-        if 'enabled' not in kwargs:
-            kwargs['enabled'] = False
-        
-        # call super
-        super().__init__(**kwargs)
         
     # reset
     def reset(self):
@@ -933,7 +941,11 @@ class Container(block.Block):
         return buffer
 
     def run(self):
-        
+
+        # profiling
+        t0 = 0
+        first = True
+
         # Read all sources
         for label in self.sources_order:
             block = self.sources[label]
@@ -942,6 +954,11 @@ class Container(block.Block):
                 # retrieve outputs
                 self.signals.update(dict(zip(block['outputs'], 
                                              source.read())))
+
+                # Begin profiling
+                if first:
+                    t0 = perf_counter()
+                    first = False
 
         # Process all filters
         for label in self.filters_order:
@@ -964,6 +981,9 @@ class Container(block.Block):
                 sink.write(*[self.signals[label]
                              for label in block['inputs']])
 
+        # return duty time
+        return perf_counter() - t0
+                
     def tick(self, label, device):
 
         # Acquire lock

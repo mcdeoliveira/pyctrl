@@ -275,13 +275,20 @@ def test_container():
                          block.Constant(value = 0),
                          None, ['is_running'], 2, False)
     
+    print('##########')
     container.set_enabled(True)
     container.run()
+    print('##########')
+
     time.sleep(3)
+    
     container.run()
+
+
     container.set_enabled(False)
 
     assert container.get_signal('timer') == 1
+
 
     # test set
     import pyctrl
