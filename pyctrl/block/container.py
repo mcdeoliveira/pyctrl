@@ -1081,12 +1081,24 @@ class Container(block.Filter, block.Block):
             assert isinstance(outputs, (list, tuple))
         assert isinstance(period, (int, float))
         assert isinstance(repeat, (int, bool))
+        
+        # enable
+        enable = kwargs.pop('enable', None)
+        if enable is None:
+            if isinstance(blk, Container):
+                enable = True
+            else:
+                enable = False
+        if enable:
+            blk.set_enabled(False)
+            
         self.timers[label] = { 
             'block': blk,  
             'inputs': inputs,
             'outputs': outputs,
             'period': period,
-            'repeat': repeat
+            'repeat': repeat,
+            'enable': enable
         }
 
         # reference controller
@@ -1139,6 +1151,11 @@ class Container(block.Filter, block.Block):
             assert isinstance(values, (list, tuple))
             self.timers[label]['outputs'] = values
 
+        if 'enable' in kwargs:
+            enable = kwargs.pop('enable')
+            assert isinstance(enable, bool)
+            self.timers[label]['enable'] = enable
+            
         self.timers[label]['block'].set(**kwargs)
         
     def get_timer(self, label, *keys):
@@ -1384,6 +1401,8 @@ class Container(block.Filter, block.Block):
                 
             # start timer threads
             for label, device in self.timers.items():
+                if device['enable']:
+                    device['block'].set_enable(True)
                 device['condition'] = Condition()
                 thread = Thread(target = self.run_timer,
                                 args = (label, device))
@@ -1418,4 +1437,9 @@ class Container(block.Filter, block.Block):
             for label in self.sinks_order:
                 if self.sinks[label]['enable']:
                     self.sinks[label]['block'].set_enabled(False)
+                
+            # disable timers
+            for label, device in self.timers.items():
+                if device['enable']:
+                    device['block'].set_enable(False)
                 
