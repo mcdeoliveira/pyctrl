@@ -688,3 +688,58 @@ def test_sub_sub_container():
 
     assert container.get_signal('s2') == 3
     assert container.get_signal('s3') == 5
+
+def test_sub_container_timer():
+
+    import pyctrl
+    import pyctrl.block as block
+
+    from pyctrl.block.container import Container, Input, Output, ContainerException
+    from pyctrl.block.system import Gain
+    from pyctrl.block import Constant
+
+    # create container first
+    
+    container = Container()
+
+    container.add_signals('s1', 's2', 's3')
+    
+    # add subcontainer
+    
+    container.add_filter('container1',
+                         Container(),
+                         ['s1'], ['s2','s3'])
+    
+    container.add_signals('container1/s1', 'container1/s2', 'container1/s3')
+    
+    container.add_source('container1/input1',
+                         Input(),
+                         ['s1'])
+    
+    container.add_filter('container1/gain1',
+                         Gain(gain = 3),
+                         ['s1'],['s2'])
+    
+    container.add_timer('container1/constant1',
+                        Constant(value = 5),
+                        None,['s3'],
+                        period = 1, repeat = False)
+    
+    container.add_sink('container1/output1',
+                       Output(),
+                       ['s2'])
+    
+    container.add_sink('container1/output2',
+                       Output(),
+                       ['s3'])
+    
+    print(container.info('all'))
+    
+    container.set_enabled(True)
+    container.set_signal('s1', 1)
+    container.run()
+    container.set_enabled(False)
+
+    assert container.get_signal('s2') == 3
+    assert container.get_signal('s3') == 5
+    
