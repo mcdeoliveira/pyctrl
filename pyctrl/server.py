@@ -146,7 +146,7 @@ def set_controller(_controller = pyctrl.Controller(noclock = True)):
         'G': ('S', '', controller.remove_signal,
               'Remove signal'),
 
-        'H': ('SPPI', '', controller.add_source,
+        'H': ('SPPK', '', controller.add_source,
               'Add source'),
         'I': ('SK', '', controller.set_source,
               'Set source'),
@@ -161,7 +161,7 @@ def set_controller(_controller = pyctrl.Controller(noclock = True)):
         'M': ('S', 'P', controller.read_source,
               'Read source'),
 
-        'N': ('SPPI', '', controller.add_sink,
+        'N': ('SPPK', '', controller.add_sink,
               'Add sink'),
         'O': ('SK', '', controller.set_sink,
               'Set sink'),
@@ -176,7 +176,7 @@ def set_controller(_controller = pyctrl.Controller(noclock = True)):
         'S': ('S', 'P', controller.read_sink,
               'Read sink'),
 
-        'T': ('SPPPI', '', controller.add_filter,
+        'T': ('SPPPK', '', controller.add_filter,
               'Add filter'),
         'U': ('SK', '', controller.set_filter,
               'Set filter'),
@@ -194,7 +194,7 @@ def set_controller(_controller = pyctrl.Controller(noclock = True)):
         'z': ('SSSK', '', controller.add_device,
               'Add device'),
 
-        't': ('SPPPDI', '', controller.add_timer,
+        't': ('SPPPDIK', '', controller.add_timer,
               'Add timer'),
         'f': ('SK', '', controller.set_timer,
               'Set timer'),

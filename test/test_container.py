@@ -5,7 +5,7 @@ HOST, PORT = "localhost", 9998
 start_server = True
 #start_server = False
 
-def _test_container():
+def test_container():
 
     import pyctrl
     import numpy
@@ -338,7 +338,7 @@ def _test_container():
     assert container.get_signal('s2') == 0
     assert container.get_source('const', 'value') == 0.4
             
-def _test_container_input_output():
+def test_container_input_output():
 
     import pyctrl
     import pyctrl.block as block
@@ -444,6 +444,8 @@ def test_enable():
                           Output(),
                           ['s2'])
 
+    print(subcontainer.info('all'))
+    
     subcontainer.set_enabled(True)
     subcontainer.write(1)
     values = subcontainer.read()
@@ -451,9 +453,13 @@ def test_enable():
     
     assert values == (3,)
 
+    print(subcontainer.info('all'))
+    
     subcontainer.set_source('input1', enable = False)
     subcontainer.set_signal('s1', 0)
 
+    print(subcontainer.info('all'))
+    
     subcontainer.set_enabled(True)
     subcontainer.write(1)
     values = subcontainer.read()

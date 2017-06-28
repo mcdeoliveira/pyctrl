@@ -14,11 +14,6 @@ def test_local():
     from pyctrl import Controller
     run(Controller())
 
-def test_local2():
-
-    from pyctrl import ContainerController
-    run(ContainerController())
-    
 def test_clock():
 
     from pyctrl import Controller

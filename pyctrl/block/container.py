@@ -57,17 +57,14 @@ class Container(block.Filter, block.Block):
         # sources
         self.sources = { }
         self.sources_order = [ ]
-        self.sources_enable = [ ]
 
         # sinks
         self.sinks = { }
         self.sinks_order = [ ]
-        self.sinks_enable = [ ]
 
         # filters
         self.filters = { }
         self.filters_order = [ ]
-        self.filters_enable = [ ]
 
         # timers
         self.timers = { }
@@ -238,7 +235,7 @@ class Container(block.Filter, block.Block):
         return result
 
     # parse label
-    def parse_label(label):
+    def _parse_label(label):
         """
         Parse label into container + label
         """
@@ -249,9 +246,9 @@ class Container(block.Filter, block.Block):
             return ['', parsed_label[0]]
 
     # get container
-    def get_container(self, label):
+    def _get_container(dict, label):
         try:
-            container = self.filters[label]['block']
+            container = dict[label]['block']
             if isinstance(container, Container):
                 return container
             else:
@@ -267,9 +264,10 @@ class Container(block.Filter, block.Block):
         :param str label: the signal label
         """
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).add_signal(label)
+            return Container._get_container(self.filters,
+                                            container).add_signal(label)
 
         # local signal
         if label in self.signals:
@@ -295,9 +293,10 @@ class Container(block.Filter, block.Block):
         """
 
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).remove_signal(label)
+            return Container._get_container(self.filters,
+                                            container).remove_signal(label)
 
         # used in a source?
         for (l, device) in self.sources.items():
@@ -339,9 +338,10 @@ class Container(block.Filter, block.Block):
         """
 
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).set_signal(label, value)
+            return Container._get_container(self.filters,
+                                            container).set_signal(label, value)
 
         # local signal
         if label not in self.signals:
@@ -357,9 +357,10 @@ class Container(block.Filter, block.Block):
         """
         
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).get_signal(label)
+            return Container._get_container(self.filters,
+                                            container).get_signal(label)
 
         # local label
         return self.signals[label]
@@ -394,10 +395,11 @@ class Container(block.Filter, block.Block):
         :param int order: if positive, set execution order, otherwise add as last (default `-1`)
         """
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).add_source(label, source,
-                                                            outputs, **kwargs)
+            return Container._get_container(self.filters,
+                                            container).add_source(label, source,
+                                                                  outputs, **kwargs)
 
         # local label
         if label in self.sources:
@@ -408,9 +410,21 @@ class Container(block.Filter, block.Block):
         assert isinstance(source, block.Block)
         assert isinstance(source, block.Source)
         assert isinstance(outputs, (list, tuple))
+
+        # enable
+        enable = kwargs.pop('enable', None)
+        if enable is None:
+            if isinstance(source, Container):
+                enable = True
+            else:
+                enable = False
+        if enable:
+            source.set_enabled(False)
+        
         self.sources[label] = {
             'block': source,
-            'outputs': outputs
+            'outputs': outputs,
+            'enable': enable
         }
 
         # order
@@ -418,14 +432,6 @@ class Container(block.Filter, block.Block):
             self.sources_order.append(label)
         else:
             self.sources_order.insert(order, label)
-
-        # enable
-        enable = kwargs.pop('enable', None)
-        if enable:
-            source.set_enabled(False)
-            self.sources_enable.append(label)
-        elif enable is None and isinstance(source, Container):
-            self.sources_enable.append(label)
 
         # reference controller
         source.set_controller(self)
@@ -444,15 +450,12 @@ class Container(block.Filter, block.Block):
         :param str label: the source label
         """
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).remove_source(label)
+            return Container._get_container(self.filters,
+                                            container).remove_source(label)
 
         # local label
-        try:
-            self.sources_enable.remove(label)
-        except ValueError:
-            pass
         self.sources_order.remove(label)
         self.sources.pop(label)
 
@@ -468,9 +471,10 @@ class Container(block.Filter, block.Block):
         :param kwargs kwargs: other key-value pairs of attributes
         """
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).set_source(label, **kwargs)
+            return Container._get_container(self.filters,
+                                            container).set_source(label, **kwargs)
 
         # local label
         if label not in self.sources:
@@ -483,14 +487,8 @@ class Container(block.Filter, block.Block):
 
         if 'enable' in kwargs:
             enable = kwargs.pop('enable')
-            if enable:
-                if label not in self.sources_enable:
-                    self.sources_enable.append(label)
-            else:
-                try:
-                    self.sources_enable.remove(label)
-                except ValueError:
-                    pass
+            assert isinstance(enable, bool)
+            self.sources[label]['enable'] = enable 
             
         self.sources[label]['block'].set(**kwargs)
 
@@ -504,9 +502,10 @@ class Container(block.Filter, block.Block):
         :rtype: dict or value
         """
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).get_source(label, *keys)
+            return Container._get_container(self.filters,
+                                            container).get_source(label, *keys)
 
         # local label
         if label not in self.sources:
@@ -521,9 +520,10 @@ class Container(block.Filter, block.Block):
         :param str label: the source label
         """
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).read_source(label)
+            return Container._get_container(self.filters,
+                                            container).read_source(label)
 
         # local label
         return self.sources[label]['block'].read()
@@ -536,9 +536,10 @@ class Container(block.Filter, block.Block):
         :param vargs values: the values to write to source
         """
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).write_source(label, *values)
+            return Container._get_container(self.filters,
+                                            container).write_source(label, *values)
 
         # local label
         self.sources[label]['block'].write(*values)
@@ -563,10 +564,11 @@ class Container(block.Filter, block.Block):
         :param int order: if positive, set execution order, otherwise add as last (default `-1`)
         """
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).add_sink(label, sink,
-                                                          inputs, **kwargs)
+            return Container._get_container(self.filters,
+                                            container).add_sink(label, sink,
+                                                                inputs, **kwargs)
 
         # local label
         if label in self.sinks:
@@ -576,10 +578,22 @@ class Container(block.Filter, block.Block):
 
         assert isinstance(sink, block.Block)
         assert isinstance(sink, block.Sink)
-        assert inputs == '*' or isinstance(inputs, (list, tuple))
+        assert isinstance(inputs, (list, tuple))
+
+        # enable
+        enable = kwargs.pop('enable', None)
+        if enable is None:
+            if isinstance(sink, Container):
+                enable = True
+            else:
+                enable = False
+        if enable:
+            sink.set_enabled(False)
+        
         self.sinks[label] = {
             'block': sink,
-            'inputs': inputs
+            'inputs': inputs,
+            'enable': enable
         }
 
         # order
@@ -587,14 +601,6 @@ class Container(block.Filter, block.Block):
             self.sinks_order.append(label)
         else:
             self.sinks_order.insert(order, label)
-
-        # enable
-        enable = kwargs.pop('enable', None)
-        if enable:
-            sink.set_enabled(False)
-            self.sinks_enable.append(label)
-        elif enable is None and isinstance(sink, Container):
-            self.sinks_enable.append(label)
 
         # reference controller
         sink.set_controller(self)
@@ -613,15 +619,12 @@ class Container(block.Filter, block.Block):
         :param str label: the sink label
         """
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).remove_sink(label)
+            return Container._get_container(self.filters,
+                                            container).remove_sink(label)
 
         # local label
-        try:
-            self.sinks_enable.remove(label)
-        except ValueError:
-            pass
         self.sinks_order.remove(label)
         self.sinks.pop(label)
 
@@ -637,9 +640,10 @@ class Container(block.Filter, block.Block):
         :param kwargs kwargs: other key-value pairs of attributes
         """
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).set_sink(label, **kwargs)
+            return Container._get_container(self.filters,
+                                            container).set_sink(label, **kwargs)
 
         # local label
         if label not in self.sinks:
@@ -652,14 +656,8 @@ class Container(block.Filter, block.Block):
             
         if 'enable' in kwargs:
             enable = kwargs.pop('enable')
-            if enable:
-                if label not in self.sinks_enable:
-                    self.sinks_enable.append(label)
-            else:
-                try:
-                    self.sinks_enable.remove(label)
-                except ValueError:
-                    pass
+            assert isinstance(enable, bool)
+            self.sinks[label]['enable'] = enable 
                 
         self.sinks[label]['block'].set(**kwargs)
 
@@ -673,9 +671,10 @@ class Container(block.Filter, block.Block):
         :rtype: dict
         """
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).get_sink(label, *keys)
+            return Container._get_container(self.filters,
+                                            container).get_sink(label, *keys)
 
         # local label
         if label not in self.sinks:
@@ -690,9 +689,10 @@ class Container(block.Filter, block.Block):
         :param str label: the sink label
         """
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).read_sink(label)
+            return Container._get_container(self.filters,
+                                            container).read_sink(label)
 
         # local label
         return self.sinks[label]['block'].read()
@@ -705,9 +705,10 @@ class Container(block.Filter, block.Block):
         :param vargs values: the values to write to sink
         """
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).write_sink(label, *values)
+            return Container._get_container(self.filters,
+                                            container).write_sink(label, *values)
 
         # local label
         self.sinks[label]['block'].write(*values)
@@ -733,11 +734,12 @@ class Container(block.Filter, block.Block):
         :param int order: if positive, set execution order, otherwise add as last (default `-1`)
         """
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).add_filter(label, filter_,
-                                                            inputs, outputs,
-                                                            **kwargs)
+            return Container._get_container(self.filters,
+                                            container).add_filter(label, filter_,
+                                                                  inputs, outputs,
+                                                                  **kwargs)
 
         # local label
         if label in self.filters:
@@ -749,10 +751,22 @@ class Container(block.Filter, block.Block):
         assert isinstance(filter_, block.Filter)
         assert isinstance(inputs, (list, tuple))
         assert isinstance(outputs, (list, tuple))
+
+        # enable
+        enable = kwargs.pop('enable', None)
+        if enable is None:
+            if isinstance(filter_, Container):
+                enable = True
+            else:
+                enable = False
+        if enable:
+            filter_.set_enabled(False)
+
         self.filters[label] = { 
             'block': filter_,  
             'inputs': inputs,
-            'outputs': outputs
+            'outputs': outputs,
+            'enable': enable
         }
 
         # order
@@ -761,14 +775,6 @@ class Container(block.Filter, block.Block):
         else:
             self.filters_order.insert(order, label)
 
-        # enable
-        enable = kwargs.pop('enable', None)
-        if enable:
-            filter_.set_enabled(False)
-            self.filters_enable.append(label)
-        elif enable is None and isinstance(filter_, Container):
-            self.filters_enable.append(label)
-            
         # reference controller
         filter_.set_controller(self)
             
@@ -793,15 +799,12 @@ class Container(block.Filter, block.Block):
         :param str label: the filter label
         """
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).remove_filter(label)
+            return Container._get_container(self.filters,
+                                            container).remove_filter(label)
 
         # local label
-        try:
-            self.filters_enable.remove(label)
-        except ValueError:
-            pass
         self.filters_order.remove(label)
         self.filters.pop(label)
 
@@ -818,9 +821,10 @@ class Container(block.Filter, block.Block):
         :param kwargs kwargs: other key-value pairs of attributes
         """
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).set_filter(label, **kwargs)
+            return Container._get_container(self.filters,
+                                            container).set_filter(label, **kwargs)
 
         # local label
         if label not in self.filters:
@@ -838,14 +842,8 @@ class Container(block.Filter, block.Block):
 
         if 'enable' in kwargs:
             enable = kwargs.pop('enable')
-            if enable:
-                if label not in self.filters_enable:
-                    self.filters_enable.append(label)
-            else:
-                try:
-                    self.filters_enable.remove(label)
-                except ValueError:
-                    pass
+            assert isinstance(enable, bool)
+            self.filters[label]['enable'] = enable 
                 
         self.filters[label]['block'].set(**kwargs)
             
@@ -859,9 +857,10 @@ class Container(block.Filter, block.Block):
         :rtype: dict
         """
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).get_filter(label, *keys)
+            return Container._get_container(self.filters,
+                                            container).get_filter(label, *keys)
 
         # local label
         if label not in self.filters:
@@ -876,9 +875,10 @@ class Container(block.Filter, block.Block):
         :param str label: the filter label
         """
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).read_filter(label)
+            return Container._get_container(self.filters,
+                                            container).read_filter(label)
 
         # local label
         return self.filters[label]['block'].read()
@@ -891,9 +891,10 @@ class Container(block.Filter, block.Block):
         :param vargs values: the values to write to filter
         """
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).write_filter(label, *values)
+            return Container._get_container(self.filters,
+                                            container).write_filter(label, *values)
 
         # local label
         self.filters[label]['block'].write(*values)
@@ -924,28 +925,30 @@ class Container(block.Filter, block.Block):
         :param list outputs: a list of output signals (default `[]`)
         :param bool verbose: if verbose issue warning (default `False`)
         :param BlockType type: the device type; only required if BlockType.TIMER (default None)
-        :param kwargs kwargs: other parameters to be passed to the device class initialization
+        :param kwargs kwargs: other keyword arguments to be passed to the device class initialization
         """
 
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).add_device(label,
-                                                            device_module,
-                                                            device_class, 
-                                                            **kwargs)
+            return Container._get_container(self.filters,
+                                            container).add_device(label,
+                                                                  device_module,
+                                                                  device_class, 
+                                                                  **kwargs)
 
         # local label
         
         # parameters
         devtype = kwargs.pop('type', None)
-        enable = kwargs.pop('enable', False)
 
         inputs = kwargs.pop('inputs', [])
         outputs = kwargs.pop('outputs', [])
 
         verbose = kwargs.pop('verbose', True)
-        
+
+        dkwargs = kwargs.pop('kwargs', {})
+
         if devtype is BlockType.TIMER:
 
             # look for period and repeat
@@ -961,7 +964,7 @@ class Container(block.Filter, block.Block):
             # create device
             obj_class = getattr(importlib.import_module(device_module), 
                                 device_class)
-            instance = obj_class(**kwargs)
+            instance = obj_class(**dkwargs)
 
         except Exception as e:
 
@@ -973,7 +976,8 @@ class Container(block.Filter, block.Block):
         if devtype is BlockType.TIMER:
 
             # add device as timer
-            self.add_timer(label, instance, inputs, outputs, period, repeat)
+            self.add_timer(label, instance, inputs, outputs,
+                           period, repeat, **kwargs)
 
         else:
 
@@ -991,7 +995,7 @@ class Container(block.Filter, block.Block):
                                   ContainerWarning)
 
                 # add device as source
-                self.add_source(label, instance, outputs)
+                self.add_source(label, instance, outputs, **kwargs)
             
             elif devtype is BlockType.SINK:
 
@@ -1001,12 +1005,12 @@ class Container(block.Filter, block.Block):
                                   ContainerWarning)
 
                 # add device as sink
-                self.add_sink(label, instance, inputs)
+                self.add_sink(label, instance, inputs, **kwargs)
 
             elif devtype is BlockType.FILTER:
 
                 # add device as filter
-                self.add_filter(label, instance, inputs, outputs)
+                self.add_filter(label, instance, inputs, outputs, **kwargs)
 
             else:
             
@@ -1022,8 +1026,7 @@ class Container(block.Filter, block.Block):
             'type': devtype,
             'inputs': inputs,
             'outputs': outputs,
-            'enable': enable,
-            'params': kwargs
+            'kwargs': dkwargs
         }
 
         return instance
@@ -1044,7 +1047,8 @@ class Container(block.Filter, block.Block):
                   inputs,
                   outputs,
                   period,
-                  repeat = True):
+                  repeat = True,
+                  **kwargs):
         """
         Add timer to Container.
 
@@ -1056,11 +1060,13 @@ class Container(block.Filter, block.Block):
         :param bool repeat: repeat if True (default True)
         """
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).add_timer(label, blk,
-                                                           inputs, outputs,
-                                                           period, repeat)
+            return Container._get_container(self.timers,
+                                            container).add_timer(label, blk,
+                                                                 inputs, outputs,
+                                                                 period, repeat,
+                                                                 **kwargs)
 
         # local label
         if label in self.timers:
@@ -1093,9 +1099,10 @@ class Container(block.Filter, block.Block):
         :param str label: the timer label
         """
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).remove_timer(label)
+            return Container._get_container(self.timers,
+                                            container).remove_timer(label)
 
         # local label
         self.timers.pop(label)
@@ -1113,9 +1120,10 @@ class Container(block.Filter, block.Block):
         :param kwargs kwargs: other key-value pairs of attributes
         """
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).set_timer(label, **kwargs)
+            return Container._get_container(self.timers,
+                                            container).set_timer(label, **kwargs)
 
         # local label
         if label not in self.timers:
@@ -1143,9 +1151,10 @@ class Container(block.Filter, block.Block):
         :rtype: dict
         """
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).get_timer(label, *keys)
+            return Container._get_container(self.timers,
+                                            container).get_timer(label, *keys)
 
         # local label
         if label not in self.timers:
@@ -1160,9 +1169,10 @@ class Container(block.Filter, block.Block):
         :param str label: the timer label
         """
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).read_timer(label)
+            return Container._get_container(self.timers,
+                                            container).read_timer(label)
 
         # local label
         return self.timers[label]['block'].read()
@@ -1175,9 +1185,10 @@ class Container(block.Filter, block.Block):
         :param vargs values: the values to write to timer
         """
         # parse label
-        (container, label) = Container.parse_label(label)
+        (container, label) = Container._parse_label(label)
         if container:
-            return self.get_container(container).write_timer(label, *values)
+            return Container._get_container(self.timers,
+                                            container).write_timer(label, *values)
 
         # local label
         self.timers[label]['block'].write(*values)
@@ -1357,22 +1368,20 @@ class Container(block.Filter, block.Block):
         if self.enabled:
         
             # enable sources
-            for label in self.sources_enable:
-                self.sources[label]['block'].set_enabled(True)
+            for label in self.sources_order:
+                if self.sources[label]['enable']:
+                    self.sources[label]['block'].set_enabled(True)
 
             # enable filters
-            for label in self.filters_enable:
-                self.filters[label]['block'].set_enabled(True)
+            for label in self.filters_order:
+                if self.filters[label]['enable']:
+                    self.filters[label]['block'].set_enabled(True)
 
             # enable sinks
-            for label in self.sinks_enable:
-                self.sinks[label]['block'].set_enabled(True)
+            for label in self.sinks_order:
+                if self.sinks[label]['enable']:
+                    self.sinks[label]['block'].set_enabled(True)
                 
-            # enable devices
-            for label, device in self.devices.items():
-                if device['enable']:
-                    device['instance'].set_enabled(True)
-
             # start timer threads
             for label, device in self.timers.items():
                 device['condition'] = Condition()
@@ -1395,19 +1404,18 @@ class Container(block.Filter, block.Block):
 
             self.running_timers = { }
 
-            # disaable sources
-            for label in self.sources_enable:
-                self.sources[label]['block'].set_enabled(False)
+            # disable sources
+            for label in self.sources_order:
+                if self.sources[label]['enable']:
+                    self.sources[label]['block'].set_enabled(False)
                 
             # disable filters
-            for label in self.filters_enable:
-                self.filters[label]['block'].set_enabled(False)
+            for label in self.filters_order:
+                if self.filters[label]['enable']:
+                    self.filters[label]['block'].set_enabled(False)
 
             # disable sinks
-            for label in self.sinks_enable:
-                self.sinks[label]['block'].set_enabled(False)
+            for label in self.sinks_order:
+                if self.sinks[label]['enable']:
+                    self.sinks[label]['block'].set_enabled(False)
                 
-            # then disable devices
-            for label, device in self.devices.items():
-                if device['enable']:
-                    device['instance'].set_enabled(False)

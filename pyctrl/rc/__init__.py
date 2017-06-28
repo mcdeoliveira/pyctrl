@@ -26,10 +26,10 @@ class Controller(pyctrl.Controller):
         # register cleanup function
         # rcpy.add_cleanup(rcpy.exit, ())
 
-    def __reset(self):
+    def _reset(self):
 
         # call super
-        super().__reset()
+        super()._reset()
       
         # print("pyctrl.rc.__reset: PERIOD = {}".format(self.period))
         

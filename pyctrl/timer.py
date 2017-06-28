@@ -20,10 +20,10 @@ class Controller(pyctrl.Controller):
         # Initialize controller
         super().__init__(noclock = True, **kwargs)
 
-    def __reset(self):
+    def _reset(self):
 
         # call super
-        super().__reset()
+        super()._reset()
 
         # add signal clock
         self.add_signal('clock')
@@ -31,11 +31,10 @@ class Controller(pyctrl.Controller):
         # add device clock
         self.add_device('clock',
                         'pyctrl.block.clock', 'TimerClock',
-                        type = pyctrl.BlockType.SOURCE, 
                         outputs = ['clock'],
                         verbose = False,
                         enable = True,
-                        period = self.period)
+                        kwargs = {'period': self.period})
         
         # reset clock
         self.set_source('clock', reset=True)

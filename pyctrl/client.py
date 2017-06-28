@@ -178,8 +178,8 @@ class Controller(pyctrl.Controller):
         self.send('G', 'S', label)
 
     # sources
-    def add_source(self, label, source, signals, order = -1):
-        self.send('H', 'S', label, 'P', source, 'P', signals, 'I', order)
+    def add_source(self, label, source, signals, **kwargs):
+        self.send('H', 'S', label, 'P', source, 'P', signals, 'K', kwargs)
 
     def set_source(self, label, **kwargs):
         self.send('I', 'S', label, 'K', kwargs)
@@ -201,8 +201,8 @@ class Controller(pyctrl.Controller):
 
 
     # sinks
-    def add_sink(self, label, sink, signals, order = -1):
-        self.send('N', 'S', label, 'P', sink, 'P', signals, 'I', order)
+    def add_sink(self, label, sink, signals, **kwargs):
+        self.send('N', 'S', label, 'P', sink, 'P', signals, 'K', kwargs)
 
     def set_sink(self, label, **kwargs):
         self.send('O', 'S', label, 'K', kwargs)
@@ -226,10 +226,10 @@ class Controller(pyctrl.Controller):
     # filters
     def add_filter(self, label, filter_, 
                    input_signals, output_signals,
-                   order = -1):
+                   **kwargs):
         self.send('T', 'S', label, 'P', filter_, 
                   'P', input_signals, 'P', output_signals, 
-                  'I', order)
+                  'K', kwargs)
 
     def set_filter(self, label, **kwargs):
         self.send('U', 'S', label, 'K', kwargs)
@@ -250,7 +250,9 @@ class Controller(pyctrl.Controller):
         return self.send('Y', 'S', label)
 
     # devices
-    def add_device(self, label, device_module, device_class, **kwargs):
+    def add_device(self, label,
+                   device_module, device_class,
+                   **kwargs):
         self.send('z',
                   'S', label,
                   'S', device_module,
@@ -258,10 +260,11 @@ class Controller(pyctrl.Controller):
                   'K', kwargs)
 
     # timers
-    def add_timer(self, label, blk, inputs, outputs, period, repeat = True):
+    def add_timer(self, label, blk, inputs, outputs,
+                  period, repeat = True, **kwargs):
         self.send('t', 'S', label,
                   'P', blk, 'P', inputs, 'P', outputs, 
-                  'D', period, 'I', repeat)
+                  'D', period, 'I', repeat, 'K', kwargs)
         
     def set_timer(self, label, **kwargs):
         self.send('f', 'S', label, 'K', kwargs)

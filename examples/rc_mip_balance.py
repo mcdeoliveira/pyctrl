@@ -175,8 +175,8 @@ def main():
                    type = BlockType.TIMER,
                    enable = True,
                    inputs = ['small_angle'],
-                   pin = GRN_LED,
-                   period = 0.5, repeat = True)
+                   period = 0.5, repeat = True,
+                   kwargs = {'pin': GRN_LED})
 
     # add pause button on a timer
     mip.add_device('pause', 
@@ -184,9 +184,9 @@ def main():
                    type = BlockType.TIMER,
                    enable = True,
                    outputs = ['is_running'],
-                   pin = PAUSE_BTN,
-                   invert = True,
-                   period = 0.5, repeat = True)
+                   period = 0.5, repeat = True,
+                   kwargs = {'pin': PAUSE_BTN,
+                             'invert': True})
 
     # # add printer
     # mip.add_timer('printer',

@@ -653,11 +653,12 @@ def testEvent():
 def testSetBlock():
 
     from pyctrl import Controller
+    from pyctrl.block import Constant
 
     controller = Controller()
     
     controller.add_source('block',
-                          block.Block(),
+                          Constant(),
                           ['s1'])
     assert controller.get_source('block', 'enabled')
 

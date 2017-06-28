@@ -19,18 +19,16 @@ def main():
     # add encoder as source
     bbb.add_device('encoder1',
                    'pyctrl.rc.encoder', 'Encoder',
-                   type = BlockType.SOURCE,
                    outputs = ['encoder'],
-                   encoder = 3, 
-                   ratio = 60 * 35.557)
+                   kwargs = {'encoder': 3, 
+                             'ratio': 60 * 35.557})
     
     # add motor as sink
     bbb.add_device('motor1', 
                    'pyctrl.rc.motor', 'Motor',
-                   type = BlockType.SINK,
                    enable = True,
                    inputs = ['pwm'],
-                   motor = 3)
+                   kwargs = {'motor': 3})
 
     # build interpolated input signal
     ts = [0, 1, 2,   3,   4,   5,   5, 6]
