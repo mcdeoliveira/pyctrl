@@ -334,9 +334,9 @@ def run(controller):
     # test set
     import pyctrl
     
-    controller.reset()
-
     print('* * * TEST SET * * *')
+
+    controller.reset()
 
     print(controller.info('all'))
 
@@ -375,6 +375,73 @@ def run(controller):
     assert controller.get_signal('s2') == 0
     assert controller.get_source('const', 'value') == 0.4
     
+    print('\n* * * TEST SUB CONTAINER * * *')
+
+    import pyctrl.block.container as container
+    
+    controller.reset()
+
+    controller.add_signals('s1', 's2', 's3')
+    
+    # add subcontainer
+    
+    controller.add_filter('container1',
+                          container.Container(),
+                          ['s1'], ['s2','s3'])
+
+    
+    controller.add_signals('container1/s1', 'container1/s2')
+    
+    controller.add_source('container1/input1',
+                          container.Input(),
+                          ['s1'])
+    
+    controller.add_filter('container1/gain1',
+                          system.Gain(gain = 3),
+                          ['s1'],['s2'])
+    
+    controller.add_sink('container1/output1',
+                        container.Output(),
+                        ['s2'])
+    
+    with controller:
+        controller.set_signal('s1', 1)
+        time.sleep(.2)
+        
+    assert controller.get_signal('s2') == 3
+        
+    # add subsubcontainer
+
+    controller.add_sink('container1/output2',
+                        container.Output(),
+                        ['s3'])
+    
+    controller.add_filter('container1/container2',
+                          container.Container(),
+                          ['s1'], ['s3'])
+    
+    controller.add_source('container1/container2/input1',
+                          container.Input(),
+                          ['s1'])
+    
+    controller.add_filter('container1/container2/gain1',
+                          system.Gain(gain = 5),
+                          ['s1'],['s2'])
+    
+    controller.add_sink('container1/container2/output1',
+                        container.Output(),
+                        ['s2'])
+    
+    print(controller.info('all'))
+    
+    with controller:
+        controller.set_signal('s1', 1)
+        time.sleep(.2)
+
+    assert controller.get_signal('s2') == 3
+    assert controller.get_signal('s3') == 5
+    
+
 def test_run():
 
     from pyctrl import Controller
