@@ -507,7 +507,7 @@ def test_sub_container():
     import pyctrl
     import pyctrl.block as block
 
-    from pyctrl.block.container import Container, Input, Output
+    from pyctrl.block.container import Container, Input, Output, ContainerException
     from pyctrl.block.system import Gain
 
     # create subcontainer first
@@ -545,6 +545,134 @@ def test_sub_container():
                          subcontainer,
                          ['s1'], ['s2'])
     
+    container.set_enabled(True)
+    container.set_signal('s1', 1)
+    container.run()
+    container.set_enabled(False)
+
+    assert container.get_signal('s2') == 3
+
+    # signals in subcontainer
+    container.set_signal('container/s1', 2)
+
+    container.add_signal('container/s3')
+    container.set_signal('container/s3', 4)
+
+    assert container.get_signal('s1') == 1
+    assert container.get_signal('container/s1') == 2
+    assert container.get_signal('container/s3') == 4
+
+    container.remove_signal('container/s3')
+    with pytest.raises(KeyError):
+        container.get_signal('container/s3')
+
+    # sources in subcontainer
+    assert container.get_source('container/input1', 'enabled')
+
+    container.set_source('container/input1', enabled = False)
+
+    assert not container.get_source('container/input1', 'enabled')
+
+    container.add_source('container/source1', Input(), ['s1'])
+    assert container.get_source('container/source1', 'enabled')
+
+    container.remove_source('container/source1')
+    with pytest.raises(ContainerException):
+        container.get_source('container/source1')
+    
+    # sinks in subcontainer
+    assert container.get_sink('container/output1', 'enabled')
+
+    container.set_sink('container/output1', enabled = False)
+
+    assert not container.get_sink('container/output1', 'enabled')
+
+    container.add_sink('container/sink1', Output(), ['s1'])
+    assert container.get_sink('container/sink1', 'enabled')
+
+    container.remove_sink('container/sink1')
+    with pytest.raises(ContainerException):
+        container.get_sink('container/sink1')
+    
+    # filters in subcontainer
+    assert container.get_filter('container/gain1', 'enabled')
+
+    container.set_filter('container/gain1', enabled = False)
+
+    assert not container.get_filter('container/gain1', 'enabled')
+
+    container.add_filter('container/filter1', Gain(), ['s1'], ['s1'])
+    assert container.get_filter('container/filter1', 'enabled')
+
+    container.remove_filter('container/filter1')
+    with pytest.raises(ContainerException):
+        container.get_filter('container/filter1')
+        
+
+def test_sub_sub_container():
+
+    import pyctrl
+    import pyctrl.block as block
+
+    from pyctrl.block.container import Container, Input, Output, ContainerException
+    from pyctrl.block.system import Gain
+
+    # create container first
+    
+    container = Container()
+
+    container.add_signals('s1', 's2', 's3')
+    
+    # add subcontainer
+    
+    container.add_filter('container1',
+                         Container(),
+                         ['s1'], ['s2','s3'])
+
+    
+    container.add_signals('container1/s1', 'container1/s2')
+    
+    container.add_source('container1/input1',
+                         Input(),
+                         ['s1'])
+    
+    container.add_filter('container1/gain1',
+                         Gain(gain = 3),
+                         ['s1'],['s2'])
+    
+    container.add_sink('container1/output1',
+                       Output(),
+                       ['s2'])
+    
+    container.set_enabled(True)
+    container.set_signal('s1', 1)
+    container.run()
+    container.set_enabled(False)
+
+    assert container.get_signal('s2') == 3
+        
+    # add subsubcontainer
+
+    container.add_sink('container1/output2',
+                       Output(),
+                       ['s3'])
+    
+    container.add_filter('container1/container2',
+                         Container(),
+                         ['s1'], ['s3'])
+    
+    container.add_source('container1/container2/input1',
+                         Input(),
+                         ['s1'])
+    
+    container.add_filter('container1/container2/gain1',
+                         Gain(gain = 5),
+                         ['s1'],['s2'])
+    
+    container.add_sink('container1/container2/output1',
+                       Output(),
+                       ['s2'])
+    
     print(container.info('all'))
     
     container.set_enabled(True)
@@ -552,7 +680,5 @@ def test_sub_container():
     container.run()
     container.set_enabled(False)
 
-    return
-
     assert container.get_signal('s2') == 3
-
+    assert container.get_signal('s3') == 5
