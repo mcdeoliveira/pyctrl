@@ -246,9 +246,9 @@ class Container(block.Filter, block.Block):
             return ['', parsed_label[0]]
 
     # get container
-    def _get_container(dict, label):
+    def _get_container(self, label):
         try:
-            container = dict[label]['block']
+            container = self.filters[label]['block']
             if isinstance(container, Container):
                 return container
             else:
@@ -266,8 +266,7 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.filters,
-                                            container).add_signal(label)
+            return self._get_container(container).add_signal(label)
 
         # local signal
         if label in self.signals:
@@ -295,8 +294,7 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.filters,
-                                            container).remove_signal(label)
+            return self._get_container(container).remove_signal(label)
 
         # used in a source?
         for (l, device) in self.sources.items():
@@ -340,8 +338,7 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.filters,
-                                            container).set_signal(label, value)
+            return self._get_container(container).set_signal(label, value)
 
         # local signal
         if label not in self.signals:
@@ -359,8 +356,7 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.filters,
-                                            container).get_signal(label)
+            return self._get_container(container).get_signal(label)
 
         # local label
         return self.signals[label]
@@ -397,9 +393,8 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.filters,
-                                            container).add_source(label, source,
-                                                                  outputs, **kwargs)
+            return self._get_container(container).add_source(label, source,
+                                                             outputs, **kwargs)
 
         # local label
         if label in self.sources:
@@ -452,8 +447,7 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.filters,
-                                            container).remove_source(label)
+            return self._get_container(container).remove_source(label)
 
         # local label
         self.sources_order.remove(label)
@@ -473,8 +467,7 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.filters,
-                                            container).set_source(label, **kwargs)
+            return self._get_container(container).set_source(label, **kwargs)
 
         # local label
         if label not in self.sources:
@@ -504,8 +497,7 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.filters,
-                                            container).get_source(label, *keys)
+            return self._get_container(container).get_source(label, *keys)
 
         # local label
         if label not in self.sources:
@@ -522,8 +514,7 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.filters,
-                                            container).read_source(label)
+            return self._get_container(container).read_source(label)
 
         # local label
         return self.sources[label]['block'].read()
@@ -538,8 +529,7 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.filters,
-                                            container).write_source(label, *values)
+            return self._get_container(container).write_source(label, *values)
 
         # local label
         self.sources[label]['block'].write(*values)
@@ -566,9 +556,8 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.filters,
-                                            container).add_sink(label, sink,
-                                                                inputs, **kwargs)
+            return self._get_container(container).add_sink(label, sink,
+                                                           inputs, **kwargs)
 
         # local label
         if label in self.sinks:
@@ -621,8 +610,7 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.filters,
-                                            container).remove_sink(label)
+            return self._get_container(container).remove_sink(label)
 
         # local label
         self.sinks_order.remove(label)
@@ -642,8 +630,7 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.filters,
-                                            container).set_sink(label, **kwargs)
+            return self._get_container(container).set_sink(label, **kwargs)
 
         # local label
         if label not in self.sinks:
@@ -673,8 +660,7 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.filters,
-                                            container).get_sink(label, *keys)
+            return self._get_container(container).get_sink(label, *keys)
 
         # local label
         if label not in self.sinks:
@@ -691,8 +677,7 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.filters,
-                                            container).read_sink(label)
+            return self._get_container(container).read_sink(label)
 
         # local label
         return self.sinks[label]['block'].read()
@@ -707,8 +692,7 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.filters,
-                                            container).write_sink(label, *values)
+            return self._get_container(container).write_sink(label, *values)
 
         # local label
         self.sinks[label]['block'].write(*values)
@@ -736,10 +720,9 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.filters,
-                                            container).add_filter(label, filter_,
-                                                                  inputs, outputs,
-                                                                  **kwargs)
+            return self._get_container(container).add_filter(label, filter_,
+                                                             inputs, outputs,
+                                                             **kwargs)
 
         # local label
         if label in self.filters:
@@ -801,8 +784,7 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.filters,
-                                            container).remove_filter(label)
+            return self._get_container(container).remove_filter(label)
 
         # local label
         self.filters_order.remove(label)
@@ -823,8 +805,7 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.filters,
-                                            container).set_filter(label, **kwargs)
+            return self._get_container(container).set_filter(label, **kwargs)
 
         # local label
         if label not in self.filters:
@@ -859,8 +840,7 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.filters,
-                                            container).get_filter(label, *keys)
+            return self._get_container(container).get_filter(label, *keys)
 
         # local label
         if label not in self.filters:
@@ -877,8 +857,7 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.filters,
-                                            container).read_filter(label)
+            return self._get_container(container).read_filter(label)
 
         # local label
         return self.filters[label]['block'].read()
@@ -893,8 +872,7 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.filters,
-                                            container).write_filter(label, *values)
+            return self._get_container(container).write_filter(label, *values)
 
         # local label
         self.filters[label]['block'].write(*values)
@@ -931,11 +909,10 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.filters,
-                                            container).add_device(label,
-                                                                  device_module,
-                                                                  device_class, 
-                                                                  **kwargs)
+            return self._get_container(container).add_device(label,
+                                                             device_module,
+                                                             device_class, 
+                                                             **kwargs)
 
         # local label
         
@@ -1062,11 +1039,10 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.timers,
-                                            container).add_timer(label, blk,
-                                                                 inputs, outputs,
-                                                                 period, repeat,
-                                                                 **kwargs)
+            return self._get_container(container).add_timer(label, blk,
+                                                            inputs, outputs,
+                                                            period, repeat,
+                                                            **kwargs)
 
         # local label
         if label in self.timers:
@@ -1113,8 +1089,7 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.timers,
-                                            container).remove_timer(label)
+            return self._get_container(container).remove_timer(label)
 
         # local label
         self.timers.pop(label)
@@ -1134,8 +1109,7 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.timers,
-                                            container).set_timer(label, **kwargs)
+            return self._get_container(container).set_timer(label, **kwargs)
 
         # local label
         if label not in self.timers:
@@ -1170,8 +1144,7 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.timers,
-                                            container).get_timer(label, *keys)
+            return self._get_container(container).get_timer(label, *keys)
 
         # local label
         if label not in self.timers:
@@ -1188,8 +1161,7 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.timers,
-                                            container).read_timer(label)
+            return self._get_container(container).read_timer(label)
 
         # local label
         return self.timers[label]['block'].read()
@@ -1204,8 +1176,7 @@ class Container(block.Filter, block.Block):
         # parse label
         (container, label) = Container._parse_label(label)
         if container:
-            return Container._get_container(self.timers,
-                                            container).write_timer(label, *values)
+            return self._get_container(container).write_timer(label, *values)
 
         # local label
         self.timers[label]['block'].write(*values)
@@ -1363,7 +1334,12 @@ class Container(block.Filter, block.Block):
             device['condition'].wait()
 
             # and release
-            device['condition'].release()
+            try:
+                # this is to prevent a wierd 'cannot release
+                # un-acquired lock' condition
+                device['condition'].release()
+            except RuntimeError:
+                pass
 
             # repeat
             if not device['repeat']:

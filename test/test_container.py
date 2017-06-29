@@ -741,5 +741,14 @@ def test_sub_container_timer():
     container.set_enabled(False)
 
     assert container.get_signal('s2') == 3
-    assert container.get_signal('s3') == 5
+    assert container.get_signal('s3') == 0
     
+    container.set_enabled(True)
+    container.set_signal('s1', 1)
+    container.run()
+    time.sleep(1.1)
+    container.run()
+    container.set_enabled(False)
+
+    assert container.get_signal('s2') == 3
+    assert container.get_signal('s3') == 5
