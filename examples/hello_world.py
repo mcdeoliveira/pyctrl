@@ -19,27 +19,26 @@ def main():
     # add a TimerClock as a source
     hello.add_source('myclock',
                      TimerClock(period = 1),
-                     ['myclock'])
+                     ['myclock'],
+                     enable = True)
 
     # add a Printer as a sink
     hello.add_sink('message',
                    Printer(message = 'Hello World!'),
-                   ['myclock'])
+                   ['myclock'],
+                   enable = True)
 
     try:
         # run the controller
         with hello:
             # do nothing for 5 seconds
             time.sleep(5)
-            # disable Printer
-            hello.set_sink('message', enabled = False)
 
     except KeyboardInterrupt:
         pass
 
     finally:
-        # disable TimerClock
-        hello.set_source('myclock', enabled = False)
+        print('Done')
     
 if __name__ == "__main__":
     

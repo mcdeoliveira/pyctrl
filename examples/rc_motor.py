@@ -26,9 +26,9 @@ def main():
     # add motor as sink
     bbb.add_device('motor1', 
                    'pyctrl.rc.motor', 'Motor',
-                   enable = True,
                    inputs = ['pwm'],
-                   kwargs = {'motor': 3})
+                   kwargs = {'motor': 3},
+                   enable = True)
 
     # build interpolated input signal
     ts = [0, 1, 2,   3,   4,   5,   5, 6]
@@ -87,9 +87,6 @@ def main():
         print('> Done with the controller.')
             
     except KeyboardInterrupt:
-        pass
-
-    finally:
         pass
 
     # read logger

@@ -26,10 +26,10 @@ else:
             return numpy.interp(x, xp, fp, left, right)
 
 class BlockType(Enum):
-    SOURCE = 0
-    FILTER = 1
-    SINK = 2
-    TIMER = 3
+    source = 0
+    filter = 1
+    sink = 2
+    timer = 3
         
 class BlockException(Exception):
     """
@@ -55,7 +55,7 @@ class Source:
 
         :return: :py:attr:`type`
         """
-        return BlockType.SOURCE
+        return BlockType.source
 
     def write(self, *values):
         """
@@ -78,7 +78,7 @@ class Sink:
 
         :return: :py:attr:`type`
         """
-        return BlockType.SINK
+        return BlockType.sink
 
     def read(self):
         """
@@ -102,7 +102,7 @@ class Filter:
 
         :return: :py:attr:`type`
         """
-        return BlockType.FILTER
+        return BlockType.filter
     
 class Block:
     """
@@ -118,7 +118,7 @@ class Block:
     def __init__(self, **kwargs):
         
         self.enabled = kwargs.pop('enabled', True)
-        self.controller = kwargs.pop('controller', None)
+        self.parent = kwargs.pop('parent', None)
 
         if len(kwargs) > 0:
             raise BlockException("Unknown parameter(s) '{}'".format(', '.join(str(k) for k in kwargs.keys())))
@@ -139,21 +139,21 @@ class Block:
         """
         self.enabled = enabled
 
-    def set_controller(self, controller):
+    def set_parent(self, parent):
         """
         Set :py:attr:`controlller` reference.
 
-        :param :py:class:`pyctrl.Controller` controller: parent controller
+        :param :py:class:`pyctrl.block.containter.Container` parent: parent container
         """
-        self.controller = controller
+        self.parent = parent
 
-    def get_controller(self):
+    def get_parent(self):
         """
         Get :py:attr:`controlller` reference.
 
-        :return: :py:attr:`controller`
+        :return: :py:attr:`parent`
         """
-        return self.controller
+        return self.parent
 
     def reset(self):
         """
@@ -170,7 +170,7 @@ class Block:
         :param tuple exclude: attributes to exclude (default ())
         :param bool reset: if True calls :py:meth:`reset`
         :param bool enabled: set enabled attribute
-        :param :py:class:`pyctrl.Controller` controller: set controller attribute
+        :param pyctrl.block.container.Container parent: set parent attribute
         :param kwargs kwargs: other keyword arguments
         :raise: :py:class:`pyctrl.block.BlockException` if any of the kwargs is left unprocessed
         """
@@ -182,8 +182,8 @@ class Block:
         if 'enabled' in kwargs:
             self.set_enabled(kwargs.pop('enabled'))
 
-        # add controller to list of excluded properties
-        exclude += ('controller',)
+        # add parent to list of excluded properties
+        exclude += ('parent',)
         
         for k in kwargs:
             if k in exclude or k not in self.__dict__:
@@ -208,8 +208,8 @@ class Block:
 
         #print('> keys = {}'.format(keys))
 
-        # add controller to list of excluded properties
-        exclude += ('controller',)
+        # add parent to list of excluded properties
+        exclude += ('parent',)
         
         if len(keys) == 0:
             

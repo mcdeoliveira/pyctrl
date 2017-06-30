@@ -83,15 +83,19 @@ def reset(**kwargs):
 
         module = kwargs.pop('module', 'pyctrl')
         pyctrl_class = kwargs.pop('pyctrl_class', 'Controller')
+        ckwargs = kwargs.pop('kwargs', {})
+
+        if len(kwargs) > 0:
+            raise Exception("server.reset():: Unknown parameter(s) '{}'".format(', '.join(str(k) for k in kwargs.keys())))
         
         try:
 
             if verbose_level > 0:
-                warnings.warn("> Installing new instance of '{}.{}({})' as controller".format(module, pyctrl_class, kwargs))
+                warnings.warn("> Installing new instance of '{}.{}({})' as controller".format(module, pyctrl_class, ckwargs))
                 
             obj_class = getattr(importlib.import_module(module),
                                 pyctrl_class)
-            _controller = obj_class(**kwargs)
+            _controller = obj_class(**ckwargs)
 
             # print('obj_class = {}'.format(obj_class))
             # print('_controller = {}'.format(_controller))

@@ -77,7 +77,6 @@ class Controller(Container):
             # add device clock
             self.add_device('clock',
                             'pyctrl.block.clock', 'Clock',
-                            type = BlockType.SOURCE, 
                             outputs = ['clock'],
                             verbose = False,
                             enable = True)

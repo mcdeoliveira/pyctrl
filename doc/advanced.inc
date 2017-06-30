@@ -203,31 +203,45 @@ programming a local controller. However, there are some important caveats you sh
 		     ['myclock'])
 		     
 will fail. The reason for the failure is because an instance of the
-class :py:class:`pyctrl.block.clock.TimerClock` cannot be transported
-from your hardware to another, that is from the *client* to the
-*server*. Here is where the notion of a *device* comes in
+class :py:class:`pyctrl.block.clock.TimerClock` cannot be safely
+*transferred* from your hardware to another, that is from the *client*
+to the *server*. Here is where the notion of a *device* comes in
 handy. Instead of instantiating
 :py:class:`pyctrl.block.clock.TimerClock` on the client, you can use
 :py:meth:`pyctrl.Controller.add_device` to have the remote controller
-instantiate it directly on the server hardware! That can be done
-easily. As in Section :ref:`Devices and Controllers` type::
+instantiate it directly on the server hardware! As in Section
+:ref:`Devices and Controllers` type::
 
     hello.add_device('myclock',
                      'pyctrl.block.clock', 'TimerClock',
-		     type = 'source', 
 		     outputs = ['myclock'],
-		     enable = True,
-		     period = 1)
+		     kwargs = {'period': 1},
+		     enable = True)
 
 to add a *device* :py:class:`pyctrl.block.clock.TimerClock` by letting
-the remote server instantiate the object. From this point on, just
-proceed as in :ref:`Hello World!` to add a
+the remote server instantiate the object.
+
+Alternatively, you can provide the optional parameters `module` and
+`kwargs`::
+
+    # initialize controller
+    hello = Controller(host = 'localhost', port = 9999,
+                       module = 'pyctrl.timer',
+                       kwargs = {'period': 1})
+
+which will install the controller of class
+:py:class:`pyctrl.timer.Controller`, which already contains a
+:py:class:`pyctrl.block.clock.TimerClock` clock, directly on the
+server.
+
+From this point on, just proceed as in :ref:`Hello World!` to add a
 :py:class:`pyctrl.block.Printer`::
 		     
     from pyctrl.block import Printer
     hello.add_sink('message',
 		   Printer(message = 'Hello World!'),
-		   ['myclock'])
+		   ['myclock'],
+		   enable = True)
 
 and run the controller::
 
@@ -235,8 +249,6 @@ and run the controller::
     with hello:
         # do nothing for 5 seconds
         time.sleep(5)
-        # disable Printer
-        hello.set_sink('message', enabled = False)
 
 If you can't see anything happening for five seconds, look again. This
 time not on the console running the *client*, but on the console
@@ -280,14 +292,14 @@ over the network. As for :py:class:`pyctrl.block.Printer`, it is
 possible to use its attributes to reconstruct it on the server
 side.
 
-Note however that what decides is an object can be *pickled* or not is
-not its base class but the contents of its attributes *at the time one
-attempts to pickle it*. For example, a :py:class:`pyctrl.block.Printer`
-in which you have setup the attribute :py:attr:`file` to redirect its
-output to a local file will fail to install as a *sink*. You could
-instead install it as a *device*, but in this case, the output would
-be redirected to a file that lives in the remote server rather than
-the local client.
+Note that what decides if an object can be *pickled* or not is not its
+base class but the contents of its attributes *at the time one
+attempts to pickle it*. For example, a
+:py:class:`pyctrl.block.Printer` in which you have setup the attribute
+:py:attr:`file` to redirect its output to a local file will fail to
+install as a *sink*. You could instead install it as a *device*, but
+in this case, the output would be redirected to a file that lives in
+the remote server rather than the local client.
 
 A final note about serialization and `pickle` is that this process is
 inherently unsafe from a security standpoint. Code that is embedded in
@@ -401,7 +413,7 @@ which should then return the string :py:data:`"<class
 'pyctrl.timer.Controller'>"`. You can also pass arguments to the
 controller constructor. For example::
 
-    client.reset(module = 'pyctrl.timer', period = 0.1)
+    client.reset(module = 'pyctrl.timer', kwargs = {'period': 0.1})
 
 will install a new instance of :py:class:`pyctrl.timer.Controller`
 running at 10 Hz on the remote server.
@@ -411,7 +423,8 @@ For convenience, all these operations can be performed by the
 	
     from pyctrl.client import Controller
     client = Controller(host = '192.168.0.132', port = 9090,
-                        module = 'pyctrl.timer', period = 0.1)
+                        module = 'pyctrl.timer',
+			kwargs = {'period': 0.1})
 
 initializes the client and resets the remote controller by installing
 a new instance of :py:class:`pyctrl.timer.Controller` running at 10 Hz
@@ -420,8 +433,8 @@ on the remote server.
 SSH and port forwarding
 -----------------------
 
-A common setup for is that of a server running on an embedded system,
-such as a Beaglebone Black or a Raspberry Pi, controlled remotely by a
+A common setup is that of a server running on an embedded system, such
+as a Beaglebone Black or a Raspberry Pi, controlled remotely by a
 computer. In most cases, connections to the server will be established
 using `ssh <https://en.wikipedia.org/wiki/Secure_Shell>`_.
 
@@ -588,7 +601,7 @@ code easily fits here:
 Virtually all functionality is provided by the base class
 :py:class:`pyctrl.Controller`. The only methods overloaded are
 :py:meth:`pyctrl.Controller.__init__` and
-:py:meth:`pyctrl.Controller.__reset`.
+:py:meth:`pyctrl.Controller._reset`.
 
 The method :py:meth:`pyctrl.timer.Controller.__init__` is the standard
 python constructor, which in this case parses the new attribute
@@ -608,27 +621,29 @@ need to be valid attributes of the base class or an exception will be
 raised.
 
 Most of the action is in the method
-:py:meth:`pyctrl.Controller.__reset`. In fact, a closer look at
-:py:meth:`pyctrl.Controller.__init__`:
+:py:meth:`pyctrl.Controller._reset`. In fact, a closer look at
+:py:meth:`pyctrl.block.container.Controller.__init__`, which is the
+method called by :samp:`super().__init__(**kwargs)` in
+:py:meth:`pyctrl.Controller.__init__`, reveals:
 
-.. literalinclude:: ../pyctrl/__init__.py
-   :pyobject: Controller.__init__
+.. literalinclude:: ../pyctrl/block/container.py
+   :pyobject: Container.__init__
 
-reveals that :py:meth:`pyctrl.Controller.__init__` calls
-:py:meth:`pyctrl.Controller.__reset__` after a couple of definitions.
+where a call to the method :py:meth:`pyctrl.Controller._reset` can be
+spotted after a couple of definitions.
 	      
-If you overload :py:meth:`pyctrl.Controller.__reset` make sure to call::
+If you overload :py:meth:`pyctrl.Controller._reset` make sure to call::
 
-    super().__reset()
+    super()._reset()
 
 *before* doing any other task. This will make sure that whatever tasks
 that need to be performed by the base class have already taken place
 and won't undo any of your own initialization.
 
-The method :py:meth:`pyctrl.Controller.__reset` is also called by the
+The method :py:meth:`pyctrl.Controller._reset` is also called by the
 method :py:meth:`pyctrl.Controller.reset`. In fact, one rarely needs to
 overload any method other than :py:meth:`pyctrl.Controller.__init__` and
-:py:meth:`pyctrl.Controller.__reset`.
+:py:meth:`pyctrl.Controller._reset`.
 
 A typical reason for extending :py:class:`pyctrl.Controller` is to
 provide the user with a set of devices that continue to exist even
@@ -670,17 +685,22 @@ For example consider the following code for a simple block::
 
     import pyctrl.block
   
-    class MyOneBlock(pyctrl.block.Block):
+    class MyOneBlock(pyctrl.block.Source, pyctrl.block.Block):
 
         def read(self):
 	    return (1,)
 
-that can be used as a *source* whose output *signal* is the constant
-`1`. If you try to use :py:class:`MyOneBlock` as a *sink* an exception
-will be raised since :py:class:`MyOneBlock` does not overload
-:py:meth:`pyctrl.block.Block.write`. Note that the return value of
-:py:meth:`pyctrl.block.Block.read` must be a tuple with numbers or numpy
-1D-arrays. You could use your block in a controller like this::
+Multiple inheritance is used to make sure this block can only be used
+as a *source* by inheriting from :py:class:`pyctrl.block.Source` *and*
+:py:class:`pyctrl.block.Block`. The order is important! If you try to
+use :py:class:`MyOneBlock` as a *sink* or a *filter* an exception will
+be raised since :py:class:`MyOneBlock` does not overload
+:py:meth:`pyctrl.block.Block.write`.
+
+All this block does is output a *signal* which is the constant `1`.
+Note that the return value of :py:meth:`pyctrl.block.Block.read` must
+be a tuple with numbers or numpy 1D-arrays. You could use your block
+in a controller like this::
   
     # add a MyOneBlock as a source
     controller.add_source('mysource',
@@ -694,7 +714,7 @@ Consider now the slightest more sophisticated block::
 
     import pyctrl.block
     
-    class MySumBlock(pyctrl.block.Block):
+    class MySumBlock(pyctrl.block.Filter, pyctrl.block.Block):
 
         def __init__(self, **kwargs):
 
@@ -714,9 +734,10 @@ Consider now the slightest more sophisticated block::
 	    # return sum of all values as first entry
 	    return (sum(self.buffer), )
 
-Because :py:class:`MySumBlock` overloads both
-:py:meth:`pyctrl.block.Block.write` and :py:meth:`pyctrl.block.Block.read`
-it can be used a *filter*. For instance::
+Because :py:class:`MySumBlock` inherits from
+:py:class:`pyctrl.block.Filter` if can be be used a *filter*. It must
+therefore overload both :py:meth:`pyctrl.block.Block.write` and
+:py:meth:`pyctrl.block.Block.read`. For instance::
   
     # add a MySumBlock as a filter
     controller.add_filter('myfilter',
@@ -803,5 +824,5 @@ self).write(*values)`. This is because
 :py:class:`pyctrl.block.system.Sum` inherits from
 :py:class:`pyctrl.block.system.Gain`, and you would like to call
 :py:meth:`pyctrl.block.BufferBlock.write` instead of
-:py:class:`pyctrl.block.system.Gain.write`.
+:py:meth:`pyctrl.block.system.Gain.write`.
 

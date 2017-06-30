@@ -59,9 +59,6 @@ def main():
     except KeyboardInterrupt:
         pass
 
-    finally:
-        pass
-    
     # retrieve data from logger
     data = hello.read_sink('logger')
     clock = data[:,0]

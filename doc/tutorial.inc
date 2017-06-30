@@ -32,33 +32,30 @@ Start with the following simple *Hello World!* example::
     # add a TimerClock as a source
     hello.add_source('myclock',
 		     TimerClock(period = 1),
-		     ['myclock'])
+		     ['myclock'],
+                     enable = True)
 
     # add a Printer as a sink
     hello.add_sink('message',
 		   Printer(message = 'Hello World!'),
-		   ['myclock'])
+		   ['myclock'],
+                   enable = True)
 
     try:
         # run the controller
         with hello:
 	    # do nothing for 5 seconds
 	    time.sleep(5)
-	    # disable Printer
-	    hello.set_sink('message', enabled = False)
 
     except KeyboardInterrupt:
         pass
 
     finally:
-        # disable TimerClock
-        hello.set_source('myclock', enabled = False)
-
+        print('Done')
+	
 Depending on the platform you're running this program will print the
 message *Hello World!* on the screen 4 or 5 times. The complete
-program is in :ref:`hello_world.py`. You might see some warnings about
-existing *signals* and *sources* which can be safely disregarded at
-this stage.
+program is in :ref:`hello_world.py`.
 
 .. _whatsgoingon:
 
@@ -80,8 +77,9 @@ variable :py:data:`hello` as being a :py:class:`Controller`, more specifically a
     
     hello = Controller()
 
-A :py:class:`pyctrl.Controller`, by itself, does nothing useful, so let's add some
-*signals* and *blocks* that you can interact with. The line::
+A :py:class:`pyctrl.Controller`, by itself, does nothing useful, so
+let's add some *signals* and *blocks* that you can interact with. The
+line::
 
     hello.add_signal('myclock')
 
@@ -92,15 +90,20 @@ communicate between *blocks*. The next lines::
     
     hello.add_source('myclock',
 		     TimerClock(period = 1),
-		     ['myclock'])
+		     ['myclock'],
+                     enable = True)
 
 add a :py:class:`TimerClock` as a *source*. A *source* is a type of
 block that produces at least one *output* and has *no inputs*.
 
-The parameters to :py:meth:`pyctrl.Controller.add_source` are a *label*,
-in this case :py:data:`myclock`, a :py:mod:`pyctrl.block` object, in this
-case :py:class:`pyctrl.block.clock.TimerClock`, and a *list of signal outputs*, in this
-case the list containg a single *signal* :py:data:`['myclock']`. 
+The mandatory parameters to :py:meth:`pyctrl.Controller.add_source`
+are a *label*, in this case :py:data:`myclock`, a
+:py:mod:`pyctrl.block` object, in this case
+:py:class:`pyctrl.block.clock.TimerClock`, and a *list of signal
+outputs*, in this case the list containg a single *signal*
+:py:data:`['myclock']`. The keyword parameter *enable* is optional and
+means that the *source* :py:data:`myclock` will be enabled when the
+controller *starts* and will be disabled when the controller *stops*.
 
 An instance of the class :py:class:`pyctrl.block.clock.TimerClock`
 implements a clock based on Python's :py:class:`threading.Timer`
@@ -114,15 +117,18 @@ The following line::
 
     hello.add_sink('message',
 		   Printer(message = 'Hello World!'),
-		   ['myclock'])
+		   ['myclock'],
+                   enable = True)
 
 adds a :py:class:`pyctrl.block.Printer` as a *sink*. A *sink* is a type
 of block that takes at least one *input* but produces *no output*.
 
 The parameters to :py:meth:`pyctrl.Controller.add_sink` are a *label*,
-in this case :py:data:`'message'`, a :py:mod:`pyctrl.block` object, in this
-case :py:class:`pyctrl.block.Printer`, and a *list of inputs*, in this case
-:py:data:`['myclock']`.
+in this case :py:data:`'message'`, a :py:mod:`pyctrl.block` object, in
+this case :py:class:`pyctrl.block.Printer`, and a *list of inputs*, in
+this case :py:data:`['myclock']`. The keyword parameter *enable* means
+that the *sink* :py:data:`message` will be enable when the controller
+*starts* and will be disabled when the controller *stops*.
 		   
 An instance of the class :py:class:`pyctrl.block.Printer` implements a
 *sink* that prints messages and the signals appearing at its input. In
@@ -134,19 +140,14 @@ Having created a *source* and a *sink* you are ready to run the controller::
   with hello:
       # do nothing for 5 seconds
       time.sleep(5)
-      # disable Printer
-      hello.set_sink('message', enabled = False)
       
-Python's :py:obj:`with` statement automatically *start* and *stop* the
-controller. Inside the :py:obj:`with`, the statement
+Python's :py:obj:`with` statement automatically *starts* and *stops*
+the controller. Inside the :py:obj:`with`, the statement
 :samp:`time.sleep(5)` pauses the program for 5 seconds to let the
 controller run its loop and print `Hello World!` about 5 times. The
 actual number of times depends on the accuracy of the timer in your
-platform. Pause for 5.1 seconds instead if you would like to make sure it is printed exactly 5 times. Before leaving the :py:obj:`with` statement you called::
-
-  hello.set_sink('message', enabled = False)
-
-to disable the *sink* :py:data:`message`, which stops the :py:class:`pyctrl.block.Printer` from printing any more messages on the screen. 
+platform. Pause for 5.1 seconds instead if you would like to make sure
+it is printed exactly 5 times.
 
 Secretly behind the statement :samp:`with hello` is a call to the
 pair of methods :py:meth:`pyctrl.Controller.start` and
@@ -158,29 +159,48 @@ written the not so clean::
     time.sleep(5)
     hello.stop()
 
-Note that you should enclose the controller action inside a Python :py:obj:`try` block::
+You should always enclose the controller action inside a Python
+:py:obj:`try` block as in::
 
     try:
         # run the controller
         with hello:
-	    # do things
+	    # do something
 	    pass
     
     except KeyboardInterrupt:
         pass
 
     finally:
-        # disable TimerClock
-        hello.set_source('myclock', enabled = False)
+        # do something at the end
+	pass
 	
 This construction allows the controller to be stopped in a predictable
-way. Under the hood, the controller is run using multiple `threads <https://en.wikipedia.org/wiki/Thread_(computing)>`_, which have a life of their own and can be tricky to stop. The :py:obj:`finally` statement makes sure that the clock :py:data:`myclock` is stopped by calling::
+way. Under the hood, the controller is run using multiple `threads
+<https://en.wikipedia.org/wiki/Thread_(computing)>`_, which have a
+life of their own and can be tricky to stop. The :py:obj:`except`
+statement is called in case an *exception* occur. In this particular
+case if a :py:obj:`KeyboardInterrupt` occurs, for example by a user
+pressing the :py:obj:`<CTRL-C>` key, the code under the
+:py:obj:`except` is executing *without the usual accompanying error
+message*. The :py:obj:`finally` statement should come always after all
+:py:obj:`except` statements and to makes sure that certain
+instructions are always executed, even if an exception occur. The
+Python statement :py:obj:`pass` is used to signify that no instruction
+is to be executed.
+
+When adding blocks to a controller the keyword argument *enable* is by
+default set to `False`, which means that blocks would remain enabled
+even after a controller is stopped. In the case of a
+:py:class:`pyctrl.block.TimerClock` object, the clock would continue
+to run even as the program terminates, most likely locking your
+terminal, which is not the desired behavior you're after in your first
+example. Alternatively you could have disabled the clock "manually" by
+issuing the command::
 
   hello.set_source('myclock', enabled = False)
 
-Otherwise, the clock would continue to run even as the program
-terminates, most likely locking your terminal, which is not the
-desired behavior you're after in your first example.
+for example in the :py:obj:`finally` statement.
 
 The method :py:meth:`pyctrl.Controller.set_source` allows you to set up
 attributes of your *source*, in the case the :py:data:`enabled`
@@ -228,11 +248,11 @@ produces the output:
       3. is_running
       4. myclock
     > sources
-      1. clock[Clock, enabled] >> clock
-      2. myclock[TimerClock, enabled] >> myclock
+      1. clock[Clock, disabled] >> clock
+      2. myclock[TimerClock, disabled] >> myclock
     > filters
     > sinks
-      1. myclock >> message[Printer, enabled]
+      1. myclock >> message[Printer, disabled]
 
 which details the *devices*, *signals*, *sources*, *filters*, *sinks*,
 and *timers* present in the controller :py:data:`hello`. Of course the
@@ -251,24 +271,32 @@ Starting the controller :py:data:`hello` with the statement
 :py:obj:`with` or :py:meth:`pyctrl.Controller.start` fires up the
 following sequence of events:
 
-1. Every *source* is *read* and its outputs are copied to the
+1. The state of every *source*, *filter*, *sink*, or *timer* that was
+   installed with the flag *enable* set to `True` is raised to 
+   :py:data:`enabled`.
+
+2. Every *source* is *read* and its outputs are copied to the
    *signals* connected to the *output* of the *source*. This process
    is repeated sequentially for every *source* which is in the state
    :py:data:`enabled` until all *sources* have run once.
 
-2. For each *filter*, the input signals are *written* to the *filter*
+3. For each *filter*, the input signals are *written* to the *filter*
    that is then *read* and its outputs are copied to the *signals*
    connected to the *output* of the *filter*. This process is repeated
    sequentially for every *filter* which is in the state
    :py:data:`enabled` until all *filters* have run once.
 
-3. The input signals of every *sink* are *written* to the *sink*. This
+4. The input signals of every *sink* are *written* to the *sink*. This
    process is repeated sequentially for every *sink* which is in the
    state :py:data:`enabled` until all *sinks* have run once.
 
-4. If the *signal* :py:data:`is_running` is still `True` go back to
-   step 1, otherwise stop.
+5. If the *signal* :py:data:`is_running` is still `True` go back to
+   step 2, otherwise stop.
 
+6. The state of every *source*, *filter*, *sink*, or *timer* that was
+   installed with the flag *enable* set to `True` is lowered to 
+   :py:data:`disabled`.
+   
 The *signal* :py:data:`is_running` can be set to `False` by calling 
 :py:meth:`pyctrl.Controller.stop` or exiting the :py:obj:`with`
 statement. In the `Hello World!` example this is done after doing
@@ -284,24 +312,25 @@ content of the input signals is made available to the *filters* and
 		   Printer(message = 'Hello World @ {:3.1f} s'),
 		   ['myclock'])
 
-and run the controller to see a message that now prints the *signal*
-:py:data:`myclock` along with the `Hello World` message. The format
-`{:3.1f}` is used as in Python's :py:func:`format` `method
+and run the controller to see a message that now prints the `Hello
+World` message followed by the value of the *signal*
+:py:data:`myclock`. The format `{:3.1f}` is used as in Python's
+:py:func:`format` `method
 <https://docs.python.org/3.4/library/functions.html#format>`_. More
 than one *signal* can be printed by specifying multiple placeholders
-in the attribute :py:attr:`message`.
+in the attribute :py:attr:`message` and more input signals.
 
 -----------------------
 Devices and Controllers
 -----------------------
 
-As you might have suspect after going through the :ref:`Hello World!`
+As you might suspect after having gone through the :ref:`Hello World!`
 example, it is useful to have a controller with a clock. In fact, as
 you will learn later in :ref:`Timers`, every
 :py:class:`pyctrl.Controller` comes equipped with some kind of
-clock. The method :py:meth:`pyctrl.Controller.add_device` automates the
-process of adding blocks to a controller and is typically used when
-adding blocks that should behave as hardware devices, like a
+clock. The method :py:meth:`pyctrl.Controller.add_device` automates
+the process of adding blocks to a controller and is typically used
+when adding blocks that should behave as hardware devices, like a
 clock. For example, the following code::
 
   from pyctrl import Controller
@@ -309,17 +338,19 @@ clock. For example, the following code::
   hello = Controller()
   hello.add_device('clock',
                    'pyctrl.block.clock', 'TimerClock',
-		   type = 'source', 
 		   outputs = ['clock'],
 		   enable = True,
-		   period = 1)
+                   kwargs = {'period': 1})
 			    
-automatically creates a :py:class:`pyctrl.block.clock.TimerClock` which
-is added to :py:data:`controller` as the *source* labeled
-:py:data:`clock` with *output signal* :py:data:`clock`. Setting the
-attribute :py:data:`enable` equal to `True` makes sure that the device
-is *enabled* at every call to :py:meth:`pyctrl.Controller.start` and *disabled* at
-every call to :py:meth:`pyctrl.Controller.stop`.
+automatically creates a :py:class:`pyctrl.block.clock.TimerClock`
+which is added to :py:data:`controller` as the *source* labeled
+:py:data:`clock` with *output signal* :py:data:`clock`. As with
+regular *sources*, *filters*, and *sinks*, setting the attribute
+:py:data:`enable` equal to `True` makes sure that the device is
+*enabled* at every call to :py:meth:`pyctrl.Controller.start` and
+*disabled* at every call to :py:meth:`pyctrl.Controller.stop`. The
+dictionary *kwargs* contains parameters that are passed when
+instantiating the device, in this case a *period* of 1 second.
 
 A controller with a timer based clock is so common that the above
 construction is provided as a module in :py:mod:`pyctrl.timer`. Using
@@ -338,27 +369,19 @@ construction is provided as a module in :py:mod:`pyctrl.timer`. Using
     # add a Printer as a sink
     hello.add_sink('message',
 		   Printer(message = 'Hello World @ {:3.1f} s'),
-		   ['clock'])
+		   ['clock'],
+                   enable = True)
 
     try:
         # run the controller
         with hello:
 	    # do nothing for 5 seconds
 	    time.sleep(5)
-            hello.set_sink('message', enabled = False)
 
     except KeyboardInterrupt:
         pass
 
-The complete code is in :ref:`hello_timer_1.py`. Note that you no
-longer have to disable the `clock` *source*, which is handled
-automatically when exiting the :py:obj:`with` statement by calling
-:py:meth:`pyctrl.Controller.stop`. As before, you call::
-
-  hello.set_sink('message', enabled = False)
-
-to disable the *sink* :py:data:`message` right before exiting the
-:py:obj:`with` statement.
+The complete code is in :ref:`hello_timer_1.py`. 
 
 A call to :samp:`print(hello.info('all'))` produces:
 
@@ -416,7 +439,7 @@ initialization or after calling::
       2. duty
       3. is_running
     > sources
-      1. clock[TimerClock, enabled] >> clock
+      1. clock[TimerClock, disabled] >> clock
     > filters
     > sinks
 
@@ -486,15 +509,15 @@ controller::
 		    ['clock'], None,
                     period = 1, repeat = True)
 
-to see the `Hello World` message printing every second as the main
-loop prints the `Current time` message as fast as possible. The
-parameters of the method :py:meth:`pyctrl.Controller.add_timer` are the
-*label* and *block*, in the case :py:data:`'message'` and the
-:py:class:`pyctrl.block.Printer` object, followed by a *list of signal inputs*, in
-this case :py:data:`['clock']`, and a *list of signal outputs*, in
-this case :py:data:`None`, then the *timer* period in seconds, and a
-flag to tell whether the execution of the *block* should repeat
-periodically, as opposed to just once.
+to see the `Hello World` message printed every second as the main loop
+prints the `Current time` message as fast as possible. The parameters
+of the method :py:meth:`pyctrl.Controller.add_timer` are the *label*
+and *block*, in the case :py:data:`'message'` and the
+:py:class:`pyctrl.block.Printer` object, followed by a *list of signal
+inputs*, in this case :py:data:`['clock']`, and a *list of signal
+outputs*, in this case :py:data:`None`, then the *timer* period in
+seconds, and a flag to tell whether the execution of the *block*
+should repeat periodically, as opposed to just once.
 
 An example of a useful *timer* event to be run only once is the following::
 
@@ -576,9 +599,6 @@ following code::
     except KeyboardInterrupt:
         pass
 
-    finally:
-        pass
-
 As you learned before, the *sink* :py:data:`printer` will print the
 time *signal* :py:data:`clock` and the value of the *signal*
 :py:data:`pwm` on the screen, and the *timer* :py:data:`stop` will
@@ -594,10 +614,10 @@ for details. The reason for the name :py:data:`pwm` will be explained
 later in Section :ref:`Simulated motor example`. The block
 :py:class:`pyctrl.block.Interp` will always consider its `x` argument to
 be relative to the first time the *filter* is written to. That's why
-you :py:data:`ts` starts at 0. If you need to run it again just reset
+:py:data:`ts` starts at 0. If you need to run it again just reset
 the block calling::
 
-    hello.set_filter('input',reset = True)
+    hello.set_filter('input', reset = True)
 
 as will be explained in Section :ref:`Modifying Blocks`.
 
@@ -620,7 +640,7 @@ The key aspect in this example is how *filters* process
       3. is_running
       4. pwm
     > sources
-      1. clock[TimerClock, enabled] >> clock
+      1. clock[TimerClock, disabled] >> clock
     > filters
       1. clock >> input[Interp, enabled] >> pwm
     > sinks
@@ -1153,19 +1173,31 @@ that can interface with the `Robotics Cape
     bbb = Controller(period = Ts)
 
 Note that the code is virtually the same as used before except that
-you are importing `Controller` from :py:mod:`pyctrl.rc` rather than from
-:py:mod:`pyctrl` or :py:mod:`pyctrl.timer`. It is now time to install the
-devices you will be using. For this demonstration you will use one of
-the `MIP's <https://github.com/StrawsonDesign/EduMiP>`_ motor and the corresponding encoder. First load the
-encoder::
+you are importing `Controller` from :py:mod:`pyctrl.rc` rather than
+from :py:mod:`pyctrl` or :py:mod:`pyctrl.timer`. This controller
+automatically adds a clock based on the MPU9250 IMU. You can check its
+presence by typing::
+
+    print(bbb.info('sources'))
+
+which produces the output:
+
+.. code-block:: none
+
+    > sources
+      1. clock[MPU9250, enabled] >> clock
+
+It is now time to install the devices you will be using. For this
+demonstration you will use one of the `MIP's
+<https://github.com/StrawsonDesign/EduMiP>`_ motor and the
+corresponding encoder. First load the encoder::
    
     # add encoder as source
     bbb.add_device('encoder1',
                    'pyctrl.rc.encoder', 'Encoder',
-                   type = 'source',
                    outputs = ['encoder'],
-                   encoder = 3, 
-                   ratio = 60 * 35.557)
+                   kwargs = {'encoder': 3, 
+                             'ratio': 60 * 35.557})
 
 which will appear as a *source* labeled :py:data:`encoder1` connected
 to the output *signal* :py:data:`encoder`.
@@ -1173,54 +1205,53 @@ to the output *signal* :py:data:`encoder`.
 You install devices using the same method
 :py:meth:`pyctrl.Controller.add_device` you already worked with
 before. Besides the mandatory parameters `label`, `device_module`, and
-`device_class`, you have to provide the type of block the device will
-be installed as, i.e. *source*, *filter*, or *sink*, and the corresponding
-list of *inputs signal* and *output signals*. The remaining parameters
-are specific to the device and are passed to the `device_module` and
-`device_class` constructor. Each device has its own specific set of
-parameters.
+`device_class`, you should pass the corresponding list of `inputs` and
+`outputs` signals as well as any initialization parameters in the
+dictionary `kwargs`.
 
-For example, the attribute :py:data:`encoder` is set to 3, which
-selects the 3rd (out of a total of 4 available) hardware encoder
-counter in the Beaglebone Black, and :py:data:`ratio` is set to 60 *
-35.557 to reflect the presence of a gear box connected between the
-encoder and the wheel shaft, which is the movement that you would like
-the encoder to measure.  Using the above ratio, the unit of the
-*signal* :py:data:`encoder` will be *cycles*, that is, one complete
-turn of the wheel will add or substract one to the *signal*
-:py:data:`encoder`.
+The parameters in `kwargs` are specific to the device and are passed
+to the `device_module` and `device_class` constructor. Each device has
+its own specific set of parameters. In the above example, the
+attribute :py:data:`encoder` is set to 3, which selects the 3rd (out
+of a total of 4 available) hardware encoder counter in the Beaglebone
+Black, and :py:data:`ratio` is set to 60 * 35.557 to reflect the
+presence of a gear box connected between the encoder and the wheel
+shaft, which is the movement that you would like the encoder to
+measure.  Using the above ratio, the unit of the *signal*
+:py:data:`encoder` will be *cycles*, that is, one complete turn of the
+wheel will add or substract one to the *signal* :py:data:`encoder`.
 
 You load the motor as::
 
     # add motor as sink
     bbb.add_device('motor1', 
                    'pyctrl.rc.motor', 'Motor',
-                   type = 'sink',
-                   enable = True,
                    inputs = ['pwm'],
-                   motor = 3)
+                   kwargs = {'motor': 3},
+                   enable = True)
 
 which will appear as the *sink* :py:data:`motor1` connected to the
 input *signal* :py:data:`pwm`. Note that the above code makes use of
-the parameter :py:data:`enable`, which controls whether the device
-should be enabled at :py:meth:`pyctrl.Controller.start` and disabled at
-:py:meth:`pyctrl.Controller.stop`. In the case of motors or other
-devices that can present danger if left in some unknown state, this is
-done for safety: terminating or aborting your code will automatically
-turn off the physical motor. Note that the *source*
+the optional parameter :py:data:`enable`, which controls whether the
+device should be enabled at :py:meth:`pyctrl.Controller.start` and
+disabled at :py:meth:`pyctrl.Controller.stop`. In the case of motors
+or other devices that can present danger if left in some unknown
+state, this is done for safety: terminating or aborting your code will
+automatically turn off the physical motor. Note that the *source*
 :py:data:`encoder1` will remain enabled all the time, since there is
 no danger in keeping counting your encoder pulses even when the
 controller is off.
 
-As with the encoder, the motor device takes the additional attribute
-:py:data:`motor`, which selects the 3rd (out of a total of 4
-available) hardware motor drivers (H-bridges) in the Robotics Cape or
-Beaglebone Blue. Those are driven by the Beaglebone Black or Blue PWM
-hardware generators, which in this case is controlled by the input
-signal :py:data:`pwm` taking values between -100 and 100. Negative
-values reverse the polarity of the voltage applied to the motor
-causing a reversal in the motor direction. Note that the value of the
-actual voltage applied to the motor will depend on the voltage source
+As with the encoder, the motor constructor takes the additional
+parameter :py:data:`motor` provided in the dictionary *kwargs*. In
+this case you have selected the 3rd (out of a total of 4 available)
+hardware motor drivers (H-bridges) in the Robotics Cape or Beaglebone
+Blue. Those are driven by the Beaglebone Black or Blue PWM hardware
+generators, which in this case is controlled by the input signal
+:py:data:`pwm` taking values between -100 and 100. Negative values
+reverse the polarity of the voltage applied to the motor causing a
+reversal in the motor direction. Note that the value of the actual
+voltage applied to the motor will depend on the voltage source
 connected to the Robotics Cape. In the case of the Educational MIP kit
 this voltage will be approximately 7.4 V when the battery is fully
 charged.
@@ -1385,10 +1416,10 @@ completely unbiased and awesome reference is [deO16]_. The treatment
 is suitable to undergraduates students with an engineering or science
 background.
 
-**Again, do not let yourself be intimidated by the
+**Do not let yourself be intimidated by the
 language here, you do not need to understand all the details to
 implement or, better yet, to benefit from using a feedback
-controller**
+controller!**
 
 Proportional-Integral motor speed control
 -----------------------------------------
@@ -1409,18 +1440,16 @@ one encoder::
     # add encoder as source
     bbb.add_device('encoder1',
                    'pyctrl.rc.encoder', 'Encoder',
-                   type = 'source',
                    outputs = ['encoder'],
-                   encoder = 3, 
-                   ratio = 60 * 35.557)
+                   kwargs = {'encoder': 3, 
+                             'ratio': 60 * 35.557})
     
     # add motor as sink
     bbb.add_device('motor1', 
                    'pyctrl.rc.motor', 'Motor',
-                   type = 'sink',
-                   enable = True,
                    inputs = ['pwm'],
-                   motor = 3)
+                   kwargs = {'motor': 3},
+                   enable = True)
 
 Because you will be controlling the motor speed, add also a differentiator::
 		   

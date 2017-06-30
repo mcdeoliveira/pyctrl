@@ -26,9 +26,9 @@ def main():
     # add motor as sink
     bbb.add_device('motor1', 
                    'pyctrl.rc.motor', 'Motor',
-                   enable = True,
                    inputs = ['pwm'],
-                   kwargs = {'motor': 3})
+                   kwargs = {'motor': 3},
+                   enable = True)
 
     # add motor speed signal
     bbb.add_signal('speed')

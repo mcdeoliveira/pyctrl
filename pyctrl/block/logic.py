@@ -435,6 +435,8 @@ class Event(block.Sink, block.BufferBlock):
 
     def __init__(self, **kwargs):
         
+        print('* * * Event')
+        
         low = kwargs.pop('low', 0.2)
         if not isinstance(low, (int, float)):
             raise block.BlockException('low must be int or float')
@@ -477,10 +479,10 @@ class Event(block.Sink, block.BufferBlock):
         super().set(**kwargs)
 
     def rise_event(self):
-        pass
+        raise block.BlockException('Method rise_event has not been implemented')
         
     def fall_event(self):
-        pass
+        raise block.BlockException('Method fall_event has not been implemented')
     
     def write(self, *values):
         """
@@ -509,11 +511,8 @@ class SetBlock(Event):
 
     def __init__(self, **kwargs):
         
-        blocktype = kwargs.pop('blocktype')
-        if not isinstance(blocktype, BlockType):
-            raise block.BlockException('blocktype must be pyctrl.BlockType')
-        self.blocktype = blocktype
-
+        print('* * * SetBlock')
+        
         self.label = kwargs.pop('label')
         if not isinstance(self.label, (tuple, list)):
             self.label = (self.label,)
@@ -535,12 +534,6 @@ class SetBlock(Event):
         :param kwargs kwargs: other keyword arguments
         """
 
-        if 'blocktype' in kwargs:
-            blocktype = kwargs.pop('blocktype')
-            if not isinstance(blocktype, BlockType):
-                raise block.BlockException('blocktype must be pyctrl.BlockType')
-            self.blocktype = blocktype
-            
         if 'label' in kwargs:
             self.label = kwargs.pop('label')
             if not isinstance(self.label, (tuple, list)):
@@ -557,43 +550,46 @@ class SetBlock(Event):
             
         super().set(**kwargs)
 
+    def call(self, label, **kwargs):
+        raise block.BlockException('Method call has not been implemented')
+        
     def rise_event(self):
 
         if self.on_rise:
         
             # call set
-            if self.blocktype is BlockType.SINK:
-                for l in self.label:
-                    self.controller.set_sink(l, **self.on_rise)
-            elif self.blocktype is BlockType.FILTER:
-                for l in self.label:
-                    self.controller.set_filter(l, **self.on_rise)
-            elif self.blocktype is BlockType.SOURCE:
-                for l in self.label:
-                    self.controller.set_source(l, **self.on_rise)
-            elif self.blocktype is BlockType.TIMER:
-                for l in self.label:
-                    self.controller.set_timer(l, **self.on_rise)
-            else:
-                raise block.BlockException('Unknown blocktype' + self.blocktype)
+            for l in self.label:
+                self.call(l, **self.on_rise)
         
     def fall_event(self):
 
         if self.on_fall:
 
             # call set
-            if self.blocktype is BlockType.SINK:
-                for l in self.label:
-                    self.controller.set_sink(l, **self.on_fall)
-            elif self.blocktype is BlockType.FILTER:
-                for l in self.label:
-                    self.controller.set_filter(l, **self.on_fall)
-            elif self.blocktype is BlockType.SOURCE:
-                for l in self.label:
-                    self.controller.set_source(l, **self.on_fall)
-            elif self.blocktype is BlockType.TIMER:
-                for l in self.label:
-                    self.controller.set_timer(l, **self.on_fall)
-            else:
-                raise block.BlockException('Unknown blocktype' + self.blocktype)
+            for l in self.label:
+                self.call(l, **self.on_fall)
+
+class SetFilter(SetBlock):
+
+    def call(self, label, **kwargs):
+
+        self.parent.set_filter(label, **kwargs)
     
+class SetSource(SetBlock):
+
+    def call(self, label, **kwargs):
+
+        self.parent.set_source(label, **kwargs)
+
+class SetSink(SetBlock):
+
+    def call(self, label, **kwargs):
+
+        self.parent.set_sink(label, **kwargs)
+
+class SetTimer(SetBlock):
+
+    def call(self, label, **kwargs):
+
+        self.parent.set_timer(label, **kwargs)
+        
