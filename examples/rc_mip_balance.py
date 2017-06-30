@@ -44,8 +44,8 @@ def get_arrows(mip, fd):
     tty.setcbreak(fd)
     while mip.get_state() != pyctrl.EXITING:
         
-        print('\rvelocity = {:+4.0f} deg/s'
-              '  steering = {:+4.2f} %'
+        print('\rvelocity = {:+5.0f} deg/s'
+              '  steering = {:+5.2f} %'
               .format(360*phi_dot_reference,
                       100*(steer_reference-0.5)),
               end='')
@@ -264,11 +264,11 @@ Use your keyboard to control the mip:
         mip.join()
 
         # print message
-        print("> Done with balancing")
+        print("\n> Done with balancing")
         
     except KeyboardInterrupt:
 
-        print("> Balancing aborted")
+        print("\n> Balancing aborted")
 
     finally:
 
