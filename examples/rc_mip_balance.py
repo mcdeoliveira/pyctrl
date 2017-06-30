@@ -274,14 +274,27 @@ Use your keyboard to control the mip:
 
     finally:
 
-        # print message
-        mip.set_state(pyctrl.EXITING)
-
-        time.sleep(1)
-        termios.tcsetattr(fd, termios.TCSAFLUSH, old_settings)
-
+        print("\n> on finally")
+        
         # turn off red led
         red.off()
+        
+        # make sure it exits
+        mip.set_state(pyctrl.EXITING)
+
+        print("1>")
+        
+        time.sleep(1)
+
+        print("2>")
+        
+        termios.tcsetattr(fd, termios.TCSAFLUSH, old_settings)
+
+        print("3>")
+        
+
+        print("4>")
+                
 
     print("\n> Waiting for something...")
         
