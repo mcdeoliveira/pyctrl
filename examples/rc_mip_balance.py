@@ -277,6 +277,7 @@ Use your keyboard to control the mip:
         # print message
         mip.set_state(pyctrl.EXITING)
 
+        time.sleep(1)
         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
         # turn off red led
