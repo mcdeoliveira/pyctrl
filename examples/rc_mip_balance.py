@@ -265,10 +265,14 @@ Use your keyboard to control the mip:
 
     except KeyboardInterrupt:
 
+        pass
+
+    finally:
+
+        # print message
         print("> Balancing aborted")
         mip.set_state(pyctrl.EXITING)
 
-    finally:
         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
         # turn off red led
