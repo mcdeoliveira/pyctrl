@@ -82,7 +82,7 @@ def main():
     from pyctrl.block.container import Container, Input, Output
     from pyctrl.block.system import System, Subtract, Differentiator, Sum, Gain
     from pyctrl.block.nl import ControlledCombination, Product
-    from pyctrl.block import FadeIn, Printer
+    from pyctrl.block import Fade, Printer
     from pyctrl.system.ss import DTSS
     from pyctrl.block.logic import CompareAbsWithHysterisis, SetBlock, State
     from rcpy.gpio import GRN_LED, PAUSE_BTN
@@ -111,7 +111,7 @@ def main():
 
     # add fade in filter
     mip.add_filter('fade',
-                   FadeIn(origin = [0, 0.5], period = 5),
+                   Fade(target = [0, 0.5], period = 5),
                    ['clock','phi_dot_reference','steer_reference'],
                    ['phi_dot_reference_fade','steer_reference_fade'])
     
