@@ -84,7 +84,7 @@ def main():
     from pyctrl.block.nl import ControlledCombination, Product
     from pyctrl.block import Fade, Printer
     from pyctrl.system.ss import DTSS
-    from pyctrl.block.logic import CompareAbsWithHysterisis, SetBlock, State
+    from pyctrl.block.logic import CompareAbsWithHysterisis, SetFilter, State
     from rcpy.gpio import GRN_LED, PAUSE_BTN
     from rcpy.led import red
 
