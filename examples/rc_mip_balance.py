@@ -259,7 +259,7 @@ Use your keyboard to control the mip:
         # fire thread to update velocities
         thread = threading.Thread(target = get_arrows,
                                   args = (mip, fd))
-        thread.daemon = True
+        thread.daemon = False
         thread.start()
         
         # and wait until controller dies
@@ -288,14 +288,10 @@ Use your keyboard to control the mip:
 
         print("2>")
         
-        termios.tcsetattr(fd, termios.TCSAFLUSH, old_settings)
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
         print("3>")
         
-
-        print("4>")
-                
-
     print("\n> Waiting for something...")
         
 if __name__ == "__main__":
