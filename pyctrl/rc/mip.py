@@ -37,16 +37,14 @@ class Controller(pyctrl.rc.Controller):
         # add sink: motor1
         self.add_device('motor1', 
                         'pyctrl.rc.motor', 'Motor',
-                        type = BlockType.SINK,
-                        enable = True,
                         inputs = ['pwm1'],
-                        kwargs = {'motor': 3})
+                        kwargs = {'motor': 3},
+                        enable = True)
 
         # add sink: motor2
         self.add_device('motor2', 
                         'pyctrl.rc.motor', 'Motor',
-                        type = BlockType.SINK,
-                        enable = True,
                         inputs = ['pwm2'],
                         kwargs = {'motor': 2,
-                                  'ratio': -100}) 
+                                  'ratio': -100},
+                        enable = True) 
