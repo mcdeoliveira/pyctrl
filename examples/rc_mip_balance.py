@@ -278,10 +278,12 @@ Use your keyboard to control the mip:
         mip.set_state(pyctrl.EXITING)
 
         time.sleep(1)
-        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        termios.tcsetattr(fd, termios.TCSAFLUSH, old_settings)
 
         # turn off red led
         red.off()
+
+    print("\n> Waiting for something...")
         
 if __name__ == "__main__":
     main()
