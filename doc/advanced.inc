@@ -695,7 +695,9 @@ as a *source* by inheriting from :py:class:`pyctrl.block.Source` *and*
 :py:class:`pyctrl.block.Block`. The order is important! If you try to
 use :py:class:`MyOneBlock` as a *sink* or a *filter* an exception will
 be raised since :py:class:`MyOneBlock` does not overload
-:py:meth:`pyctrl.block.Block.write`.
+:py:meth:`pyctrl.block.Block.write`. Likewise, *sinks* must inherit
+from :py:class:`pyctrl.block.Sink` and *filters* from
+:py:class:`pyctrl.block.Filter`.
 
 All this block does is output a *signal* which is the constant `1`.
 Note that the return value of :py:meth:`pyctrl.block.Block.read` must
