@@ -10,7 +10,6 @@ def main():
     from pyctrl.block import Interp, Logger, Constant
     from pyctrl.block.system import System, Differentiator, Feedback
     from pyctrl.system.tf import PID
-    from pyctlr import BlockType
 
     # initialize controller
     Ts = 0.01
