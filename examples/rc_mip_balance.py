@@ -278,6 +278,9 @@ Use your keyboard to control the mip:
         
         # turn off red led
         red.off()
+
+        # flush stdin
+        sys.stdin.flush()
         
         # make sure it exits
         mip.set_state(pyctrl.EXITING)
