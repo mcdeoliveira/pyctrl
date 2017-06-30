@@ -186,6 +186,9 @@ class Container(block.Filter, block.Block):
 
             elif options == 'timers':
 
+                fkwargs = kwargs
+                fkwargs.update({'indent': len(indent) + 5})
+                
                 result += indent + '> timers\n'
                 for (k,label) in enumerate(self.timers):
                     device = self.timers[label]
@@ -206,6 +209,8 @@ class Container(block.Filter, block.Block):
                     if device['outputs']:
                         result += ' >> ' + ', '.join(device['outputs'])
                     result += '\n'
+                    if recursive and isinstance(block_, Container):
+                        result += block_.info(*vargs, **fkwargs)
 
             elif options == 'signals':
 
