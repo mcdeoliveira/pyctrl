@@ -8,6 +8,20 @@ extending Controllers, or writing your own Blocks. Make sure you have
 gone through the :ref:`Tutorial` and have a good understanding of the
 concepts discussed there before reading this chapter.
 
+------------------------------
+Qualified names and Containers
+------------------------------
+
+Instances of the class :py:class:`pyctrl.block.container.Container`
+can hold and execute *signals*, *sources*, *filters*, *sinks*, and
+*timers*, just like an instance of
+:py:class:`pyctrl.Controller`. Indeed :py:class:`pyctrl.Controller`
+inherits most of its functionality from
+:py:class:`pyctrl.block.container.Container`. An instance of
+:py:class:`pyctrl.block.container.Container` works as a *filter*,
+which can be installed using :py:class:`pyctrl.Controller.add_filter`
+or as a timer using :py:class:`pyctrl.Controller.add_timer`.
+
 -------------------------------
 Multiplexing and demultiplexing
 -------------------------------
