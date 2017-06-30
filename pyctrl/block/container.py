@@ -265,11 +265,28 @@ class Container(block.Filter, block.Block):
         if len(split_label) > 1:
             # inside container?
             try:
-                container = self.filters[split_label[0]]['block']
-                if isinstance(container, Container):
-                    return container.resolve_label(split_label[1])
+
+                # special timer label?
+                if split_label[0] == 'timer':
+
+                    # split again
+                    split_label = split_label[1].split(sep='/',maxsplit = 1)
+
+                    # retrieve container from timers
+                    container = self.timers[split_label[0]]['block']
+                    if isinstance(container, Container):
+                        return container.resolve_label(split_label[1])
+                    else:
+                        raise ContainerException("Timer '{}' is not a container".format(label))
+                    
                 else:
-                    raise ContainerException("Filter '{}' is not a container".format(label))
+
+                    # retrieve container from filters
+                    container = self.filters[split_label[0]]['block']
+                    if isinstance(container, Container):
+                        return container.resolve_label(split_label[1])
+                    else:
+                        raise ContainerException("Filter '{}' is not a container".format(label))
             except KeyError:
                 raise ContainerException("Container '{}' does not exist".format(label))
 
@@ -1399,7 +1416,7 @@ class Container(block.Filter, block.Block):
             # start timer threads
             for label, device in self.timers.items():
                 if device['enable']:
-                    device['block'].set_enable(True)
+                    device['block'].set_enabled(True)
                 device['condition'] = Condition()
                 thread = Thread(target = self.run_timer,
                                 args = (label, device))
@@ -1438,5 +1455,5 @@ class Container(block.Filter, block.Block):
             # disable timers
             for label, device in self.timers.items():
                 if device['enable']:
-                    device['block'].set_enable(False)
+                    device['block'].set_enabled(False)
                 

@@ -661,12 +661,11 @@ def testSetBlock():
                           Constant(),
                           ['s1'])
     assert controller.get_source('block', 'enabled')
-
-    blk = logic.SetBlock(controller = controller,
-                         blocktype = pyctrl.BlockType.SOURCE,
-                         label = 'block',
-                         on_rise_and_fall = {'enabled': False} )
-
+    
+    blk = logic.SetSource(parent = controller,
+                          label = 'block',
+                          on_rise_and_fall = {'enabled': False} )
+    
     assert blk.state is logic.State.LOW
 
     blk.write(1)
@@ -697,8 +696,7 @@ def testSetBlock():
 
     # OnRiseSet
     
-    blk = logic.SetBlock(controller = controller,
-                         blocktype = pyctrl.BlockType.SOURCE,
+    blk = logic.SetSource(parent = controller,
                          label = 'block',
                          on_rise = {'enabled': False} )
     
@@ -732,8 +730,7 @@ def testSetBlock():
 
     # OnFallSet
     
-    blk = logic.SetBlock(controller = controller,
-                         blocktype = pyctrl.BlockType.SOURCE,
+    blk = logic.SetSource(parent = controller,
                          label = 'block',
                          on_fall = {'enabled': False} )
     

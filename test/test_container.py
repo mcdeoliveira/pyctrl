@@ -290,8 +290,6 @@ def test_container():
 
 
     # test set
-    import pyctrl
-    
     container = Container()
 
     print('* * * TEST SET * * *')
@@ -305,10 +303,9 @@ def test_container():
                           ['s1'])
     
     container.add_sink('set1',
-                        logic.SetBlock(blocktype = BlockType.SOURCE,
-                                       label = 'const',
-                                       on_rise = {'value': 0.6},
-                                       on_fall = {'value': 0.4}),
+                        logic.SetSource(label = 'const',
+                                        on_rise = {'value': 0.6},
+                                        on_fall = {'value': 0.4}),
                         ['s2'])
 
     container.set_enabled(True)
@@ -630,14 +627,34 @@ def test_sub_sub_container():
     container.add_signals('s1', 's2', 's3')
     
     # add subcontainer
-    
+
+    container1 = Container()
     container.add_filter('container1',
-                         Container(),
+                         container1,
                          ['s1'], ['s2','s3'])
 
+    assert container.resolve_label('container1') == (container, 'container1')
+    assert container.resolve_label('./container1') == (container, 'container1')
+    assert container.resolve_label('/container1') == (container, 'container1')
+
+    with pytest.raises(pyctrl.block.container.ContainerException):
+        container.resolve_label('/container2/something')
     
+    with pytest.raises(pyctrl.block.container.ContainerException):
+        container.resolve_label('../something')
+        
     container.add_signals('container1/s1', 'container1/s2')
     
+    assert container.resolve_label('container1/s1') == (container1, 's1')
+    assert container.resolve_label('./container1/s1') == (container1, 's1')
+    assert container.resolve_label('/container1/s1') == (container1, 's1')
+
+    assert container1.resolve_label('../s1') == (container, 's1')
+    
+    assert container1.resolve_label('s1') == (container1, 's1')
+    assert container1.resolve_label('./s1') == (container1, 's1')
+    assert container1.resolve_label('/container1/s1') == (container1, 's1')
+
     container.add_source('container1/input1',
                          Input(),
                          ['s1'])
@@ -656,16 +673,40 @@ def test_sub_sub_container():
     container.set_enabled(False)
 
     assert container.get_signal('s2') == 3
-        
+   
     # add subsubcontainer
 
     container.add_sink('container1/output2',
                        Output(),
                        ['s3'])
-    
+
+    container2 = Container()
     container.add_filter('container1/container2',
-                         Container(),
+                         container2,
                          ['s1'], ['s3'])
+    
+    container.add_signals('container1/container2/s1', 'container1/container2/s2')
+    
+    assert container.resolve_label('container1/container2/s1') == (container2, 's1')
+    assert container.resolve_label('./container1/container2/s1') == (container2, 's1')
+    assert container.resolve_label('/container1/container2/s1') == (container2, 's1')
+    
+    assert container.resolve_label('container1/container2/s1') == (container2, 's1')
+    assert container.resolve_label('./container1/container2/s1') == (container2, 's1')
+    assert container.resolve_label('/container1/container2/s1') == (container2, 's1')
+
+    assert container1.resolve_label('container2/s1') == (container2, 's1')
+    assert container1.resolve_label('./container2/s1') == (container2, 's1')
+    assert container1.resolve_label('/container1/container2/s1') == (container2, 's1')
+    
+    assert container2.resolve_label('s1') == (container2, 's1')
+    assert container2.resolve_label('./s1') == (container2, 's1')
+    assert container2.resolve_label('/container1/container2/s1') == (container2, 's1')
+
+    assert container2.resolve_label('../s1') == (container1, 's1')
+    assert container2.resolve_label('../../s1') == (container, 's1')
+    assert container2.resolve_label('../container2/s1') == (container2, 's1')
+
     
     container.add_source('container1/container2/input1',
                          Input(),
@@ -752,3 +793,70 @@ def test_sub_container_timer():
 
     assert container.get_signal('s2') == 3
     assert container.get_signal('s3') == 5
+
+def test_timer_sub_container():
+
+    import pyctrl
+    import pyctrl.block as block
+
+    from pyctrl.block.container import Container, Input, Output, ContainerException
+    from pyctrl.block.system import Gain
+    from pyctrl.block import Constant
+
+    # create container first
+    
+    container = Container()
+
+    container.add_signals('s1', 's2', 's3')
+    
+    # add subcontainer
+    
+    container.add_timer('container1',
+                        Container(),
+                        ['s1'], ['s2','s3'],
+                        period = 1, repeat = False)
+    
+    container.add_signals('timer/container1/s1',
+                          'timer/container1/s2',
+                          'timer/container1/s3')
+    
+    container.add_source('timer/container1/input1',
+                         Input(),
+                         ['s1'])
+    
+    container.add_filter('timer/container1/gain1',
+                         Gain(gain = 3),
+                         ['s1'],['s2'])
+    
+    container.add_filter('timer/container1/gain2',
+                         Gain(gain = 5),
+                         ['s1'],['s3'])
+    
+    container.add_sink('timer/container1/output1',
+                       Output(),
+                       ['s2'])
+    
+    container.add_sink('timer/container1/output2',
+                       Output(),
+                       ['s3'])
+    
+    print(container.info('all'))
+    
+    container.set_enabled(True)
+    container.set_signal('s1', 1)
+    container.run()
+    container.set_enabled(False)
+    
+    assert container.get_signal('s2') == 0
+    assert container.get_signal('s3') == 0
+    
+    container.set_enabled(True)
+    container.set_signal('s1', 1)
+    container.run()
+    time.sleep(1.1)
+    container.run()
+    container.set_enabled(False)
+
+    assert container.get_signal('s2') == 3
+    assert container.get_signal('s3') == 5
+    

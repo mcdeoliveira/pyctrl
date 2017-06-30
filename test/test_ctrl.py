@@ -7,7 +7,6 @@ start_server = True
 
 from pyctrl import BlockType
 import pyctrl.client as clnt
-import pyctrl.block.logic as logic
 
 def test_local():
 
@@ -332,7 +331,7 @@ def run(controller):
     assert controller.get_signal('timer') == 1
 
     # test set
-    import pyctrl
+    import pyctrl.block.logic as logic
     
     print('* * * TEST SET * * *')
 
@@ -347,10 +346,9 @@ def run(controller):
                           ['s1'])
     
     controller.add_sink('set1',
-                        logic.SetBlock(blocktype = BlockType.SOURCE,
-                                       label = 'const',
-                                       on_rise = {'value': 0.6},
-                                       on_fall = {'value': 0.4}),
+                        logic.SetSource(label = 'const',
+                                        on_rise = {'value': 0.6},
+                                        on_fall = {'value': 0.4}),
                         ['s2'])
 
     with controller:
@@ -441,7 +439,112 @@ def run(controller):
     assert controller.get_signal('s2') == 3
     assert controller.get_signal('s3') == 5
     
+    print('\n* * * TEST SUB CONTAINER TIMER * * *')
 
+    controller.reset()
+
+    controller.add_signals('s1', 's2', 's3')
+    
+    # add subcontainer
+    
+    controller.add_filter('container1',
+                          container.Container(),
+                          ['s1'], ['s2','s3'])
+    
+    controller.add_signals('container1/s1', 'container1/s2', 'container1/s3')
+    
+    controller.add_source('container1/input1',
+                          container.Input(),
+                          ['s1'])
+    
+    controller.add_filter('container1/gain1',
+                          system.Gain(gain = 3),
+                          ['s1'],['s2'])
+    
+    controller.add_timer('container1/constant1',
+                         block.Constant(value = 5),
+                         None,['s3'],
+                         period = 1, repeat = False)
+    
+    controller.add_sink('container1/output1',
+                        container.Output(),
+                        ['s2'])
+    
+    controller.add_sink('container1/output2',
+                        container.Output(),
+                        ['s3'])
+    
+    print(controller.info('all'))
+    
+    with controller:
+        controller.set_signal('s1', 1)
+        time.sleep(.1)
+
+    assert controller.get_signal('s2') == 3
+    assert controller.get_signal('s3') == 0
+    
+    
+    with controller:
+        controller.set_signal('s1', 1)
+        time.sleep(1.1)
+
+    assert controller.get_signal('s2') == 3
+    assert controller.get_signal('s3') == 5
+
+    print('\n* * * TEST TIMER SUB CONTAINER * * *')
+
+    controller.reset()
+
+    controller.add_signals('s1', 's2', 's3')
+    
+    # add subcontainer
+    
+    controller.add_timer('container1',
+                         container.Container(),
+                         ['s1'], ['s2','s3'],
+                         period = 1, repeat = False)
+    
+    controller.add_signals('timer/container1/s1',
+                           'timer/container1/s2',
+                           'timer/container1/s3')
+    
+    controller.add_source('timer/container1/input1',
+                          container.Input(),
+                          ['s1'])
+    
+    controller.add_filter('timer/container1/gain1',
+                          system.Gain(gain = 3),
+                          ['s1'],['s2'])
+    
+    controller.add_filter('timer/container1/gain2',
+                          system.Gain(gain = 5),
+                          ['s1'],['s3'])
+    
+    controller.add_sink('timer/container1/output1',
+                        container.Output(),
+                        ['s2'])
+    
+    controller.add_sink('timer/container1/output2',
+                        container.Output(),
+                        ['s3'])
+    
+    print(controller.info('all'))
+    
+    with controller:
+        controller.set_signal('s1', 1)
+        time.sleep(.1)
+    
+    assert controller.get_signal('s2') == 0
+    assert controller.get_signal('s3') == 0
+    
+    with controller:
+        controller.set_signal('s1', 1)
+        time.sleep(1.1)
+
+    assert controller.get_signal('s2') == 3
+    assert controller.get_signal('s3') == 5
+    
+    
 def test_run():
 
     from pyctrl import Controller
@@ -533,14 +636,14 @@ def test_client_server():
 
         assert client.info('class') == "<class 'pyctrl.timer.Controller'>"
 
-        client.reset(module = 'pyctrl.timer', period = 2)
+        client.reset(module = 'pyctrl.timer', kwargs = {'period': 2})
         
         assert client.info('class') == "<class 'pyctrl.timer.Controller'>"
         assert client.get_source('clock','period') == 2
 
         client = pyctrl.client.Controller(host = HOST, port = PORT,
-                                        module = 'pyctrl.timer',
-                                        period = 1)
+                                          module = 'pyctrl.timer',
+                                          kwargs = {'period': 1})
 
         assert client.info('class') == "<class 'pyctrl.timer.Controller'>"
         assert client.get_source('clock','period') == 1

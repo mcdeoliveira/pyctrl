@@ -80,6 +80,7 @@ def main():
     # import blocks and controller
     from pyctrl import BlockType
     from pyctrl.rc.mip import Controller
+    from pyctrl.block.container import Container, Input, Output
     from pyctrl.block.system import System, Subtract, Differentiator, Sum, Gain
     from pyctrl.block.nl import ControlledCombination, Product
     from pyctrl.block import FadeIn, Printer
@@ -151,42 +152,58 @@ def main():
     mip.set_signal('phi_dot_reference',0)
     mip.set_signal('steer_reference',0.5)
 
-    # add small angle sensor
-    mip.add_timer('small_angle',
-                  CompareAbsWithHysterisis(threshold = 0.135,
-                                           hysterisis = 0.115,
-                                           offset = -0.07,
-                                           state = (State.LOW,)),
+    # add supervisor actions on a timer
+    # actions are inside a container so that they are executed all at once
+    mip.add_timer('supervisor',
+                  Container(),
                   ['theta'],
-                  ['small_angle'],
+                  ['small_angle','is_running'],
                   period = 0.5, repeat = True)
+
+    mip.add_signals('timer/supervisor/theta',
+                    'timer/supervisor/small_angle')
+    
+    mip.add_source('timer/supervisor/theta',
+                   Input(),
+                   ['theta'])
+    
+    mip.add_sink('timer/supervisor/small_angle',
+                 Output(),
+                 ['small_angle'])
+    
+    mip.add_sink('timer/supervisor/is_running',
+                 Output(),
+                 ['is_running'])
+    
+    # add small angle sensor
+    mip.add_filter('timer/supervisor/is_angle_small',
+                   CompareAbsWithHysterisis(threshold = 0.135,
+                                            hysterisis = 0.115,
+                                            offset = -0.07,
+                                            state = (State.LOW,)),
+                   ['theta'],
+                   ['small_angle'])
     
     # reset controller and fade
-    mip.add_timer('reset_controller',
-                  SetBlock(blocktype = BlockType.FILTER,
-                           label = ['controller','fade'],
+    mip.add_sink('timer/supervisor/reset_controller',
+                 SetFilter(label = ['/controller','/fade'],
                            on_rise = {'reset': True}),
-                  ['small_angle'], None,
-                  period = 0.5, repeat = True)
+                 ['small_angle'])
     
-    # add green led on a timer
-    mip.add_device('greenled', 
+    # add green led
+    mip.add_device('timer/supervisor/green_led', 
                    'pyctrl.rc.led', 'LED',
-                   type = BlockType.TIMER,
-                   enable = True,
                    inputs = ['small_angle'],
-                   period = 0.5, repeat = True,
-                   kwargs = {'pin': GRN_LED})
+                   kwargs = {'pin': GRN_LED},
+                   enable = True)
 
     # add pause button on a timer
-    mip.add_device('pause', 
+    mip.add_device('timer/supervisor/pause_button',
                    'pyctrl.rc.button', 'Button',
-                   type = BlockType.TIMER,
-                   enable = True,
                    outputs = ['is_running'],
-                   period = 0.5, repeat = True,
                    kwargs = {'pin': PAUSE_BTN,
-                             'invert': True})
+                             'invert': True},
+                   enable = True)
 
     # # add printer
     # mip.add_timer('printer',
@@ -260,4 +277,3 @@ Use your keyboard to control the mip:
         
 if __name__ == "__main__":
     main()
-
