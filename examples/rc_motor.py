@@ -10,7 +10,6 @@ def main():
     from pyctrl.block import Interp, Logger, Constant
     from pyctrl.block.system import System, Differentiator
     from pyctrl.system.tf import DTTF, LPF
-    from pyctlr import BlockType
 
     # initialize controller
     Ts = 0.01
