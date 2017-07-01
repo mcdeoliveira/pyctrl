@@ -1436,6 +1436,8 @@ class Container(block.Filter, block.Block):
         # disable
         else:
 
+            print('WILL DISABLE CONTAINER')
+            
             # start timer threads
             for (label,timer) in self.running_timers.items():
                 
