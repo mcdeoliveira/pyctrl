@@ -280,27 +280,17 @@ Use your keyboard to control the mip:
         # stop the controller
         mip.stop()
         
-        print("\n> on finally")
-        
         # turn off red led
         red.off()
 
         # make sure it exits
         mip.set_state(pyctrl.EXITING)
 
-        print("1>")
+        print("Press any key to exit")
         
         thread.join()
         
-        print("2>")
-        
-        time.sleep(1)
-        
-        print("3>")
-        
         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
-    print("\n> Waiting for something...")
-        
 if __name__ == "__main__":
     main()
