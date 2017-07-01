@@ -1337,6 +1337,8 @@ class Container(block.Filter, block.Block):
                 
     def tick(self, label, device):
 
+        print('> ON TICK')
+        
         # Acquire lock
         device['condition'].acquire()
 
@@ -1373,9 +1375,13 @@ class Container(block.Filter, block.Block):
                                                args = (label, device))
             self.running_timers[label].start()
 
+            print('> TIMER STARTED')
+        
             # Wait 
             device['condition'].wait()
 
+            print('> TIMER NOTIFIED')
+            
             # and release
             try:
                 # this is to prevent a wierd 'cannot release
@@ -1431,9 +1437,11 @@ class Container(block.Filter, block.Block):
         else:
 
             # start timer threads
-            for (label,t) in self.running_timers.items():
+            for (label,timer) in self.running_timers.items():
+                
                 # Try cancelling timer
-                t.cancel()
+                timer.cancel()
+                
                 # Release condition
                 device = self.timers[label]
                 device['condition'].acquire()
