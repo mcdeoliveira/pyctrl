@@ -180,8 +180,6 @@ class Controller(Container):
             self.is_running = False
             self.signals['is_running'] = self.is_running
 
-        print('ON STOP')
-            
         # then disable devices
         self.set_enabled(False)
 
