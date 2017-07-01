@@ -290,17 +290,19 @@ Use your keyboard to control the mip:
 
         # flush stdin
         sys.stdin.buffer.write(b'\n')
-        
+
         print("1>")
         
-        time.sleep(1)
-
+        thread.join()
+        
         print("2>")
+        
+        time.sleep(1)
+        
+        print("3>")
         
         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
-        print("3>")
-        
     print("\n> Waiting for something...")
         
 if __name__ == "__main__":
