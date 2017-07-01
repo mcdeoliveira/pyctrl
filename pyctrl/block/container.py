@@ -9,6 +9,7 @@ import math
 import importlib
 from threading import Thread, Timer, Condition
 from time import perf_counter
+import re
 
 from .. import block
 from .. import BlockType
@@ -20,18 +21,24 @@ class ContainerException(block.BlockException):
     pass
 
 class Input(block.Source, block.BufferBlock):
+    """
+    :py:class:`pyctrl.block.container.Input` provides a block that connects a container input signals to local container signals .
+    """
 
     def write(self, *values):
         block.BufferBlock.write(self, *values)
     
 class Output(block.Sink, block.BufferBlock):
+    """
+    :py:class:`pyctrl.block.container.Output` provides a block that connects local container signals to a container output signals.
+    """
     
     def read(self):
         return block.BufferBlock.read(self)
     
 class Container(block.Filter, block.Block):
     """
-    :py:class:`pyctrl.block.Container` provides a block that can contain other blocks.
+    :py:class:`pyctrl.block.container.Container` provides a block that can contain other blocks.
     """
 
     def __init__(self, **kwargs):
@@ -51,9 +58,6 @@ class Container(block.Filter, block.Block):
         # signals
         self.signals = { }
 
-        # devices
-        self.devices = { }
-        
         # sources
         self.sources = { }
         self.sources_order = [ ]
@@ -108,7 +112,7 @@ class Container(block.Filter, block.Block):
         # all?
         if 'all' in vargs:
             vargs = ('summary',
-                     'devices', 'timers', 'signals',
+                     'timers', 'signals',
                      'sources', 'filters', 'sinks')
 
         # recurse
@@ -121,16 +125,7 @@ class Container(block.Filter, block.Block):
         
             options = options.lower()
 
-            if options == 'devices':
-
-                result += indent + '> devices\n'
-                k = 1
-                for label, device in self.devices.items():
-                    result += indent + '  {}. '.format(k) + \
-                              label + '[' + \
-                              device['type'].name + ']\n'
-                    k += 1
-            elif options == 'sources':
+            if options == 'sources':
 
                 result += indent + '> sources\n'
                 for (k, label) in enumerate(self.sources_order):
@@ -225,9 +220,8 @@ class Container(block.Filter, block.Block):
 
             elif options == 'summary':
 
-                result += (indent + '{} with:\n' + indent + '  {} device(s), {} timer(s), {} signal(s),\n' + indent + '  {} source(s), {} filter(s), and {} sink(s)\n') \
+                result += (indent + '{} with:\n' + indent + '  {} timer(s), {} signal(s),\n' + indent + '  {} source(s), {} filter(s), and {} sink(s)\n') \
                     .format(self.__class__,
-                            len(self.devices),
                             len(self.timers),
                             len(self.signals),
                             len(self.sources), 
@@ -277,13 +271,19 @@ class Container(block.Filter, block.Block):
                     # split again
                     split_label = split_label[1].split(sep='/',maxsplit = 1)
 
-                    # retrieve container from timers
-                    container = self.timers[split_label[0]]['block']
-                    if isinstance(container, Container):
-                        return container.resolve_label(split_label[1])
+                    if len(split_label) > 1:
+                        
+                        # retrieve container from timers
+                        container = self.timers[split_label[0]]['block']
+                        if isinstance(container, Container):
+                            return container.resolve_label(split_label[1])
+                        else:
+                            raise ContainerException("Timer '{}' is not a container".format(label))
                     else:
-                        raise ContainerException("Timer '{}' is not a container".format(label))
-                    
+
+                        # timer label
+                        return (self, 'timer/' + split_label[0])
+                        
                 else:
 
                     # retrieve container from filters
@@ -449,6 +449,9 @@ class Container(block.Filter, block.Block):
         assert isinstance(source, block.Source)
         assert isinstance(outputs, (list, tuple))
 
+        # order
+        order = kwargs.pop('order', None)
+        
         # enable
         enable = kwargs.pop('enable', None)
         if enable is None:
@@ -456,6 +459,16 @@ class Container(block.Filter, block.Block):
                 enable = True
             else:
                 enable = False
+
+        # left over arguments?
+        if len(kwargs) > 0:
+            raise ContainerException("Unknown parameter(s) '{}'".format(', '.join(str(k) for k in kwargs.keys())))
+
+        # local names only in outputs
+        if any(s.count('/') for s in outputs):
+            raise ContainerException("Qualified names are not allowed in 'outputs'")
+        
+        # enable
         if enable:
             source.set_enabled(False)
         
@@ -466,7 +479,7 @@ class Container(block.Filter, block.Block):
         }
 
         # order
-        if kwargs.pop('order', None) is None:
+        if order is None:
             self.sources_order.append(label)
         else:
             self.sources_order.insert(order, label)
@@ -612,6 +625,9 @@ class Container(block.Filter, block.Block):
         assert isinstance(sink, block.Sink)
         assert isinstance(inputs, (list, tuple))
 
+        # order
+        order = kwargs.pop('order', None)
+        
         # enable
         enable = kwargs.pop('enable', None)
         if enable is None:
@@ -619,6 +635,16 @@ class Container(block.Filter, block.Block):
                 enable = True
             else:
                 enable = False
+                
+        # left over arguments?
+        if len(kwargs) > 0:
+            raise ContainerException("Unknown parameter(s) '{}'".format(', '.join(str(k) for k in kwargs.keys())))
+        
+        # local names only in inputs
+        if any(s.count('/') for s in inputs):
+            raise ContainerException("Qualified names are not allowed in 'inputs'")
+        
+        # enable
         if enable:
             sink.set_enabled(False)
         
@@ -629,7 +655,7 @@ class Container(block.Filter, block.Block):
         }
 
         # order
-        if kwargs.pop('order', None) is None:
+        if order is None:
             self.sinks_order.append(label)
         else:
             self.sinks_order.insert(order, label)
@@ -778,6 +804,9 @@ class Container(block.Filter, block.Block):
         assert isinstance(inputs, (list, tuple))
         assert isinstance(outputs, (list, tuple))
 
+        # order
+        order = kwargs.pop('order', None)
+        
         # enable
         enable = kwargs.pop('enable', None)
         if enable is None:
@@ -785,6 +814,20 @@ class Container(block.Filter, block.Block):
                 enable = True
             else:
                 enable = False
+
+        # left over arguments?
+        if len(kwargs) > 0:
+            raise ContainerException("Unknown parameter(s) '{}'".format(', '.join(str(k) for k in kwargs.keys())))
+        
+        # local names only in inputs
+        if any(s.count('/') for s in inputs):
+            raise ContainerException("Qualified names are not allowed in 'inputs'")
+        
+        # local names only in outputs
+        if any(s.count('/') for s in outputs):
+            raise ContainerException("Qualified names are not allowed in 'outputs'")
+        
+        # enable
         if enable:
             filter_.set_enabled(False)
 
@@ -796,7 +839,7 @@ class Container(block.Filter, block.Block):
         }
 
         # order
-        if kwargs.pop('order', None) is None:
+        if order is None:
             self.filters_order.append(label)
         else:
             self.filters_order.insert(order, label)
@@ -960,8 +1003,6 @@ class Container(block.Filter, block.Block):
         # local label
         
         # parameters
-        devtype = kwargs.pop('type', None)
-
         inputs = kwargs.pop('inputs', [])
         outputs = kwargs.pop('outputs', [])
 
@@ -969,7 +1010,15 @@ class Container(block.Filter, block.Block):
 
         dkwargs = kwargs.pop('kwargs', {})
 
-        if devtype is BlockType.timer:
+        # is it a timer?
+        match = re.match('timer/(\w+)', label)
+        if match:
+            label = match.group(1)
+            is_timer = True
+        else:
+            is_timer = False
+
+        if is_timer:
 
             # look for period and repeat
             period = kwargs.pop('period')
@@ -993,7 +1042,7 @@ class Container(block.Filter, block.Block):
             return None
 
         # add device to controller
-        if devtype is BlockType.timer:
+        if is_timer:
 
             # add device as timer
             self.add_timer(label, instance, inputs, outputs,
@@ -1001,12 +1050,10 @@ class Container(block.Filter, block.Block):
 
         else:
 
-            # make sure type is correct
-            if devtype is None:
-                devtype = instance.get_type()
-            elif devtype != instance.get_type():
-                raise ContainerException('Block type and type parameter do not match')
+            # get devtype
+            devtype = instance.get_type()
 
+            # add device as source
             if devtype is BlockType.source:
 
                 # warn if inputs are defined
@@ -1017,6 +1064,7 @@ class Container(block.Filter, block.Block):
                 # add device as source
                 self.add_source(label, instance, outputs, **kwargs)
             
+            # add device as sink
             elif devtype is BlockType.sink:
 
                 # warn if inputs are defined
@@ -1027,6 +1075,7 @@ class Container(block.Filter, block.Block):
                 # add device as sink
                 self.add_sink(label, instance, inputs, **kwargs)
 
+            # add device as filter
             elif devtype is BlockType.filter:
 
                 # add device as filter
@@ -1036,30 +1085,10 @@ class Container(block.Filter, block.Block):
             
                 raise NameError("Unknown device type '{}'. Must be sink, source, filter or timer.".format(devtype))
 
-        # add signals
-        #self.add_signals(*outputs)
-        #self.add_signals(*inputs)
-
-        # store device
-        self.devices[label] = {
-            'instance': instance,
-            'type': devtype,
-            'inputs': inputs,
-            'outputs': outputs,
-            'kwargs': dkwargs
-        }
+        # left over parameters?
 
         return instance
 
-    def list_devices(self):
-        """
-        List of the devices currently on Container.
-
-        :return: a list of devices labels
-        :rtype: list
-        """
-        return list(self.devices.keys())
-    
     # timers
     def add_timer(self,
                   label,
@@ -1108,6 +1137,22 @@ class Container(block.Filter, block.Block):
                 enable = True
             else:
                 enable = False
+
+        # left over arguments?
+        if len(kwargs) > 0:
+            raise ContainerException("Unknown parameter(s) '{}'".format(', '.join(str(k) for k in kwargs.keys())))
+
+        if inputs:
+            # local names only in inputs
+            if any(s.count('/') for s in inputs):
+                raise ContainerException("Qualified names as not allowed in 'inputs'")
+
+        if outputs:
+            # local names only in outputs
+            if any(s.count('/') for s in outputs):
+                raise ContainerException("Qualified names as not allowed in 'outputs'")
+
+        # enable
         if enable:
             blk.set_enabled(False)
             

@@ -3,6 +3,7 @@ Module `pyctrl`
 
 .. automodule:: pyctrl
    :members:
+   :inherited-members:
    :show-inheritance:
 
 Module `pyctrl.timer`

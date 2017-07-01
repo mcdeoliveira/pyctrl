@@ -224,7 +224,7 @@ produces the output:
 .. code-block:: none
 		
     <class 'pyctrl.Controller'> with:
-      1 device(s), 0 timer(s), 4 signal(s),
+      0 timer(s), 4 signal(s),
       2 source(s), 0 filter(s), and 1 sink(s)
 
 For more information you can use the method
@@ -237,10 +237,8 @@ produces the output:
 .. code-block:: none
 
     <class 'pyctrl.Controller'> with:
-      1 device(s), 0 timer(s), 4 signal(s),
+      0 timer(s), 4 signal(s),
       2 source(s), 0 filter(s), and 1 sink(s)
-    > devices
-      1. clock[source]
     > timers
     > signals
       1. clock
@@ -254,8 +252,8 @@ produces the output:
     > sinks
       1. myclock >> message[Printer, disabled]
 
-which details the *devices*, *signals*, *sources*, *filters*, *sinks*,
-and *timers* present in the controller :py:data:`hello`. Of course the
+which details the *signals*, *sources*, *filters*, *sinks*, and
+*timers* present in the controller :py:data:`hello`. Of course the
 *signals*, *sources* and *sinks* correspond to the ones you have added
 earlier. Three additional *signals*, :py:data:`clock`, :py:data:`duty`
 and :py:data:`is_running` and the additional *device* :py:data:`clock`
@@ -320,18 +318,18 @@ World` message followed by the value of the *signal*
 than one *signal* can be printed by specifying multiple placeholders
 in the attribute :py:attr:`message` and more input signals.
 
------------------------
-Devices and Controllers
------------------------
+-------
+Devices
+-------
 
 As you might suspect after having gone through the :ref:`Hello World!`
 example, it is useful to have a controller with a clock. In fact, as
 you will learn later in :ref:`Timers`, every
 :py:class:`pyctrl.Controller` comes equipped with some kind of
-clock. The method :py:meth:`pyctrl.Controller.add_device` automates
-the process of adding blocks to a controller and is typically used
-when adding blocks that should behave as hardware devices, like a
-clock. For example, the following code::
+clock. The method :py:meth:`pyctrl.Controller.add_device`
+automates the process of adding blocks to a controller and is
+typically used when adding blocks that should behave as hardware
+devices, like a clock. For example, the following code::
 
   from pyctrl import Controller
 
@@ -352,9 +350,29 @@ regular *sources*, *filters*, and *sinks*, setting the attribute
 dictionary *kwargs* contains parameters that are passed when
 instantiating the device, in this case a *period* of 1 second.
 
+The main difference between
+:py:meth:`pyctrl.Controller.add_device` and, for instance,
+:py:meth:`pyctrl.Controller.add_source` is that
+:py:meth:`pyctrl.Controller.add_device` takes as arguments
+strings with the package and class name of the *source*, *filter*, or
+*sink*, whereas :py:meth:`pyctrl.Controller.add_source`
+takes in an instance of an object.
+
+The notion of *device* is much more than a simple convenience
+though. By having the controller dynamically initialize a block by
+providing the module and class names as strings to
+:py:meth:`pyctrl.Controller.add_device`, i.e. the arguments
+:py:data:`'pyctrl.block.clock'` and :py:data:`'TimerClock'` above, it
+will be possible to remotely initialize blocks that rely on the
+presence of specific hardware using our :ref:`Client-Server
+Application Architecture`, as you will learn later. Note that you do
+not have to directly import any modules when using
+:py:meth:`pyctrl.Controller.add_device`.
+
 A controller with a timer based clock is so common that the above
 construction is provided as a module in :py:mod:`pyctrl.timer`. Using
-:py:mod:`pyctrl.timer` the `Hello World!` example can be simplified to::
+:py:mod:`pyctrl.timer` the `Hello World!` example can be simplified
+to::
 
     # import Python's standard time module
     import time
@@ -388,10 +406,8 @@ A call to :samp:`print(hello.info('all'))` produces:
 .. code-block:: none
 	       
     <class 'pyctrl.timer.Controller'> with:
-      1 device(s), 0 timer(s), 3 signal(s),
+      0 timer(s), 3 signal(s),
       1 source(s), 0 filter(s), and 1 sink(s)
-    > devices
-      1. clock[source]
     > timers
     > signals
       1. clock
@@ -406,17 +422,6 @@ A call to :samp:`print(hello.info('all'))` produces:
 which reveals the presence of the signal :py:data:`clock` and the
 *device* :py:class:`pyctrl.block.clock.TimerClock` as a *source*.
 
-The notion of *device* is much more than a simple convenience
-though. By having the controller dynamically initialize a block by
-providing the module and class names as strings to
-:py:meth:`pyctrl.Controller.add_device`, i.e. the arguments
-:py:data:`'pyctrl.block.clock'` and :py:data:`'TimerClock'` above, it
-will be possible to remotely initialize blocks that rely on the
-presence of specific hardware using our :ref:`Client-Server
-Application Architecture`, as you will learn later. Note that you do
-not have to directly import any modules when using
-:py:meth:`pyctrl.Controller.add_device`.
-
 In some situations it might be helpful to be able to reset a
 controller to its original configuration. This can be done using the
 method :py:meth:`pyctrl.Controller.reset`. For example, after
@@ -429,10 +434,8 @@ initialization or after calling::
 .. code-block:: none
 	       
     <class 'pyctrl.timer.Controller'> with:
-      1 device(s), 0 timer(s), 3 signal(s),
+      0 timer(s), 3 signal(s),
       1 source(s), 0 filter(s), and 0 sink(s)
-    > devices
-      1. clock[source]
     > timers
     > signals
       1. clock
@@ -628,10 +631,8 @@ The key aspect in this example is how *filters* process
 .. code-block:: none
 
     <class 'pyctrl.timer.Controller'> with:
-      1 device(s), 1 timer(s), 4 signal(s),
+      1 timer(s), 4 signal(s),
       1 source(s), 1 filter(s), and 1 sink(s)
-    > devices
-      1. clock[source]
     > timers
       1. stop[Constant, period = 6, enabled] >> is_running
     > signals
@@ -1077,10 +1078,8 @@ After all that you should have a controller with the following blocks:
 .. code-block:: none
 
     <class 'pyctrl.timer.Controller'> with:
-      1 device(s), 1 timer(s), 7 signal(s),
+      1 timer(s), 7 signal(s),
       1 source(s), 4 filter(s), and 1 sink(s)
-    > devices
-      1. clock[source]
     > timers
       1. stop[Constant, period = 6, enabled] >> is_running
     > signals
@@ -1262,12 +1261,8 @@ devices is shown in the output of :samp:`print(bbb.info('all'))`:
 .. code-block:: none
 
     <class 'pyctrl.rc.Controller'> with:
-      3 device(s), 0 timer(s), 5 signal(s),
+      0 timer(s), 5 signal(s),
       2 source(s), 0 filter(s), and 1 sink(s)
-    > devices
-      1. motor1[sink]
-      2. clock[source]
-      3. encoder1[source]
     > timers
     > signals
       1. clock
@@ -1344,12 +1339,8 @@ will produce a controller with the following connections:
 .. code-block:: none
 
     <class 'pyctrl.rc.Controller'> with:
-      3 device(s), 1 timer(s), 7 signal(s),
+      1 timer(s), 7 signal(s),
       2 source(s), 3 filter(s), and 2 sink(s)
-    > devices
-      1. motor1[sink]
-      2. clock[source]
-      3. encoder1[source]
     > timers
       1. stop[Constant, period = 6, enabled] >> is_running
     > signals
@@ -1427,8 +1418,8 @@ Proportional-Integral motor speed control
 You will now turn to the implementation of a closed-loop
 Proportional-Integral controller, or PI controller for short, on the
 same hardware used in the Section :ref:`Interfacing with
-hardware`. Start by installing the same devices as before, one motor and
-one encoder::
+hardware`. Start by installing the same devices as before, one motor
+and one encoder::
 
     # import Controller and other blocks from modules
     from pyctrl.rc import Controller
@@ -1688,15 +1679,8 @@ devices needed for controlling the MIP. A look at :samp:`mip.info('all')`:
 .. code-block:: none
 		
     <class 'pyctrl.rc.mip.Controller'> with:
-      6 device(s), 0 timer(s), 9 signal(s),
+      0 timer(s), 9 signal(s),
       4 source(s), 0 filter(s), and 2 sink(s)
-    > devices
-      1. inclinometer[source]
-      2. motor2[sink]
-      3. encoder1[source]
-      4. motor1[sink]
-      5. encoder2[source]
-      6. clock[source]
     > timers
     > signals
       1. clock

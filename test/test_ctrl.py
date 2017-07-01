@@ -528,6 +528,62 @@ def run(controller):
                         container.Output(),
                         ['s3'])
     
+    assert controller.get_signal('s2') == 0
+    assert controller.get_signal('s3') == 0
+    
+    with controller:
+        controller.set_signal('s1', 1)
+        time.sleep(.1)
+
+    assert controller.get_signal('s2') == 0
+    assert controller.get_signal('s3') == 0
+        
+    with controller:
+        controller.set_signal('s1', 1)
+        time.sleep(1.1)
+
+    assert controller.get_signal('s2') == 3
+    assert controller.get_signal('s3') == 5
+
+    print('\n* * * TEST ADD DEVICE * * *')
+
+    controller.reset()
+
+    controller.add_signals('s1', 's2', 's3')
+    
+    # add subcontainer
+    
+    controller.add_device('timer/container1',
+                         'pyctrl.block.container', 'Container',
+                         inputs = ['s1'], outputs = ['s2','s3'],
+                         period = 1, repeat = False)
+
+    controller.add_signals('timer/container1/s1',
+                          'timer/container1/s2',
+                          'timer/container1/s3')
+    
+    controller.add_device('timer/container1/input1',
+                         'pyctrl.block.container', 'Input',
+                         outputs = ['s1'])
+    
+    controller.add_device('timer/container1/gain1',
+                         'pyctrl.block.system', 'Gain',
+                         inputs = ['s1'], outputs = ['s2'],
+                         kwargs = {'gain': 3})
+    
+    controller.add_device('timer/container1/gain2',
+                         'pyctrl.block.system', 'Gain',
+                         inputs = ['s1'], outputs = ['s3'],
+                         kwargs = {'gain': 5})
+    
+    controller.add_device('timer/container1/output1',
+                         'pyctrl.block.container', 'Output',
+                         inputs = ['s2'])
+    
+    controller.add_device('timer/container1/output2',
+                         'pyctrl.block.container', 'Output',
+                         inputs = ['s3'])
+    
     print(controller.info('all'))
     
     with controller:
@@ -543,7 +599,7 @@ def run(controller):
 
     assert controller.get_signal('s2') == 3
     assert controller.get_signal('s3') == 5
-    
+
     
 def test_run():
 

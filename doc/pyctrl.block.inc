@@ -5,6 +5,13 @@ Module `pyctrl.block`
    :members:
    :show-inheritance:
 
+Module `pyctrl.block.container`
+===============================
+      
+.. automodule:: pyctrl.block.container
+   :members:
+   :show-inheritance:
+   
 Module `pyctrl.block.clock`
 ===========================
       

@@ -9,7 +9,7 @@ gone through the :ref:`Tutorial` and have a good understanding of the
 concepts discussed there before reading this chapter.
 
 ------------------------------
-Qualified names and Containers
+Qualified names and containers
 ------------------------------
 
 Instances of the class :py:class:`pyctrl.block.container.Container`
@@ -20,7 +20,152 @@ inherits most of its functionality from
 :py:class:`pyctrl.block.container.Container`. An instance of
 :py:class:`pyctrl.block.container.Container` works as a *filter*,
 which can be installed using :py:class:`pyctrl.Controller.add_filter`
-or as a timer using :py:class:`pyctrl.Controller.add_timer`.
+or :py:class:`pyctrl.Controller.add_device` or as a timer using
+:py:class:`pyctrl.Controller.add_timer`.
+
+As the name suggests, a :py:class:`pyctrl.block.container.Container`
+can contain other blocks, just like a :py:class:`pyctrl.Controller`
+does. In order to access elements inside a container one uses a
+*qualified name* involving the special character forward slash
+(`/`). For example, consider the following code::
+
+    # import Controller and other blocks from modules
+    from pyctrl.timer import Controller
+    from pyctrl.block.system import Gain
+    from pyctrl.block.container import Container, Input, Output
+
+    # initialize controller
+    controller = Controller(period = 1)
+
+    controller.add_signals('s1','s2','s3')
+  
+    controller.add_filter('gain',
+                          Gain(gain = 2),
+                          ['s1'], ['s2'])
+
+    # add container
+    controller.add_filter('container',
+                          Container(),
+                          ['s1'], ['s3'])
+
+    # add elements inside the container
+    controller.add_signals('container/s1', 'container/s2')
+    
+    controller.add_source('container/input',
+                          Input(),
+                          ['s1'])
+    
+    controller.add_filter('container/gain',
+                          Gain(gain = 3),
+                          ['s1'],['s2'])
+    
+    controller.add_sink('container/output1',
+                        Output(),
+                        ['s2'])
+
+The command::
+
+    controller.add_filter('container',
+                          Container(),
+                          ['s1'], ['s3'])
+
+adds a *filter* called :samp:`container` with input :samp:`s1` and
+output :samp:`s3`. Once an instance of
+:py:class:`pyctrl.block.container.Container` has been added to a
+controller, its elements can be accessed by using a qualified name
+which is preceded by the name of the container separated by a forward
+slash (`/`). For example, the code::
+
+    controller.add_signals('container/s1', 'container/s2')
+
+adds two signals, :samp:`s1` and :samp:`s2`, to the container
+:samp:`container`. Note that names inside containers are local,
+:samp:`s1` and :samp:`container/s1` refer to different signals!
+
+Likewise, the command::
+      
+    controller.add_filter('container/gain',
+                          Gain(gain = 3),
+                          ['s1'],['s2'])
+
+adds a *filter* called :samp:`gain` to the container
+:samp:`container`. Note that the *inputs* and *outputs* above refer to
+signals which are *local* to :samp:`container`, that is the signals
+:samp:`container/s1` and :samp:`container/s2`. In fact, the parameters
+*inputs* and *outputs* in :py:class:`pyctrl.Controller.add_filter` as
+well as :py:class:`pyctrl.Controller.add_source`,
+:py:class:`pyctrl.Controller.add_sink`, and
+:py:class:`pyctrl.Controller.add_device`, must all be local
+symbols. In order to connect the inputs and output of the container
+with signals of the controller we use two special blocks:
+:py:class:`pyctrl.block.container.Input` and
+:py:class:`pyctrl.block.container.Output`. For example::
+      
+    controller.add_source('container/input',
+                          Input(),
+                          ['s1'])
+
+connects the single input of the container, the signal :samp:`s1` to
+the local container signal :samp:`container/s1`, and::
+
+    controller.add_sink('container/output1',
+                        Output(),
+                        ['s2'])
+
+connects the local container signal :samp:`container/s2` to the single
+output of the container, the signal :samp:`s3`.
+
+The above controller corresponds to the following configuration:
+
+.. code-block:: none
+		
+    <class 'pyctrl.timer.Controller'> with:
+      0 timer(s), 6 signal(s),
+      1 source(s), 2 filter(s), and 0 sink(s)
+    > timers
+    > signals
+      1. clock
+      2. duty
+      3. is_running
+      4. s1
+      5. s2
+      6. s3
+    > sources
+      1. clock[TimerClock, disabled] >> clock
+    > filters
+      1. s1 >> gain[Gain, enabled] >> s2
+      2. s1 >> container[Container, disabled] >> s3
+	 <class 'pyctrl.block.container.Container'> with:
+	   0 timer(s), 2 signal(s),
+	   1 source(s), 1 filter(s), and 1 sink(s)
+	 > timers
+	 > signals
+	   1. s1
+	   2. s2
+	 > sources
+	   1. input[Input, enabled] >> s1
+	 > filters
+	   1. s1 >> gain[Gain, enabled] >> s2
+	 > sinks
+	   1. s2 >> output1[Output, enabled]
+    > sinks
+
+Note how the contents of the container is shown indented. Executing::
+
+    import time
+    controller.set_signal('s1', 1)  
+    with controller:
+        time.sleep(.1)
+
+    print('s1 = {}'.format(controller.get_signal('s2')))
+    print('s2 = {}'.format(controller.get_signal('s3')))
+
+will produce:
+
+.. code-block:: none
+
+    s1 = 0
+    s2 = 0
 
 -------------------------------
 Multiplexing and demultiplexing
@@ -138,10 +283,8 @@ which start the server and produces the following output:
     Type 'pyctrl_start_server -h' for more options
     
     <class 'pyctrl.Controller'> with:
-      1 device(s), 0 timer(s), 3 signal(s),
+      0 timer(s), 3 signal(s),
       1 source(s), 0 filter(s), and 0 sink(s)
-    > devices
-      1. clock[source]
     > timers
     > signals
       1. clock
@@ -194,10 +337,8 @@ the exact same configuration of the controller running on the server:
 	Verbose level: 1
 
     <class 'pyctrl.Controller'> with:
-      1 device(s), 0 timer(s), 3 signal(s),
+      0 timer(s), 3 signal(s),
       1 source(s), 0 filter(s), and 0 sink(s)
-    > devices
-      1. clock[source]
     > timers
     > signals
       1. clock
@@ -224,7 +365,7 @@ handy. Instead of instantiating
 :py:class:`pyctrl.block.clock.TimerClock` on the client, you can use
 :py:meth:`pyctrl.Controller.add_device` to have the remote controller
 instantiate it directly on the server hardware! As in Section
-:ref:`Devices and Controllers` type::
+:ref:`Devices` type::
 
     hello.add_device('myclock',
                      'pyctrl.block.clock', 'TimerClock',
@@ -492,10 +633,8 @@ Because of that, the user can initiate the server using
 	Verbose level: 1
 
     <class 'pyctrl.Controller'> with:
-      1 device(s), 0 timer(s), 3 signal(s),
+      0 timer(s), 3 signal(s),
       1 source(s), 0 filter(s), and 0 sink(s)
-    > devices
-      1. clock[source]
     > timers
     > signals
       1. clock
@@ -523,10 +662,8 @@ example, using the interactive shell:
     >>> hello = Controller()
     >>> print(hello.info('all'))
     <class 'pyctrl.Controller'> with:
-      1 device(s), 0 timer(s), 3 signal(s),
+      0 timer(s), 3 signal(s),
       1 source(s), 0 filter(s), and 0 sink(s)
-    > devices
-      1. clock[source]
     > timers
     > signals
       1. clock
@@ -603,11 +740,11 @@ the functionality of the basic :py:class:`pyctrl.Controller`. All that
 is necessary is to inherit from
 :py:class:`pyctrl.Controller`.
 
-Inheritance is an easy way to equip controllers with special
-hardware capabilities. That was the case, for example, with the class
-:py:class:`pyctrl.timer.Controller` described in :ref:`Devices and
-Controllers`. In fact, this new class is so simple that its entire
-code easily fits here:
+Inheritance is an easy way to equip controllers with special hardware
+capabilities. That was the case, for example, with the class
+:py:class:`pyctrl.timer.Controller` described in :ref:`Devices`. In
+fact, this new class is so simple that its entire code easily fits
+here:
 
 .. literalinclude:: ../pyctrl/timer.py
    :pyobject: Controller
