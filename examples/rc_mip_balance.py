@@ -266,15 +266,15 @@ Use your keyboard to control the mip:
         # print message
         print("\nDone with balancing")
         
+        # stop the controller
+        mip.stop()
+        
     except KeyboardInterrupt:
 
         print("\nBalancing aborted")
 
     finally:
 
-        # stop the controller
-        mip.stop()
-        
         # turn off red led
         red.off()
 
