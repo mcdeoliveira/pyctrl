@@ -155,7 +155,7 @@ Note how the contents of the container is shown indented. Executing::
     import time
     controller.set_signal('s1', 1)  
     with controller:
-        time.sleep(.1)
+        time.sleep(1.1)
 
     print('s1 = {}'.format(controller.get_signal('s2')))
     print('s2 = {}'.format(controller.get_signal('s3')))
@@ -164,8 +164,8 @@ will produce:
 
 .. code-block:: none
 
-    s1 = 0
-    s2 = 0
+    s1 = 2
+    s2 = 3
 
 -------------------------------
 Multiplexing and demultiplexing
