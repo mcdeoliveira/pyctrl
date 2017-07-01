@@ -272,6 +272,7 @@ Use your keyboard to control the mip:
     except KeyboardInterrupt:
 
         print("\nBalancing aborted")
+        mip.set_enabled(False)
 
     finally:
 
