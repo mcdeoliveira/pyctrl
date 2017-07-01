@@ -141,6 +141,9 @@ class Controller(Container):
         self.duty = 0
         self.signals['duty'] = self.duty
 
+        # enable devices
+        self.set_enabled(True)
+
         while self.is_running and self.state != EXITING:
 
             # call super
@@ -153,15 +156,15 @@ class Controller(Container):
             self.signals['duty'] = duty
             self.duty = max(self.duty, duty)
 
+        # disable devices
+        self.set_enabled(False)
+
         return self.duty
             
     def start(self):
         """
         Start Controller loop.
         """
-
-        # enable devices
-        self.set_enabled(True)
 
         # Start thread
         self.thread = Thread(target = self.run)
@@ -179,9 +182,6 @@ class Controller(Container):
         if self.is_running:
             self.is_running = False
             self.signals['is_running'] = self.is_running
-
-        # then disable devices
-        self.set_enabled(False)
 
         # change state to idle
         self.state = IDLE
