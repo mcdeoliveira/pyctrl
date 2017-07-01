@@ -286,7 +286,7 @@ Use your keyboard to control the mip:
         red.off()
 
         # flush stdin
-        termios.tcsendbreak(fd, 0)
+        sys.stdin.buffer.write(b'\n')
         
         # make sure it exits
         mip.set_state(pyctrl.EXITING)
