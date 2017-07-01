@@ -285,12 +285,12 @@ Use your keyboard to control the mip:
         # turn off red led
         red.off()
 
-        # flush stdin
-        sys.stdin.buffer.write(b'\n')
-        
         # make sure it exits
         mip.set_state(pyctrl.EXITING)
 
+        # flush stdin
+        sys.stdin.buffer.write(b'\n')
+        
         print("1>")
         
         time.sleep(1)
