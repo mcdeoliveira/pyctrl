@@ -11,9 +11,6 @@ import threading
 
 import pyctrl
 
-from hanging_threads import start_monitoring
-monitoring_thread = start_monitoring()
-
 def brief_warning(message, category, filename, lineno, line=None):
     return "*{}\n".format(message)
 
