@@ -277,6 +277,9 @@ Use your keyboard to control the mip:
 
     finally:
 
+        # stop the controller
+        mip.stop()
+        
         print("\n> on finally")
         
         # turn off red led
