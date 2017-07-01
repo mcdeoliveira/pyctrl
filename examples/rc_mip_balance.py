@@ -288,9 +288,6 @@ Use your keyboard to control the mip:
         # make sure it exits
         mip.set_state(pyctrl.EXITING)
 
-        # flush stdin
-        sys.stdin.buffer.write(b'\n')
-
         print("1>")
         
         thread.join()
