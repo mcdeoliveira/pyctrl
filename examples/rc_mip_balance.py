@@ -78,8 +78,6 @@ def get_arrows(mip, fd):
             phi_dot_reference = 0
             mip.set_signal('phi_dot_reference', - phi_dot_reference)
 
-    print('> Done with keyboard input.')
-            
 def main():
 
     # import blocks and controller
@@ -269,11 +267,11 @@ Use your keyboard to control the mip:
         mip.join()
 
         # print message
-        print("\n> Done with balancing")
+        print("\nDone with balancing")
         
     except KeyboardInterrupt:
 
-        print("\n> Balancing aborted")
+        print("\nBalancing aborted")
 
     finally:
 
