@@ -150,7 +150,7 @@ The above controller corresponds to the following configuration:
 	   1. s2 >> output1[Output, enabled]
     > sinks
 
-Note how the contents of the container is shown indented. Executing::
+Note how the contents of the container are shown indented. Executing::
 
     import time
     controller.set_signal('s1', 1)  
@@ -167,6 +167,9 @@ will produce:
     s1 = 2
     s2 = 3
 
+For a practical example of containers used to synchronize activities
+on a timer see :ref:`rc_mip_balance.py`.
+    
 -------------------------------
 Multiplexing and demultiplexing
 -------------------------------

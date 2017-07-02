@@ -37,7 +37,7 @@ class Controller(pyctrl.Controller):
         self.add_device('clock',
                         'pyctrl.rc.mpu9250', 'MPU9250',
                         outputs = ['clock'],
-                        period = self.period)
+                        kwargs = {'period': self.period})
 
         # set clock period: it will be ignored at the construction time
         # because MPU9250 is a singleton
