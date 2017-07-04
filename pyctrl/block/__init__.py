@@ -6,6 +6,7 @@ import warnings
 import contextlib
 import numpy
 import sys
+import json
 
 from enum import Enum
 
@@ -241,6 +242,23 @@ class Block:
         else:
             return retval
 
+    def html(self, *keys):
+        """
+        Format :py:class:`pyctrl.block.Block` in HTML.
+
+        By default uses the result of :py:meth:`pyctrl.block.Block.get`.
+
+        :param keys: string or tuple of strings with property names
+        :raise: :py:class:`KeyError` if :py:attr:`key` is not defined
+        """
+
+        result = '<ul>'
+        for (k,v) in self.get().items():
+            result += '<li>' + str(v) + '</li>'
+        result += '</ul>'
+
+        return result
+        
     def read(self):
         """
         Read from :py:class:`pyctrl.block.Block`.
@@ -415,7 +433,7 @@ class Printer(Sink, Block):
 
         # call super
         super().set(exclude, **kwargs)
-    
+        
     def write(self, *values):
         """
         Write formated entries of `values` to `file`.
@@ -762,6 +780,12 @@ class Fade(Filter, BufferBlock):
         # call super
         super().set(exclude + ('xp', 'fp', 'xp_current', 'xp_origin'), **kwargs)
 
+    def get(self, *keys, exclude = ()):
+
+        # call super
+        return super().get(*keys,
+                           exclude = exclude + ('xp', 'fp', 'xp_current', 'xp_origin'))
+        
     def write(self, *values):
         """
         Writes input to the private :py:attr:`buffer`. First input is the interpolating variable.

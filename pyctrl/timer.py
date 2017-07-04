@@ -29,10 +29,9 @@ class Controller(pyctrl.Controller):
         self.add_signal('clock')
         
         # add device clock
-        self.add_device('clock',
-                        'pyctrl.block.clock', 'TimerClock',
-                        outputs = ['clock'],
-                        verbose = False,
+        self.add_source('clock',
+                        ('pyctrl.block.clock', 'TimerClock'),
+                        ['clock'],
                         enable = True,
                         kwargs = {'period': self.period})
         

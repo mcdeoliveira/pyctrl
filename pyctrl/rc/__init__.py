@@ -34,11 +34,11 @@ class Controller(pyctrl.Controller):
         # print("pyctrl.rc.__reset: PERIOD = {}".format(self.period))
         
         # add device clock
-        self.add_device('clock',
-                        'pyctrl.rc.mpu9250', 'MPU9250',
-                        outputs = ['clock'],
+        self.add_source('clock',
+                        ('pyctrl.rc.mpu9250', 'MPU9250'),
+                        ['clock'],
                         kwargs = {'period': self.period})
-
+        
         # set clock period: it will be ignored at the construction time
         # because MPU9250 is a singleton
         # self.set_source('clock', period = self.period)

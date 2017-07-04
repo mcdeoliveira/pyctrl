@@ -93,6 +93,128 @@ class Container(block.Filter, block.Block):
         for label, device in self.timers.items():
             device['block'].reset()
 
+    # get
+    def get(self, *keys, exclude = ()):
+        return super().get(*keys, exclude = exclude + ("running_timers",))
+            
+    def html(self, *keys):
+        """
+        Format :py:class:`pyctrl.block.Block` in HTML.
+
+        By default uses the result of :py:meth:`pyctrl.block.Block.get`.
+
+        :param keys: string or tuple of strings with property names
+        :raise: :py:class:`KeyError` if :py:attr:`key` is not defined
+        """
+
+        # keys?
+        if len(keys) == 0:
+            keys = ('summary', 'signals', 'timers', 'sources', 'filters', 'sinks')
+        
+        # open div
+        result = '<div>'
+
+        # summary
+        if 'summary' in keys:
+            result += '<p>' + '&lt;{}&gt; with: {} timer(s), {} signal(s), {} source(s), {} filter(s), and {} sink(s)</p>' \
+                      .format(str(self.__class__)[1:-1],
+                              len(self.timers),
+                              len(self.signals),
+                              len(self.sources), 
+                              len(self.filters),
+                              len(self.sinks))
+        
+        # timers
+        if 'timers' in keys:
+            result += '<h2>timers</h2>'
+            result += '<ol>'
+            for label in self.timers:
+                device = self.timers[label]
+                block = device['block']
+                result += '<li>'
+                if device['inputs']:
+                    result += ', '.join(device['inputs']) + ' &Gt; '
+                result += label + '[' + \
+                    type(block).__name__ + ', '
+                result += 'period = {}, '.format(device['period'])
+                if device['repeat']:
+                    result += 'repeat, '
+                    if block.is_enabled():
+                        result += 'enabled'
+                    else:
+                        result += 'disabled'
+                    result += ']'
+                    if device['outputs']:
+                        result += ' &Gt; ' + ', '.join(device['outputs'])
+                    result += '</li>'
+                if recursive and isinstance(block, Container):
+                    result += block.info(*vargs, **fkwargs)
+            result += '</ol>'
+            
+        # sources
+        if 'sources' in keys:
+            result += '<h2>signals</h2>'
+            result += '<ol>'
+            for label in sorted(self.signals.keys()):
+                result += '<li>' + label + '</li>'
+            result += '</ol>'
+
+            # sources
+            result += '<h2>sources</h2>'
+            result += '<ol>'
+            for label in self.sources_order:
+                device = self.sources[label]
+                block = device['block']
+                result += '<li>' + label + '[' + \
+                          type(block).__name__ + ', '
+                if block.is_enabled():
+                    result += 'enabled'
+                else:
+                    result += 'disabled'
+                result += '] &Gt; ' + ', '.join(device['outputs']) + '</li>'
+            result += '</ol>'
+
+        # filters
+        if 'filters' in keys:
+            result += '<h2>filters</h2>'
+            result += '<ol>'
+            for label in self.filters_order:
+                device = self.filters[label]
+                block = device['block']
+                result += '<li>' + ', '.join(device['inputs']) + \
+                          ' &Gt; ' + label + '[' + \
+                          type(block).__name__ + ', '
+                if block.is_enabled():
+                    result += 'enabled'
+                else:
+                    result += 'disabled'
+                result += '] &Gt; ' + ', '.join(device['outputs']) + '</li>'
+                if isinstance(block, Container):
+                    result += block.html(*keys)
+            result += '</ol>'
+
+        # sinks
+        if 'sinks' in keys:
+            result += '<h2>sinks</h2>'
+            result += '<ol>'
+            for label in self.sinks_order:
+                device = self.sinks[label]
+                block = device['block']
+                result += '<li>' + ', '.join(device['inputs']) + \
+                          ' &Gt; ' + label + '[' + \
+                          type(block).__name__ + ', '
+                if block.is_enabled():
+                    result += 'enabled'
+                else:
+                    result += 'disabled'
+                result += ']' + '</li>'
+            result += '</ol>'
+
+        # close div
+        result += '</div>'
+
+        return result
+        
     # info
     def info(self, *vargs, **kwargs):
         """
@@ -139,7 +261,6 @@ class Container(block.Filter, block.Block):
                     else:
                         result += 'disabled'
                     result += '] >> ' + ', '.join(device['outputs']) + '\n'
-                    k += 1
 
             elif options == 'filters':
 
@@ -271,18 +392,12 @@ class Container(block.Filter, block.Block):
                     # split again
                     split_label = split_label[1].split(sep='/',maxsplit = 1)
 
-                    if len(split_label) > 1:
-                        
-                        # retrieve container from timers
-                        container = self.timers[split_label[0]]['block']
-                        if isinstance(container, Container):
-                            return container.resolve_label(split_label[1])
-                        else:
-                            raise ContainerException("Timer '{}' is not a container".format(label))
+                    # retrieve container from timers
+                    container = self.timers[split_label[0]]['block']
+                    if isinstance(container, Container):
+                        return container.resolve_label(split_label[1])
                     else:
-
-                        # timer label
-                        return (self, 'timer/' + split_label[0])
+                        raise ContainerException("Timer '{}' is not a container".format(label))
                         
                 else:
 
@@ -445,6 +560,17 @@ class Container(block.Filter, block.Block):
                           ContainerWarning)
             self.remove_source(label)
 
+        # object or tuple?
+        if isinstance(source, tuple):
+
+            # dkwargs
+            dkwargs = kwargs.pop('kwargs', {})
+
+            # create device
+            device_module, device_class = source
+            source = getattr(importlib.import_module(device_module), 
+                             device_class)(**dkwargs)
+            
         assert isinstance(source, block.Block)
         assert isinstance(source, block.Source)
         assert isinstance(outputs, (list, tuple))
@@ -621,6 +747,17 @@ class Container(block.Filter, block.Block):
                           ContainerWarning)
             self.remove_sink(label)
 
+        # object or tuple?
+        if isinstance(sink, tuple):
+
+            # dkwargs
+            dkwargs = kwargs.pop('kwargs', {})
+
+            # create device
+            device_module, device_class = sink
+            sink = getattr(importlib.import_module(device_module), 
+                              device_class)(**dkwargs)
+            
         assert isinstance(sink, block.Block)
         assert isinstance(sink, block.Sink)
         assert isinstance(inputs, (list, tuple))
@@ -799,6 +936,17 @@ class Container(block.Filter, block.Block):
                           ContainerWarning)
             self.remove_filter(label)
 
+        # object or tuple?
+        if isinstance(filter_, tuple):
+
+            # dkwargs
+            dkwargs = kwargs.pop('kwargs', {})
+
+            # create device
+            device_module, device_class = filter_
+            filter_ = getattr(importlib.import_module(device_module), 
+                              device_class)(**dkwargs)
+            
         assert isinstance(filter_, block.Block)
         assert isinstance(filter_, block.Filter)
         assert isinstance(inputs, (list, tuple))
@@ -1121,7 +1269,18 @@ class Container(block.Filter, block.Block):
             warnings.warn("Timer '{}' already exists and is been replaced.".format(label),
                           ContainerWarning)
             self.remove_timer(label)
+            
+            # object or tuple?
+        if isinstance(blk, tuple):
 
+            # dkwargs
+            dkwargs = kwargs.pop('kwargs', {})
+
+            # create device
+            device_module, device_class = blk
+            blk = getattr(importlib.import_module(device_module), 
+                          device_class)(**dkwargs)
+            
         assert isinstance(blk, block.Block)
         if inputs:
             assert isinstance(inputs, (list, tuple))

@@ -488,6 +488,11 @@ def test_map():
     y = obj.read()
     assert y == ()
 
+def test_html():
+
+    obj = block.ShortCircuit()
+
+    print(obj.html())
     
 if __name__ == "__main__":
 

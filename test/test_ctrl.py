@@ -553,36 +553,36 @@ def run(controller):
     
     # add subcontainer
     
-    controller.add_device('timer/container1',
-                         'pyctrl.block.container', 'Container',
-                         inputs = ['s1'], outputs = ['s2','s3'],
+    controller.add_timer('container1',
+                         ('pyctrl.block.container', 'Container'),
+                         ['s1'], ['s2','s3'],
                          period = 1, repeat = False)
 
     controller.add_signals('timer/container1/s1',
                           'timer/container1/s2',
                           'timer/container1/s3')
     
-    controller.add_device('timer/container1/input1',
-                         'pyctrl.block.container', 'Input',
-                         outputs = ['s1'])
+    controller.add_source('timer/container1/input1',
+                          ('pyctrl.block.container', 'Input'),
+                          ['s1'])
     
-    controller.add_device('timer/container1/gain1',
-                         'pyctrl.block.system', 'Gain',
-                         inputs = ['s1'], outputs = ['s2'],
-                         kwargs = {'gain': 3})
+    controller.add_filter('timer/container1/gain1',
+                          ('pyctrl.block.system', 'Gain'),
+                          ['s1'], ['s2'],
+                          kwargs = {'gain': 3})
     
-    controller.add_device('timer/container1/gain2',
-                         'pyctrl.block.system', 'Gain',
-                         inputs = ['s1'], outputs = ['s3'],
-                         kwargs = {'gain': 5})
+    controller.add_filter('timer/container1/gain2',
+                          ('pyctrl.block.system', 'Gain'),
+                          ['s1'], ['s3'],
+                          kwargs = {'gain': 5})
     
-    controller.add_device('timer/container1/output1',
-                         'pyctrl.block.container', 'Output',
-                         inputs = ['s2'])
+    controller.add_sink('timer/container1/output1',
+                        ('pyctrl.block.container', 'Output'),
+                        ['s2'])
     
-    controller.add_device('timer/container1/output2',
-                         'pyctrl.block.container', 'Output',
-                         inputs = ['s3'])
+    controller.add_sink('timer/container1/output2',
+                        ('pyctrl.block.container', 'Output'),
+                        ['s3'])
     
     print(controller.info('all'))
     

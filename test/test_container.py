@@ -1,10 +1,6 @@
 import pytest
 import time
 
-HOST, PORT = "localhost", 9998
-start_server = True
-#start_server = False
-
 def test_container():
 
     import pyctrl
@@ -873,10 +869,10 @@ def test_add_device():
     
     # add subcontainer
     
-    container.add_device('timer/container1',
-                         'pyctrl.block.container', 'Container',
-                         inputs = ['s1'], outputs = ['s2','s3'],
-                         period = 1, repeat = False)
+    container.add_timer('container1',
+                        ('pyctrl.block.container', 'Container'),
+                        inputs = ['s1'], outputs = ['s2','s3'],
+                        period = 1, repeat = False)
 
     print(container.info('all'))
 
@@ -884,27 +880,27 @@ def test_add_device():
                           'timer/container1/s2',
                           'timer/container1/s3')
     
-    container.add_device('timer/container1/input1',
-                         'pyctrl.block.container', 'Input',
-                         outputs = ['s1'])
+    container.add_source('timer/container1/input1',
+                         ('pyctrl.block.container', 'Input'),
+                         ['s1'])
     
-    container.add_device('timer/container1/gain1',
-                         'pyctrl.block.system', 'Gain',
-                         inputs = ['s1'], outputs = ['s2'],
+    container.add_filter('timer/container1/gain1',
+                         ('pyctrl.block.system', 'Gain'),
+                         ['s1'], ['s2'],
                          kwargs = {'gain': 3})
     
-    container.add_device('timer/container1/gain2',
-                         'pyctrl.block.system', 'Gain',
-                         inputs = ['s1'], outputs = ['s3'],
+    container.add_filter('timer/container1/gain2',
+                         ('pyctrl.block.system', 'Gain'),
+                         ['s1'], ['s3'],
                          kwargs = {'gain': 5})
     
-    container.add_device('timer/container1/output1',
-                         'pyctrl.block.container', 'Output',
-                         inputs = ['s2'])
+    container.add_sink('timer/container1/output1',
+                       ('pyctrl.block.container', 'Output'),
+                       ['s2'])
     
-    container.add_device('timer/container1/output2',
-                         'pyctrl.block.container', 'Output',
-                         inputs = ['s3'])
+    container.add_sink('timer/container1/output2',
+                       ('pyctrl.block.container', 'Output'),
+                       ['s3'])
     
     print(container.info('all'))
     

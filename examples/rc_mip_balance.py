@@ -190,27 +190,19 @@ def main():
                  ['small_angle'])
     
     # add green led
-    mip.add_device('timer/supervisor/green_led', 
-                   'pyctrl.rc.led', 'LED',
-                   inputs = ['small_angle'],
-                   kwargs = {'pin': GRN_LED},
-                   enable = True)
+    mip.add_sink('timer/supervisor/green_led', 
+                 ('pyctrl.rc.led', 'LED'),
+                 ['small_angle'],
+                 kwargs = {'pin': GRN_LED},
+                 enable = True)
 
     # add pause button on a timer
-    mip.add_device('timer/supervisor/pause_button',
-                   'pyctrl.rc.button', 'Button',
-                   outputs = ['is_running'],
+    mip.add_source('timer/supervisor/pause_button',
+                   ('pyctrl.rc.button', 'Button'),
+                   ['is_running'],
                    kwargs = {'pin': PAUSE_BTN,
                              'invert': True},
                    enable = True)
-
-    # # add printer
-    # mip.add_timer('printer',
-    #               Printer(),
-    #               ['clock','small_angle',
-    #                'phi_dot_reference','phi_dot_reference_fade',
-    #                'steer_reference','steer_reference_fade'], None,
-    #               period = 1, repeat = True)
     
     # print controller
     print(mip.info('all'))

@@ -75,10 +75,9 @@ class Controller(Container):
             self.add_signal('clock')
 
             # add device clock
-            self.add_device('clock',
-                            'pyctrl.block.clock', 'Clock',
-                            outputs = ['clock'],
-                            verbose = False,
+            self.add_source('clock',
+                            ('pyctrl.block.clock', 'Clock'),
+                            ['clock'],
                             enable = True)
 
             # reset clock

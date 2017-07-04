@@ -16,18 +16,18 @@ def main():
     bbb = Controller(period = Ts)
 
     # add encoder as source
-    bbb.add_device('encoder1',
-                   'pyctrl.rc.encoder', 'Encoder',
-                   outputs = ['encoder'],
+    bbb.add_source('encoder1',
+                   ('pyctrl.rc.encoder', 'Encoder'),
+                   ['encoder'],
                    kwargs = {'encoder': 3, 
                              'ratio': 60 * 35.557})
     
     # add motor as sink
-    bbb.add_device('motor1', 
-                   'pyctrl.rc.motor', 'Motor',
-                   inputs = ['pwm'],
-                   kwargs = {'motor': 3},
-                   enable = True)
+    bbb.add_sink('motor1', 
+                 ('pyctrl.rc.motor', 'Motor'),
+                 ['pwm'],
+                 kwargs = {'motor': 3},
+                 enable = True)
 
     # build interpolated input signal
     ts = [0, 1, 2,   3,   4,   5,   5, 6]

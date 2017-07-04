@@ -435,8 +435,6 @@ class Event(block.Sink, block.BufferBlock):
 
     def __init__(self, **kwargs):
         
-        print('* * * Event')
-        
         low = kwargs.pop('low', 0.2)
         if not isinstance(low, (int, float)):
             raise block.BlockException('low must be int or float')
@@ -510,8 +508,6 @@ class SetBlock(Event):
     """
 
     def __init__(self, **kwargs):
-        
-        print('* * * SetBlock')
         
         self.label = kwargs.pop('label')
         if not isinstance(self.label, (tuple, list)):

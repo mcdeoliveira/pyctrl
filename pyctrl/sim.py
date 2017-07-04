@@ -93,9 +93,9 @@ class Controller(pyctrl.Controller):
         # self.add_source('clock', self.clock, ['clock'])
         # self.signals['clock'] = self.clock.time
         # self.time_origin = self.clock.time_origin
-        self.clock = self.add_device('clock',
-                                     'pyctrl.block.clock', 'TimerClock',
-                                     outputs = ['clock'],
+        self.clock = self.add_source('clock',
+                                     ('pyctrl.block.clock', 'TimerClock'),
+                                     ['clock'],
                                      enable = True,
                                      kwargs = {'period': self.period})
         self.signals['clock'] = self.clock.time
