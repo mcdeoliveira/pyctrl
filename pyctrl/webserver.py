@@ -28,13 +28,28 @@ def get_container(label, *args, **kwargs):
     print('kwargs = {}'.format(kwargs))
     return container
 
-# get_block
-def get_block(type_name):
+# get_block_or_attribute
+def get_block_or_attribute(method, type_name):
 
-    @wraps(type_name)
-    def wrapper(label):
+    @wraps(method, type_name)
+    def wrapper(label, **kwargs):
+        # get keys
+        keys = kwargs.get('keys', '')
+        if keys and not isinstance(keys, (list,tuple)):
+            keys = [keys]
+        print('keys = {}'.format(keys))
+            
+        # get container
         (container,label) = controller.resolve_label(label)
-        return getattr(container, type_name)[label]['block']
+
+        if keys:
+            # return attributes
+            return {k: getattr(container, method)(label, k)
+                    for k in keys}
+        else:
+            # return container
+            return {label:
+                    getattr(container, type_name)[label]['block']}
 
     return wrapper
 
@@ -82,12 +97,27 @@ def decode(f):
 def decode_kwargs(f):
     
     @wraps(f)
-    def wrapper(label):
-        kwargs = {k: decoder.decode(v) for k,v in request.args.items()}
-        return f(label, **kwargs)
+    def wrapper(label, *args, **kwargs):
+        print('request.args = {}'.format(request.args.get('keys','')))
+        try:
+            kwargs.update({k: decoder.decode(v) for k,v in request.args.items()})
+        except:
+            raise Exception("Arguments '{}' are not json compatible".format(request.args))
+        print('kwargs = {}'.format(kwargs))
+        return f(label, *args, **kwargs)
 
     return wrapper
+
+# add_block
+def add_block(f):
     
+    @wraps(f)
+    def wrapper(label, module_name, class_name, **kwargs):
+        return f(label, (module_name,class_name),
+                 **kwargs)
+
+    return wrapper
+
 # inputs_and_outputs
 def inputs_and_outputs(f):
     
@@ -145,14 +175,15 @@ def json_response(f):
         try:
             retval = f(*args, **kwargs)
             if retval is None:
-                return json.dumps({ 'status': 'success', 'message': None })
+                return json.dumps({ 'status': 'success' })
             else:
                 return retval
         except KeyError as e:
             return json.dumps({ 'status': 'error',
-                                'message': 'KeyError: {} is not known'.format(e) })
+                                'message': 'KeyError: {} is not known'.format(e) }, sort_keys = True)
         except Exception as e:
-            return json.dumps({ 'status': 'error', 'message': repr(e) })
+            return json.dumps({ 'status': 'error',
+                                'message': repr(e) }, sort_keys = True)
 
     return wrapper
 
@@ -181,43 +212,46 @@ def set_controller(_controller):
 
     # sources
     app.add_url_rule('/add/source/<path:label>/<module_name>/<class_name>',
-                     view_func = json_response(outputs(controller.add_source)))
+                     view_func = json_response(decode_kwargs(add_block(controller.add_source))))
     app.add_url_rule('/remove/source/<path:label>',
                      view_func = json_response(controller.remove_source))
     app.add_url_rule('/get/source/<path:label>',
-                     view_func = json_response(encode_label(controller.get_source)))
+                     view_func = json_response(encode(decode_kwargs(get_block_or_attribute('get_source', 'sources')))))
+    app.add_url_rule('/set/source/<path:label>',
+                     view_func = json_response(decode_kwargs(controller.set_source)))
     
     # filters
     app.add_url_rule('/add/filter/<path:label>/<module_name>/<class_name>',
-                     view_func = json_response(inputs_and_outputs(controller.add_filter)))
+                     view_func = json_response(decode_kwargs(add_block(controller.add_filter))))
     app.add_url_rule('/remove/filter/<path:label>',
                      view_func = json_response(controller.remove_filter))
     app.add_url_rule('/get/filter/<path:label>',
-                     view_func = json_response(encode_label(controller.get_filter)))
+                     endpoint = 'get_filter',
+                     view_func = json_response(encode(decode_kwargs(get_block_or_attribute('get_filter', 'filters')))))
+    app.add_url_rule('/set/filter/<path:label>',
+                     view_func = json_response(decode_kwargs(controller.set_filter)))
     
     # sinks
     app.add_url_rule('/add/sink/<path:label>/<module_name>/<class_name>',
-                     view_func = json_response(inputs(controller.add_sink)))
+                     view_func = json_response(decode_kwargs(add_block(controller.add_sink))))
     app.add_url_rule('/remove/sink/<path:label>',
                      view_func = json_response(controller.remove_sink))
     app.add_url_rule('/get/sink/<path:label>',
-                     endpoint='get_sink',
-                     view_func = json_response(encode_label(get_block('sinks'))))
-    app.add_url_rule('/get/sink/property/<path:label>/<key>',
-                     view_func = json_response(encode(get_method_key('get_sink'))))
+                     endpoint = 'get_sink',
+                     view_func = json_response(encode(decode_kwargs(get_block_or_attribute('get_sink', 'sinks')))))
     app.add_url_rule('/set/sink/<path:label>',
-                     endpoint='set_sink',
                      view_func = json_response(decode_kwargs(controller.set_sink)))
 
     # timers
     app.add_url_rule('/add/timer/<path:label>/<module_name>/<class_name>',
-                     view_func = json_response(inputs_and_outputs(controller.add_timer)))
+                     view_func = json_response(decode_kwargs(add_block(controller.add_timer))))
     app.add_url_rule('/remove/timer/<path:label>',
                      view_func = json_response(controller.remove_timer))
     app.add_url_rule('/get/timer/<path:label>',
-                     view_func = json_response(encode_label(controller.get_timer)))
-    
-
+                     endpoint = 'get_timer',
+                     view_func = json_response(encode(decode_kwargs(get_block_or_attribute('get_timer', 'timers')))))
+    app.add_url_rule('/set/timer/<path:label>',
+                     view_func = json_response(decode_kwargs(controller.set_timer)))
 
 # initialize controller
 set_controller(controller)
