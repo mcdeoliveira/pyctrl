@@ -56,7 +56,7 @@ def test1():
     controller.run()
     xk = sys.state
 
-    log = controller.read_sink('logger')
+    log = controller.get_sink('logger','log')
     t0 = log[0,0]
     tk = log[-1,0]
     yk = log[-1,1]    
@@ -79,7 +79,7 @@ def test1():
     controller.run()
     xk = sys.state
 
-    log = controller.read_sink('logger')
+    log = controller.get_sink('logger','log')
     t0 = log[0,0]
     tk = log[-1,0]
     yk = log[-1,1]    
@@ -101,7 +101,7 @@ def test1():
     controller.run()
     xk = sys.state
 
-    log = controller.read_sink('logger')
+    log = controller.get_sink('logger','log')
     t0 = log[0,0]
     tk = log[-1,0]
     yk = log[-1,1]    
@@ -187,7 +187,7 @@ def test2():
     T = 5 + Ts
     controller.run()
 
-    log = controller.read_sink('logger')
+    log = controller.get_sink('logger','log')
     t0 = log[0,0]
     tk = log[-1,0]
     yk = log[-1,1:]
@@ -258,7 +258,7 @@ def test2():
     T = 1 + Ts
     controller.run()
 
-    log = controller.read_sink('logger')
+    log = controller.get_sink('logger','log')
     t0 = log[0,0]
     tk = log[-1,0]
     yk = log[-1,1:]

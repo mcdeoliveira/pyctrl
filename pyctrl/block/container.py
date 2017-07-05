@@ -8,7 +8,7 @@ import numpy
 import math
 import importlib
 from threading import Thread, Timer, Condition
-from time import perf_counter
+from time import perf_counter, sleep
 import re
 
 from .. import block
@@ -54,7 +54,12 @@ class Container(block.Filter, block.Block):
         self._reset()
         
     def _reset(self):
-        
+
+        # disable first
+        if self.enabled:
+            self.set_enabled(False)
+            sleep(1)
+            
         # signals
         self.signals = { }
 
@@ -1587,8 +1592,8 @@ class Container(block.Filter, block.Block):
                 # this is to prevent a wierd 'cannot release
                 # un-acquired lock' condition
                 device['condition'].release()
-            except RuntimeError:
-                pass
+            except RuntimeError as e:
+                warnings.warn("Missed release '{}'.".format(repr(e)))
             
             # repeat
             if not device['repeat']:
@@ -1608,7 +1613,9 @@ class Container(block.Filter, block.Block):
 
         # enable
         if self.enabled:
-        
+
+            # print('> container:: ENABLE')
+            
             # enable sources
             for label in self.sources_order:
                 if self.sources[label]['enable']:
@@ -1636,6 +1643,8 @@ class Container(block.Filter, block.Block):
         # disable
         else:
 
+            # print('< container:: DISABLE')
+            
             # start timer threads
             for (label,timer) in self.running_timers.items():
                 

@@ -904,9 +904,21 @@ class Logger(Sink, Block):
 
     def get(self, *keys, exclude = ()):
 
-        # call super
-        return super().get(*keys, exclude = exclude + ('data',))
+        has_log = False
+        if 'log' in keys:
+            # temporarily add 'log' to attributes
+            self.log = self.get_log()
+            has_log = True
 
+        # call super
+        retval = super().get(*keys, exclude = exclude + ('data',))
+            
+        if has_log:
+            # exclude log from attributes
+            del self.log
+
+        return retval
+            
     def set(self, exclude = (), **kwargs):
         """
         Set properties of :py:class:`pyctrl.block.Logger`.

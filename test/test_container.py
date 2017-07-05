@@ -82,7 +82,7 @@ def test_container():
 
     container.set_sink('_logger_', reset = True)
 
-    log = container.read_sink('_logger_')
+    log = container.get_sink('_logger_', 'log')
     assert isinstance(log, numpy.ndarray)
     assert log.shape == (0, 0)
 
@@ -94,7 +94,7 @@ def test_container():
     container.run()
     container.set_enabled(False)
         
-    log = container.read_sink('_logger_')
+    log = container.get_sink('_logger_', 'log')
 
     #print(log)
     assert isinstance(log, numpy.ndarray)
@@ -102,7 +102,7 @@ def test_container():
     assert log.shape[1] == 1
 
     container.set_sink('_logger_', reset = True)
-    log = container.read_sink('_logger_')
+    log = container.get_sink('_logger_', 'log')
     assert isinstance(log, numpy.ndarray)
     assert log.shape == (0,1)
 
@@ -119,13 +119,13 @@ def test_container():
     container.run()
     container.set_enabled(False)
 
-    log = container.read_sink('_logger_')
+    log = container.get_sink('_logger_', 'log')
     assert isinstance(log, numpy.ndarray)
     assert log.shape[0] > 1
     assert log.shape[1] == 2
 
     container.set_sink('_logger_', reset = True)
-    log = container.read_sink('_logger_')
+    log = container.get_sink('_logger_', 'log')
     assert isinstance(log, numpy.ndarray)
     assert log.shape == (0,2)
 
@@ -197,7 +197,7 @@ def test_container():
     container.run()
     container.set_enabled(False)
 
-    log = container.read_sink('_logger_')
+    log = container.get_sink('_logger_', 'log')
     assert isinstance(log, numpy.ndarray)
     assert log.shape[0] > 1
     assert log.shape[1] == 2

@@ -141,6 +141,7 @@ class Controller(Container):
         self.signals['duty'] = self.duty
 
         # enable devices
+        # print('> controller:: ENABLE')
         self.set_enabled(True)
 
         while self.is_running and self.state != EXITING:
@@ -156,6 +157,7 @@ class Controller(Container):
             self.duty = max(self.duty, duty)
 
         # disable devices
+        # print('< controller:: DISABLE')
         self.set_enabled(False)
 
         return self.duty

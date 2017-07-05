@@ -28,7 +28,7 @@ def test():
         k += 1
 
     average = clock.calculate_average_period()
-    assert abs(average - Ts)/Ts < 5e-1
+    assert abs(average - Ts)/Ts < 7e-1
 
     clock.set_enabled(False)
     clock.set_enabled(True)
@@ -39,7 +39,7 @@ def test():
         k += 1
 
     average = clock.calculate_average_period()
-    assert abs(average - Ts)/Ts < 3e-1
+    assert abs(average - Ts)/Ts < 7e-1
     
     clock.set_enabled(False)
 
