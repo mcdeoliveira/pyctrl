@@ -6,15 +6,13 @@ import json
 import pyctrl
 import pyctrl.util.json as pyctrljson
 
-app = Flask(__name__)
-controller = pyctrl.Controller()
 encoder = pyctrljson.JSONEncoder(sort_keys = True, indent = 4)
 decoder = pyctrljson.JSONDecoder()
 
 # decorators
 
 # get_block_or_attribute
-def get_block_or_attribute(method, type_name):
+def get_block_or_attribute(controller, method, type_name):
 
     @wraps(method, type_name)
     def wrapper(label, **kwargs):
@@ -110,134 +108,155 @@ def json_response(f):
 
     return wrapper
 
-# reset controller
-def reset(**kwargs):
-    """
-    Reset controller
+# Server class
 
-    :param str module: name of the controller module (default = 'pyctrl')
-    :param str pyctrl_class: name of the controller class (default = 'Controller')
-    :param kwargs kwargs: other key-value pairs of attributes
-    """
-    
-    global controller
-    
-    # Create new controller
-    if 'module' in kwargs or 'pyctrl_class' in kwargs:
+class Server(Flask):
 
-        module = kwargs.pop('module', 'pyctrl')
-        pyctrl_class = kwargs.pop('pyctrl_class', 'Controller')
-        ckwargs = kwargs.pop('kwargs', {})
+    def __init__(self, *args, **kwargs):
 
-        if len(kwargs) > 0:
-            raise Exception("webserver.reset():: Unknown parameter(s) '{}'".format(', '.join(str(k) for k in kwargs.keys())))
+        self.controller = None
+        self.base_url = ''
+
+        # call super
+        super().__init__(*args, **kwargs)
+
+    def reset(self, **kwargs):
+        """
+        Reset controller
         
-        try:
+        :param str module: name of the controller module (default = 'pyctrl')
+        :param str pyctrl_class: name of the controller class (default = 'Controller')
+        :param kwargs kwargs: other key-value pairs of attributes
+        """
+    
+        if self.controller:
+            # reset controller
+            self.controller.reset()
+    
+    def set_controller(self, **kwargs):
 
-            if True:
-                warnings.warn("> Installing new instance of '{}.{}({})' as controller".format(module, pyctrl_class, ckwargs))
+        # Create new controller?
+        if 'module' in kwargs or 'pyctrl_class' in kwargs:
+
+            module = kwargs.pop('module', 'pyctrl')
+            pyctrl_class = kwargs.pop('pyctrl_class', 'Controller')
+            ckwargs = kwargs.pop('kwargs', {})
+
+            if len(kwargs) > 0:
+                raise Exception("webserver.reset():: Unknown parameter(s) '{}'".format(', '.join(str(k) for k in kwargs.keys())))
+        
+            try:
+
+                if True:
+                    warnings.warn("> Installing new instance of '{}.{}({})' as controller".format(module, pyctrl_class, ckwargs))
                 
-            obj_class = getattr(importlib.import_module(module),
-                                pyctrl_class)
-            _controller = obj_class(**ckwargs)
+                obj_class = getattr(importlib.import_module(module),
+                                    pyctrl_class)
+                controller = obj_class(**ckwargs)
 
-            # print('obj_class = {}'.format(obj_class))
-            # print('_controller = {}'.format(_controller))
+                # print('obj_class = {}'.format(obj_class))
+                # print('_controller = {}'.format(_controller))
             
+                # Make sure it is an instance of pyctrl.Controller
+                if not isinstance(controller, pyctrl.Controller):
+                    raise Exception("Object '{}.{}' is not and instance of pyctrl.Controller".format(module, pyctrl_class))
+
+                self.controller = controller
+
+            except Exception as e:
+
+                raise Exception("Error resetting controller: {}".format(e))
+
+        elif 'controller' in kwargs:
+
+            controller = kwargs.pop('controller')
+
             # Make sure it is an instance of pyctrl.Controller
-            if not isinstance(_controller, pyctrl.Controller):
+            if not isinstance(controller, pyctrl.Controller):
                 raise Exception("Object '{}.{}' is not and instance of pyctrl.Controller".format(module, pyctrl_class))
+                
+            
+            self.controller = controller
 
-            controller = _controller
-            set_controller(controller)
+        # set api entry points
+            
+        # info
+        app.add_url_rule(self.base_url + '/',
+                         view_func = self.controller.html)
+        app.add_url_rule(self.base_url + '/info',
+                         view_func = self.controller.html)
 
-        except Exception as e:
+        # reset
+        app.add_url_rule(self.base_url + '/reset',
+                         view_func = json_response(decode_kwargs(self.reset)))
 
-            raise Exception("Error resetting controller: {}".format(e))
+        app.add_url_rule(self.base_url + '/set/controller/<module_name>/<class_name>',
+                         endpoint = 'reset_module',
+                         view_func = json_response(decode_kwargs(self.set_controller)))
 
-    else:
-        
-        # reset controller
-        controller.reset()
-    
-# set_controller
-def set_controller(_controller):
+        # signals
+        app.add_url_rule(self.base_url + '/add/signal/<path:label>',
+                         view_func = json_response(self.controller.add_signal))
+        app.add_url_rule(self.base_url + '/remove/signal/<path:label>',
+                         view_func = json_response(self.controller.remove_signal))
+        app.add_url_rule(self.base_url + '/get/signal/<path:label>',
+                         view_func = json_response(encode_label(self.controller.get_signal)))
+        app.add_url_rule(self.base_url + '/set/signal/<path:label>/<value>',
+                         view_func = json_response(decode_value(self.controller.set_signal)))
 
-    # initialize controller
-    global controller, commands
-    controller = _controller
+        # sources
+        app.add_url_rule(self.base_url + '/add/source/<path:label>/<module_name>/<class_name>',
+                         view_func = json_response(decode_kwargs(add_block(self.controller.add_source))))
+        app.add_url_rule(self.base_url + '/remove/source/<path:label>',
+                         view_func = json_response(self.controller.remove_source))
+        app.add_url_rule(self.base_url + '/get/source/<path:label>',
+                         view_func = json_response(encode(decode_kwargs(get_block_or_attribute(self.controller, 'get_source', 'sources')))))
+        app.add_url_rule(self.base_url + '/set/source/<path:label>',
+                         view_func = json_response(decode_kwargs(self.controller.set_source)))
 
-    # info
-    app.add_url_rule('/',
-                     view_func = controller.html)
-    app.add_url_rule('/info',
-                     view_func = controller.html)
-    
-    # reset
-    app.add_url_rule('/reset',
-                     view_func = json_response(decode_kwargs(reset)))
+        # filters
+        app.add_url_rule(self.base_url + '/add/filter/<path:label>/<module_name>/<class_name>',
+                         view_func = json_response(decode_kwargs(add_block(self.controller.add_filter))))
+        app.add_url_rule(self.base_url + '/remove/filter/<path:label>',
+                         view_func = json_response(self.controller.remove_filter))
+        app.add_url_rule(self.base_url + '/get/filter/<path:label>',
+                         endpoint = 'get_filter',
+                         view_func = json_response(encode(decode_kwargs(get_block_or_attribute(self.controller, 'get_filter', 'filters')))))
+        app.add_url_rule(self.base_url + '/set/filter/<path:label>',
+                         view_func = json_response(decode_kwargs(self.controller.set_filter)))
 
-    app.add_url_rule('/reset/<module_name>/<class_name>',
-                     endpoint = 'reset_module',
-                     view_func = json_response(decode_kwargs(reset)))
-    
-    # signals
-    app.add_url_rule('/add/signal/<path:label>',
-                     view_func = json_response(controller.add_signal))
-    app.add_url_rule('/remove/signal/<path:label>',
-                     view_func = json_response(controller.remove_signal))
-    app.add_url_rule('/get/signal/<path:label>',
-                     view_func = json_response(encode_label(controller.get_signal)))
-    app.add_url_rule('/set/signal/<path:label>/<value>',
-                     view_func = json_response(decode_value(controller.set_signal)))
+        # sinks
+        app.add_url_rule(self.base_url + '/add/sink/<path:label>/<module_name>/<class_name>',
+                         view_func = json_response(decode_kwargs(add_block(self.controller.add_sink))))
+        app.add_url_rule(self.base_url + '/remove/sink/<path:label>',
+                         view_func = json_response(self.controller.remove_sink))
+        app.add_url_rule(self.base_url + '/get/sink/<path:label>',
+                         endpoint = 'get_sink',
+                         view_func = json_response(encode(decode_kwargs(get_block_or_attribute(self.controller, 'get_sink', 'sinks')))))
+        app.add_url_rule(self.base_url + '/set/sink/<path:label>',
+                         view_func = json_response(decode_kwargs(self.controller.set_sink)))
 
-    # sources
-    app.add_url_rule('/add/source/<path:label>/<module_name>/<class_name>',
-                     view_func = json_response(decode_kwargs(add_block(controller.add_source))))
-    app.add_url_rule('/remove/source/<path:label>',
-                     view_func = json_response(controller.remove_source))
-    app.add_url_rule('/get/source/<path:label>',
-                     view_func = json_response(encode(decode_kwargs(get_block_or_attribute('get_source', 'sources')))))
-    app.add_url_rule('/set/source/<path:label>',
-                     view_func = json_response(decode_kwargs(controller.set_source)))
-    
-    # filters
-    app.add_url_rule('/add/filter/<path:label>/<module_name>/<class_name>',
-                     view_func = json_response(decode_kwargs(add_block(controller.add_filter))))
-    app.add_url_rule('/remove/filter/<path:label>',
-                     view_func = json_response(controller.remove_filter))
-    app.add_url_rule('/get/filter/<path:label>',
-                     endpoint = 'get_filter',
-                     view_func = json_response(encode(decode_kwargs(get_block_or_attribute('get_filter', 'filters')))))
-    app.add_url_rule('/set/filter/<path:label>',
-                     view_func = json_response(decode_kwargs(controller.set_filter)))
-    
-    # sinks
-    app.add_url_rule('/add/sink/<path:label>/<module_name>/<class_name>',
-                     view_func = json_response(decode_kwargs(add_block(controller.add_sink))))
-    app.add_url_rule('/remove/sink/<path:label>',
-                     view_func = json_response(controller.remove_sink))
-    app.add_url_rule('/get/sink/<path:label>',
-                     endpoint = 'get_sink',
-                     view_func = json_response(encode(decode_kwargs(get_block_or_attribute('get_sink', 'sinks')))))
-    app.add_url_rule('/set/sink/<path:label>',
-                     view_func = json_response(decode_kwargs(controller.set_sink)))
+        # timers
+        app.add_url_rule(self.base_url + '/add/timer/<path:label>/<module_name>/<class_name>',
+                         view_func = json_response(decode_kwargs(add_block(self.controller.add_timer))))
+        app.add_url_rule(self.base_url + '/remove/timer/<path:label>',
+                         view_func = json_response(self.controller.remove_timer))
+        app.add_url_rule(self.base_url + '/get/timer/<path:label>',
+                         endpoint = 'get_timer',
+                         view_func = json_response(encode(decode_kwargs(get_block_or_attribute(self.controller, 'get_timer', 'timers')))))
+        app.add_url_rule(self.base_url + '/set/timer/<path:label>',
+                         view_func = json_response(decode_kwargs(self.controller.set_timer)))
 
-    # timers
-    app.add_url_rule('/add/timer/<path:label>/<module_name>/<class_name>',
-                     view_func = json_response(decode_kwargs(add_block(controller.add_timer))))
-    app.add_url_rule('/remove/timer/<path:label>',
-                     view_func = json_response(controller.remove_timer))
-    app.add_url_rule('/get/timer/<path:label>',
-                     endpoint = 'get_timer',
-                     view_func = json_response(encode(decode_kwargs(get_block_or_attribute('get_timer', 'timers')))))
-    app.add_url_rule('/set/timer/<path:label>',
-                     view_func = json_response(decode_kwargs(controller.set_timer)))
-
-# initialize controller
-set_controller(controller)
 
 if __name__ == "__main__":
 
-    app.run(debug = True)
+    from pyctrl import Controller
     
+    app = Server(__name__)
+
+    # initialize controller
+    app.set_controller(controller = Controller())
+
+    # run app
+    app.run(debug = True)
+

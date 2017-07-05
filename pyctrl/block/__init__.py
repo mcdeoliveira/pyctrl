@@ -967,7 +967,7 @@ class Logger(Sink, Block):
         # return values
         return retval
     
-    read = get_log
+    # read = get_log
         
     def write(self, *values):
 

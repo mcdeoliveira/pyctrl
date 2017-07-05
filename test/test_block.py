@@ -170,27 +170,27 @@ def test_logger():
 
     # write one entry
     _logger.write(1,2,3)
-    log = _logger.read()
+    log = _logger.get_log()
     assert np.all(log == [[1,2,3]])
 
     # write second entry
     _logger.write(4,5,6)
-    log = _logger.read()
+    log = _logger.get_log()
     assert np.all(log == [[1,2,3],[4,5,6]])
 
     # dynamic reshaping
     _logger.write(1,2,3,5)
-    log = _logger.read()
+    log = _logger.get_log()
     assert np.all(log == [[1,2,3,5]])
 
     # vector entries
     _logger.write(1,2,[3,5])
-    log = _logger.read()
+    log = _logger.get_log()
     assert np.all(log == [[1,2,3,5]])
 
     # vector entries
     _logger.write([1,2],2,[3,5])
-    log = _logger.read()
+    log = _logger.get_log()
     assert np.all(log == [[1,2,2,3,5]])
 
     assert _logger.get() == { 'auto_reset': False, 'enabled': True, 'current': 1, 'page': 0 }
