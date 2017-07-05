@@ -60,7 +60,7 @@ def main():
         pass
 
     # retrieve data from logger
-    data = hello.read_sink('logger')
+    data = hello.get_sink('logger', 'log')
     clock = data[:,0]
     motor = data[:,1]
     

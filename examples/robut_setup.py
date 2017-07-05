@@ -185,7 +185,7 @@ def identify_motor(motor, encoder, T = 2):
     print('>> robut period = {}'.format(Ts))
     print('>> test time = {}'.format(T))
      
-    log = robut.read_sink('logger')
+    log = robut.get_sink('logger', 'log')
     tind = logger_signals.index('clock')
     eind = logger_signals.index(encoder)
 

@@ -279,8 +279,6 @@ def _test_timer(controller):
     with controller:
         time.sleep(2)
 
-    time.sleep(.2)
-
     assert controller.get_signal('timer') == 1
 
     controller.set_signal('timer', 0)
@@ -289,8 +287,6 @@ def _test_timer(controller):
     with controller:
         time.sleep(.5)
 
-    time.sleep(.2)
-    
     assert controller.get_signal('timer') == 0
 
     controller.set_signal('timer', 0)
@@ -389,8 +385,6 @@ def _test_sub_container(controller):
         controller.set_signal('s1', 1)
         time.sleep(.2)
         
-    time.sleep(.2)
-
     assert controller.get_signal('s2') == 3
         
     # add subsubcontainer
@@ -423,8 +417,6 @@ def _test_sub_container(controller):
         controller.set_signal('s1', 1)
         time.sleep(.2)
 
-    time.sleep(.2)
-        
     assert controller.get_signal('s2') == 3
     assert controller.get_signal('s3') == 5
     

@@ -242,7 +242,7 @@ def main():
         clock = device.get_source('clock', 'period')
         Ts = clock['period']
 
-        log = device.read_sink('logger')
+        log = device.get_sink('logger', 'log')
         t = log[:,0]
         position = log[:,1]
         velocity = numpy.zeros(t.shape, float)

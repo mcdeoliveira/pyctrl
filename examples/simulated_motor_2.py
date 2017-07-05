@@ -95,7 +95,7 @@ def main():
         pass
 
     # read logger
-    data = simotor.read_sink('logger')
+    data = simotor.get_sink('logger', 'log')
     clock = data[:,0]
     pwm = data[:,1]
     encoder = data[:,2]

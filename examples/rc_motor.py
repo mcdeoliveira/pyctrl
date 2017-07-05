@@ -89,7 +89,7 @@ def main():
         pass
 
     # read logger
-    data = bbb.read_sink('logger')
+    data = bbb.get_sink('logger', 'log')
     clock = data[:,0]
     pwm = data[:,1]
     encoder = data[:,2]

@@ -43,15 +43,6 @@ class Controller(Container):
 
     def __init__(self, **kwargs):
 
-        # state
-        self.state = IDLE
-        
-        # real-time loop
-        self.is_running = False
-
-        # duty
-        self.duty = 0
-        
         # noclock
         self.noclock = kwargs.pop('noclock', False)
         
@@ -63,6 +54,18 @@ class Controller(Container):
         # call super
         super()._reset()
         
+        # state
+        self.state = IDLE
+        
+        # real-time loop
+        self.is_running = False
+
+        # duty
+        self.duty = 0
+
+        # running thread
+        self.thread = None
+
         # signals
         self.signals.update({ 'is_running': self.is_running, 
                               'duty': self.duty })
@@ -184,6 +187,11 @@ class Controller(Container):
             self.is_running = False
             self.signals['is_running'] = self.is_running
 
+        # Wait for thread to finish
+        if self.thread:
+            self.thread.join()
+            self.thread = None
+            
         # change state to idle
         self.state = IDLE
 

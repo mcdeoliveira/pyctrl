@@ -193,8 +193,8 @@ class Controller(pyctrl.Controller):
     def list_sources(self):
         return self.send('K')
 
-    def write_source(self, label, *values):
-        self.send('L', 'S', label, 'R', values)
+    #def write_source(self, label, *values):
+    #    self.send('L', 'S', label, 'R', values)
 
     def read_source(self, label):
         return self.send('M', 'S', label)
@@ -219,8 +219,8 @@ class Controller(pyctrl.Controller):
     def write_sink(self, label, *values):
         self.send('R', 'S', label, 'R', values)
 
-    def read_sink(self, label):
-        return self.send('S', 'S', label)
+    #def read_sink(self, label):
+    #    return self.send('S', 'S', label)
 
 
     # filters
@@ -278,11 +278,11 @@ class Controller(pyctrl.Controller):
     def list_timers(self):
         return self.send('w')
 
-    def write_timer(self, label, *values):
-        self.send('x', 'S', label, 'R', values)
+    #def write_timer(self, label, *values):
+    #    self.send('x', 'S', label, 'R', values)
 
-    def read_timer(self, label):
-        return self.send('y', 'S', label)
+    #def read_timer(self, label):
+    #    return self.send('y', 'S', label)
     
     def start(self):
         self.send('c')

@@ -708,20 +708,20 @@ class Container(block.Filter, block.Block):
         # local label
         return self.sources[label]['block'].read()
 
-    def write_source(self, label, *values):
-        """
-        Write to source. Call method `pyctrl.block.write(*values)`.
+    # def write_source(self, label, *values):
+    #     """
+    #     Write to source. Call method `pyctrl.block.write(*values)`.
         
-        :param str label: the source label
-        :param vargs values: the values to write to source
-        """
-        # resolve label
-        (container, label) = self.resolve_label(label)
-        if container is not self:
-            return container.write_source(label, *values)
+    #     :param str label: the source label
+    #     :param vargs values: the values to write to source
+    #     """
+    #     # resolve label
+    #     (container, label) = self.resolve_label(label)
+    #     if container is not self:
+    #         return container.write_source(label, *values)
 
-        # local label
-        self.sources[label]['block'].write(*values)
+    #     # local label
+    #     self.sources[label]['block'].write(*values)
 
     def list_sources(self):
         """
@@ -881,19 +881,19 @@ class Container(block.Filter, block.Block):
 
         return self.sinks[label]['block'].get(*keys)
 
-    def read_sink(self, label):
-        """
-        Read from sink. Call method `pyctrl.block.read()`.
+    # def read_sink(self, label):
+    #     """
+    #     Read from sink. Call method `pyctrl.block.read()`.
         
-        :param str label: the sink label
-        """
-        # resolve label
-        (container, label) = self.resolve_label(label)
-        if container is not self:
-            return container.read_sink(label)
+    #     :param str label: the sink label
+    #     """
+    #     # resolve label
+    #     (container, label) = self.resolve_label(label)
+    #     if container is not self:
+    #         return container.read_sink(label)
 
-        # local label
-        return self.sinks[label]['block'].read()
+    #     # local label
+    #     return self.sinks[label]['block'].read()
 
     def write_sink(self, label, *values):
         """
@@ -1406,34 +1406,34 @@ class Container(block.Filter, block.Block):
 
         return self.timers[label]['block'].get(*keys)
 
-    def read_timer(self, label):
-        """
-        Read from timer. Call method `pyctrl.block.read()`.
+    # def read_timer(self, label):
+    #     """
+    #     Read from timer. Call method `pyctrl.block.read()`.
         
-        :param str label: the timer label
-        """
-        # resolve label
-        (container, label) = self.resolve_label(label)
-        if container is not self:
-            return container.read_timer(label)
+    #     :param str label: the timer label
+    #     """
+    #     # resolve label
+    #     (container, label) = self.resolve_label(label)
+    #     if container is not self:
+    #         return container.read_timer(label)
 
-        # local label
-        return self.timers[label]['block'].read()
+    #     # local label
+    #     return self.timers[label]['block'].read()
 
-    def write_timer(self, label, *values):
-        """
-        Write to timer. Call method `pyctrl.block.write(*values)`.
+    # def write_timer(self, label, *values):
+    #     """
+    #     Write to timer. Call method `pyctrl.block.write(*values)`.
         
-        :param str label: the timer label
-        :param vargs values: the values to write to timer
-        """
-        # resolve label
-        (container, label) = self.resolve_label(label)
-        if container is not self:
-            return container.write_timer(label, *values)
+    #     :param str label: the timer label
+    #     :param vargs values: the values to write to timer
+    #     """
+    #     # resolve label
+    #     (container, label) = self.resolve_label(label)
+    #     if container is not self:
+    #         return container.write_timer(label, *values)
 
-        # local label
-        self.timers[label]['block'].write(*values)
+    #     # local label
+    #     self.timers[label]['block'].write(*values)
 
     def list_timers(self):
         """
@@ -1645,18 +1645,24 @@ class Container(block.Filter, block.Block):
 
             # print('< container:: DISABLE')
             
-            # start timer threads
+            # stops timer threads
             for (label,timer) in self.running_timers.items():
                 
                 # Try cancelling timer
                 timer.cancel()
                 
-                # Release condition
+                # then release condition
                 device = self.timers[label]
                 device['condition'].acquire()
                 device['condition'].notify_all()
                 device['condition'].release()
 
+            # wait for timers to terminate
+            for (label,timer) in self.running_timers.items():
+
+                # join threads
+                timer.join()
+                
             self.running_timers = { }
 
             # disable sources
