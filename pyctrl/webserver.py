@@ -11,22 +11,7 @@ controller = pyctrl.Controller()
 encoder = pyctrljson.JSONEncoder(sort_keys = True, indent = 4)
 decoder = pyctrljson.JSONDecoder()
 
-# auxiliary
-
-# parse_list
-def parse_list(l):
-    if l:
-        return re.split(',', l)
-    else:
-        return []
-    
-# get_container
-def get_container(label, *args, **kwargs):
-    (container,label) = controller.resolve_label(label)
-    print('label = {}'.format(label))
-    print('args = {}'.format(args))
-    print('kwargs = {}'.format(kwargs))
-    return container
+# decorators
 
 # get_block_or_attribute
 def get_block_or_attribute(method, type_name):
@@ -37,7 +22,7 @@ def get_block_or_attribute(method, type_name):
         keys = kwargs.get('keys', '')
         if keys and not isinstance(keys, (list,tuple)):
             keys = [keys]
-        print('keys = {}'.format(keys))
+        # print('keys = {}'.format(keys))
             
         # get container
         (container,label) = controller.resolve_label(label)
@@ -53,25 +38,12 @@ def get_block_or_attribute(method, type_name):
 
     return wrapper
 
-# get_method_key
-def get_method_key(method):
-
-    @wraps(method)
-    def wrapper(label, key):
-        (container,label) = controller.resolve_label(label)
-        return {key:
-                getattr(container, method)(label, key)}
-
-    return wrapper
-
-# decorators
-
 # encode
 def encode(f):
     
     @wraps(f)
-    def wrapper(label, *args, **kwargs):
-        return encoder.encode(f(label, *args, **kwargs))
+    def wrapper(*args, **kwargs):
+        return encoder.encode(f(*args, **kwargs))
 
     return wrapper
 
@@ -85,7 +57,7 @@ def encode_label(f):
     return wrapper
 
 # decode
-def decode(f):
+def decode_value(f):
     
     @wraps(f)
     def wrapper(label, value, *args, **kwargs):
@@ -97,14 +69,14 @@ def decode(f):
 def decode_kwargs(f):
     
     @wraps(f)
-    def wrapper(label, *args, **kwargs):
-        print('request.args = {}'.format(request.args.get('keys','')))
+    def wrapper(*args, **kwargs):
+        # print('request.args = {}'.format(request.args.get('keys','')))
         try:
             kwargs.update({k: decoder.decode(v) for k,v in request.args.items()})
         except:
             raise Exception("Arguments '{}' are not json compatible".format(request.args))
-        print('kwargs = {}'.format(kwargs))
-        return f(label, *args, **kwargs)
+        # print('kwargs = {}'.format(kwargs))
+        return f(*args, **kwargs)
 
     return wrapper
 
@@ -114,55 +86,6 @@ def add_block(f):
     @wraps(f)
     def wrapper(label, module_name, class_name, **kwargs):
         return f(label, (module_name,class_name),
-                 **kwargs)
-
-    return wrapper
-
-# inputs_and_outputs
-def inputs_and_outputs(f):
-    
-    @wraps(f)
-    def wrapper(label, module_name, class_name):
-        kwargs = request.args.to_dict(flat = True)
-
-        inputs = parse_list(kwargs.pop('inputs', []))
-        outputs = parse_list(kwargs.pop('outputs', []))
-        kwargs = {k: decoder.decode(v) for k,v in kwargs.items()}
-        
-        return f(label, (module_name,class_name),
-                 inputs = inputs, outputs = outputs,
-                 **kwargs)
-
-    return wrapper
-
-# inputs
-def inputs(f):
-    
-    @wraps(f)
-    def wrapper(label, module_name, class_name):
-        kwargs = request.args.to_dict(flat = True)
-
-        inputs = parse_list(kwargs.pop('inputs', []))
-        kwargs = {k: decoder.decode(v) for k,v in kwargs.items()}
-        
-        return f(label, (module_name,class_name),
-                 inputs = inputs,
-                 **kwargs)
-
-    return wrapper
-
-# outputs
-def outputs(f):
-    
-    @wraps(f)
-    def wrapper(label, module_name, class_name):
-        kwargs = request.args.to_dict(flat = True)
-
-        outputs = parse_list(kwargs.pop('outputs', []))
-        kwargs = {k: decoder.decode(v) for k,v in kwargs.items()}
-        
-        return f(label, (module_name,class_name),
-                 outputs = outputs,
                  **kwargs)
 
     return wrapper
@@ -187,6 +110,56 @@ def json_response(f):
 
     return wrapper
 
+# reset controller
+def reset(**kwargs):
+    """
+    Reset controller
+
+    :param str module: name of the controller module (default = 'pyctrl')
+    :param str pyctrl_class: name of the controller class (default = 'Controller')
+    :param kwargs kwargs: other key-value pairs of attributes
+    """
+    
+    global controller
+    
+    # Create new controller
+    if 'module' in kwargs or 'pyctrl_class' in kwargs:
+
+        module = kwargs.pop('module', 'pyctrl')
+        pyctrl_class = kwargs.pop('pyctrl_class', 'Controller')
+        ckwargs = kwargs.pop('kwargs', {})
+
+        if len(kwargs) > 0:
+            raise Exception("webserver.reset():: Unknown parameter(s) '{}'".format(', '.join(str(k) for k in kwargs.keys())))
+        
+        try:
+
+            if True:
+                warnings.warn("> Installing new instance of '{}.{}({})' as controller".format(module, pyctrl_class, ckwargs))
+                
+            obj_class = getattr(importlib.import_module(module),
+                                pyctrl_class)
+            _controller = obj_class(**ckwargs)
+
+            # print('obj_class = {}'.format(obj_class))
+            # print('_controller = {}'.format(_controller))
+            
+            # Make sure it is an instance of pyctrl.Controller
+            if not isinstance(_controller, pyctrl.Controller):
+                raise Exception("Object '{}.{}' is not and instance of pyctrl.Controller".format(module, pyctrl_class))
+
+            controller = _controller
+            set_controller(controller)
+
+        except Exception as e:
+
+            raise Exception("Error resetting controller: {}".format(e))
+
+    else:
+        
+        # reset controller
+        controller.reset()
+    
 # set_controller
 def set_controller(_controller):
 
@@ -200,6 +173,14 @@ def set_controller(_controller):
     app.add_url_rule('/info',
                      view_func = controller.html)
     
+    # reset
+    app.add_url_rule('/reset',
+                     view_func = json_response(decode_kwargs(reset)))
+
+    app.add_url_rule('/reset/<module_name>/<class_name>',
+                     endpoint = 'reset_module',
+                     view_func = json_response(decode_kwargs(reset)))
+    
     # signals
     app.add_url_rule('/add/signal/<path:label>',
                      view_func = json_response(controller.add_signal))
@@ -208,7 +189,7 @@ def set_controller(_controller):
     app.add_url_rule('/get/signal/<path:label>',
                      view_func = json_response(encode_label(controller.get_signal)))
     app.add_url_rule('/set/signal/<path:label>/<value>',
-                     view_func = json_response(decode(controller.set_signal)))
+                     view_func = json_response(decode_value(controller.set_signal)))
 
     # sources
     app.add_url_rule('/add/source/<path:label>/<module_name>/<class_name>',
@@ -255,7 +236,7 @@ def set_controller(_controller):
 
 # initialize controller
 set_controller(controller)
-                   
+
 if __name__ == "__main__":
 
     app.run(debug = True)

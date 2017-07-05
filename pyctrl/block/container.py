@@ -107,6 +107,8 @@ class Container(block.Filter, block.Block):
         :raise: :py:class:`KeyError` if :py:attr:`key` is not defined
         """
 
+        recursive = True
+        
         # keys?
         if len(keys) == 0:
             keys = ('summary', 'signals', 'timers', 'sources', 'filters', 'sinks')
