@@ -1,0 +1,37 @@
+<!doctype html>
+<title>pyctrl webserver</title>
+{% if class_name %}
+<h1>{{ class_name }}</h1>
+<h2>Signals:</h2>
+<ol>
+  {% for s in signals %}
+  <li><a href="{{ baseurl }}/get/signal/{{ s }}">{{ s }}</a></li>
+  {% endfor %}
+</ol>
+<h2>Sources:</h2>
+<ol>
+  {% for s in sources %}
+  <li><a href="{{ baseurl }}/get/source/{{ s }}">{{ s }}</a></li>
+  {% endfor %}
+</ol>
+<h2>Filters:</h2>
+<ol>
+  {% for s in filters %}
+  <li><a href="{{ baseurl }}/get/filter/{{ s }}">{{ s }}</a></li>
+  {% endfor %}
+</ol>
+<h2>Sinks:</h2>
+<ol>
+  {% for s in sinks %}
+  <li><a href="{{ baseurl }}/get/sink/{{ s }}">{{ s }}</a></li>
+  {% endfor %}
+</ol>
+<h2>Timers:</h2>
+<ol>
+  {% for s in timers %}
+  <li><a href="{{ baseurl }}/get/timer/{{ s }}">{{ s }}</a></li>
+  {% endfor %}
+</ol>
+{% else %}
+<h1>No controller defined yet!</h1>
+{% endif %}

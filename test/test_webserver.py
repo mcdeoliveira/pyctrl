@@ -31,10 +31,6 @@ def test_webserver():
         # check index page
         answer = b"<div><p>&lt;class 'pyctrl.Controller'&gt; with: 0 timer(s), 3 signal(s), 1 source(s), 0 filter(s), and 0 sink(s)</p><h2>timers</h2><ol></ol><h2>signals</h2><ol><li>clock</li><li>duty</li><li>is_running</li></ol><h2>sources</h2><ol><li>clock[Clock, disabled] &Gt; clock</li></ol><h2>filters</h2><ol></ol><h2>sinks</h2><ol></ol></div>"
 
-        url = "http://127.0.0.1:5000"
-        output = subprocess.check_output(["curl", url])
-        assert output == answer
-        
         # check info page
         url = "http://127.0.0.1:5000/info"
         output = subprocess.check_output(["curl", url])

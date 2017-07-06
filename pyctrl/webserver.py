@@ -1,8 +1,7 @@
-from flask import Flask, request
+from flask import Flask, request, render_template, jsonify
 from functools import wraps
 import re
 
-import json
 import pyctrl
 import pyctrl.util.json as pyctrljson
 
@@ -36,21 +35,12 @@ def get_block_or_attribute(controller, method, type_name):
 
     return wrapper
 
-# encode
-def encode(f):
-    
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        return encoder.encode(f(*args, **kwargs))
-
-    return wrapper
-
 # encode_label
-def encode_label(f):
+def wrap_label(f):
     
     @wraps(f)
     def wrapper(label, *args, **kwargs):
-        return encoder.encode({label: f(label, *args, **kwargs)})
+        return {label: f(label, *args, **kwargs)}
 
     return wrapper
 
@@ -96,16 +86,15 @@ def json_response(f):
         try:
             retval = f(*args, **kwargs)
             if retval is None:
-                return json.dumps({ 'status': 'success' })
-            else:
-                return retval
+                retval = { 'status': 'success' }
         except KeyError as e:
-            return json.dumps({ 'status': 'error',
-                                'message': 'KeyError: {} is not known'.format(e) }, sort_keys = True)
+            retvar = { 'status': 'error',
+                       'message': 'KeyError: {} is not known'.format(e) }
         except Exception as e:
-            return json.dumps({ 'status': 'error',
-                                'message': repr(e) }, sort_keys = True)
+            retval = { 'status': 'error', 'message': repr(e) }
 
+        return jsonify(retval)
+        
     return wrapper
 
 # Server class
@@ -120,18 +109,25 @@ class Server(Flask):
         # call super
         super().__init__(*args, **kwargs)
 
-    def reset(self, **kwargs):
-        """
-        Reset controller
+        # change json_encoder
+        self.json_encoder = pyctrljson.JSONEncoder
+
+    def index(self):
         
-        :param str module: name of the controller module (default = 'pyctrl')
-        :param str pyctrl_class: name of the controller class (default = 'Controller')
-        :param kwargs kwargs: other key-value pairs of attributes
-        """
+        return render_template('index.html',
+                               baseurl = self.base_url,
+                               class_name = self.controller.info('class'),
+                               signals = sorted(self.controller.list_signals()),
+                               sources = self.controller.list_sources(),
+                               filters = self.controller.list_filters(),
+                               sinks = self.controller.list_sinks(),
+                               timers = self.controller.list_timers())
     
-        if self.controller:
-            # reset controller
-            self.controller.reset()
+    def scope(self):
+        
+        return render_template('scope.html',
+                               baseurl = self.base_url,
+                               signals = sorted(self.controller.list_signals()))
     
     def set_controller(self, **kwargs):
 
@@ -180,29 +176,39 @@ class Server(Flask):
 
         # set api entry points
             
-        # info
+        # index, info and scope
         app.add_url_rule(self.base_url + '/',
-                         view_func = self.controller.html)
+                         view_func = self.index)
         app.add_url_rule(self.base_url + '/info',
                          view_func = self.controller.html)
+        app.add_url_rule(self.base_url + '/scope',
+                         view_func = self.scope)
 
         # reset
         app.add_url_rule(self.base_url + '/reset',
-                         view_func = json_response(decode_kwargs(self.reset)))
+                         view_func = json_response(decode_kwargs(self.controller.reset)))
 
         app.add_url_rule(self.base_url + '/set/controller/<module_name>/<class_name>',
                          endpoint = 'reset_module',
                          view_func = json_response(decode_kwargs(self.set_controller)))
 
+        # start and stop
+        app.add_url_rule(self.base_url + '/start',
+                         view_func = json_response(self.controller.start))
+        app.add_url_rule(self.base_url + '/stop',
+                         view_func = json_response(self.controller.stop))
+        
         # signals
         app.add_url_rule(self.base_url + '/add/signal/<path:label>',
                          view_func = json_response(self.controller.add_signal))
         app.add_url_rule(self.base_url + '/remove/signal/<path:label>',
                          view_func = json_response(self.controller.remove_signal))
         app.add_url_rule(self.base_url + '/get/signal/<path:label>',
-                         view_func = json_response(encode_label(self.controller.get_signal)))
+                         view_func = json_response(wrap_label(self.controller.get_signal)))
         app.add_url_rule(self.base_url + '/set/signal/<path:label>/<value>',
                          view_func = json_response(decode_value(self.controller.set_signal)))
+        app.add_url_rule(self.base_url + '/list/signals',
+                         view_func = json_response(self.controller.list_signals))
 
         # sources
         app.add_url_rule(self.base_url + '/add/source/<path:label>/<module_name>/<class_name>',
@@ -210,7 +216,7 @@ class Server(Flask):
         app.add_url_rule(self.base_url + '/remove/source/<path:label>',
                          view_func = json_response(self.controller.remove_source))
         app.add_url_rule(self.base_url + '/get/source/<path:label>',
-                         view_func = json_response(encode(decode_kwargs(get_block_or_attribute(self.controller, 'get_source', 'sources')))))
+                         view_func = json_response(decode_kwargs(get_block_or_attribute(self.controller, 'get_source', 'sources'))))
         app.add_url_rule(self.base_url + '/set/source/<path:label>',
                          view_func = json_response(decode_kwargs(self.controller.set_source)))
 
@@ -221,7 +227,7 @@ class Server(Flask):
                          view_func = json_response(self.controller.remove_filter))
         app.add_url_rule(self.base_url + '/get/filter/<path:label>',
                          endpoint = 'get_filter',
-                         view_func = json_response(encode(decode_kwargs(get_block_or_attribute(self.controller, 'get_filter', 'filters')))))
+                         view_func = json_response(decode_kwargs(get_block_or_attribute(self.controller, 'get_filter', 'filters'))))
         app.add_url_rule(self.base_url + '/set/filter/<path:label>',
                          view_func = json_response(decode_kwargs(self.controller.set_filter)))
 
@@ -232,7 +238,7 @@ class Server(Flask):
                          view_func = json_response(self.controller.remove_sink))
         app.add_url_rule(self.base_url + '/get/sink/<path:label>',
                          endpoint = 'get_sink',
-                         view_func = json_response(encode(decode_kwargs(get_block_or_attribute(self.controller, 'get_sink', 'sinks')))))
+                         view_func = json_response(decode_kwargs(get_block_or_attribute(self.controller, 'get_sink', 'sinks'))))
         app.add_url_rule(self.base_url + '/set/sink/<path:label>',
                          view_func = json_response(decode_kwargs(self.controller.set_sink)))
 
@@ -243,19 +249,19 @@ class Server(Flask):
                          view_func = json_response(self.controller.remove_timer))
         app.add_url_rule(self.base_url + '/get/timer/<path:label>',
                          endpoint = 'get_timer',
-                         view_func = json_response(encode(decode_kwargs(get_block_or_attribute(self.controller, 'get_timer', 'timers')))))
+                         view_func = json_response(decode_kwargs(get_block_or_attribute(self.controller, 'get_timer', 'timers'))))
         app.add_url_rule(self.base_url + '/set/timer/<path:label>',
                          view_func = json_response(decode_kwargs(self.controller.set_timer)))
 
 
 if __name__ == "__main__":
 
-    from pyctrl import Controller
+    from pyctrl.timer import Controller
     
     app = Server(__name__)
 
     # initialize controller
-    app.set_controller(controller = Controller())
+    app.set_controller(controller = Controller(period = 1))
 
     # run app
     app.run(debug = True)

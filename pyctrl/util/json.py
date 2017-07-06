@@ -1,4 +1,4 @@
-import json
+import flask.json as json
 
 import pyctrl
 import pyctrl.block
