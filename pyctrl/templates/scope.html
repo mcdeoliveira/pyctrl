@@ -1,119 +1,163 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<style> /* set the CSS */
+<html>
+    <head>
+        <meta charset="utf-8">
 
- .line {
-     fill: none;
-     stroke: steelblue;
-     stroke-width: 2px;
- }
+        <style>
+         body {
+             font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+         }
 
-</style>
-<body>
+         .graph .axis {
+             stroke-width: 1;
+         }
 
-    <!-- load the d3.js library -->     
-    <script src="https://d3js.org/d3.v4.min.js"></script>
-    <script>
+         .graph .axis .tick line {
+             stroke: black;
+         }
 
-     // set the dimensions and margins of the graph
-     var margin = {top: 20, right: 20, bottom: 30, left: 50},
-	 width = 800 - margin.left - margin.right,
-	 height = 600 - margin.top - margin.bottom;
+         .graph .axis .tick text {
+             fill: black;
+             font-size: 0.7em;
+         }
 
-     // set the ranges
-     var x = d3.scaleLinear().range([0, width]);
-     var y = d3.scaleLinear().range([height, 0]);
+         .graph .axis .domain {
+             fill: none;
+             stroke: black;
+         }
 
-     // define the line
-     var line = d3.line()
-		  .x(function(d) { return x(d[0]); })
-		  .y(function(d) { return y(d[1]); });
+         .graph .group {
+             fill: none;
+             stroke: black;
+             stroke-width: 1.5;
+         }
+        </style>
+    </head>
+    <body>
 
-     // Define the axes
-     var xAxis = d3.axisBottom(x).ticks(5);
-     var yAxis = d3.axisLeft(y).ticks(5);
+	<!-- inspired by: http://bl.ocks.org/simenbrekken/6634070 -->
+	
+        <div class="graph"></div>
 
-     // append the svg obgect to the body of the page
-     // appends a 'group' element to 'svg'
-     // moves the 'group' element to the top left margin
-     var svg = d3.select("body").append("svg")
-		 .attr("width", width + margin.left + margin.right)
-		 .attr("height", height + margin.top + margin.bottom)
-		 .append("g")
-		 .attr("transform",
-		       "translate(" + margin.left + "," + margin.top + ")");
-     
-     // Get the data
-     var data;
-     d3.json("http://127.0.0.1:5000/get/sink/logger?keys=\"log\"",
-	     function(error, obj) {
-		 if (error) throw error;
-		 
-		 // grab data
-		 data = obj.log.object;
-		 // console.log(obj);
-		 // console.log(data);
+        <script src="http://d3js.org/d3.v3.min.js"></script>
+	
+        <script>
+         var limit = 60 * 1,
+             duration = 750,
+             now = new Date(Date.now() - duration)
 
-		 // Scale the range of the data
-		 x.domain(d3.extent(data, function(d) { return d[0]; }));
-		 y.domain(d3.extent(data, function(d) { return d[1]; }));
-		 
-		 // Add the line path.
-		 svg.append("path")
-		    .data([data])
-		    .attr("class", "line")
-		    .attr("d", line);
-		 
-		 // Add the x-axis.
-                 svg.append("g")
-		    .attr("transform", "translate(0," + height + ")")
-		    .call(xAxis);
-		 
-		 // Add the Y Axis
-		 svg.append("g")
-		    .call(yAxis);
-		 
-	     });
+         var width = 500,
+             height = 200
 
-     // Update the data on a timer
-     var inter = setInterval(function() {
-         updateData();
-     }, 5000); 
-     
-     // Update data section
-     function updateData() {
+         var groups = {
+             current: {
+                 value: 0,
+                 color: 'orange',
+                 data: d3.range(limit).map(function() {
+                     return 0
+                 })
+             },
+             target: {
+                 value: 0,
+                 color: 'green',
+                 data: d3.range(limit).map(function() {
+                     return 0
+                 })
+             },
+             output: {
+                 value: 0,
+                 color: 'grey',
+                 data: d3.range(limit).map(function() {
+                     return 0
+                 })
+             }
+         }
+
+         var x = d3.time.scale()
+		   .domain([now - (limit - 2), now - duration])
+		   .range([0, width])
+
+         var y = d3.scale.linear()
+		   .domain([0, 100])
+		   .range([height, 0])
+
+         var line = d3.svg.line()
+		      .interpolate('basis')
+		      .x(function(d, i) {
+			  return x(now - (limit - 1 - i) * duration)
+		      })
+		      .y(function(d) {
+			  return y(d)
+		      })
+
+         var svg = d3.select('.graph').append('svg')
+		     .attr('class', 'chart')
+		     .attr('width', width)
+		     .attr('height', height + 50)
+
+         var axis = svg.append('g')
+		       .attr('class', 'x axis')
+		       .attr('transform', 'translate(0,' + height + ')')
+		       .call(x.axis = d3.svg.axis().scale(x).orient('bottom'))
+
+         var paths = svg.append('g')
+
+         for (var name in groups) {
+             var group = groups[name]
+             group.path = paths.append('path')
+			       .data([group.data])
+			       .attr('class', name + ' group')
+			       .style('stroke', group.color)
+         }
+
+	 function add_point(data) {
+
+             // Add new values
+             for (var name in groups) {
+                 var group = groups[name]
+                 group.data.push(data[name])
+                 group.path.attr('d', line)
+             }
+
+             // Shift domain
+             x.domain([now - (limit - 2) * duration, now - duration])
+
+             // Slide x-axis left
+             axis.transition()
+              .duration(duration)
+              .ease('linear')
+              .call(x.axis)
+
+             // Slide paths left
+             paths.attr('transform', null)
+              .transition()
+              .duration(duration)
+              .ease('linear')
+              .attr('transform', 'translate(' + x(now - (limit - 1) * duration) + ')')
+              .each('end', tick)
+
+             // Remove oldest data point from each group
+             for (var name in groups) {
+                 var group = groups[name]
+                 group.data.shift()
+             }
+	 }
 	 
-	 // Get the data again
-	 d3.json("http://127.0.0.1:5000/get/sink/logger?keys=\"log\"",
-		 function(error, obj) {
-		     if (error) throw error;
+         function tick() {
 
-		     // grab and concatenate data
-		     data = data.concat(obj.log.object);
-		     // console.log(obj);
-		     // console.log(data);
+	     now = new Date()
+	     var data = {}; 
 
-		     // Scale the range of the data again
-		     x.domain(d3.extent(data, function(d) { return d[0]; }));
-		     y.domain(d3.extent(data, function(d) { return d[1]; }));
-		     
-		     // Select the section we want to apply our changes to
-		     var svg = d3.select("body").transition();
-		     
-		     // Make the changes
-		     svg.select(".line")   // change the line
-			.duration(750)
-			.attr("d", line(data));
-		     svg.select(".x.axis") // change the x axis
-			.duration(750)
-			.call(xAxis);
-		     svg.select(".y.axis") // change the y axis
-			.duration(750)
-			.call(yAxis);
-		     
-		 });
-	 
-     }
-     
-    </script>
-</body>
+             // Add new values
+             for (var name in groups) {
+		 data[name] = 20 + Math.random() * 100
+             }
+
+	     add_point(data);
+
+         }
+
+         tick()
+        </script>
+    </body>
+</html>
