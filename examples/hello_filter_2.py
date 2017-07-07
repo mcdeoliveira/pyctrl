@@ -61,8 +61,6 @@ def main():
 
     # retrieve data from logger
     data = hello.get_sink('logger', 'log')
-    clock = data[:,0]
-    motor = data[:,1]
     
     try:
 
@@ -88,7 +86,7 @@ def main():
         sys.exit(0)
         
     # plot input 
-    plt.plot(clock, motor, 'b')
+    plt.plot(data['clock'], data['motor'], 'b')
     plt.ylabel('pwm (%)')
     plt.xlabel('time (s)')
     plt.ylim((-120,120))

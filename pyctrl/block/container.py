@@ -881,6 +881,17 @@ class Container(block.Filter, block.Block):
 
         return self.sinks[label]['block'].get(*keys)
 
+    def find_sink(self, value):
+        """
+        Return label if object value is a sink. Otherwise return None.
+
+        :return: the sink label
+        :rtype: str
+        """
+        for k,v in self.sinks.items():
+            if v['block'] is value:
+                return k
+
     # def read_sink(self, label):
     #     """
     #     Read from sink. Call method `pyctrl.block.read()`.

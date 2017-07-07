@@ -156,7 +156,6 @@ if __name__ == "__main__":
         time.sleep(1)
 
     log = controller.get_sink('logger', 'log')
-    print('\n> LOG HAS {} ROWS and {} COLUMNS'.format(log.shape[0], log.shape[1]))
 
     controller.remove_sink('logger')
 

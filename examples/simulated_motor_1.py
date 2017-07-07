@@ -78,10 +78,7 @@ def main():
 
     # read logger
     data = simotor.get_sink('logger', 'log')
-    clock = data[:,0]
-    pwm = data[:,1]
-    encoder = data[:,2]
-    
+
     try:
 
         # import matplotlib
@@ -107,7 +104,7 @@ def main():
     
     # plot pwm 
     plt.subplot(2,1,1)
-    plt.plot(clock, pwm, 'b')
+    plt.plot(data['clock'], data['pwm'], 'b')
     plt.ylabel('pwm (%)')
     plt.ylim((-120,120))
     plt.xlim(0,6)
@@ -115,7 +112,7 @@ def main():
     
     # plot encoder
     plt.subplot(2,1,2)
-    plt.plot(clock, encoder,'b')
+    plt.plot(data['clock'], data['encoder'],'b')
     plt.ylabel('encoder (cycles)')
     plt.ylim((0,25))
     plt.xlim(0,6)

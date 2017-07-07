@@ -26,11 +26,11 @@ print('> Conecting to {}({})...'.format(HOST, PORT))
 
 device = Controller(host = HOST, port = PORT)
 device.add_sink('logger', 
-                    logger.Logger(), 
-                    ['clock','encoder1'])
+                logger.Logger(), 
+                ['clock','encoder1'])
 device.add_sink('printer', block.Printer(endln = '\r'), 
-                    ['clock', 'motor1', 'encoder1'])
-    
+                ['clock', 'motor1', 'encoder1'])
+
 print(device.info('all'))
 
 # define tests
@@ -243,8 +243,8 @@ def main():
         Ts = clock['period']
 
         log = device.get_sink('logger', 'log')
-        t = log[:,0]
-        position = log[:,1]
+        t = log['clock']
+        position = log['encoder1']
         velocity = numpy.zeros(t.shape, float)
         velocity[1:] = (position[1:]-position[:-1])/(t[1:]-t[:-1])
         

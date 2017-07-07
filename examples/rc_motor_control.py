@@ -107,11 +107,6 @@ def main():
 
     # read logger
     data = bbb.get_sink('logger', 'log')
-    clock = data[:,0]
-    pwm = data[:,1]
-    encoder = data[:,2]
-    speed = data[:,3]
-    speed_reference = data[:,4]
     
     try:
 
@@ -138,7 +133,7 @@ def main():
     
     # plot pwm 
     plt.subplot(2,1,1)
-    plt.plot(clock, pwm, 'b')
+    plt.plot(data['clock'], data['pwm'], 'b')
     plt.ylabel('pwm (%)')
     plt.ylim((-120,120))
     plt.xlim(0,6)
@@ -146,7 +141,7 @@ def main():
     
     # plot encoder
     plt.subplot(2,1,2)
-    plt.plot(clock, encoder,'b')
+    plt.plot(data['clock'], data['encoder'],'b')
     plt.ylabel('position (cycles)')
     plt.ylim((0,25))
     plt.xlim(0,6)
@@ -158,7 +153,7 @@ def main():
     # plot pwm
     ax1 = plt.gca()
     
-    ax1.plot(clock, pwm,'g', label='pwm')
+    ax1.plot(data['clock'], data['pwm'],'g', label='pwm')
     ax1.set_ylabel('pwm (%)')
     ax1.set_ylim((-60,120))
     ax1.grid()
@@ -167,8 +162,8 @@ def main():
     # plot velocity
     ax2 = plt.twinx()
 
-    ax2.plot(clock, speed,'b', label='speed')
-    ax2.plot(clock, speed_reference, 'r', label='reference')
+    ax2.plot(data['clock'], data['speed'],'b', label='speed')
+    ax2.plot(data['clock'], data['speed_reference'], 'r', label='reference')
     ax2.set_ylabel('speed (Hz)')
     ax2.set_ylim((-6,12))
     ax2.set_xlim(0,6)

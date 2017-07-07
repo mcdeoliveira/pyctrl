@@ -57,9 +57,12 @@ def test1():
     xk = sys.state
 
     log = controller.get_sink('logger','log')
-    t0 = log[0,0]
-    tk = log[-1,0]
-    yk = log[-1,1]    
+    t0 = log['clock'][0,0]
+    tk = log['clock'][-1,0]
+    yk = log['output'][-1,0]
+    print('t0 = {}'.format(t0))
+    print('tk = {}'.format(tk))
+    print('yk = {}'.format(yk))
     yyk = uk * (1 - math.exp(a*(tk-t0))) + x0[0] * math.exp(a*(tk-t0))
     print(log)
     print(t0, x0, tk, xk, yk, yyk)
@@ -73,16 +76,23 @@ def test1():
                           ['clock'], ['is_running'])
 
     
+    print(controller.info('all'))
+    
+    print('clock = {}'.format(controller.get_signal('clock')))
     #controller.set_source('clock', reset = True)
     controller.set_sink('logger', reset = True)
     controller.set_signal('input',uk)
     controller.run()
     xk = sys.state
+    print('clock = {}'.format(controller.get_signal('clock')))
 
     log = controller.get_sink('logger','log')
-    t0 = log[0,0]
-    tk = log[-1,0]
-    yk = log[-1,1]    
+    print('log = {}'.format(log))
+    t0 = log['clock'][0,0]
+    tk = log['clock'][-1,0]
+    yk = log['output'][-1,0]
+    print('t0 = {}, x0 = {}, tk = {}, xk = {}, yk = {}'.format(t0, x0, tk, xk, yk))
+    
     yyk = uk * (1 - math.exp(a*(tk-t0))) + x0 * math.exp(a*(tk-t0))
     print(log)
     print(t0, x0, tk, xk, yk, yyk)
@@ -102,9 +112,9 @@ def test1():
     xk = sys.state
 
     log = controller.get_sink('logger','log')
-    t0 = log[0,0]
-    tk = log[-1,0]
-    yk = log[-1,1]    
+    t0 = log['clock'][0,0]
+    tk = log['clock'][-1,0]
+    yk = log['output'][-1,0]
     yyk = uk * (1 - math.exp(a*(tk-t0))) + x0 * math.exp(a*(tk-t0))
     print(t0, x0, tk, xk, yk, yyk)
     assert np.abs(yk - np.array([yyk])) < 1e-2
@@ -188,9 +198,10 @@ def test2():
     controller.run()
 
     log = controller.get_sink('logger','log')
-    t0 = log[0,0]
-    tk = log[-1,0]
-    yk = log[-1,1:]
+    t0 = log['clock'][0,0]
+    tk = log['clock'][0,-1]
+    yk = log['x'][0,-1]
+    # yk = log[-1,1:]
 
     print('2. [{:3.2f}, {:3.2f}] = {}'.format(t0, tk, yk))
 
@@ -259,8 +270,9 @@ def test2():
     controller.run()
 
     log = controller.get_sink('logger','log')
-    t0 = log[0,0]
-    tk = log[-1,0]
-    yk = log[-1,1:]
+    t0 = log['clock'][0,0]
+    tk = log['clock'][0,-1]
+    yk = log['x'][0,-1]
+    #yk = log[-1,1:]
 
     print('2. [{:3.2f}, {:3.2f}] = {}'.format(t0, tk, yk))

@@ -7,6 +7,7 @@ import contextlib
 import numpy
 import sys
 import json
+import itertools
 
 from enum import Enum
 
@@ -900,8 +901,24 @@ class Logger(Sink, Block):
         # auto reset
         self.auto_reset = kwargs.pop('auto_reset', False)
 
+        # labels
+        self.labels = kwargs.pop('labels', None)
+        self.index = None
+        
         super().__init__(**kwargs)
 
+    def set_parent(self, parent):
+
+        # call super
+        super().set_parent(parent)
+
+        # look for labels
+        if self.parent and isinstance(self.parent, container.Container):
+            label = self.parent.find_sink(self)
+            if not label:
+                raise BlockException("Could not locate Logger in parent")
+            self.labels = self.parent.sinks[label]['inputs']
+        
     def get(self, *keys, exclude = ()):
 
         has_log = False
@@ -931,6 +948,9 @@ class Logger(Sink, Block):
         :raise: `BlockException` if any of the :py:data:`kwargs` is left unprocessed
         """
 
+        if 'labels' in kwargs:
+            self.labels = kwargs.pop('labels')
+        
         # call super
         return super().set(exclude + ('data',), **kwargs)
     
@@ -943,6 +963,7 @@ class Logger(Sink, Block):
 
         self.page = 0
         self.current = 0
+        self.index = None
 
     def get_current_page(self):
         return self.page
@@ -964,25 +985,44 @@ class Logger(Sink, Block):
         if self.auto_reset:
             self.reset()
 
+        # labels?
+        if self.labels:
+            if self.index:
+                retval = {l: retval[:,self.index[i]:self.index[i+1]]
+                          for (i,l) in enumerate(self.labels)}
+            else:
+                retval = {l: numpy.empty((0,1))
+                          for (i,l) in enumerate(self.labels)}
+            
         # return values
         return retval
     
     # read = get_log
-        
+
+    def len(value):
+        try:
+            return len(value)
+        except:
+            return 1
+    
     def write(self, *values):
 
-        #print('values = {}'.format(values))
-
         # stack first
-        values = numpy.hstack(values)
+        stack_values = numpy.hstack(values)
 
         # reshape?
-        if self.data.shape[1] != len(values):
+        if self.data.shape[1] != len(stack_values):
             # reshape log
-            self.reshape(self.data.shape[0], len(values))
+            self.reshape(self.data.shape[0], len(stack_values))
+
+        # recalculate index?
+        if self.index is None and self.labels is not None :
+            assert len(self.labels) == len(values)
+            dims = tuple(Logger.len(x) for x in values)
+            self.index = (0,) + tuple(itertools.accumulate(dims))
         
         # Log data
-        self.data[self.current, :] = values
+        self.data[self.current, :] = stack_values
 
         if self.current < self.data.shape[0] - 1:
             # increment current pointer

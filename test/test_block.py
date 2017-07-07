@@ -193,8 +193,69 @@ def test_logger():
     log = _logger.get_log()
     assert np.all(log == [[1,2,2,3,5]])
 
-    assert _logger.get() == { 'auto_reset': False, 'enabled': True, 'current': 1, 'page': 0 }
+    assert _logger.get() == { 'auto_reset': False, 'enabled': True, 'current': 1, 'page': 0, 'labels': None, 'index': None }
 
+    # vector entries
+    _logger.write([1,2],2,[3,5])
+    log = _logger.get_log()
+    assert np.all(log == [[1,2,2,3,5]])
+
+    # with labels
+    
+    _logger = logger.Logger(labels = ['s1','s2','s3'])
+
+    # write one entry
+    _logger.write(1,2,3)
+
+    assert _logger.get('index') == (0,1,2,3)
+
+    log = _logger.get_log()
+    assert np.all(log == {'s1': [1], 's2': [2], 's3': [3]})
+
+    assert _logger.get('index') == (0,1,2,3)
+    
+    # write second entry
+    _logger.write(4,5,6)
+    log = _logger.get_log()
+    assert np.all(log['s1'] == [[1],[4]])
+    assert np.all(log['s2'] == [[2],[5]])
+    assert np.all(log['s3'] == [[3],[6]])
+
+    assert _logger.get('index') == (0,1,2,3)
+
+    _logger.set(labels = ['s1','s2','s3','s4'])
+    
+    assert _logger.get('labels') == ['s1','s2','s3','s4']
+    
+    # dynamic reshaping
+    _logger.write(1,2,3,5)
+    log = _logger.get_log()
+    assert np.all(log == {'s1': [1], 's2': [2], 's3': [3], 's4': [5]})
+
+    assert _logger.get('index') == (0,1,2,3,4)
+                
+    # vector entries
+    _logger.write(1,2,4,[3,5])
+    log = _logger.get_log()
+    assert np.all(log['s1'] == [1])
+    assert np.all(log['s2'] == [2])
+    assert np.all(log['s3'] == [4])
+    assert np.all(log['s4'] == [[3,5]])
+
+    assert _logger.get('index') == (0,1,2,3,5)
+    
+    # vector entries
+    _logger.write([1,2],2,4,[3,5])
+    log = _logger.get_log()
+    assert np.all(log['s1'] == [[1,2]])
+    assert np.all(log['s2'] == [2])
+    assert np.all(log['s3'] == [4])
+    assert np.all(log['s4'] == [[3,5]])
+
+    assert _logger.get('index') == (0,2,3,4,6)
+    
+    assert _logger.get() == { 'auto_reset': False, 'enabled': True, 'current': 1, 'page': 0, 'labels': ['s1','s2','s3','s4'], 'index': (0,2,3,4,6) }
+    
 def test_Signal():
 
     import numpy as np

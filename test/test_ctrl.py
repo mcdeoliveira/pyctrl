@@ -75,7 +75,7 @@ def _test_basic(controller):
     assert '_logger_' in controller.list_sinks()
     assert '_test_' in controller.list_signals()
 
-    assert controller.get_sink('_logger_') == {'current': 0, 'auto_reset': False, 'page': 0, 'enabled': True}
+    assert controller.get_sink('_logger_') == {'current': 0, 'auto_reset': False, 'page': 0, 'enabled': True, 'labels': ['_test_'], 'index': None}
 
     assert controller.get_sink('_logger_', 'current', 'auto_reset') == {'current': 0, 'auto_reset': False}
     
@@ -100,8 +100,8 @@ def _test_basic(controller):
 
     assert not hasattr(logger, 'log')
     
-    assert isinstance(log, numpy.ndarray)
-    assert log.shape == (0, 0)
+    assert isinstance(log['clock'], numpy.ndarray)
+    assert log['clock'].shape == (0, 1)
 
     with pytest.raises(block.BlockException):
         controller.set_sink('_logger_', _reset = True)
@@ -111,16 +111,16 @@ def _test_basic(controller):
 
     log = controller.get_sink('_logger_', 'log')
 
-    assert isinstance(log, numpy.ndarray)
-    assert log.shape[0] > 1
-    assert log.shape[1] == 1
+    assert isinstance(log['clock'], numpy.ndarray)
+    assert log['clock'].shape[1] == 1
+    assert log['clock'].shape[0] > 1
 
     controller.set_sink('_logger_', reset = True)
 
     log = controller.get_sink('_logger_', 'log')
     
-    assert isinstance(log, numpy.ndarray)
-    assert log.shape == (0,1)
+    assert isinstance(log['clock'], numpy.ndarray)
+    assert log['clock'].shape == (0, 1)
 
     controller.remove_sink('_logger_')
     assert '_logger_' not in controller.list_sinks()
@@ -135,16 +135,21 @@ def _test_basic(controller):
 
     log = controller.get_sink('_logger_', 'log')
     
-    assert isinstance(log, numpy.ndarray)
-    assert log.shape[0] > 1
-    assert log.shape[1] == 2
+    assert isinstance(log['clock'], numpy.ndarray)
+    assert isinstance(log['_test_'], numpy.ndarray)
+    assert log['clock'].shape[1] == 1
+    assert log['clock'].shape[0] > 1
+    assert log['_test_'].shape[1] == 1
+    assert log['_test_'].shape[0] > 1
 
     controller.set_sink('_logger_', reset = True)
 
     log = controller.get_sink('_logger_', 'log')
     
-    assert isinstance(log, numpy.ndarray)
-    assert log.shape == (0,2)
+    assert isinstance(log['clock'], numpy.ndarray)
+    assert isinstance(log['_test_'], numpy.ndarray)
+    assert log['clock'].shape == (0, 1)
+    assert log['_test_'].shape == (0, 1)
 
     controller.remove_sink('_logger_')
     assert '_logger_' not in controller.list_sinks()
@@ -217,11 +222,14 @@ def _test_basic(controller):
         
     log = controller.get_sink('_logger_', 'log')
     
-    assert isinstance(log, numpy.ndarray)
-    assert log.shape[0] > 1
-    assert log.shape[1] == 2
+    assert isinstance(log['_test_'], numpy.ndarray)
+    assert isinstance(log['_output_'], numpy.ndarray)
+    assert log['_test_'].shape[1] == 1
+    assert log['_test_'].shape[0] > 1
+    assert log['_test_'].shape[1] == 1
+    assert log['_test_'].shape[0] > 1
 
-    assert numpy.all(numpy.fabs(log[:,1]- 2 * log[:,0]) < 1e-6)
+    assert numpy.all(numpy.fabs(log['_output_']- 2 * log['_test_']) < 1e-6)
     
     # test reset
     signals = controller.list_signals()

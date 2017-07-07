@@ -29,7 +29,7 @@ def test_webserver():
         assert result == answer
         
         # check index page
-        answer = b"<div><p>&lt;class 'pyctrl.Controller'&gt; with: 0 timer(s), 3 signal(s), 1 source(s), 0 filter(s), and 0 sink(s)</p><h2>timers</h2><ol></ol><h2>signals</h2><ol><li>clock</li><li>duty</li><li>is_running</li></ol><h2>sources</h2><ol><li>clock[Clock, disabled] &Gt; clock</li></ol><h2>filters</h2><ol></ol><h2>sinks</h2><ol></ol></div>"
+        answer = b"<div><p>&lt;class 'pyctrl.timer.Controller'&gt; with: 0 timer(s), 3 signal(s), 1 source(s), 0 filter(s), and 0 sink(s)</p><h2>timers</h2><ol></ol><h2>signals</h2><ol><li>clock</li><li>duty</li><li>is_running</li></ol><h2>sources</h2><ol><li>clock[TimerClock, disabled] &Gt; clock</li></ol><h2>filters</h2><ol></ol><h2>sinks</h2><ol></ol></div>"
 
         # check info page
         url = "http://127.0.0.1:5000/info"
@@ -148,6 +148,8 @@ def test_webserver():
         url = "http://127.0.0.1:5000/get/source/constant"
         output = subprocess.check_output(["curl", url]).decode("utf-8")
         result = JSONDecoder().decode(output)
+
+        print('output = {}'.format(output))
 
         from pyctrl.block import Constant
         assert result['constant'].get() == Constant(value = 3).get()
@@ -380,7 +382,23 @@ def test_webserver():
 
         assert result == answer
 
-        answer = b"<div><p>&lt;class 'pyctrl.Controller'&gt; with: 1 timer(s), 6 signal(s), 2 source(s), 1 filter(s), and 1 sink(s)</p><h2>timers</h2><ol><li>inp &Gt; gain[Gain, period = 1, repeat, enabled] &Gt; out</li></ol><h2>signals</h2><ol><li>clock</li><li>duty</li><li>inp</li><li>is_running</li><li>out</li><li>signal</li></ol><h2>sources</h2><ol><li>clock[Clock, disabled] &Gt; clock</li><li>constant[Constant, enabled] &Gt; signal</li></ol><h2>filters</h2><ol><li>inp &Gt; gain[Gain, enabled] &Gt; out</li></ol><h2>sinks</h2><ol><li>clock, is_running &Gt; printer[Printer, enabled]</li></ol></div>"
+        answer = b"<div><p>&lt;class 'pyctrl.timer.Controller'&gt; with: 1 timer(s), 6 signal(s), 2 source(s), 1 filter(s), and 1 sink(s)</p><h2>timers</h2><ol><li>inp &Gt; gain[Gain, period = 1, repeat, enabled] &Gt; out</li></ol><h2>signals</h2><ol><li>clock</li><li>duty</li><li>inp</li><li>is_running</li><li>out</li><li>signal</li></ol><h2>sources</h2><ol><li>clock[TimerClock, disabled] &Gt; clock</li><li>constant[Constant, enabled] &Gt; signal</li></ol><h2>filters</h2><ol><li>inp &Gt; gain[Gain, enabled] &Gt; out</li></ol><h2>sinks</h2><ol><li>clock, is_running &Gt; printer[Printer, enabled]</li></ol></div>"
+        
+        # check info page
+        url = "http://127.0.0.1:5000/info"
+        output = subprocess.check_output(["curl", url])
+
+        assert output == answer
+        
+        # reset controller
+        url = "http://127.0.0.1:5000/set/controller/pyctrl/Controller"
+        output = subprocess.check_output(["curl", url]).decode("utf-8")
+        result = JSONDecoder().decode(output)
+        answer = {'status': 'success'}
+        
+        assert result == answer
+
+        answer = b"<div><p>&lt;class 'pyctrl.Controller'&gt; with: 0 timer(s), 3 signal(s), 1 source(s), 0 filter(s), and 0 sink(s)</p><h2>timers</h2><ol></ol><h2>signals</h2><ol><li>clock</li><li>duty</li><li>is_running</li></ol><h2>sources</h2><ol><li>clock[Clock, disabled] &Gt; clock</li></ol><h2>filters</h2><ol></ol><h2>sinks</h2><ol></ol></div>"
         
         # check info page
         url = "http://127.0.0.1:5000/info"

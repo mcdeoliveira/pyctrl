@@ -186,11 +186,9 @@ def identify_motor(motor, encoder, T = 2):
     print('>> test time = {}'.format(T))
      
     log = robut.get_sink('logger', 'log')
-    tind = logger_signals.index('clock')
-    eind = logger_signals.index(encoder)
 
-    t = log[:,tind]
-    position = log[:,eind]
+    t = log['clock']
+    position = log[encoder]
     velocity = numpy.zeros(t.shape, float)
     velocity[1:] = (position[1:]-position[:-1])/(t[1:]-t[:-1])
         

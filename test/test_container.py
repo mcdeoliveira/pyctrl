@@ -61,7 +61,7 @@ def test_container():
     assert '_logger_' in container.list_sinks()
     assert '_test_' in container.list_signals()
 
-    assert container.get_sink('_logger_') == {'current': 0, 'auto_reset': False, 'page': 0, 'enabled': True}
+    assert container.get_sink('_logger_') == {'current': 0, 'auto_reset': False, 'page': 0, 'enabled': True, 'labels': ['_test_'], 'index': None}
 
     assert container.get_sink('_logger_', 'current', 'auto_reset') == {'current': 0, 'auto_reset': False}
     
@@ -83,8 +83,8 @@ def test_container():
     container.set_sink('_logger_', reset = True)
 
     log = container.get_sink('_logger_', 'log')
-    assert isinstance(log, numpy.ndarray)
-    assert log.shape == (0, 0)
+    assert isinstance(log['clock'], numpy.ndarray)
+    assert log['clock'].shape == (0,1)
 
     with pytest.raises(block.BlockException):
         container.set_sink('_logger_', _reset = True)
@@ -97,14 +97,13 @@ def test_container():
     log = container.get_sink('_logger_', 'log')
 
     #print(log)
-    assert isinstance(log, numpy.ndarray)
-    assert log.shape[0] > 1
-    assert log.shape[1] == 1
+    assert isinstance(log['clock'], numpy.ndarray)
+    assert log['clock'].shape == (2,1)
 
     container.set_sink('_logger_', reset = True)
     log = container.get_sink('_logger_', 'log')
-    assert isinstance(log, numpy.ndarray)
-    assert log.shape == (0,1)
+    assert isinstance(log['clock'], numpy.ndarray)
+    assert log['clock'].shape == (0,1)
 
     container.remove_sink('_logger_')
     assert '_logger_' not in container.list_sinks()
@@ -120,14 +119,17 @@ def test_container():
     container.set_enabled(False)
 
     log = container.get_sink('_logger_', 'log')
-    assert isinstance(log, numpy.ndarray)
-    assert log.shape[0] > 1
-    assert log.shape[1] == 2
+    assert isinstance(log['clock'], numpy.ndarray)
+    assert isinstance(log['_test_'], numpy.ndarray)
+    assert log['clock'].shape == (2,1)
+    assert log['_test_'].shape == (2,1)
 
     container.set_sink('_logger_', reset = True)
     log = container.get_sink('_logger_', 'log')
-    assert isinstance(log, numpy.ndarray)
-    assert log.shape == (0,2)
+    assert isinstance(log['clock'], numpy.ndarray)
+    assert isinstance(log['_test_'], numpy.ndarray)
+    assert log['clock'].shape == (0,1)
+    assert log['_test_'].shape == (0,1)
 
     container.remove_sink('_logger_')
     assert '_logger_' not in container.list_sinks()
@@ -198,11 +200,12 @@ def test_container():
     container.set_enabled(False)
 
     log = container.get_sink('_logger_', 'log')
-    assert isinstance(log, numpy.ndarray)
-    assert log.shape[0] > 1
-    assert log.shape[1] == 2
+    assert isinstance(log['_test_'], numpy.ndarray)
+    assert isinstance(log['_output_'], numpy.ndarray)
+    assert log['_test_'].shape == (2,1)
+    assert log['_output_'].shape == (2,1)
 
-    assert numpy.all(numpy.fabs(log[:,1] / log[:,0] - 2) < 1e-6)
+    assert numpy.all(numpy.fabs(log['_output_'] - 2 * log['_test_']) < 1e-6)
 
     # test reset
     signals = container.list_signals()

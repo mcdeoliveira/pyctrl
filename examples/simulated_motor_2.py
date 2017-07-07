@@ -96,11 +96,6 @@ def main():
 
     # read logger
     data = simotor.get_sink('logger', 'log')
-    clock = data[:,0]
-    pwm = data[:,1]
-    encoder = data[:,2]
-    speed = data[:,3]
-    fspeed = data[:,4]
     
     try:
 
@@ -128,7 +123,7 @@ def main():
     # plot pwm
     ax1 = plt.gca()
     
-    ax1.plot(clock, pwm,'g', label='pwm')
+    ax1.plot(data['clock'], data['pwm'],'g', label='pwm')
     ax1.set_ylabel('pwm (%)')
     ax1.set_ylim((-60,120))
     ax1.grid()
@@ -137,8 +132,8 @@ def main():
     # plot velocity
     ax2 = plt.twinx()
 
-    ax2.plot(clock, speed,'b', label='speed')
-    ax2.plot(clock, fspeed, 'r', label='fspeed')
+    ax2.plot(data['clock'], data['speed'],'b', label='speed')
+    ax2.plot(data['clock'], data['fspeed'], 'r', label='fspeed')
     ax2.set_ylabel('speed (Hz)')
     ax2.set_ylim((-6,12))
     ax2.set_xlim(0,6)
