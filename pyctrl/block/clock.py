@@ -214,16 +214,33 @@ class TimerClock(Clock):
         # Acquire lock
         self.condition.acquire()
         
-        # print('> TICK')
-        
         # Got a tick
-        self.time = perf_counter()
+        time = perf_counter()
+
+        #print('> TICK: {}, {}'.format(time, self))
+
+        dwell = time - self.time
+        if (dwell < 0.9 * self.period):
+
+            # need more time
+            #print('> MORE TIME')
+
+            # Setup new timer
+            self.timer = Timer(self.period - dwell, self.tick)
+            self.timer.start()
+
+            # Release lock
+            self.condition.release()
+            
+            # and return
+            return
+        
+        # Close to period
+        self.time = time
 
         # Add to count
         self.count += 1
-
-        # print('> tick {}'.format(self.time))
-
+        
         # Notify lock
         self.condition.notify_all()
 
@@ -239,13 +256,13 @@ class TimerClock(Clock):
             # Acquire condition
             self.condition.acquire()
 
-            # print('> WILL TICK')
-
+            #print('> WILL TICK')
+            
             # Setup timer
             self.timer = Timer(self.period, self.tick)
             self.timer.start()
 
-            # print('> WAITING')
+            #print('> WAITING')
             
             # Wait 
             self.condition.wait()

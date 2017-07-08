@@ -40,8 +40,16 @@
         <div class="graph"></div>
 
         <script src="http://d3js.org/d3.v3.min.js"></script>
+
+	<script
+	    src="https://code.jquery.com/jquery-3.2.1.min.js"
+	    integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+	    crossorigin="anonymous"></script>
 	
         <script>
+
+	 // Initialize scope
+	 
          var limit = 60 * 1,
              duration = 750,
              now = new Date(Date.now() - duration)
@@ -73,6 +81,9 @@
              }
          }
 
+
+
+	 
          var x = d3.time.scale()
 		   .domain([now - (limit - 2), now - duration])
 		   .range([0, width])
@@ -110,6 +121,98 @@
 			       .style('stroke', group.color)
          }
 
+	 // start controller
+	 start = function() {
+	     $.get("http://127.0.0.1:5000/start")
+	      .done(function() {
+		  console.log("Controller started.");
+	      })
+	      .fail(function() {
+		  alert("Could not start controller!");
+	      });
+	 };
+
+	 // get_data
+	 var data_series = {}
+	 get_data = function() {
+	     $.get("http://127.0.0.1:5000/get/sink/_scope",
+		   {
+		       "keys": JSON.stringify("log")
+		   },
+		   function(data) {
+		       
+		       if (data.status == "error") {
+			   console.log("Could not get data. Message = " + data.message);
+			   return
+		       }
+
+		       console.log(data);
+		       
+		       // update data
+		       for (var name in data.log) {
+			   var group = data.log[name].object;
+			   console.log("length[" + name + "] = " + group.length);
+			   if (!data_series.hasOwnProperty(name)) {
+
+			       // add name to series
+			       data_series[name] = {
+				   value: 0,
+				   color: 'blue',
+				   data: d3.range(limit).map(function() {
+				       return 0
+				   })
+			       }
+			       
+			   }
+			   
+		       }
+
+		       // update graph
+		       console.log(data_series);
+		       
+		   })
+	      .done(function() {
+		  console.log("Got data.");
+	      })
+	      .fail(function() {
+		  alert("Could not get data from controller!");
+	      });
+	 };
+	 
+	 // ready?
+	 $(document).ready(function(){
+
+	     console.log("Installing logger...");
+	     
+	     var jqxhr = $.get("http://127.0.0.1:5000/add/sink/_scope/pyctrl.block/Logger",
+			       {
+				   "inputs":
+				   JSON.stringify(["clock",
+						   "is_running"]),
+				   "kwargs":
+				   JSON.stringify({"auto_reset": true})
+			       },
+			       function(data) {
+				   if (data.status != "success") {
+				       alert("Could not install logger. Message = " + data.message);
+				       return
+				   }
+
+				   // start controller
+				   console.log("Starting controller...");
+				   start()
+				   
+			       })
+			  .done(function() {
+			      console.log("Logger succesfully installed.");
+			  })
+			  .fail(function() {
+			      alert("Could not install logger!");
+			  });
+	     
+	 });
+
+
 	 function add_point(data) {
 
              // Add new values
@@ -145,6 +248,10 @@
 	 
          function tick() {
 
+	     // retrieve values
+	     console.log("Getting data...");
+	     get_data();
+	     
 	     now = new Date()
 	     var data = {}; 
 

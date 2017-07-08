@@ -982,13 +982,14 @@ class Logger(Sink, Block):
                                     self.data[:self.current,:]))
 
         # reset after read?
+        index = self.index
         if self.auto_reset:
             self.reset()
 
         # labels?
         if self.labels:
-            if self.index:
-                retval = {l: retval[:,self.index[i]:self.index[i+1]]
+            if index:
+                retval = {l: retval[:,index[i]:index[i+1]]
                           for (i,l) in enumerate(self.labels)}
             else:
                 retval = {l: numpy.empty((0,1))

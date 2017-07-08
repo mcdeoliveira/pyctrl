@@ -35,12 +35,11 @@ def decode_kwargs(f):
     
     @wraps(f)
     def wrapper(*args, **kwargs):
-        # print('request.args = {}'.format(request.args.get('keys','')))
         try:
             kwargs.update({k: decoder.decode(v) for k,v in request.args.items()})
         except:
             raise Exception("Arguments '{}' are not json compatible".format(request.args))
-        # print('kwargs = {}'.format(kwargs))
+        print('>>> kwargs = {}'.format(kwargs))
         return f(*args, **kwargs)
 
     return wrapper
@@ -210,7 +209,7 @@ class Server(Flask):
         keys = kwargs.get('keys', '')
         if keys and not isinstance(keys, (list,tuple)):
             keys = [keys]
-        # print('keys = {}'.format(keys))
+        print('keys = {}'.format(keys))
                 
         # get container
         (container,label) = self.controller.resolve_label(label)

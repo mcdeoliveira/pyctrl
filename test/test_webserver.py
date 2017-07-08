@@ -5,6 +5,7 @@ def test_webserver():
 
     import subprocess
     import time
+    import numpy
     from pyctrl.util.json import JSONDecoder, JSONEncoder
         
     if start_server:
@@ -148,8 +149,6 @@ def test_webserver():
         url = "http://127.0.0.1:5000/get/source/constant"
         output = subprocess.check_output(["curl", url]).decode("utf-8")
         result = JSONDecoder().decode(output)
-
-        print('output = {}'.format(output))
 
         from pyctrl.block import Constant
         assert result['constant'].get() == Constant(value = 3).get()
@@ -405,6 +404,162 @@ def test_webserver():
         output = subprocess.check_output(["curl", url])
 
         assert output == answer
+        
+        # reset controller
+        url = "http://127.0.0.1:5000/set/controller/pyctrl.timer/Controller?kwargs=\{\"period\":1\}"
+        output = subprocess.check_output(["curl", url]).decode("utf-8")
+        result = JSONDecoder().decode(output)
+        answer = {'status': 'success'}
+        
+        assert result == answer
+
+        # get attribute/timer
+        url = r'"http://127.0.0.1:5000/get/source/clock?keys=\"period\""'
+        output = subprocess.check_output('curl ' + url, shell=True).decode("utf-8")
+        result = JSONDecoder().decode(output)
+        answer = {'period': 1}
+        
+        assert result == answer
+
+        # add logger
+        url = r'"http://127.0.0.1:5000/add/sink/logger/pyctrl.block/Logger?inputs=\[\"clock\",\"is_running\"\]"'
+        output = subprocess.check_output('curl ' + url, shell=True).decode("utf-8")
+        result = JSONDecoder().decode(output)
+        answer = {'status': 'success'}
+
+        assert result == answer
+       
+        # start
+        url = "http://127.0.0.1:5000/start"
+        output = subprocess.check_output(["curl", url]).decode("utf-8")
+        result = JSONDecoder().decode(output)
+        answer = {'status': 'success'}
+        
+        assert result == answer
+
+        time.sleep(3)
+        
+        # stop
+        url = "http://127.0.0.1:5000/stop"
+        output = subprocess.check_output(["curl", url]).decode("utf-8")
+        result = JSONDecoder().decode(output)
+        answer = {'status': 'success'}
+        
+        assert result == answer
+
+        # get log
+        url = r'"http://127.0.0.1:5000/get/sink/logger?keys=\"log\""'
+        output = subprocess.check_output('curl ' + url, shell=True).decode("utf-8")
+        result = JSONDecoder().decode(output)['log']
+
+        assert isinstance(result['clock'], numpy.ndarray)
+        assert isinstance(result['is_running'], numpy.ndarray)
+        assert result['is_running'].shape == result['clock'].shape
+        assert result['clock'].shape[0] >= 3
+        assert result['clock'].shape[1] == 1
+        assert result['clock'][-1,0] - result['clock'][0,0] < 4
+        
+        # start
+        url = "http://127.0.0.1:5000/start"
+        output = subprocess.check_output(["curl", url]).decode("utf-8")
+        result = JSONDecoder().decode(output)
+        answer = {'status': 'success'}
+        
+        assert result == answer
+
+        time.sleep(3)
+        
+        # stop
+        url = "http://127.0.0.1:5000/stop"
+        output = subprocess.check_output(["curl", url]).decode("utf-8")
+        result = JSONDecoder().decode(output)
+        answer = {'status': 'success'}
+        
+        assert result == answer
+        
+        # get log
+        url = r'"http://127.0.0.1:5000/get/sink/logger?keys=\"log\""'
+        output = subprocess.check_output('curl ' + url, shell=True).decode("utf-8")
+        result = JSONDecoder().decode(output)['log']
+
+        assert isinstance(result['clock'], numpy.ndarray)
+        assert isinstance(result['is_running'], numpy.ndarray)
+        assert result['is_running'].shape == result['clock'].shape
+        assert result['clock'].shape[0] > 6
+        assert result['clock'].shape[1] == 1
+        assert result['clock'][-1,0] - result['clock'][0,0] > 6
+        
+        # add logger with auto_reset
+        url = r'"http://127.0.0.1:5000/add/sink/logger/pyctrl.block/Logger?inputs=\[\"clock\",\"is_running\"\]&kwargs=\{\"auto_reset\":true\}"'
+        output = subprocess.check_output('curl ' + url, shell=True).decode("utf-8")
+        result = JSONDecoder().decode(output)
+        answer = {'status': 'success'}
+
+        assert result == answer
+       
+        # start
+        url = "http://127.0.0.1:5000/start"
+        output = subprocess.check_output(["curl", url]).decode("utf-8")
+        result = JSONDecoder().decode(output)
+        answer = {'status': 'success'}
+        
+        assert result == answer
+
+        time.sleep(3)
+        
+        # stop
+        url = "http://127.0.0.1:5000/stop"
+        output = subprocess.check_output(["curl", url]).decode("utf-8")
+        result = JSONDecoder().decode(output)
+        answer = {'status': 'success'}
+        
+        assert result == answer
+
+        # get log
+        url = r'"http://127.0.0.1:5000/get/sink/logger?keys=\"log\""'
+        output = subprocess.check_output('curl ' + url, shell=True).decode("utf-8")
+        result = JSONDecoder().decode(output)['log']
+
+        print('log = {}'.format(result))
+        
+        assert isinstance(result['clock'], numpy.ndarray)
+        assert isinstance(result['is_running'], numpy.ndarray)
+        assert result['is_running'].shape == result['clock'].shape
+        assert result['clock'].shape[0] >= 3
+        assert result['clock'].shape[1] == 1
+        assert result['clock'][-1,0] - result['clock'][0,0] < 4
+        
+        # start
+        url = "http://127.0.0.1:5000/start"
+        output = subprocess.check_output(["curl", url]).decode("utf-8")
+        result = JSONDecoder().decode(output)
+        answer = {'status': 'success'}
+        
+        assert result == answer
+
+        time.sleep(3)
+        
+        # stop
+        url = "http://127.0.0.1:5000/stop"
+        output = subprocess.check_output(["curl", url]).decode("utf-8")
+        result = JSONDecoder().decode(output)
+        answer = {'status': 'success'}
+        
+        assert result == answer
+        
+        # get log
+        url = r'"http://127.0.0.1:5000/get/sink/logger?keys=\"log\""'
+        output = subprocess.check_output('curl ' + url, shell=True).decode("utf-8")
+        result = JSONDecoder().decode(output)['log']
+
+        print('log = {}'.format(result))
+        
+        assert isinstance(result['clock'], numpy.ndarray)
+        assert isinstance(result['is_running'], numpy.ndarray)
+        assert result['is_running'].shape == result['clock'].shape
+        assert result['clock'].shape[0] >= 3
+        assert result['clock'].shape[1] == 1
+        assert result['clock'][-1,0] - result['clock'][0,0] < 4
         
     except Exception as e:
         
