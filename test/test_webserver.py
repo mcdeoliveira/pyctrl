@@ -6,7 +6,7 @@ def test_webserver():
     import subprocess
     import time
     import numpy
-    from pyctrl.util.json import JSONDecoder, JSONEncoder
+    from pyctrl.flask.server import JSONDecoder, JSONEncoder
         
     if start_server:
         
@@ -14,7 +14,7 @@ def test_webserver():
         print('> Starting server')
 
         server = subprocess.Popen(["python3",
-                                   "pyctrl/webserver.py"],
+                                   "pyctrl/flask/server.py"],
                                   stdout = subprocess.PIPE)
         
         time.sleep(2)
