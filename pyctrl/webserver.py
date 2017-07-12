@@ -397,7 +397,7 @@ if __name__ == "__main__":
     app = Server(__name__)
 
     # initialize controller
-    app.set_controller(controller = Controller(period = 1))
+    app.set_controller(controller = Controller(period = .01))
 
     # run app
     app.run(debug = True)

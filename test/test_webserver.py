@@ -17,7 +17,7 @@ def test_webserver():
                                    "pyctrl/webserver.py"],
                                   stdout = subprocess.PIPE)
         
-        time.sleep(1)
+        time.sleep(2)
 
     try:
 

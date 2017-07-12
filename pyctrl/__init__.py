@@ -170,6 +170,11 @@ class Controller(Container):
         Start Controller loop.
         """
 
+        # stop first if running
+        if self.is_running:
+            warnings.warn('Controller is already running...')
+            return
+        
         # Start thread
         self.thread = Thread(target = self.run)
         self.thread.start()

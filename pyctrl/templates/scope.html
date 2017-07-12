@@ -1,270 +1,143 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="utf-8">
+<meta charset="utf-8">
+<style>
 
-        <style>
-         body {
-             font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-         }
+ .axis--x path {
+     display: none;
+ }
 
-         .graph .axis {
-             stroke-width: 1;
-         }
+ .plot_line {
+     fill: none;
+     stroke: steelblue;
+     stroke-width: 1.5px;
+ }
 
-         .graph .axis .tick line {
-             stroke: black;
-         }
+</style>
+<svg width="800" height="600"></svg>
+<script src="http://d3js.org/d3.v4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+<script
+    src="https://code.jquery.com/jquery-3.2.1.min.js"
+    integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+    crossorigin="anonymous"></script>
 
-         .graph .axis .tick text {
-             fill: black;
-             font-size: 0.7em;
-         }
+<script src="{{ url_for('static', filename='js/plot.js') }}"></script>
 
-         .graph .axis .domain {
-             fill: none;
-             stroke: black;
-         }
+<script>
 
-         .graph .group {
-             fill: none;
-             stroke: black;
-             stroke-width: 1.5;
-         }
-        </style>
-    </head>
-    <body>
+ var signals = {{ signals|tojson }};
 
-	<!-- inspired by: http://bl.ocks.org/simenbrekken/6634070 -->
-	
-        <div class="graph"></div>
+ // get_data
+ var plot = {};
+ function get_data(fun, interval) {
+     $.get("http://127.0.0.1:5000/get/sink/_scope",
+	   {
+	       "keys": JSON.stringify("log")
+	   },
+	   function(data) {
+	       
+	       if (data.status == "error") {
+		   console.log("Could not get data. Message = " + data.message);
+		   return
+	       }
 
-        <script src="http://d3js.org/d3.v3.min.js"></script>
+	       // flatten data
+	       var points = _.pluck(data.log, "object");
+	       points = _.map(points, function(e) {
+		   return _.flatten(e);
+	       });
+	       data = _.object(Object.keys(data.log), points);
+	       //console.log(data);
 
-	<script
-	    src="https://code.jquery.com/jquery-3.2.1.min.js"
-	    integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-	    crossorigin="anonymous"></script>
-	
-        <script>
-
-	 // Initialize scope
-	 
-         var limit = 60 * 1,
-             duration = 750,
-             now = new Date(Date.now() - duration)
-
-         var width = 500,
-             height = 200
-
-         var groups = {
-             current: {
-                 value: 0,
-                 color: 'orange',
-                 data: d3.range(limit).map(function() {
-                     return 0
-                 })
-             },
-             target: {
-                 value: 0,
-                 color: 'green',
-                 data: d3.range(limit).map(function() {
-                     return 0
-                 })
-             },
-             output: {
-                 value: 0,
-                 color: 'grey',
-                 data: d3.range(limit).map(function() {
-                     return 0
-                 })
-             }
-         }
-
-
-
-	 
-         var x = d3.time.scale()
-		   .domain([now - (limit - 2), now - duration])
-		   .range([0, width])
-
-         var y = d3.scale.linear()
-		   .domain([0, 100])
-		   .range([height, 0])
-
-         var line = d3.svg.line()
-		      .interpolate('basis')
-		      .x(function(d, i) {
-			  return x(now - (limit - 1 - i) * duration)
-		      })
-		      .y(function(d) {
-			  return y(d)
-		      })
-
-         var svg = d3.select('.graph').append('svg')
-		     .attr('class', 'chart')
-		     .attr('width', width)
-		     .attr('height', height + 50)
-
-         var axis = svg.append('g')
-		       .attr('class', 'x axis')
-		       .attr('transform', 'translate(0,' + height + ')')
-		       .call(x.axis = d3.svg.axis().scale(x).orient('bottom'))
-
-         var paths = svg.append('g')
-
-         for (var name in groups) {
-             var group = groups[name]
-             group.path = paths.append('path')
-			       .data([group.data])
-			       .attr('class', name + ' group')
-			       .style('stroke', group.color)
-         }
-
-	 // start controller
-	 start = function() {
-	     $.get("http://127.0.0.1:5000/start")
-	      .done(function() {
-		  console.log("Controller started.");
-	      })
-	      .fail(function() {
-		  alert("Could not start controller!");
-	      });
-	 };
-
-	 // get_data
-	 var data_series = {}
-	 get_data = function() {
-	     $.get("http://127.0.0.1:5000/get/sink/_scope",
-		   {
-		       "keys": JSON.stringify("log")
-		   },
-		   function(data) {
-		       
-		       if (data.status == "error") {
-			   console.log("Could not get data. Message = " + data.message);
-			   return
-		       }
-
-		       console.log(data);
-		       
-		       // update data
-		       for (var name in data.log) {
-			   var group = data.log[name].object;
-			   console.log("length[" + name + "] = " + group.length);
-			   if (!data_series.hasOwnProperty(name)) {
-
-			       // add name to series
-			       data_series[name] = {
-				   value: 0,
-				   color: 'blue',
-				   data: d3.range(limit).map(function() {
-				       return 0
-				   })
-			       }
-			       
-			   }
-			   
-		       }
-
-		       // update graph
-		       console.log(data_series);
-		       
-		   })
-	      .done(function() {
-		  console.log("Got data.");
-	      })
-	      .fail(function() {
-		  alert("Could not get data from controller!");
-	      });
-	 };
-	 
-	 // ready?
-	 $(document).ready(function(){
-
-	     console.log("Installing logger...");
-	     
-	     var jqxhr = $.get("http://127.0.0.1:5000/add/sink/_scope/pyctrl.block/Logger",
-			       {
-				   "inputs":
-				   JSON.stringify(["clock",
-						   "is_running"]),
-				   "kwargs":
-				   JSON.stringify({"auto_reset": true})
-			       },
-			       function(data) {
-				   if (data.status != "success") {
-				       alert("Could not install logger. Message = " + data.message);
-				       return
-				   }
-
-				   // start controller
-				   console.log("Starting controller...");
-				   start()
-				   
-			       })
-			  .done(function() {
-			      console.log("Logger succesfully installed.");
+	       var len = _.chain(data)
+			  .mapObject(function(val) {
+			      return val.length;
 			  })
-			  .fail(function() {
-			      alert("Could not install logger!");
-			  });
-	     
-	 });
+			  .values()
+			  .first()
+			  .value();
+	       //console.log("length = ", len);
 
+	       var dates = _.flatten(data.clock);
+	       delete data.clock;
+	       //console.log(dates);
+	       
+	       var series = _.chain(data)
+			     .mapObject(function(values, i) {
+				 return _.map(values,
+					      function(v, i) {
+						  return {date: dates[i],
+							  value: v};
+					      });
+			     })
+			     .map(function(values, i) {
+				 return {
+				     id: i,
+				     values: values
+				 };
+			     })
+			     .value();
+	       
+	       //console.log(series);
+	       
+	       // call fun
+	       fun(plot, dates, series, interval);
+	       
+	   })
+      .done(function() {
+	  console.log("Got data.");
+      })
+      .fail(function() {
+	  alert("Could not get data from controller!");
+      });
+ };
+ 
+ // start controller
+ function start() {
+     $.get("http://127.0.0.1:5000/start")
+      .done(function() {
+	  console.log("Controller started.");
 
-	 function add_point(data) {
+	  // will get data every 5 seconds
+	  console.log("Retrieving initial data...");
+	  setTimeout(function() { get_data(create_plot, 1000); }, 1000);
 
-             // Add new values
-             for (var name in groups) {
-                 var group = groups[name]
-                 group.data.push(data[name])
-                 group.path.attr('d', line)
-             }
+      })
+      .fail(function() {
+	  alert("Could not start controller!");
+      });
+ };
 
-             // Shift domain
-             x.domain([now - (limit - 2) * duration, now - duration])
+ // ready?
+ $(document).ready(function(){
 
-             // Slide x-axis left
-             axis.transition()
-              .duration(duration)
-              .ease('linear')
-              .call(x.axis)
+     console.log("Installing logger...");
+     
+     var jqxhr = $.get("http://127.0.0.1:5000/add/sink/_scope/pyctrl.block/Logger",
+		       {
+			   "inputs":
+			   JSON.stringify(signals),
+			   "kwargs":
+			   JSON.stringify({"auto_reset": true})
+		       },
+		       function(data) {
+			   if (data.status != "success") {
+			       alert("Could not install logger. Message = " + data.message);
+			       return
+			   }
+		       })
+		  .done(function() {
+		      console.log("Logger succesfully installed.");
 
-             // Slide paths left
-             paths.attr('transform', null)
-              .transition()
-              .duration(duration)
-              .ease('linear')
-              .attr('transform', 'translate(' + x(now - (limit - 1) * duration) + ')')
-              .each('end', tick)
-
-             // Remove oldest data point from each group
-             for (var name in groups) {
-                 var group = groups[name]
-                 group.data.shift()
-             }
-	 }
-	 
-         function tick() {
-
-	     // retrieve values
-	     console.log("Getting data...");
-	     get_data();
-	     
-	     now = new Date()
-	     var data = {}; 
-
-             // Add new values
-             for (var name in groups) {
-		 data[name] = 20 + Math.random() * 100
-             }
-
-	     add_point(data);
-
-         }
-
-         tick()
-        </script>
-    </body>
-</html>
+		      // start controller
+		      console.log("Starting controller...");
+		      start()
+		      
+		  })
+		  .fail(function() {
+		      alert("Could not install logger!");
+		  });
+     
+ });
+ 
+</script>
