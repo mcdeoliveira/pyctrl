@@ -1,37 +1,110 @@
 <!doctype html>
-<title>pyctrl webserver</title>
-{% if class_name %}
-<h1>{{ class_name }}</h1>
-<h2>Signals:</h2>
-<ol>
-  {% for s in signals %}
-  <li><a href="{{ baseurl }}/get/signal/{{ s }}">{{ s }}</a></li>
-  {% endfor %}
-</ol>
-<h2>Sources:</h2>
-<ol>
-  {% for s in sources %}
-  <li><a href="{{ baseurl }}/get/source/{{ s }}">{{ s }}</a></li>
-  {% endfor %}
-</ol>
-<h2>Filters:</h2>
-<ol>
-  {% for s in filters %}
-  <li><a href="{{ baseurl }}/get/filter/{{ s }}">{{ s }}</a></li>
-  {% endfor %}
-</ol>
-<h2>Sinks:</h2>
-<ol>
-  {% for s in sinks %}
-  <li><a href="{{ baseurl }}/get/sink/{{ s }}">{{ s }}</a></li>
-  {% endfor %}
-</ol>
-<h2>Timers:</h2>
-<ol>
-  {% for s in timers %}
-  <li><a href="{{ baseurl }}/get/timer/{{ s }}">{{ s }}</a></li>
-  {% endfor %}
-</ol>
-{% else %}
-<h1>No controller defined yet!</h1>
-{% endif %}
+
+<html lang="en">
+    <head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>pyctrl webserver</title>
+	<script
+	    src="https://code.jquery.com/jquery-3.2.1.min.js"
+	    integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+	    crossorigin="anonymous"></script>
+	<script
+	    src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+	    integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+	    crossorigin="anonymous"></script>
+	<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.min.css">
+	<script>
+
+	 function populate_block(obj, type, id) {
+	     // load into div
+	     obj.find("p").load('html/' + type + '/' + id);
+	     obj.css({'height': 'auto'});
+	 }
+	 
+	 $( function() {
+	     $(".accordion").accordion({
+		 collapsible: true,
+		 heightSyle: "fill",
+		 active : false,
+		 activate: function(event, ui){
+		     console.log(this);
+		     var obj = $(this).find('.ui-state-active');
+		     var id = obj.attr('id');
+		     var class_name = obj.attr('class').split(' ');
+		     console.log(id);
+		     console.log(class_name);
+		     var match = /(source|filter|sink|timer)/.exec(class_name);
+		     console.log(match);
+		     if (match == null) {
+			 console.log('ERROR');
+			 return
+		     } else {
+			 match = match[1];
+		     }
+		     // populate block
+		     var div = obj.next("div");
+		     console.log(div);
+		     populate_block(div, match, id);
+		 }
+	     });
+	     $(".accordion").accordion("option", "heightStyle", "fill");
+
+	 });
+	</script>
+    </head>
+    <body>
+
+	{% if class_name %}
+	<h1>{{ class_name }}</h1>
+	<h2>Signals:</h2>
+	<form action="/scope">
+	    <ol>
+		{% for s in signals %}
+		<li><input type="checkbox" name="signals" value="{{ '"' + s + '"'}}"><a href="{{ baseurl }}/get/signal/{{ s }}">{{ s }}</a></li>
+		{% endfor %}
+	    </ol>
+	    <input type="submit" value="Open Scope">
+	</form>
+	<h2>Sources:</h2>
+	<div class="accordion" id="source">
+	    {% for s in sources %}
+	    <h3 class="source" id="{{ s }}">{{ s }}</h3>
+	    <div class="source" id="{{ s }}" style="height: auto">
+		<p>Loading...</p>
+	    </div>
+	    {% endfor %}
+	</div>
+	<h2>Filters:</h2>
+	<div class="accordion" id="filter">
+	    {% for s in filters %}
+	    <h3 class="filter" id="{{ s }}">{{ s }}</h3>
+	    <div class="timer" id="{{ s }}" style="height: auto">
+		<p>Loading...</p>
+	    </div>
+	    {% endfor %}
+	</div>
+	</ol>
+	<h2>Sinks:</h2>
+	<div class="accordion" id="sink">
+	    {% for s in sinks %}
+	    <h3 class="sink" id="{{ s }}">{{ s }}</h3>
+	    <div class="timer" id="{{ s }}" style="height: auto">
+		<p>Loading...</p>
+	    </div>
+	    {% endfor %}
+	</div>
+	<h2>Timers:</h2>
+	<div class="accordion" id="timer">
+	    {% for s in timers %}
+	    <h3 class="timer" id="{{ s }}">{{ s }}</h3>
+	    <div class="timer" id="{{ s }}" style="height: auto">
+		<p>Loading...</p>
+	    </div>
+	    {% endfor %}
+	</div>
+	{% else %}
+	<h1>No controller defined yet!</h1>
+	{% endif %}
+
+    </body>

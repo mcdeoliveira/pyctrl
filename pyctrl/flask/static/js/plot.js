@@ -72,12 +72,23 @@ function create_plot(plot, time, points, interval) {
 
     // calculate domains
     var domain = d3.extent(plot.time);
-    console.log(domain);
+    // console.log(domain);
     domain[0] = Math.min(domain[0], domain[1] - plot.duration);
     domain[1] = domain[0] + plot.duration;
     plot.x.domain(domain);
 
-    plot.y.domain([0, 1]);
+    plot.y.domain([
+	d3.min(plot.points,
+	       function(c) {
+		   return d3.min(c.values,
+				 function(d) { return d.value; });
+	       }),
+	d3.max(plot.points,
+	       function(c) {
+		   return d3.max(c.values,
+				 function(d) { return d.value; });
+	       })
+    ]);
     
     plot.z.domain(points.map(function(c) { return c.id; }));
 
@@ -121,7 +132,7 @@ function create_plot(plot, time, points, interval) {
     	.attr("d", function(d) { return plot.line(d.values); })
     	.style("stroke", function(d) { return plot.z(d.id); });
 
-    console.log(plot);
+    // console.log(plot);
     
     // then update every 10 seconds
     console.log("Getting data loop started...");
@@ -131,7 +142,7 @@ function create_plot(plot, time, points, interval) {
 
 function update_plot(plot, time, points, interval) {
     
-    console.log("update_plot");
+    // console.log("update_plot");
     
     // add to lines
     var dx = time[time.length-1] - plot.time[plot.time.length-1];
@@ -195,68 +206,41 @@ function do_update_plot(plot, time, points, interval) {
     domain[1] = domain[0] + plot.duration;
     plot.x.domain(domain);
     
-    plot.y.domain([0, 1]);
+    plot.y.domain([
+	d3.min(plot.points,
+	       function(c) {
+		   return d3.min(c.values,
+				 function(d) { return d.value; });
+	       }),
+	d3.max(plot.points,
+	       function(c) {
+		   return d3.max(c.values,
+				 function(d) { return d.value; });
+	       })
+    ]);
 
     // console.log(plot.points);
     
     // Select the section we want to apply our changes to
     var svg = d3.select("svg");
 
-    var nnew = true;
-    if (nnew) {
-
-	// Make the changes
-	plot.lines
-	    .data(plot.points)
-	    .attr("d", function(d) { return plot.line(d.values); })
-	    // .attr("transform", "translate(" + plot.x(domain[0] + dx) + ")")
-	    // .transition()
-	    // .duration(0.96*interval)
-	    // .ease(d3.easeLinear)
-	    // .attr("transform", "translate(" + plot.x(domain[0]) + ")");
-	
-	svg.select(".axis--x") // change the x axis
-	    // .transition()
-	    // .duration(interval)
-	    // .ease(d3.easeLinear)
-            .call(plot.xAxis);
+    // Make the changes
+    plot.lines
+	.data(plot.points)
+	.attr("d", function(d) { return plot.line(d.values); });
     
-	svg.select(".axis--y") // change the y axis
-            .call(plot.yAxis);
-
-	plot.plot
-	    .attr("transform", "translate(" + plot.x(domain[0] + dx) + ")")
-	    .transition()
-	    .duration(0.95*interval)
-	    .ease(d3.easeLinear)
-	    .attr("transform", "translate(" + plot.x(domain[0]) + ")");
-	
-	
-    } else {
+    svg.select(".axis--x") // change the x axis
+        .call(plot.xAxis);
     
-	// Make the changes
-	plot.lines
-	    .data(plot.points)
-	    .attr("d", function(d) { return plot.line(d.values); })
-	    .attr("transform", "translate(" + plot.x(domain[0] + dx) + ")")
-	    .transition()
-	    .duration(interval)
-	    .ease(d3.easeLinear)
-	    .attr("transform", "translate(" + plot.x(domain[0]) + ")")
-	
-	svg.select(".axis--x") // change the x axis
-	    .transition()
-	    .duration(interval)
-	    .ease(d3.easeLinear)
-            .call(plot.xAxis);
-	
-	svg.select(".axis--y") // change the y axis
-	    .transition()
-	    .duration(interval)
-	    .ease(d3.easeLinear)
-            .call(plot.yAxis);
-	
-    }
+    svg.select(".axis--y") // change the y axis
+        .call(plot.yAxis);
+    
+    plot.plot
+	.attr("transform", "translate(" + plot.x(domain[0] + dx) + ")")
+	.transition()
+	.duration(0.95*interval)
+	.ease(d3.easeLinear)
+	.attr("transform", "translate(" + plot.x(domain[0]) + ")");
     
     // remove old values
     var ind = plot.time.findIndex(function(d) { return d >= domain[0]; } );

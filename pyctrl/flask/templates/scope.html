@@ -26,9 +26,12 @@
 <script>
 
  var signals = {{ signals|tojson }};
+ console.log("signals");
+ console.log(signals);
 
  // get_data
  var plot = {};
+ var last_date = -1;
  function get_data(fun, interval) {
      $.get("http://127.0.0.1:5000/get/sink/_scope",
 	   {
@@ -60,6 +63,7 @@
 
 	       var dates = _.flatten(data.clock);
 	       delete data.clock;
+	       last_date = dates[dates.length - 1];
 	       //console.log(dates);
 	       
 	       var series = _.chain(data)
@@ -78,6 +82,7 @@
 			     })
 			     .value();
 	       
+	       //console.log(dates);
 	       //console.log(series);
 	       
 	       // call fun
@@ -85,12 +90,43 @@
 	       
 	   })
       .done(function() {
-	  console.log("Got data.");
+	  console.log("Got data @" + last_date.toFixed(2) + "s.");
       })
       .fail(function() {
 	  alert("Could not get data from controller!");
       });
  };
+ 
+ $(window).on("beforeunload", function() {
+
+     var wait = false;
+     
+     $.get("http://127.0.0.1:5000/remove/sink/_scope",
+	   function(data) {
+	       
+	       if (data.status == "error") {
+		   console.log("Could not remove sink. Message = " + data.message);
+		   return
+	       }
+	       
+	   })
+      .done(function() {
+	  console.log("Logger successfully scope");
+	  wait = false;
+      })
+      .fail(function(error) {
+	  console.log(error);
+	  alert("Could not remove logger!" + error);
+	  wait = false;
+      });
+     
+     while (wait) {
+	 /* wait */
+     }
+     
+     return;
+     
+ });
  
  // start controller
  function start() {
@@ -112,6 +148,10 @@
  $(document).ready(function(){
 
      console.log("Installing logger...");
+
+     if (!('clock' in signals)) {
+	 signals.push('clock');
+     }
      
      var jqxhr = $.get("http://127.0.0.1:5000/add/sink/_scope/pyctrl.block/Logger",
 		       {

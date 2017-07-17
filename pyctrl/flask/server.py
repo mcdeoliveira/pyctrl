@@ -6,61 +6,8 @@ import pyctrl
 import warnings
 import importlib
 
-import flask.json as json
+from pyctrl.flask import JSONEncoder, JSONDecoder
 
-# json
-
-class JSONEncoder(json.JSONEncoder):
-    
-    def default(self, obj):
-        # Convert objects to a dictionary of their representation
-        d = { '__class__': obj.__class__.__name__, 
-              '__module__': type(obj).__module__ }
-        if isinstance(obj, pyctrl.Block):
-            d.update(obj.get())
-        elif d['__module__'] == 'numpy':
-            d.update({
-                '__class__': 'array',
-                'object': obj.tolist()
-            })
-        else:
-            d.update(obj.__dict__)
-        return d
-
-class JSONDecoder(json.JSONDecoder):
-    
-    def __init__(self):
-        json.JSONDecoder.__init__(self, object_hook=self.dict_to_object)
-
-    def dict_to_object(self, d):
-        if '__class__' in d:
-            class_name = d.pop('__class__')
-            module_name = d.pop('__module__')
-            kwargs = dict( (key, value)
-                           for key, value in d.items() )
-
-            #print('class_name = {}'.format(class_name))
-            #print('module_name = {}'.format(module_name))
-            #print('kwargs = {}'.format(kwargs))
-
-            try:
-                
-                # try to call constructor first
-                inst = getattr(importlib.import_module(module_name), 
-                               class_name)(**kwargs)
-
-            except pyctrl.block.BlockException:
-
-                # construct first then update
-                inst = getattr(importlib.import_module(module_name), 
-                               class_name)()
-                
-                inst.__dict__.update(kwargs)
-                
-        else:
-            inst = d
-        return inst
-    
 encoder = JSONEncoder(sort_keys = True, indent = 4)
 decoder = JSONDecoder()
 
@@ -84,16 +31,26 @@ def decode_value(f):
 
     return wrapper
 
+# decode_kwargs_aux
+def decode_kwargs_aux(e):
+    if len(e) == 1:
+        return decoder.decode(e[0])
+    elif len(e) > 1:
+        return [decoder.decode(v) for v in e]
+    else:
+        return None
+    
 # decode_kwargs
 def decode_kwargs(f):
     
     @wraps(f)
     def wrapper(*args, **kwargs):
         try:
-            kwargs.update({k: decoder.decode(v) for k,v in request.args.items()})
+            kwargs.update({k: decode_kwargs_aux(request.args.getlist(k))
+                           for k in request.args.keys()})
         except:
             raise Exception("Arguments '{}' are not json compatible".format(request.args))
-        print('>>> kwargs = {}'.format(kwargs))
+        #print('>>> kwargs = {}'.format(kwargs))
         return f(*args, **kwargs)
 
     return wrapper
@@ -177,6 +134,8 @@ class Server(Flask):
                          view_func = self.get_source)
         self.add_url_rule(self.base_url + '/set/source/<path:label>',
                          view_func = self.set_source)
+        self.add_url_rule(self.base_url + '/html/source/<path:label>',
+                         view_func = self.html_source)
         
         # filters
         self.add_url_rule(self.base_url + '/add/filter/<path:label>/<module_name>/<class_name>',
@@ -187,6 +146,8 @@ class Server(Flask):
                          view_func = self.get_filter)
         self.add_url_rule(self.base_url + '/set/filter/<path:label>',
                          view_func = self.set_filter)
+        self.add_url_rule(self.base_url + '/html/filter/<path:label>',
+                         view_func = self.html_filter)
 
         # sinks
         self.add_url_rule(self.base_url + '/add/sink/<path:label>/<module_name>/<class_name>',
@@ -197,6 +158,8 @@ class Server(Flask):
                          view_func = self.get_sink)
         self.add_url_rule(self.base_url + '/set/sink/<path:label>',
                          view_func = self.set_sink)
+        self.add_url_rule(self.base_url + '/html/sink/<path:label>',
+                         view_func = self.html_sink)
         
         # timers
         self.add_url_rule(self.base_url + '/add/timer/<path:label>/<module_name>/<class_name>',
@@ -207,6 +170,8 @@ class Server(Flask):
                          view_func = self.get_timer)
         self.add_url_rule(self.base_url + '/set/timer/<path:label>',
                          view_func = self.set_timer)
+        self.add_url_rule(self.base_url + '/html/timer/<path:label>',
+                         view_func = self.html_timer)
 
         
     def set_controller(self, **kwargs):
@@ -296,12 +261,21 @@ class Server(Flask):
     def info(self):
 
         return self.controller.html()
-        
-    def scope(self):
-        
+
+    @decode_kwargs
+    def scope(self, *args, **kwargs):
+
+        # retrieve signals
+        signals = kwargs.get('signals',
+                             sorted(self.controller.list_signals()))
+        if signals and not isinstance(signals, (tuple, list)):
+            signals = [signals]
+
+        print(">>> signals = '{}'".format(signals))
+            
         return render_template('scope.html',
                                baseurl = self.base_url,
-                               signals = sorted(self.controller.list_signals()))
+                               signals = list(set(signals)))
 
     @json_response
     @decode_kwargs
@@ -375,6 +349,12 @@ class Server(Flask):
     def set_source(self, *args, **kwargs):
         return self.controller.set_source(*args, **kwargs)
 
+    @decode_kwargs
+    def html_source(self, label, *args, **kwargs):
+        # get container
+        (container,label) = self.controller.resolve_label(label)
+        return self.controller.sources[label]['block'].html();
+    
     # filters
     @json_response
     @decode_kwargs
@@ -397,6 +377,12 @@ class Server(Flask):
     @decode_kwargs
     def set_filter(self, *args, **kwargs):
         return self.controller.set_filter(*args, **kwargs)
+    
+    @decode_kwargs
+    def html_filter(self, label, *args, **kwargs):
+        # get container
+        (container,label) = self.controller.resolve_label(label)
+        return self.controller.filters[label]['block'].html();
     
     # sinks
     @json_response
@@ -421,6 +407,12 @@ class Server(Flask):
     def set_sink(self, *args, **kwargs):
         return self.controller.set_sink(*args, **kwargs)
     
+    @decode_kwargs
+    def html_sink(self, label, *args, **kwargs):
+        # get container
+        (container,label) = self.controller.resolve_label(label)
+        return self.controller.sinks[label]['block'].html();
+    
     # timers
     @json_response
     @decode_kwargs
@@ -443,7 +435,13 @@ class Server(Flask):
     @decode_kwargs
     def set_timer(self, *args, **kwargs):
         return self.controller.set_timer(*args, **kwargs)
-    
+
+    @decode_kwargs
+    def html_timer(self, label, *args, **kwargs):
+        # get container
+        (container,label) = self.controller.resolve_label(label)
+        return self.controller.timers[label]['block'].html();
+
 if __name__ == "__main__":
 
     from pyctrl.timer import Controller

@@ -60,7 +60,7 @@ def test_sub_container():
     
     print(container.info('all'))
 
-    from pyctrl.util.json import JSONEncoder, JSONDecoder
+    from pyctrl.flask import JSONEncoder, JSONDecoder
 
     json1 = JSONEncoder(sort_keys = True, indent = 4).encode(container) 
 
@@ -198,7 +198,7 @@ def _test_mip_balance():
                    kwargs = {'value': 0},
                    enable = True)
     
-    from pyctrl.util.json import JSONEncoder, JSONDecoder
+    from pyctrl.flask import JSONEncoder, JSONDecoder
 
     json1 = JSONEncoder(sort_keys = True, indent = 4).encode(mip)
 

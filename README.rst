@@ -31,7 +31,7 @@ Just type
 
 ::
 
-    pip3 install pyctrl
+    sudo pip3 install pyctrl
 
 to download and install.
 

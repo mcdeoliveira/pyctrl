@@ -253,10 +253,11 @@ class Block:
         :raise: :py:class:`KeyError` if :py:attr:`key` is not defined
         """
 
-        result = '<ul>'
+        result = '<dl>'
         for (k,v) in self.get().items():
-            result += '<li>' + str(v) + '</li>'
-        result += '</ul>'
+            result += '<dt>' + str(k) + '</dt>'
+            result +=  '<dd>' + str(v) + '</dd>'
+        result += '</dl>'
 
         return result
         
