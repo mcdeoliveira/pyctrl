@@ -782,24 +782,20 @@ of the additional *sink*::
 
 A complete example can be found in :ref:`hello_filter_2.py`. Once the
 controller has run, you can then retrieve all generated data by
-reading from the *sink* :py:data:`logger`. Note that :py:data:`logger`
-was read by the controller loop since it is a *sink*. However, you can
-sometimes read from *sinks* or write to *sources* in order to retrieve
-or set data as in this case. For example::
+reading from the *sink* :py:data:`logger` using the method
+:py:meth:`pyctrl.block.Logger.get` to retrieve the property `log` as
+in::
 
     # retrieve data from logger
-    data = hello.read_sink('logger')
+    data = hello.get_sink('logger', 'log')
 
-retrieves the data stored in :py:data:`logger` and copy it to
-the numpy array :py:data:`data`. Data is stored by rows, with each
-column representing one of the signals used as inputs to the
-:py:class:`pyctrl.block.Logger`. In this case, the first column will
-contain the signal :py:data:`clock` and the second column will contain
-the signal :py:data:`pwm`. One can use standard numpy indexing
-to conveniently access the data::
+retrieves the data stored in :py:data:`logger` and copy it to the
+dictionary :py:data:`data`. Data is stored by row, with one key per
+signals used as inputs to the :py:class:`pyctrl.block.Logger`. One can
+conveniently access the data by using the signal label::
 
-    clock = data[:,0]
-    pwm = data[:,1]
+    clock = data['clock']
+    pwm = data['pwm']
 
 Since this is Python, you can now do whatever you please with the
 data. For example you can use `matplotlib <http://matplotlib.org>`_ to
@@ -963,10 +959,10 @@ Collecting and plotting the results
 After running the simulation you can read the data collected by the logger::
 
     # read logger
-    data = simotor.read_sink('logger')
-    clock = data[:,0]
-    pwm = data[:,1]
-    encoder = data[:,2]
+    data = simotor.get_sink('logger', 'log')
+    clock = data['clock']
+    pwm = data['pwm']
+    encoder = data['encoder']
 
 and plot the results using `matplotlib <http://matplotlib.org>`_::
   

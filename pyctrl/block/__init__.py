@@ -47,6 +47,10 @@ class BlockWarning(Warning):
 
 class Source:
 
+    """
+    Base class for all source blocks.
+    """
+    
     def __init__(self, **kwargs):
 
         super().__init__(**kwargs)
@@ -70,6 +74,10 @@ class Source:
 
 class Sink:
 
+    """
+    Base class for all sink blocks.
+    """
+    
     def __init__(self, **kwargs):
 
         super().__init__(**kwargs)
@@ -94,6 +102,10 @@ class Sink:
     
 class Filter:
 
+    """
+    Base class for all filter blocks.
+    """
+    
     def __init__(self, **kwargs):
 
         super().__init__(**kwargs)
@@ -889,6 +901,8 @@ class Logger(Sink, Block):
 
     :param int number_of_rows: number of stored rows (default 12000)
     :param int number_of_columns: number of columns (default 0)
+    :param list labels: list with labels
+    :param bool auto_reset: auto reset flag
     """
 
     def __init__(self,
@@ -921,6 +935,18 @@ class Logger(Sink, Block):
             self.labels = self.parent.sinks[label]['inputs']
         
     def get(self, *keys, exclude = ()):
+        """
+        Get properties of :py:class:`pyctrl.block.Logger`.
+
+        The special key `log` can be used to retrieve the current
+        stored entries. It calls the method
+        :py:meth:`pyctrl.block.Logger.get_log`.
+
+        :param keys: string or tuple of strings with property names
+        :param tuple exclude: tuple with keys never to be returned (Default ())
+        :raise: :py:class:`KeyError` if :py:attr:`key` is not defined
+
+        """
 
         has_log = False
         if 'log' in keys:
@@ -941,10 +967,9 @@ class Logger(Sink, Block):
         """
         Set properties of :py:class:`pyctrl.block.Logger`.
 
-        :param tuple exclude: attributes to exclude
-        :param int current: current index
-        :param int page: current page index
+        :param list labels: list with labels
         :param bool auto_reset: auto reset flag
+        :param tuple exclude: attributes to exclude
         :param kwargs kwargs: other keyword arguments
         :raise: `BlockException` if any of the :py:data:`kwargs` is left unprocessed
         """
@@ -973,7 +998,19 @@ class Logger(Sink, Block):
         return self.page * self.data.shape[0] + self.current
 
     def get_log(self):
+        """
+        Retrieve current entries of :py:class:`pyctrl.block.Logger`.
 
+        If property `labels` is set return entries as a dictionary
+        with keys from `labels`.
+
+        If property `labels` is `None` return entries in an array
+        where each column correspond to an input. Inputs which are
+        vectors are flattened.
+
+        :return: dictionary or numpy array with current entries.
+        """
+        
         # set return value
         if self.page == 0:
             retval = self.data[:self.current,:]

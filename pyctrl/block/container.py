@@ -494,7 +494,7 @@ class Container(block.Filter, block.Block):
 
     def set_signal(self, label, value):
         """
-        Set the value of signal.
+        Set the value of signal. Call method :py:meth:`pyctrl.block.Block.set`.
 
         :param str label: the signal label
         :param value: the value to be set
@@ -528,7 +528,7 @@ class Container(block.Filter, block.Block):
 
     def get_signals(self, *labels):
         """
-        Get the value of signals.
+        Get the values of signals.
 
         :param vargs labels: the signal labels
         :return: the signal values
@@ -644,7 +644,7 @@ class Container(block.Filter, block.Block):
 
     def set_source(self, label, **kwargs):
         """
-        Set source attributes.
+        Set source attributes. Call method :py:meth:`pyctrl.block.Block.set`.
 
         All attributes must be passed as key-value pairs and vary
         depending on the type of block.
@@ -676,7 +676,7 @@ class Container(block.Filter, block.Block):
 
     def get_source(self, label, *keys):
         """
-        Get attributes from source.
+        Get attributes from source. Call method :py:meth:`pyctrl.block.Block.get`.
 
         :param str label: the source label
         :param vargs keys: the keys of the attributes to get
@@ -696,7 +696,7 @@ class Container(block.Filter, block.Block):
 
     def read_source(self, label):
         """
-        Read from source. Call method `pyctrl.block.read()`.
+        Read from source. Call method :py:meth:`pyctrl.block.Block.read`.
         
         :param str label: the source label
         """
@@ -710,7 +710,7 @@ class Container(block.Filter, block.Block):
 
     # def write_source(self, label, *values):
     #     """
-    #     Write to source. Call method `pyctrl.block.write(*values)`.
+    #     Write to source. Call method :py:meth:`pyctrl.block.Block.write`.
         
     #     :param str label: the source label
     #     :param vargs values: the values to write to source
@@ -831,7 +831,7 @@ class Container(block.Filter, block.Block):
 
     def set_sink(self, label, **kwargs):
         """
-        Set sink attributes.
+        Set sink attributes. Call method :py:meth:`pyctrl.block.Block.set`.
 
         All attributes must be passed as key-value pairs and vary
         depending on the type of block.
@@ -863,7 +863,7 @@ class Container(block.Filter, block.Block):
 
     def get_sink(self, label, *keys):
         """
-        Get attributes from sink.
+        Get attributes from sink. Call method :py:meth:`pyctrl.block.Block.get`.
 
         :param str label: the sink label
         :param vargs keys: the keys of the attributes to get
@@ -892,9 +892,42 @@ class Container(block.Filter, block.Block):
             if v['block'] is value:
                 return k
 
+    def find_filter(self, value):
+        """
+        Return label if object value is a filter. Otherwise return None.
+
+        :return: the filter label
+        :rtype: str
+        """
+        for k,v in self.filters.items():
+            if v['block'] is value:
+                return k
+            
+    def find_source(self, value):
+        """
+        Return label if object value is a source. Otherwise return None.
+
+        :return: the source label
+        :rtype: str
+        """
+        for k,v in self.sources.items():
+            if v['block'] is value:
+                return k
+            
+    def find_timer(self, value):
+        """
+        Return label if object value is a timer. Otherwise return None.
+
+        :return: the timer label
+        :rtype: str
+        """
+        for k,v in self.timers.items():
+            if v['block'] is value:
+                return k
+            
     # def read_sink(self, label):
     #     """
-    #     Read from sink. Call method `pyctrl.block.read()`.
+    #     Read from sink. Call method :py:meth:`pyctrl.block.Block.read`.
         
     #     :param str label: the sink label
     #     """
@@ -908,7 +941,7 @@ class Container(block.Filter, block.Block):
 
     def write_sink(self, label, *values):
         """
-        Write to sink. Call method `pyctrl.block.write(*values)`.
+        Write to sink. Call method :py:meth:`pyctrl.block.Block.write`.
         
         :param str label: the sink label
         :param vargs values: the values to write to sink
@@ -1044,7 +1077,7 @@ class Container(block.Filter, block.Block):
 
     def set_filter(self, label, **kwargs):
         """
-        Set filter attributes.
+        Set filter attributes. Call method :py:meth:`pyctrl.block.Block.set`.
 
         All attributes must be passed as key-value pairs and vary
         depending on the type of block.
@@ -1082,7 +1115,7 @@ class Container(block.Filter, block.Block):
             
     def get_filter(self, label, *keys):
         """
-        Get attributes from filter.
+        Get attributes from filter. Call method :py:meth:`pyctrl.block.Block.get`.
 
         :param str label: the filter label
         :param vargs keys: the keys of the attributes to get
@@ -1102,7 +1135,7 @@ class Container(block.Filter, block.Block):
 
     def read_filter(self, label):
         """
-        Read from filter. Call method `pyctrl.block.read()`.
+        Read from filter. Call method method :py:meth:`pyctrl.block.Block.read`.
         
         :param str label: the filter label
         """
@@ -1116,7 +1149,7 @@ class Container(block.Filter, block.Block):
 
     def write_filter(self, label, *values):
         """
-        Write to filter. Call method `pyctrl.block.write(*values)`.
+        Write to filter. Call method method :py:meth:`pyctrl.block.Block.write`.
         
         :param str label: the filter label
         :param vargs values: the values to write to filter
@@ -1148,8 +1181,6 @@ class Container(block.Filter, block.Block):
         :param str label: the device label
         :param str device_module: the device module
         :param str device_class: the device class
-
-        Keyword arguments:
         :param bool enable: if the device needs to be enable and disabled when calling `set_enable` (default False)
         :param list inputs: a list of input signals (default `[]`)
         :param list outputs: a list of output signals (default `[]`)
@@ -1361,7 +1392,7 @@ class Container(block.Filter, block.Block):
         
     def set_timer(self, label, **kwargs):
         """
-        Set timer attributes.
+        Set timer attributes. Call method :py:meth:`pyctrl.block.Block.set`.
 
         All attributes must be passed as key-value pairs and vary
         depending on the type of block.
@@ -1399,7 +1430,7 @@ class Container(block.Filter, block.Block):
         
     def get_timer(self, label, *keys):
         """
-        Get attributes from timer.
+        Get attributes from timer. Call method :py:meth:`pyctrl.block.Block.get`.
 
         :param str label: the timer label
         :param vargs keys: the keys of the attributes to get
@@ -1419,7 +1450,7 @@ class Container(block.Filter, block.Block):
 
     # def read_timer(self, label):
     #     """
-    #     Read from timer. Call method `pyctrl.block.read()`.
+    #     Read from timer. Call method :py:meth:`pyctrl.block.Block.read`.
         
     #     :param str label: the timer label
     #     """
@@ -1433,7 +1464,7 @@ class Container(block.Filter, block.Block):
 
     # def write_timer(self, label, *values):
     #     """
-    #     Write to timer. Call method `pyctrl.block.write(*values)`.
+    #     Write to timer. Call method :py:meth:`pyctrl.block.Block.write`.
         
     #     :param str label: the timer label
     #     :param vargs values: the values to write to timer
