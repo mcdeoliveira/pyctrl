@@ -390,28 +390,29 @@ def test_webserver():
         assert output == answer
         
         # reset controller
+        
         url = "http://127.0.0.1:5000/set/controller/pyctrl/Controller"
         output = subprocess.check_output(["curl", url]).decode("utf-8")
-        result = JSONDecoder().decode(output)
-        answer = {'status': 'success'}
-        
-        assert result == answer
 
-        answer = b"<div><p>&lt;class 'pyctrl.Controller'&gt; with: 0 timer(s), 3 signal(s), 1 source(s), 0 filter(s), and 0 sink(s)</p><h2>timers</h2><ol></ol><h2>signals</h2><ol><li>clock</li><li>duty</li><li>is_running</li></ol><h2>sources</h2><ol><li>clock[Clock, disabled] &Gt; clock</li></ol><h2>filters</h2><ol></ol><h2>sinks</h2><ol></ol></div>"
+        answer = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">\n<title>Redirecting...</title>\n<h1>Redirecting...</h1>\n<p>You should be redirected automatically to target URL: <a href="/">/</a>.  If not click the link.'
+        
+        assert output == answer
         
         # check info page
         url = "http://127.0.0.1:5000/info"
         output = subprocess.check_output(["curl", url])
 
+        answer = b"<div><p>&lt;class 'pyctrl.Controller'&gt; with: 0 timer(s), 3 signal(s), 1 source(s), 0 filter(s), and 0 sink(s)</p><h2>timers</h2><ol></ol><h2>signals</h2><ol><li>clock</li><li>duty</li><li>is_running</li></ol><h2>sources</h2><ol><li>clock[Clock, disabled] &Gt; clock</li></ol><h2>filters</h2><ol></ol><h2>sinks</h2><ol></ol></div>"
+        
         assert output == answer
         
         # reset controller
         url = "http://127.0.0.1:5000/set/controller/pyctrl.timer/Controller?kwargs=\{\"period\":1\}"
         output = subprocess.check_output(["curl", url]).decode("utf-8")
-        result = JSONDecoder().decode(output)
-        answer = {'status': 'success'}
-        
-        assert result == answer
+
+        answer = '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">\n<title>Redirecting...</title>\n<h1>Redirecting...</h1>\n<p>You should be redirected automatically to target URL: <a href="/">/</a>.  If not click the link.'
+
+        assert output == answer
 
         # get attribute/timer
         url = r'"http://127.0.0.1:5000/get/source/clock?keys=\"period\""'

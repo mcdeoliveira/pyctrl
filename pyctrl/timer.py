@@ -17,6 +17,9 @@ class Controller(pyctrl.Controller):
         # period
         self.period = kwargs.pop('period', 0.01)
 
+        # discard argument 'noclock'
+        kwargs.pop('noclock', None)
+       
         # Initialize controller
         super().__init__(noclock = True, **kwargs)
 

@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, render_template, jsonify, make_response, redirect, flash
 from functools import wraps
 import re
 
@@ -98,7 +98,16 @@ class Server(Flask):
                           view_func = self.info)
         self.add_url_rule(self.base_url + '/scope',
                           view_func = self.scope)
-
+        
+        # download controller
+        self.add_url_rule(self.base_url + '/download',
+                          view_func = self.download)
+        
+        # upload controller
+        self.add_url_rule(self.base_url + '/upload',
+                          methods=['GET', 'POST'],
+                          view_func = self.upload)
+        
         # reset
         self.add_url_rule(self.base_url + '/reset',
                           view_func = self.reset)
@@ -216,7 +225,6 @@ class Server(Flask):
             if not isinstance(controller, pyctrl.Controller):
                 raise Exception("Object '{}.{}' is not and instance of pyctrl.Controller".format(module, pyctrl_class))
                 
-            
             self.controller = controller
 
     # auxiliary
@@ -277,6 +285,46 @@ class Server(Flask):
                                baseurl = self.base_url,
                                signals = list(set(signals)))
 
+    def download(self):
+        response = make_response(jsonify(self.controller))
+        response.headers["Content-Disposition"] \
+            = "attachment; filename=controller.json"
+        return response
+
+    def upload(self, **kwargs):
+
+        # post?
+        if request.method == 'POST':
+            
+            # check if the post request has the file part
+            if 'file' not in request.files:
+                flash('No file part')
+
+            else:
+
+                # has file
+                file = request.files['file']
+
+                # empty filename?
+                if not file or file.filename == '':
+                    flash('No selected file')
+
+                else:
+
+                    # there is a file
+                    try:
+                        controller = decoder.decode(file.read())
+                        # print('controller = {}'.format(controller))
+                        self.set_controller(controller = controller)
+                        flash('New controller succesfully loaded.')
+                        
+                    except Exception as e:
+                        
+                        flash('Could not load controller.')
+                        flash('Error: {}'.format(e))
+                    
+        return redirect(self.base_url + '/')
+        
     @json_response
     @decode_kwargs
     def reset(self, **kwargs):
@@ -284,11 +332,14 @@ class Server(Flask):
         return self.controller.reset(**kwargs)
 
 
-    @json_response
     @decode_kwargs
     def reset_controller(self, **kwargs):
 
-        return self.set_controller(**kwargs)
+        # set new controller
+        self.set_controller(**kwargs)
+
+        # redirect to base
+        return redirect(self.base_url + '/')
 
     @json_response
     def start(self):
@@ -447,6 +498,7 @@ if __name__ == "__main__":
     from pyctrl.timer import Controller
     
     app = Server(__name__)
+    app.config['SECRET_KEY'] = 'secret!'
 
     # initialize controller
     app.set_controller(controller = Controller(period = .01))
