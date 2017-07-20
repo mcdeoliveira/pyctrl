@@ -323,9 +323,18 @@ class Server(Flask):
                         flash('New controller succesfully loaded.')
                         
                     except Exception as e:
+                        exc_type, exc_value, exc_traceback = sys.exc_info()
+                        retval = { 'status': 'error',
+                                   'filename': exc_traceback.tb_frame.f_code.co_filename,
+                                   'lineno'  : exc_traceback.tb_lineno,
+                                   'name'    : exc_traceback.tb_frame.f_code.co_name,
+                                   'type'    : exc_type.__name__,
+                                   'message' : exc_value.message }
                         
                         flash('Could not load controller.')
-                        flash('Error: {}'.format(e))
+                        flash('Error in file "{}", line {}, in {} {}: {}'.format(
+                            retval['filename'], retval['lineno'], retval['name'],
+                            retval['type'], retval['message']))
                     
         return redirect(self.base_url + '/')
         
