@@ -488,8 +488,8 @@ class Server(Flask):
 if __name__ == "__main__":
 
     try:
-        #import os
-        #os.environ['RCPY_NO_HANDLERS'] = 't'
+        import os
+        os.environ['RCPY_NO_HANDLERS'] = 't'
 
         from pyctrl.rc import Controller
         debug = False
@@ -499,14 +499,21 @@ if __name__ == "__main__":
         from pyctrl.timer import Controller
         debug = True
         RCPY = False
-    
-    app = Server(__name__)
-    app.config['SECRET_KEY'] = 'secret!'
 
-    # initialize controller
-    app.set_controller(controller = Controller(period = .01))
+    try:
+        
+        app = Server(__name__)
+        app.config['SECRET_KEY'] = 'secret!'
+        
+        # initialize controller
+        app.set_controller(controller = Controller(period = .01))
+        
+        # run app
+        app.run(host='0.0.0.0',
+                debug = debug)
 
-    # run app
-    app.run(host='0.0.0.0',
-            debug = debug)
+    except:
 
+        print('HERE')
+        sys.exit(0)
+        
