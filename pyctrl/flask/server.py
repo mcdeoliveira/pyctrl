@@ -488,8 +488,8 @@ class Server(Flask):
 if __name__ == "__main__":
 
     try:
-        import os
-        os.environ['RCPY_NO_HANDLERS'] = 't'
+        #import os
+        #os.environ['RCPY_NO_HANDLERS'] = 't'
 
         from pyctrl.rc import Controller
         debug = False
