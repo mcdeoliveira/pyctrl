@@ -33,7 +33,7 @@
  var plot = {};
  var last_date = -1;
  function get_data(fun, interval) {
-     $.get("http://127.0.0.1:5000/get/sink/_scope",
+     $.get("{{ baseurl }}/get/sink/_scope",
 	   {
 	       "keys": JSON.stringify("log")
 	   },
@@ -101,7 +101,7 @@
 
      var wait = false;
      
-     $.get("http://127.0.0.1:5000/remove/sink/_scope",
+     $.get("{{ baseurl }}/remove/sink/_scope",
 	   function(data) {
 	       
 	       if (data.status == "error") {
@@ -130,7 +130,7 @@
  
  // start controller
  function start() {
-     $.get("http://127.0.0.1:5000/start")
+     $.get("{{ baseurl }}/start")
       .done(function() {
 	  console.log("Controller started.");
 
@@ -153,7 +153,7 @@
 	 signals.push('clock');
      }
      
-     var jqxhr = $.get("http://127.0.0.1:5000/add/sink/_scope/pyctrl.block/Logger",
+     var jqxhr = $.get("{{ baseurl }}/add/sink/_scope/pyctrl.block/Logger",
 		       {
 			   "inputs":
 			   JSON.stringify(signals),
