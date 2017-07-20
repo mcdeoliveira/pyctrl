@@ -505,6 +505,7 @@ if __name__ == "__main__":
     if RCPY:
         # cleanup?
         def cleanup_rcpy(sender, **extra):
+            print('CLEANUP_RCPY')
             rcpy.cleanup()
             
         from flask import appcontext_tearing_down
