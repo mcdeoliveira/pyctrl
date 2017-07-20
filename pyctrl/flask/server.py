@@ -490,6 +490,7 @@ if __name__ == "__main__":
     try:
         import os
         os.environ['RCPY_NO_HANDLERS'] = 't'
+
         from pyctrl.rc import Controller
         debug = False
         RCPY = True
@@ -504,10 +505,12 @@ if __name__ == "__main__":
 
     if RCPY:
         # cleanup?
+
+        from rcpy import cleanup
         
         def cleanup_rcpy(sender, **extra):
             print('CLEANUP_RCPY')
-            rcpy.cleanup()
+            cleanup()
             
         from flask import appcontext_tearing_down
         appcontext_tearing_down.connect(cleanup_rcpy, app)
