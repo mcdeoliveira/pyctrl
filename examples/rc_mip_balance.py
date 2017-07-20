@@ -208,7 +208,7 @@ def main():
     print(mip.info('all'))
 
     # export controller as json
-    with open('rc_mip_balance.json') as f:
+    with open('rc_mip_balance.json', 'w') as f:
         f.write(JSONEncoder().encode(mip))
     
     fd = sys.stdin.fileno()
