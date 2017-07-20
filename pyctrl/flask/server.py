@@ -70,7 +70,7 @@ def json_response(f):
             if 'status' in retval and retval['status'] == 'error':
                 flash('Error in file "{}", line {}, in {} {}: {}'.format(
                     retval['filename'], retval['lineno'], retval['name'],
-                    retval['type'], retval['message'])
+                    retval['type'], retval['message']))
             return redirect(url_for(next))
         else:
             return jsonify(retval)
