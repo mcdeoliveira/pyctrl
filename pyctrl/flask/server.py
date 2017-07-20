@@ -5,7 +5,7 @@ import re
 import pyctrl
 import warnings
 import importlib
-import traceback, sys
+import traceback, sys, io
 
 from pyctrl.flask import JSONEncoder, JSONDecoder
 
@@ -57,20 +57,15 @@ def json_response(f):
             if retval is None:
                 retval = { 'status': 'success' }
         except Exception as e:
-            exc_type, exc_value, exc_traceback = sys.exc_info()
+            message = io.StringIO()
+            traceback.print_exc(file=message)
             retval = { 'status': 'error',
-                       'filename': exc_traceback.tb_frame.f_code.co_filename,
-                       'lineno'  : exc_traceback.tb_lineno,
-                       'name'    : exc_traceback.tb_frame.f_code.co_name,
-                       'type'    : exc_type.__name__,
-                       'message' : exc_value.message }
+                       'message': message.getvalue() }
             
         next = request.args.get('next', None)
         if next:
             if 'status' in retval and retval['status'] == 'error':
-                flash('Error in file "{}", line {}, in {} {}: {}'.format(
-                    retval['filename'], retval['lineno'], retval['name'],
-                    retval['type'], retval['message']))
+                flash(retval['message'])
             return redirect(url_for(next))
         else:
             return jsonify(retval)
@@ -323,18 +318,10 @@ class Server(Flask):
                         flash('New controller succesfully loaded.')
                         
                     except Exception as e:
-                        exc_type, exc_value, exc_traceback = sys.exc_info()
-                        retval = { 'status': 'error',
-                                   'filename': exc_traceback.tb_frame.f_code.co_filename,
-                                   'lineno'  : exc_traceback.tb_lineno,
-                                   'name'    : exc_traceback.tb_frame.f_code.co_name,
-                                   'type'    : exc_type.__name__,
-                                   'message' : exc_value.message }
-                        
+                        message = io.StringIO()
+                        traceback.print_exc(file=message)
                         flash('Could not load controller.')
-                        flash('Error in file "{}", line {}, in {} {}: {}'.format(
-                            retval['filename'], retval['lineno'], retval['name'],
-                            retval['type'], retval['message']))
+                        flash(message.getvalue())
                     
         return redirect(self.base_url + '/')
         
