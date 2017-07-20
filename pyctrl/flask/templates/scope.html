@@ -99,7 +99,7 @@
  
  $(window).on("beforeunload", function() {
 
-     var wait = false;
+     var wait = true;
      
      $.get("{{ baseurl }}/remove/sink/_scope",
 	   function(data) {
@@ -111,7 +111,7 @@
 	       
 	   })
       .done(function() {
-	  console.log("Logger successfully scope");
+	  console.log("Logger successfully removed");
 	  wait = false;
       })
       .fail(function(error) {
