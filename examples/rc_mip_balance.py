@@ -10,7 +10,7 @@ import sys, tty, termios
 import threading
 
 import pyctrl
-from pyctrl.flask import JSONEncoder
+from pyctrl.flask import JSONEncoder, JSONDecoder
 
 def brief_warning(message, category, filename, lineno, line=None):
     return "*{}\n".format(message)
@@ -209,8 +209,12 @@ def main():
     print(mip.info('all'))
 
     # export controller as json
+    json = JSONEncoder(sort_keys = True, indent = 4).encode(mip)
     with open('rc_mip_balance.json', 'w') as f:
-        f.write(JSONEncoder(sort_keys = True, indent = 4).encode(mip))
+        f.write(json)
+
+    # try to decode
+    instance = JSONDecoder().decode(json)
     
     fd = sys.stdin.fileno()
     old_settings = termios.tcgetattr(fd)
