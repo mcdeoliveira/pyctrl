@@ -210,7 +210,7 @@ def main():
 
     # export controller as json
     with open('rc_mip_balance.json', 'w') as f:
-        f.write(JSONEncoder().encode(mip))
+        f.write(JSONEncoder(sort_keys = True, indent = 4).encode(mip))
     
     fd = sys.stdin.fileno()
     old_settings = termios.tcgetattr(fd)
