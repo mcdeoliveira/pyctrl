@@ -99,7 +99,7 @@
  
  $(window).on("beforeunload", function() {
 
-     var wait = true;
+     var wait = false;
      
      $.get("{{ baseurl }}/remove/sink/_scope",
 	   function(data) {
@@ -119,12 +119,6 @@
 	  alert("Could not remove logger!" + error);
 	  wait = false;
       });
-     
-     setTimeout(function() {
-	 alert("Timed out");
-	 wait = false;
-     },
-		1000);
      
      while (wait) {
 	 /* wait */

@@ -11,6 +11,8 @@
 	<link rel="stylesheet" href="{{ url_for('static', filename='css/pyctrl.css') }}">
 	<script>
 
+	 var logger_count = 0;
+	 
 	 function populate_block(obj, type, id) {
 	     // load into div
 	     obj.find("p").load('html/' + type + '/' + id);
@@ -45,7 +47,52 @@
 	     });
 	     $(".accordion").accordion("option", "heightStyle", "fill");
 
+
+	     $("#add_logger").click(function(e){
+
+		 // retrieve marked signals
+		 var signals = []
+		 $("#signals input:checkbox:checked").each(function(e){
+		     signals.push($(this)[0].value);
+		 });
+		 
+		 // return if empty
+		 if (signals.length == 0) {
+		     return;
+		 }
+		 
+		 // add clock
+		 if (!('clock' in signals)) {
+		     signals.push('clock');
+		 }
+		 
+		 // create logger
+		 var jqxhr = $.get("{{ baseurl }}/add/sink/_logger" +
+				   logger_count + "/pyctrl.block/Logger",
+				   {
+				       "inputs":
+				       JSON.stringify(signals),
+				       "kwargs":
+				       JSON.stringify({"auto_reset": true})
+				   },
+				   function(data) {
+				       if (data.status != "success") {
+					   alert("Could not install logger. Message = " + data.message);
+					   return
+				       }
+				   })
+			      .done(function() {
+				  console.log("Logger succesfully installed.");
+				  logger_count += 1;
+			      })
+			      .fail(function() {
+				  alert("Could not install logger!");
+			      });
+		 
+	     });
+	     
 	 });
+	 
 	</script>
     </head>
     <body>
@@ -109,15 +156,21 @@
 	</ul>
 	
 	<h2>Signals:</h2>
-	<form action="{{ baseurl }}/scope">
+	<form id="signals"
+	      action="">
 	    <ul class="signals">
 		{% for s in signals %}
-		<li><input type="checkbox" name="signals" value="{{ '"' + s + '"'}}">&nbsp;<a href="{{ baseurl }}/get/signal/{{ s }}">{{ s }}</a></li>
+		<li><input type="checkbox"
+			   name="signals"
+			   value="{{ s }}">&nbsp;{{ s }}</li>
 		{% endfor %}
 	    </ul>
 	    <ul class="actions">
 		<li>
-		    <input class="button" type="submit" value="Scope">
+		    <input id="add_logger",
+			   class="button"
+			   type="button"
+			   value="Add Logger">
 		</li>
 	    </ul>
 	</form>
