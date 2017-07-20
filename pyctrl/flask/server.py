@@ -312,7 +312,7 @@ class Server(Flask):
 
                     # there is a file
                     try:
-                        controller = decoder.decode(file.read())
+                        controller = decoder.decode(file.read().decode('utf-8'))
                         # print('controller = {}'.format(controller))
                         self.set_controller(controller = controller)
                         flash('New controller succesfully loaded.')
