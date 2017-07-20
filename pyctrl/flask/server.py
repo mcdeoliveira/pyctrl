@@ -516,4 +516,6 @@ if __name__ == "__main__":
 
         print('HERE')
         sys.exit(0)
-        
+
+    finally:
+        print('FINALLY')
