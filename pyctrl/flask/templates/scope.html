@@ -120,6 +120,12 @@
 	  wait = false;
       });
      
+     setTimeout(function() {
+	 alert("Timed out");
+	 wait = false;
+     },
+		1000);
+     
      while (wait) {
 	 /* wait */
      }
