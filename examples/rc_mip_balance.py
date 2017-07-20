@@ -10,6 +10,7 @@ import sys, tty, termios
 import threading
 
 import pyctrl
+from pyctrl.flask import JSONEncoder
 
 def brief_warning(message, category, filename, lineno, line=None):
     return "*{}\n".format(message)
