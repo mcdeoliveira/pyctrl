@@ -503,18 +503,6 @@ if __name__ == "__main__":
     app = Server(__name__)
     app.config['SECRET_KEY'] = 'secret!'
 
-    if RCPY:
-        # cleanup?
-
-        from rcpy import cleanup
-        
-        def cleanup_rcpy(sender, **extra):
-            print('CLEANUP_RCPY')
-            cleanup()
-            
-        from flask import appcontext_tearing_down
-        appcontext_tearing_down.connect(cleanup_rcpy, app)
-        
     # initialize controller
     app.set_controller(controller = Controller(period = .01))
 
