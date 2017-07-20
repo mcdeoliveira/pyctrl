@@ -513,9 +513,7 @@ if __name__ == "__main__":
                 debug = debug)
 
     except:
-
-        print('HERE')
-        sys.exit(0)
+        pass
 
     finally:
-        print('FINALLY')
+        sys.exit(0)
