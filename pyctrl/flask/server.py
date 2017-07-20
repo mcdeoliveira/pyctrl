@@ -491,6 +491,6 @@ if __name__ == "__main__":
     app.set_controller(controller = Controller(period = .01))
 
     # run app
-    app.run(host=0.0.0.0,
+    app.run(host='0.0.0.0',
             debug = True)
 
