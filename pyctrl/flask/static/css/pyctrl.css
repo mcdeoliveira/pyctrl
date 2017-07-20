@@ -1,0 +1,35 @@
+div.flashes {
+    position: fixed;
+    top: 1em;
+    border: 3px solid black;
+    border-radius: 5px;
+    padding-left: 20px;
+    padding-right: 50px;
+    background: #F5B7B1;
+}
+
+p.status {
+    margin-left: 45px;
+}
+
+ul.signals {
+    list-style: none;
+    padding-left: 0px;
+}
+
+.signals li {
+    list-style: none;
+    margin-left: 20px;
+}
+
+.actions li {
+    list-style: none;
+}
+
+.button {
+    width: 100px;
+}
+
+div.blocks {
+    margin-left: 40px;
+}

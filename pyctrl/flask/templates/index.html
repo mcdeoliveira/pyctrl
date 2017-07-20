@@ -8,6 +8,7 @@
 	<script src="{{ url_for('static', filename='js/jquery-3.2.1.min.js') }}"></script>
 	<script src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
 	<link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.min.css') }}">
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/pyctrl.css') }}">
 	<script>
 
 	 function populate_block(obj, type, id) {
@@ -51,42 +52,69 @@
 	
 	{% with messages = get_flashed_messages() %}
 	{% if messages %}
-	<ul class=flashes>
-	    {% for message in messages %}
-	    <li>{{ message }}</li>
-	    {% endfor %}
-	</ul>
+	<div class="flashes">
+	    <ul class="flashes">
+		{% for message in messages %}
+		<li>{{ message }}</li>
+		{% endfor %}
+	    </ul>
+	</div>
 	{% endif %}
 	{% endwith %}
 	
-	<div>
-	    <p>
+	<h1>{{ class_name }}</h1>
+
+	<h2>Status:</h2>
+
+	<p class="status">
+	    {% if is_running %} Running {% else %} Stopped {% endif %}
+	</p>
+	
+	<h2>Actions:</h2>
+	
+	<ul class="actions">
+	    <li>
 		<form action="{{ baseurl }}/upload"
 		      method="post"
 		      enctype="multipart/form-data">
-		    Upload new controller:
+		    <input class="button" type="submit" value="Upload" />
 		    <input type="file" name="file" />
-		    <input type="submit" value="Upload" />
 		</form>
-	    </p>
-	</div>
-	
-	{% if class_name %}
-	<h1>
-	    <a href="{{ baseurl }}/download">{{ class_name }}</a>
-	</h1>
+	    </li>
+	    <li>
+		<form action="{{ baseurl }}/download">
+		    <input class="button" type="submit" value="Download" />
+		</form>
+	    </li>
+	    <li>
+		<form action="{{ baseurl }}/start?next=/">
+		    <input type="hidden" name="next" value=".index">
+		    <input class="button" type="submit" value="Start" />
+		</form>
+	    </li>
+	    <li>
+		<form action="{{ baseurl }}/stop">
+		    <input type="hidden" name="next" value=".index">
+		    <input class="button" type="submit" value="Stop" />
+		</form>
+	    </li>
+	</ul>
 	
 	<h2>Signals:</h2>
-	<form action="/scope">
-	    <ol>
+	<form action="{{ baseurl }}/scope">
+	    <ul class="signals">
 		{% for s in signals %}
-		<li><input type="checkbox" name="signals" value="{{ '"' + s + '"'}}"><a href="{{ baseurl }}/get/signal/{{ s }}">{{ s }}</a></li>
+		<li><input type="checkbox" name="signals" value="{{ '"' + s + '"'}}">&nbsp;<a href="{{ baseurl }}/get/signal/{{ s }}">{{ s }}</a></li>
 		{% endfor %}
-	    </ol>
-	    <input type="submit" value="Open Scope">
+	    </ul>
+	    <ul class="actions">
+		<li>
+		    <input class="button" type="submit" value="Scope">
+		</li>
+	    </ul>
 	</form>
 	<h2>Sources:</h2>
-	<div class="accordion" id="source">
+	<div class="accordion blocks sources" id="source">
 	    {% for s in sources %}
 	    <h3 class="source" id="{{ s }}">{{ s }}</h3>
 	    <div class="source" id="{{ s }}" style="height: auto">
@@ -95,7 +123,7 @@
 	    {% endfor %}
 	</div>
 	<h2>Filters:</h2>
-	<div class="accordion" id="filter">
+	<div class="accordion blocks filters" id="filter">
 	    {% for s in filters %}
 	    <h3 class="filter" id="{{ s }}">{{ s }}</h3>
 	    <div class="timer" id="{{ s }}" style="height: auto">
@@ -103,9 +131,8 @@
 	    </div>
 	    {% endfor %}
 	</div>
-	</ol>
 	<h2>Sinks:</h2>
-	<div class="accordion" id="sink">
+	<div class="accordion blocks sinks" id="sink">
 	    {% for s in sinks %}
 	    <h3 class="sink" id="{{ s }}">{{ s }}</h3>
 	    <div class="timer" id="{{ s }}" style="height: auto">
@@ -114,7 +141,7 @@
 	    {% endfor %}
 	</div>
 	<h2>Timers:</h2>
-	<div class="accordion" id="timer">
+	<div class="accordion blocks timers" id="timer">
 	    {% for s in timers %}
 	    <h3 class="timer" id="{{ s }}">{{ s }}</h3>
 	    <div class="timer" id="{{ s }}" style="height: auto">
@@ -122,8 +149,5 @@
 	    </div>
 	    {% endfor %}
 	</div>
-	{% else %}
-	<h1>No controller defined yet!</h1>
-	{% endif %}
-
     </body>
+</html>

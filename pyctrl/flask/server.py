@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, jsonify, make_response, redirect, flash
+from flask import Flask, request, render_template, jsonify, make_response, redirect, flash, url_for
 from functools import wraps
 import re
 
@@ -12,15 +12,6 @@ encoder = JSONEncoder(sort_keys = True, indent = 4)
 decoder = JSONDecoder()
 
 # decorators
-
-# encode_label
-def wrap_label(f):
-    
-    @wraps(f)
-    def wrapper(label, *args, **kwargs):
-        return {label: f(label, *args, **kwargs)}
-
-    return wrapper
 
 # decode
 def decode_value(f):
@@ -64,13 +55,16 @@ def json_response(f):
             retval = f(*args, **kwargs)
             if retval is None:
                 retval = { 'status': 'success' }
-        except KeyError as e:
-            retvar = { 'status': 'error',
-                       'message': 'KeyError: {} is not known'.format(e) }
         except Exception as e:
             retval = { 'status': 'error', 'message': repr(e) }
 
-        return jsonify(retval)
+        next = request.args.get('next', None)
+        if next:
+            if 'status' in retval and retval['status'] == 'error':
+                flash('Error: ' + retval['message'])
+            return redirect(url_for(next))
+        else:
+            return jsonify(retval)
         
     return wrapper
 
@@ -264,7 +258,8 @@ class Server(Flask):
                                sources = self.controller.list_sources(),
                                filters = self.controller.list_filters(),
                                sinks = self.controller.list_sinks(),
-                               timers = self.controller.list_timers())
+                               timers = self.controller.list_timers(),
+                               is_running = self.controller.get_signal('is_running'))
 
     def info(self):
 
@@ -298,7 +293,7 @@ class Server(Flask):
             
             # check if the post request has the file part
             if 'file' not in request.files:
-                flash('No file part')
+                flash("Form has no field 'part'")
 
             else:
 
@@ -307,7 +302,7 @@ class Server(Flask):
 
                 # empty filename?
                 if not file or file.filename == '':
-                    flash('No selected file')
+                    flash('No file selected')
 
                 else:
 
@@ -343,34 +338,27 @@ class Server(Flask):
 
     @json_response
     def start(self):
-        
         return self.controller.start()
     
     @json_response
     def stop(self):
-        
         return self.controller.stop()
 
     @json_response
     def add_signal(self, *args, **kwargs):
-        
         return self.controller.add_signal(*args, **kwargs)
     
     @json_response
     def remove_signal(self, *args, **kwargs):
-        
         return self.controller.remove_signal(*args, **kwargs)
                       
     @json_response
-    @wrap_label
-    def get_signal(self, *args, **kwargs):
-
-        return self.controller.get_signal(*args, **kwargs)
+    def get_signal(self, label, *args, **kwargs):
+        return {label: self.controller.get_signal(label, *args, **kwargs)}
     
     @json_response
     @decode_value
     def set_signal(self, *args, **kwargs):
-
         return self.controller.set_signal(*args, **kwargs)
     
     @json_response
@@ -381,7 +369,6 @@ class Server(Flask):
     @json_response
     @decode_kwargs
     def add_source(self, label, module_name, class_name, **kwargs):
-
         return self.controller.add_source(label, (module_name, class_name),
                                           **kwargs)
     
