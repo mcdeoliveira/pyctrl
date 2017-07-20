@@ -489,8 +489,10 @@ if __name__ == "__main__":
 
     try:
         from pyctrl.rc import Controller
+        debug = False
     except:
         from pyctrl.timer import Controller
+        debug = True
     
     app = Server(__name__)
     app.config['SECRET_KEY'] = 'secret!'
@@ -500,5 +502,5 @@ if __name__ == "__main__":
 
     # run app
     app.run(host='0.0.0.0',
-            debug = True)
+            debug = debug)
 
