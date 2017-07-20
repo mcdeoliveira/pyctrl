@@ -60,10 +60,11 @@
 	    </ul>
 	</div>
 	<script>
-	 // reload
-         setTimeout(function() {
-	     window.location.reload(true);
-	 }, 10000);
+	 // reload after click
+	 $("body").trigger("click",
+			   function() {
+			       window.location.reload(true);
+			   });
 	</script>
 	{% endif %}
 	{% endwith %}
