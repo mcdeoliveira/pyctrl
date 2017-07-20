@@ -487,7 +487,10 @@ class Server(Flask):
 
 if __name__ == "__main__":
 
-    from pyctrl.timer import Controller
+    try:
+        from pyctrl.rc import Controller
+    except:
+        from pyctrl.timer import Controller
     
     app = Server(__name__)
     app.config['SECRET_KEY'] = 'secret!'
