@@ -488,15 +488,28 @@ class Server(Flask):
 if __name__ == "__main__":
 
     try:
+        import os
+        os.environ['RCPY_NO_HANDLERS'] = 't'
         from pyctrl.rc import Controller
         debug = False
+        RCPY = True
+
     except:
         from pyctrl.timer import Controller
         debug = True
+        RCPY = False
     
     app = Server(__name__)
     app.config['SECRET_KEY'] = 'secret!'
 
+    if RCPY:
+        # cleanup?
+        def cleanup_rcpy(sender, **extra):
+            rcpy.cleanup()
+            
+        from flask import appcontext_tearing_down
+        appcontext_tearing_down.connect(cleanup_rcpy, app)
+        
     # initialize controller
     app.set_controller(controller = Controller(period = .01))
 
