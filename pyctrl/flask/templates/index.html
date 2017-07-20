@@ -61,10 +61,11 @@
 	</div>
 	<script>
 	 // reload after click
-	 $("body").trigger("click",
-			   function() {
-			       window.location.reload(true);
-			   });
+	 console.log('Will install click handler');
+	 $("body").on("click",
+		      function() {
+			  window.location.reload(true);
+		      });
 	</script>
 	{% endif %}
 	{% endwith %}
