@@ -1,0 +1,491 @@
+{
+    "__class__": "Controller",
+    "__module__": "pyctrl.rc.mip",
+    "duty": 0,
+    "enabled": false,
+    "filters": {
+        "controller": {
+            "block": {
+                "__class__": "System",
+                "__module__": "pyctrl.block.system",
+                "demux": false,
+                "enabled": true,
+                "model": {
+                    "A": {
+                        "__class__": "array",
+                        "__module__": "numpy",
+                        "object": [
+                            [
+                                0.913134,
+                                0.0363383
+                            ],
+                            [
+                                -0.0692862,
+                                0.994003
+                            ]
+                        ]
+                    },
+                    "B": {
+                        "__class__": "array",
+                        "__module__": "numpy",
+                        "object": [
+                            [
+                                -0.2414381880611401,
+                                0.04577071244924526,
+                                -0.04577071244924526
+                            ],
+                            [
+                                -0.13792695552083425,
+                                0.10931468815849132,
+                                -0.10931468815849132
+                            ]
+                        ]
+                    },
+                    "C": {
+                        "__class__": "array",
+                        "__module__": "numpy",
+                        "object": [
+                            [
+                                -383.009,
+                                303.07
+                            ]
+                        ]
+                    },
+                    "D": {
+                        "__class__": "array",
+                        "__module__": "numpy",
+                        "object": [
+                            [
+                                103.60038584534016,
+                                -0.0,
+                                0.0
+                            ]
+                        ]
+                    },
+                    "__class__": "DTSS",
+                    "__module__": "pyctrl.system.ss",
+                    "state": {
+                        "__class__": "array",
+                        "__module__": "numpy",
+                        "object": [
+                            0.0,
+                            0.0
+                        ]
+                    }
+                },
+                "mux": true
+            },
+            "enable": false,
+            "inputs": [
+                "theta_dot",
+                "phi_dot",
+                "phi_dot_reference_fade"
+            ],
+            "outputs": [
+                "pwm"
+            ]
+        },
+        "fade": {
+            "block": {
+                "__class__": "Fade",
+                "__module__": "pyctrl.block",
+                "demux": false,
+                "direction": "in",
+                "enabled": true,
+                "mux": false,
+                "period": 5,
+                "target": {
+                    "__class__": "array",
+                    "__module__": "numpy",
+                    "object": [
+                        0.0,
+                        0.5
+                    ]
+                }
+            },
+            "enable": false,
+            "inputs": [
+                "clock",
+                "phi_dot_reference",
+                "steer_reference"
+            ],
+            "outputs": [
+                "phi_dot_reference_fade",
+                "steer_reference_fade"
+            ]
+        },
+        "phi": {
+            "block": {
+                "__class__": "Sum",
+                "__module__": "pyctrl.block.system",
+                "demux": false,
+                "enabled": true,
+                "gain": 0.5,
+                "mux": false
+            },
+            "enable": false,
+            "inputs": [
+                "encoder1",
+                "encoder2"
+            ],
+            "outputs": [
+                "phi"
+            ]
+        },
+        "phi_dot": {
+            "block": {
+                "__class__": "Differentiator",
+                "__module__": "pyctrl.block.system",
+                "demux": false,
+                "enabled": true,
+                "mux": false
+            },
+            "enable": false,
+            "inputs": [
+                "clock",
+                "phi"
+            ],
+            "outputs": [
+                "phi_dot"
+            ]
+        },
+        "small_angle_pwm": {
+            "block": {
+                "__class__": "Product",
+                "__module__": "pyctrl.block.nl",
+                "demux": false,
+                "enabled": true,
+                "m": 1,
+                "mux": false
+            },
+            "enable": false,
+            "inputs": [
+                "small_angle",
+                "pwm"
+            ],
+            "outputs": [
+                "small_angle_pwm"
+            ]
+        },
+        "steer": {
+            "block": {
+                "__class__": "ControlledCombination",
+                "__module__": "pyctrl.block.nl",
+                "demux": false,
+                "enabled": true,
+                "gain": 1,
+                "m": 1,
+                "mux": false
+            },
+            "enable": false,
+            "inputs": [
+                "steer_reference_fade",
+                "small_angle_pwm",
+                "small_angle_pwm"
+            ],
+            "outputs": [
+                "pwm1",
+                "pwm2"
+            ]
+        }
+    },
+    "filters_order": [
+        "phi",
+        "phi_dot",
+        "fade",
+        "controller",
+        "small_angle_pwm",
+        "steer"
+    ],
+    "is_running": false,
+    "noclock": true,
+    "period": 0.01,
+    "signals": {
+        "clock": 0,
+        "duty": 0,
+        "encoder1": 0,
+        "encoder2": 0,
+        "is_running": false,
+        "phi": 0,
+        "phi_dot": 0,
+        "phi_dot_reference": 0,
+        "phi_dot_reference_fade": 0,
+        "pwm": 0,
+        "pwm1": 0,
+        "pwm2": 0,
+        "small_angle": 0,
+        "small_angle_pwm": 0,
+        "steer_reference": 0.5,
+        "steer_reference_fade": 0,
+        "theta": 0,
+        "theta_dot": 0
+    },
+    "sinks": {
+        "motor1": {
+            "block": {
+                "__class__": "Motor",
+                "__module__": "pyctrl.rc.motor",
+                "enabled": false,
+                "motor": 3,
+                "ratio": 100.0
+            },
+            "enable": true,
+            "inputs": [
+                "pwm1"
+            ]
+        },
+        "motor2": {
+            "block": {
+                "__class__": "Motor",
+                "__module__": "pyctrl.rc.motor",
+                "enabled": false,
+                "motor": 2,
+                "ratio": -100.0
+            },
+            "enable": true,
+            "inputs": [
+                "pwm2"
+            ]
+        }
+    },
+    "sinks_order": [
+        "motor1",
+        "motor2"
+    ],
+    "sources": {
+        "clock": {
+            "block": {
+                "__class__": "MPU9250",
+                "__module__": "pyctrl.rc.mpu9250",
+                "accel_dlpf": 2,
+                "accel_fsr": 1,
+                "average_period": 0,
+                "compass_time_constant": 5.0,
+                "count": 0,
+                "dmp_interrupt_priority": 98,
+                "enable_dmp": true,
+                "enable_fusion": false,
+                "enable_magnetometer": false,
+                "enabled": true,
+                "gyro_dlpf": 2,
+                "gyro_fsr": 2,
+                "orientation": 136,
+                "period": 0.01,
+                "show_warnings": false,
+                "time": 554.073832146,
+                "time_origin": 554.073832146
+            },
+            "enable": false,
+            "outputs": [
+                "clock"
+            ]
+        },
+        "encoder1": {
+            "block": {
+                "__class__": "Encoder",
+                "__module__": "pyctrl.rc.encoder",
+                "demux": false,
+                "enabled": true,
+                "encoder": 3,
+                "mux": false,
+                "ratio": 2133.42
+            },
+            "enable": false,
+            "outputs": [
+                "encoder1"
+            ]
+        },
+        "encoder2": {
+            "block": {
+                "__class__": "Encoder",
+                "__module__": "pyctrl.rc.encoder",
+                "demux": false,
+                "enabled": true,
+                "encoder": 2,
+                "mux": false,
+                "ratio": -2133.42
+            },
+            "enable": false,
+            "outputs": [
+                "encoder2"
+            ]
+        },
+        "inclinometer": {
+            "block": {
+                "__class__": "Inclinometer",
+                "__module__": "pyctrl.rc.mpu9250",
+                "demux": false,
+                "enabled": true,
+                "mux": false
+            },
+            "enable": false,
+            "outputs": [
+                "theta",
+                "theta_dot"
+            ]
+        }
+    },
+    "sources_order": [
+        "clock",
+        "inclinometer",
+        "encoder1",
+        "encoder2"
+    ],
+    "state": 0,
+    "thread": null,
+    "timers": {
+        "supervisor": {
+            "block": {
+                "__class__": "Container",
+                "__module__": "pyctrl.block.container",
+                "enabled": false,
+                "filters": {
+                    "is_angle_small": {
+                        "block": {
+                            "__class__": "CompareAbsWithHysterisis",
+                            "__module__": "pyctrl.block.logic",
+                            "demux": false,
+                            "enabled": true,
+                            "hysterisis": 0.09,
+                            "invert": false,
+                            "mux": false,
+                            "offset": -0.07,
+                            "state": [
+                                0
+                            ],
+                            "threshold": 0.11
+                        },
+                        "enable": false,
+                        "inputs": [
+                            "theta"
+                        ],
+                        "outputs": [
+                            "small_angle"
+                        ]
+                    }
+                },
+                "filters_order": [
+                    "is_angle_small"
+                ],
+                "signals": {
+                    "is_running": 0,
+                    "small_angle": 0,
+                    "theta": 0
+                },
+                "sinks": {
+                    "green_led": {
+                        "block": {
+                            "__class__": "LED",
+                            "__module__": "pyctrl.rc.led",
+                            "enabled": false,
+                            "pin": 67
+                        },
+                        "enable": true,
+                        "inputs": [
+                            "small_angle"
+                        ]
+                    },
+                    "is_running": {
+                        "block": {
+                            "__class__": "Output",
+                            "__module__": "pyctrl.block.container",
+                            "demux": false,
+                            "enabled": true,
+                            "mux": false
+                        },
+                        "enable": false,
+                        "inputs": [
+                            "is_running"
+                        ]
+                    },
+                    "reset_controller": {
+                        "block": {
+                            "__class__": "SetFilter",
+                            "__module__": "pyctrl.block.logic",
+                            "demux": false,
+                            "enabled": true,
+                            "high": 0.8,
+                            "label": [
+                                "/controller",
+                                "/fade"
+                            ],
+                            "low": 0.2,
+                            "mux": false,
+                            "on_fall": {},
+                            "on_rise": {
+                                "reset": true
+                            },
+                            "state": 0
+                        },
+                        "enable": false,
+                        "inputs": [
+                            "small_angle"
+                        ]
+                    },
+                    "small_angle": {
+                        "block": {
+                            "__class__": "Output",
+                            "__module__": "pyctrl.block.container",
+                            "demux": false,
+                            "enabled": true,
+                            "mux": false
+                        },
+                        "enable": false,
+                        "inputs": [
+                            "small_angle"
+                        ]
+                    }
+                },
+                "sinks_order": [
+                    "small_angle",
+                    "is_running",
+                    "reset_controller",
+                    "green_led"
+                ],
+                "sources": {
+                    "pause_button": {
+                        "block": {
+                            "__class__": "Button",
+                            "__module__": "pyctrl.rc.button",
+                            "enabled": false,
+                            "invert": true,
+                            "pin": 69
+                        },
+                        "enable": true,
+                        "outputs": [
+                            "is_running"
+                        ]
+                    },
+                    "theta": {
+                        "block": {
+                            "__class__": "Input",
+                            "__module__": "pyctrl.block.container",
+                            "demux": false,
+                            "enabled": true,
+                            "mux": false
+                        },
+                        "enable": false,
+                        "outputs": [
+                            "theta"
+                        ]
+                    }
+                },
+                "sources_order": [
+                    "theta",
+                    "pause_button"
+                ],
+                "timers": {}
+            },
+            "enable": true,
+            "inputs": [
+                "theta"
+            ],
+            "outputs": [
+                "small_angle",
+                "is_running"
+            ],
+            "period": 0.5,
+            "repeat": true
+        }
+    }
+}
