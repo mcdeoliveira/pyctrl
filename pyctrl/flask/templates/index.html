@@ -10,7 +10,7 @@
 	<link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.min.css') }}">
 	<link rel="stylesheet" href="{{ url_for('static', filename='css/pyctrl.css') }}">
 	<script>
-
+	    
 	 var logger_count = 0;
 	 
 	 function populate_block(obj, type, id) {
@@ -19,8 +19,67 @@
 	     obj.css({'height': 'auto'});
 	 }
 	 
+	 function flash(messages) {
+	     messages.forEach(function(e) {
+		 $("#flash_list").append("<li><pre>" + e + "</pre></li>");
+	     });
+	     $("#flash_div").css("visibility", "visible");
+	     $("body").on("click", clear_flash);
+	 }
+
+	 function clear_flash() {
+	     $("#flash_list li").remove();
+	     $("#flash_div").css("visibility", "hidden");
+	     $("body").off("click");
+	 }
+	 
+	 function add_element(element, class_name, name, label) {
+	     $(element).append("<li class=\"" + class_name + "\" id=" +
+			  label + "><input type=\"checkbox\" name=\"" +
+			  name + "\" value=\"" + label + "\">&nbsp; " +
+			  label + "</li>");
+	 }
+
+	 function add_logger(element, name, label) {
+	     $(element).append("<li class=\"logger\" id=" +
+			       label + "><input type=\"checkbox\" name=\"" +
+			       name + "\" value=\"" + label + "\">&nbsp; " +
+			       "<a href=\"{{ baseurl }}/scope/" +
+			       label + "\" target=\"_\">" + label + 
+			       "</a></li>");
+	 }
+	 
+	 function get_signal() {
+	     var e = $(this);
+	     var label = e[0].id;
+	     $.get("{{ baseurl }}/get/signal/" + label,
+		   function(data) {
+		       if ('status' in data && data.status != "success") {
+			   alert("Could not retrieve signal '" + label + "'. Message = " + data.message);
+			   return
+		       }
+
+		       var value = data[label];
+		       if ($.isNumeric(value)) {
+			   value = value.toFixed(2);
+		       }
+		       if (typeof value != 'string') {
+			   value = value.toString();
+		       }
+		       e.tooltip('option',
+				 'content',
+				 value);
+
+		       console.log("tooltip set for signal '" + label + "'");
+		   })
+	      .fail(function() {
+		  alert("Could not retrieve signal '" + label + "'!");
+	      });
+	 }
+	 
 	 $( function() {
-	     $(".accordion").accordion({
+	     
+	     $(".caccordion").accordion({
 		 collapsible: true,
 		 heightSyle: "fill",
 		 active : false,
@@ -45,11 +104,10 @@
 		     populate_block(div, match, id);
 		 }
 	     });
-	     $(".accordion").accordion("option", "heightStyle", "fill");
-
-
+	     $(".caccordion").accordion("option", "heightStyle", "fill");
+     
 	     $("#add_logger").click(function(e){
-
+		 
 		 // retrieve marked signals
 		 var signals = []
 		 $("#signals input:checkbox:checked").each(function(e){
@@ -65,6 +123,9 @@
 		 if (!('clock' in signals)) {
 		     signals.push('clock');
 		 }
+
+		 // uncheck marked signals
+		 $("#signals input:checkbox").prop('checked', false);
 		 
 		 // create logger
 		 var jqxhr = $.get("{{ baseurl }}/add/sink/_logger" +
@@ -83,12 +144,65 @@
 				   })
 			      .done(function() {
 				  console.log("Logger succesfully installed.");
+				  // add element
+				  add_logger("#loggers",
+					     "loggers",
+					     "_logger" + logger_count);
+				  // flash
+				  flash(["Logger '_logger" + logger_count + "' succesfully installed."]);
 				  logger_count += 1;
 			      })
 			      .fail(function() {
 				  alert("Could not install logger!");
 			      });
 		 
+	     });
+	     
+	     $("#remove_logger").click(function(e){
+		 
+		 // retrieve marked loggers
+		 var loggers = []
+		 $("#loggers input:checkbox:checked").each(function(e){
+		     loggers.push($(this)[0].value);
+		 });
+		 
+		 // return if empty
+		 if (loggers.length == 0) {
+		     return;
+		 }
+		 
+		 // uncheck marked signals
+		 $("#loggers input:checkbox").prop('checked', false);
+		 
+		 // remove logger
+		 loggers.forEach(function(e) {
+		     
+		     var jqxhr = $.get("{{ baseurl }}/remove/sink/" + e,
+				       function(data) {
+					   if (data.status != "success") {
+					       alert("Could not remove logger. Message = " + data.message);
+					       return
+					   }
+				       })
+				  .done(function() {
+				      console.log("Logger succesfully removed.");
+				      // remove element
+				      $("#" + e + ".logger").remove();
+				      
+				      // flash
+				      flash(["Logger '" + e + "' succesfully removed."]);
+				  })
+				  .fail(function() {
+				      alert("Could not remove logger!");
+				  });
+		     
+		 })
+		 
+	     });
+	     
+	     // hover over signals
+	     $("#signals li").tooltip({
+		 open: get_signal
 	     });
 	     
 	 });
@@ -98,21 +212,17 @@
     <body>
 	
 	{% with messages = get_flashed_messages() %}
-	{% if messages %}
-	<div class="flashes">
-	    <ul class="flashes">
+	<div id="flash_div" class="flashes" style="visibility: {% if messages %}visible{% else %}hidden{% endif %}">
+	    <ul id="flash_list" class="flashes">
 		{% for message in messages %}
 		<li><pre>{{ message }}</pre></li>
 		{% endfor %}
 	    </ul>
 	</div>
+	{% if messages %}
 	<script>
-	 // reload after click
-	 console.log('Will install click handler');
-	 $("body").on("click",
-		      function() {
-			  window.location.reload(true);
-		      });
+	 // clear flashes after click
+	 $("body").on("click", clear_flash);
 	</script>
 	{% endif %}
 	{% endwith %}
@@ -156,13 +266,14 @@
 	</ul>
 	
 	<h2>Signals:</h2>
-	<form id="signals"
-	      action="">
-	    <ul class="signals">
+	<form action="">
+	    <ul id="signals" class="signals">
 		{% for s in signals %}
-		<li><input type="checkbox"
+		<li class="tooltip" title="Loading..." id="{{ s }}">
+		    <input type="checkbox"
 			   name="signals"
-			   value="{{ s }}">&nbsp;{{ s }}</li>
+			   value="{{ s }}">&nbsp;{{ s }}
+		</li>
 		{% endfor %}
 	    </ul>
 	    <ul class="actions">
@@ -174,41 +285,66 @@
 		</li>
 	    </ul>
 	</form>
+	<h2>Loggers:</h2>
+	<form action="">
+	    <ul id="loggers" class="blocks loggers">
+		{% for s in loggers %}
+		<li class="logger" id="{{ s }}">
+		    <input type="checkbox"
+			   name="loggers"
+			   value="{{ s }}">&nbsp;
+		    <a href="{{ baseurl }}/scope/{{ s }}" target="_">{{ s }}</a>
+		</li>
+		{% endfor %}
+	    </ul>
+	    <ul class="actions">
+		<li>
+		    <input id="remove_logger",
+			   class="button"
+			   type="button"
+			   value="Delete">
+		</li>
+	    </ul>
+	</form>
 	<h2>Sources:</h2>
-	<div class="accordion blocks sources" id="source">
+	<ul class="blocks sources" id="sources">
 	    {% for s in sources %}
-	    <h3 class="source" id="{{ s }}">{{ s }}</h3>
-	    <div class="source" id="{{ s }}" style="height: auto">
-		<p>Loading...</p>
-	    </div>
+	    <li class="source" id="{{ s }}">
+		<input type="checkbox"
+		       name="sources"
+		       value="{{ s }}">&nbsp;{{ s }}
+	    </li>
 	    {% endfor %}
-	</div>
+	</ul>
 	<h2>Filters:</h2>
-	<div class="accordion blocks filters" id="filter">
+	<ul class="blocks filters" id="filters">
 	    {% for s in filters %}
-	    <h3 class="filter" id="{{ s }}">{{ s }}</h3>
-	    <div class="timer" id="{{ s }}" style="height: auto">
-		<p>Loading...</p>
-	    </div>
+	    <li class="filter" id="{{ s }}">
+		<input type="checkbox"
+		       name="filters"
+		       value="{{ s }}">&nbsp;{{ s }}
+	    </li>
 	    {% endfor %}
-	</div>
+	</ul>
 	<h2>Sinks:</h2>
-	<div class="accordion blocks sinks" id="sink">
+	<ul class="blocks sinks" id="sinks">
 	    {% for s in sinks %}
-	    <h3 class="sink" id="{{ s }}">{{ s }}</h3>
-	    <div class="timer" id="{{ s }}" style="height: auto">
-		<p>Loading...</p>
-	    </div>
+	    <li class="sink" id="{{ s }}">
+		<input type="checkbox"
+		       name="sinks"
+		       value="{{ s }}">&nbsp;{{ s }}
+	    </li>
 	    {% endfor %}
-	</div>
+	</ul>
 	<h2>Timers:</h2>
-	<div class="accordion blocks timers" id="timer">
+	<ul class="blocks timers" id="timers">
 	    {% for s in timers %}
-	    <h3 class="timer" id="{{ s }}">{{ s }}</h3>
-	    <div class="timer" id="{{ s }}" style="height: auto">
-		<p>Loading...</p>
-	    </div>
+	    <li class="timer" id="{{ s }}">
+		<input type="checkbox"
+		       name="timers"
+		       value="{{ s }}">&nbsp;{{ s }}
+	    </li>
 	    {% endfor %}
-	</div>
+	</ul>
     </body>
 </html>

@@ -25,15 +25,14 @@
 
 <script>
 
- var signals = {{ signals|tojson }};
- console.log("signals");
- console.log(signals);
-
+ // logger
+ var logger = {{ logger|tojson }};
+ 
  // get_data
  var plot = {};
  var last_date = -1;
  function get_data(fun, interval) {
-     $.get("{{ baseurl }}/get/sink/_scope",
+     $.get("{{ baseurl }}/get/sink/" + logger,
 	   {
 	       "keys": JSON.stringify("log")
 	   },
@@ -50,8 +49,11 @@
 		   return _.flatten(e);
 	       });
 	       data = _.object(Object.keys(data.log), points);
-	       //console.log(data);
+	       console.log(data);
 
+	       var dates = _.flatten(data.clock);
+	       //console.log(dates);
+	       
 	       var len = _.chain(data)
 			  .mapObject(function(val) {
 			      return val.length;
@@ -59,31 +61,34 @@
 			  .values()
 			  .first()
 			  .value();
-	       //console.log("length = ", len);
+	       console.log("length = ", len);
+	       
+	       // plot only if there is data
+	       if (len > 0) {
+	       
+		   delete data.clock;
+		   last_date = dates[dates.length - 1];
+		   
+		   var series = _.chain(data)
+				 .mapObject(function(values, i) {
+				     return _.map(values,
+						  function(v, i) {
+						      return {date: dates[i],
+							      value: v};
+						  });
+				 })
+				 .map(function(values, i) {
+				     return {
+					 id: i,
+					 values: values
+				     };
+				 })
+				 .value();
+		   
+		   //console.log(dates);
+		   //console.log(series);
 
-	       var dates = _.flatten(data.clock);
-	       delete data.clock;
-	       last_date = dates[dates.length - 1];
-	       //console.log(dates);
-	       
-	       var series = _.chain(data)
-			     .mapObject(function(values, i) {
-				 return _.map(values,
-					      function(v, i) {
-						  return {date: dates[i],
-							  value: v};
-					      });
-			     })
-			     .map(function(values, i) {
-				 return {
-				     id: i,
-				     values: values
-				 };
-			     })
-			     .value();
-	       
-	       //console.log(dates);
-	       //console.log(series);
+	       }
 	       
 	       // call fun
 	       fun(plot, dates, series, interval);
@@ -97,86 +102,14 @@
       });
  };
  
- $(window).on("beforeunload", function() {
-
-     var wait = false;
-     
-     $.get("{{ baseurl }}/remove/sink/_scope",
-	   function(data) {
-	       
-	       if (data.status == "error") {
-		   console.log("Could not remove sink. Message = " + data.message);
-		   return
-	       }
-	       
-	   })
-      .done(function() {
-	  console.log("Logger successfully removed");
-	  wait = false;
-      })
-      .fail(function(error) {
-	  console.log(error);
-	  alert("Could not remove logger!" + error);
-	  wait = false;
-      });
-     
-     while (wait) {
-	 /* wait */
-     }
-     
-     return;
-     
- });
- 
- // start controller
- function start() {
-     $.get("{{ baseurl }}/start")
-      .done(function() {
-	  console.log("Controller started.");
-
-	  // will get data every 5 seconds
-	  console.log("Retrieving initial data...");
-	  setTimeout(function() { get_data(create_plot, 1000); }, 1000);
-
-      })
-      .fail(function() {
-	  alert("Could not start controller!");
-      });
- };
-
  // ready?
  $(document).ready(function(){
-
-     console.log("Installing logger...");
-
-     if (!('clock' in signals)) {
-	 signals.push('clock');
-     }
      
-     var jqxhr = $.get("{{ baseurl }}/add/sink/_scope/pyctrl.block/Logger",
-		       {
-			   "inputs":
-			   JSON.stringify(signals),
-			   "kwargs":
-			   JSON.stringify({"auto_reset": true})
-		       },
-		       function(data) {
-			   if (data.status != "success") {
-			       alert("Could not install logger. Message = " + data.message);
-			       return
-			   }
-		       })
-		  .done(function() {
-		      console.log("Logger succesfully installed.");
-
-		      // start controller
-		      console.log("Starting controller...");
-		      start()
-		      
-		  })
-		  .fail(function() {
-		      alert("Could not install logger!");
-		  });
+     // will get data every 1 second
+     console.log("Retrieving initial data...");
+     setTimeout(function() {
+	 get_data(create_plot, 1000);
+     }, 1000);
      
  });
  

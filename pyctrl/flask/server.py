@@ -3,6 +3,7 @@ from functools import wraps
 import re
 
 import pyctrl
+from pyctrl.block import Logger
 import warnings
 import importlib
 import traceback, sys, io
@@ -94,7 +95,7 @@ class Server(Flask):
                           view_func = self.index)
         self.add_url_rule(self.base_url + '/info',
                           view_func = self.info)
-        self.add_url_rule(self.base_url + '/scope',
+        self.add_url_rule(self.base_url + '/scope/<path:label>',
                           view_func = self.scope)
         
         # download controller
@@ -255,13 +256,18 @@ class Server(Flask):
         
     def index(self):
         
+        loggers = set(k for (k,v) in self.controller.sinks.items()
+                      if isinstance(v['block'], Logger))
+        sinks = set(self.controller.list_sinks()) - loggers
+        
         return render_template('index.html',
                                baseurl = self.base_url,
                                class_name = self.controller.info('class'),
                                signals = sorted(self.controller.list_signals()),
                                sources = self.controller.list_sources(),
                                filters = self.controller.list_filters(),
-                               sinks = self.controller.list_sinks(),
+                               sinks = sinks,
+                               loggers = loggers,
                                timers = self.controller.list_timers(),
                                is_running = self.controller.get_signal('is_running'))
 
@@ -269,20 +275,11 @@ class Server(Flask):
 
         return self.controller.html()
 
-    @decode_kwargs
-    def scope(self, *args, **kwargs):
+    def scope(self, label, *args, **kwargs):
 
-        # retrieve signals
-        signals = kwargs.get('signals',
-                             sorted(self.controller.list_signals()))
-        if signals and not isinstance(signals, (tuple, list)):
-            signals = [signals]
-
-        print(">>> signals = '{}'".format(signals))
-            
         return render_template('scope.html',
                                baseurl = self.base_url,
-                               signals = list(set(signals)))
+                               logger = label)
 
     def download(self):
         response = make_response(jsonify(self.controller))

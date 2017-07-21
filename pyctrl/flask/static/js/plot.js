@@ -31,6 +31,15 @@
 function key(d) { return d.id; };
 
 function create_plot(plot, time, points, interval) {
+
+    if (time.length == 0) {
+	
+	// no data available yet
+	console.log("No data available. Will try again...");
+	setTimeout(function() { get_data(create_plot, interval); }, interval);
+	return;
+	
+    }
     
     var svg = d3.select("svg");
 
@@ -144,15 +153,14 @@ function update_plot(plot, time, points, interval) {
     
     // console.log("update_plot");
     
-    // add to lines
-    var dx = time[time.length-1] - plot.time[plot.time.length-1];
-
     var bulk = true;
     if (bulk) {
 	
 	do_update_plot(plot, time, points, interval);
 	
     } else {
+
+	var dx = time[time.length-1] - plot.time[plot.time.length-1];
 
 	var n = time.length;
 	for (var i = 0; i < n; i++) {
@@ -180,6 +188,12 @@ function do_update_plot(plot, time, points, interval) {
     // console.log("do_update_plot");
 
     var dx = time[time.length-1] - plot.time[plot.time.length-1];
+    // console.log("dx = " + dx);
+    
+    if (Number.isNaN(dx) || dx == 0) {
+	// console.log("WILL RETURN");
+	return;
+    }
     
     // add to lines
     var n = time.length;
