@@ -122,7 +122,7 @@ def main():
     mip.add_filter('steer',
                    ControlledCombination(),
                    ['steer_reference_fade',
-                    'pwm','pwm'],
+                    'pwm_fade','pwm_fade'],
                    ['pwm1','pwm2'])
     
     # print controller
