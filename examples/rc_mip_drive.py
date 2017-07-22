@@ -46,7 +46,7 @@ def get_arrows(mip, fd):
         
         print('\rmotor = {:+5.0f} %'
               '  steering = {:+5.2f} %'
-              .format(pwm,
+              .format(- pwm,
                       100*(steer_reference-0.5)),
               end='')
         
@@ -58,10 +58,10 @@ def get_arrows(mip, fd):
             steer_reference = min(steer_reference + 20/360, 1)
             mip.set_signal('steer_reference', steer_reference)
         elif key == ARROW_UP:
-            pwm = pwm + 10
+            pwm = pwm - 10
             mip.set_signal('pwm', - pwm)
         elif key == ARROW_DOWN:
-            pwm = pwm - 10
+            pwm = pwm + 10
             mip.set_signal('pwm', - pwm)
         elif key == SPACE:
             pwm = 0
