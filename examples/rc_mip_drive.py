@@ -58,14 +58,14 @@ def get_arrows(mip, fd):
             steer_reference = min(steer_reference + 20/360, 1)
             mip.set_signal('steer_reference', steer_reference)
         elif key == ARROW_UP:
-            pwm = pwm + 10
+            pwm = pwm - 10
             mip.set_signal('pwm', - pwm)
         elif key == ARROW_DOWN:
-            pwm = pwm - 10
+            pwm = pwm + 10
             mip.set_signal('pwm', - pwm)
         elif key == SPACE:
             pwm = 0
-            mip.set_signal('pwm', - pwm)
+            mip.set_signal('pwm', pwm)
             steer_reference = 0.5
             mip.set_signal('steer_reference', steer_reference)
         elif key == DEL:
@@ -124,6 +124,9 @@ def main():
                    ['steer_reference_fade',
                     'pwm_fade','pwm_fade'],
                    ['pwm1','pwm2'])
+    
+    # set references
+    mip.set_signal('steer_reference',0.5)
     
     # print controller
     print(mip.info('all'))
