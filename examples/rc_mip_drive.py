@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Makes the robot balance
+# Drive MIP in open-loop as a car
 
 import math
 import time
@@ -38,15 +38,15 @@ def read_key():
 
 def get_arrows(mip, fd):
 
-    phi_dot_reference = 0
+    pwm = 0
     steer_reference = 0.5
     
     tty.setcbreak(fd)
     while mip.get_state() != pyctrl.EXITING:
         
-        print('\rvelocity = {:+5.0f} deg/s'
+        print('\rmotor = {:+5.0f} %'
               '  steering = {:+5.2f} %'
-              .format(360*phi_dot_reference,
+              .format(pwm,
                       100*(steer_reference-0.5)),
               end='')
         
@@ -58,22 +58,22 @@ def get_arrows(mip, fd):
             steer_reference = min(steer_reference + 20/360, 1)
             mip.set_signal('steer_reference', steer_reference)
         elif key == ARROW_UP:
-            phi_dot_reference = phi_dot_reference + 0.05
-            mip.set_signal('phi_dot_reference', - phi_dot_reference)
+            pwm = pwm + 10
+            mip.set_signal('pwm', - pwm)
         elif key == ARROW_DOWN:
-            phi_dot_reference = phi_dot_reference - 0.05
-            mip.set_signal('phi_dot_reference', - phi_dot_reference)
+            pwm = pwm - 10
+            mip.set_signal('pwm', - pwm)
         elif key == SPACE:
-            phi_dot_reference = 0
-            mip.set_signal('phi_dot_reference', - phi_dot_reference)
+            pwm = 0
+            mip.set_signal('pwm', - pwm)
             steer_reference = 0.5
             mip.set_signal('steer_reference', steer_reference)
         elif key == DEL:
             steer_reference = 0.5
             mip.set_signal('steer_reference', steer_reference)
         elif key == END:            
-            phi_dot_reference = 0
-            mip.set_signal('phi_dot_reference', - phi_dot_reference)
+            pwm = 0
+            mip.set_signal('pwm', - pwm)
 
 def main():
 
@@ -90,7 +90,7 @@ def main():
 
     # export json?
     export_json = true
-    
+
     # create mip
     mip = Controller()
 
@@ -109,116 +109,24 @@ def main():
                    ['phi_dot'])
 
     # phi dot and steer reference
-    mip.add_signals('phi_dot_reference', 'phi_dot_reference_fade')
+    mip.add_signals('pwm', 'pwm_fade')
     mip.add_signals('steer_reference', 'steer_reference_fade')
 
     # add fade in filter
     mip.add_filter('fade',
                    Fade(target = [0, 0.5], period = 5),
-                   ['clock','phi_dot_reference','steer_reference'],
-                   ['phi_dot_reference_fade','steer_reference_fade'])
-    
-    # state-space matrices
-    A = np.array([[0.913134, 0.0363383],[-0.0692862, 0.994003]])
-    B = np.array([[0.00284353, -0.000539063], [0.00162443, -0.00128745]])
-    C = np.array([[-383.009, 303.07]])
-    D = np.array([[-1.22015, 0]])
-
-    B = 2*np.pi*(100/7.4)*np.hstack((-B, B[:,1:]))
-    D = 2*np.pi*(100/7.4)*np.hstack((-D, D[:,1:]))
-
-    ssctrl = DTSS(A,B,C,D)
-
-    # state-space controller
-    mip.add_signals('pwm')
-    mip.add_filter('controller',
-                   System(model = ssctrl),
-                   ['theta_dot','phi_dot','phi_dot_reference_fade'],
-                   ['pwm'])
-
-    # enable pwm only if about small_angle
-    mip.add_signals('small_angle', 'small_angle_pwm')
-    mip.add_filter('small_angle_pwm',
-                   Product(),
-                   ['small_angle', 'pwm'],
-                   ['small_angle_pwm'])
+                   ['clock','pwm','steer_reference'],
+                   ['pwm_fade','steer_reference_fade'])
     
     # steering biasing
     mip.add_filter('steer',
                    ControlledCombination(),
                    ['steer_reference_fade',
-                    'small_angle_pwm','small_angle_pwm'],
+                    'pwm','pwm'],
                    ['pwm1','pwm2'])
-
-    # set references
-    mip.set_signal('phi_dot_reference',0)
-    mip.set_signal('steer_reference',0.5)
-
-    # add supervisor actions on a timer
-    # actions are inside a container so that they are executed all at once
-    mip.add_timer('supervisor',
-                  Container(),
-                  ['theta'],
-                  ['small_angle','is_running'],
-                  period = 0.5, repeat = True)
-
-    mip.add_signals('timer/supervisor/theta',
-                    'timer/supervisor/small_angle')
-    
-    mip.add_source('timer/supervisor/theta',
-                   Input(),
-                   ['theta'])
-    
-    mip.add_sink('timer/supervisor/small_angle',
-                 Output(),
-                 ['small_angle'])
-    
-    mip.add_sink('timer/supervisor/is_running',
-                 Output(),
-                 ['is_running'])
-    
-    # add small angle sensor
-    mip.add_filter('timer/supervisor/is_angle_small',
-                   CompareAbsWithHysterisis(threshold = 0.11,
-                                            hysterisis = 0.09,
-                                            offset = -0.07,
-                                            state = (State.LOW,)),
-                   ['theta'],
-                   ['small_angle'])
-    
-    # reset controller and fade
-    mip.add_sink('timer/supervisor/reset_controller',
-                 SetFilter(label = ['/controller','/fade'],
-                           on_rise = {'reset': True}),
-                 ['small_angle'])
-    
-    # add green led
-    mip.add_sink('timer/supervisor/green_led', 
-                 ('pyctrl.rc.led', 'LED'),
-                 ['small_angle'],
-                 kwargs = {'pin': GRN_LED},
-                 enable = True)
-
-    # add pause button on a timer
-    mip.add_source('timer/supervisor/pause_button',
-                   ('pyctrl.rc.button', 'Button'),
-                   ['is_running'],
-                   kwargs = {'pin': PAUSE_BTN,
-                             'invert': True},
-                   enable = True)
     
     # print controller
     print(mip.info('all'))
-
-    # export json?
-    if export_json:
-        
-        from pyctrl.flask import JSONEncoder
-
-        # export controller as json
-        json = JSONEncoder(sort_keys = True, indent = 4).encode(mip)
-        with open('rc_mip_balance.json', 'w') as f:
-            f.write(json)
 
     fd = sys.stdin.fileno()
     old_settings = termios.tcgetattr(fd)
@@ -226,14 +134,12 @@ def main():
 
         print("""
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-*                       M I P   B A L A N C E                       *
+*                         M I P   D R I V E                         *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 """)
 
         print("""
-Hold your MIP upright to start balancing
-
-Use your keyboard to control the mip:
+Use your keyboard to drive the mip as a car:
 
 * UP and DOWN arrows move forward and back
 * LEFT and RIGHT arrows steer
@@ -248,7 +154,6 @@ Use your keyboard to control the mip:
         mip.set_source('clock',reset=True)
         mip.set_source('encoder1',reset=True)
         mip.set_source('encoder2',reset=True)
-        mip.set_filter('controller',reset=True)
         mip.set_source('inclinometer',reset=True)
 
         # turn on red led
@@ -269,11 +174,11 @@ Use your keyboard to control the mip:
         mip.join()
 
         # print message
-        print("\nDone with balancing")
+        print("\nDone with driving")
         
     except KeyboardInterrupt:
 
-        print("\nBalancing aborted")
+        print("\nDriving aborted")
 
     finally:
 

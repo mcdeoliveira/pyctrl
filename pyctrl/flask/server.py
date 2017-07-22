@@ -256,9 +256,8 @@ class Server(Flask):
         
     def index(self):
         
-        loggers = set(k for (k,v) in self.controller.sinks.items()
-                      if isinstance(v['block'], Logger))
-        sinks = set(self.controller.list_sinks()) - loggers
+        sinks = [ {'label': k, 'is_logger': isinstance(v['block'], Logger)}
+                  for (k,v) in self.controller.sinks.items() ]
         
         return render_template('index.html',
                                baseurl = self.base_url,
@@ -267,7 +266,6 @@ class Server(Flask):
                                sources = self.controller.list_sources(),
                                filters = self.controller.list_filters(),
                                sinks = sinks,
-                               loggers = loggers,
                                timers = self.controller.list_timers(),
                                is_running = self.controller.get_signal('is_running'))
 

@@ -33,22 +33,6 @@
 	     $("body").off("click");
 	 }
 	 
-	 function add_element(element, class_name, name, label) {
-	     $(element).append("<li class=\"" + class_name + "\" id=" +
-			  label + "><input type=\"checkbox\" name=\"" +
-			  name + "\" value=\"" + label + "\">&nbsp; " +
-			  label + "</li>");
-	 }
-
-	 function add_logger(element, name, label) {
-	     $(element).append("<li class=\"logger\" id=" +
-			       label + "><input type=\"checkbox\" name=\"" +
-			       name + "\" value=\"" + label + "\">&nbsp; " +
-			       "<a href=\"{{ baseurl }}/scope/" +
-			       label + "\" target=\"_\">" + label + 
-			       "</a></li>");
-	 }
-	 
 	 function get_signal() {
 	     var e = $(this);
 	     var label = e[0].id;
@@ -77,35 +61,107 @@
 	      });
 	 }
 	 
+	 function add_element(element,
+			      class_name,
+			      name,
+			      label,
+			      text) {
+
+	     // append to ul
+	     $(element).append("<li class=\"" + class_name + "\"" +
+			       " id=" + label + ">" +
+			       "<input type=\"checkbox\"" +
+			       " name=\"" + name + "\"" +
+			       " value=\"" + label + "\">" +
+			       "&nbsp; " + text +
+			       "</li>");
+
+	     if ( $(element + "_actions").length )
+		 return
+
+	     // append action buttons
+	     $(element).after("<ul class=\"actions\"" +
+			      " id=\"" + class_name + "s_actions\">" +
+			      "<li>" +
+			      "<input id=\"remove_" + class_name + "s\"," +
+			      " class=\"button\"," +
+			      " type=\"button\"," +
+			      " value=\"Delete\">" +
+			      "</li>" +
+			      "</ul>");
+	     // add action
+	     $("#remove_" + class_name + "s").click(
+		 function(e) { remove_elements("sink"); }
+	     );
+	     
+	 }
+
+	 function add_logger(element, label) {
+	     add_element(element, "sink", "sinks", label,
+			 label + " " +
+			 "<a href=\"{{ baseurl }}/scope/" + label + "\"" +
+			 " target=\"_\">" +
+			 "<img src=\"{{ url_for('static', filename='images/graph.svg') }}\"" +
+			 " alt=\"scope\" width=\"24\" height=\"24\">" +
+			 "</a>")
+	 }
+
+	 function remove_elements(type) {
+
+	     // retrieve marked elements
+	     var elements = []
+	     $("#" + type + "s input:checkbox:checked").each(function(e){
+		 elements.push($(this)[0].value);
+	     });
+	     
+	     // return if empty
+	     if (elements.length == 0) {
+		 return;
+	     }
+	     
+	     // uncheck marked signals
+	     $("#" + type + "s input:checkbox").prop('checked', false);
+	     
+	     // remove element
+	     elements.forEach(function(e) {
+		 
+		 var jqxhr = $.get("{{ baseurl }}/remove/" +  type + "/" + e,
+				   function(data) {
+				       if (data.status != "success") {
+					   alert("Could not remove " + type +
+					         " '" + e +
+						 "' . Message = " + data.message);
+					   return
+				       }
+				   })
+			      .done(function() {
+				  console.log("Element succesfully removed.");
+				  
+				  // remove element
+				  $("#" + e + "." + type).remove();
+				  
+				  // flash
+				  flash([type + " '" + e + "' succesfully removed."]);
+
+				  // remove actions?
+				  console.log($("#" + type + "s li"));
+				  if ( $("#" + type + "s li").length == 0 ) {
+				      console.log("Will remove actions.");
+				      $("#" + type + "s_actions").remove();
+				  }
+				  
+			      })
+			      .fail(function() {
+				  alert("Could not remove " + type +
+					"'" + e + "'!");
+			      });
+		 
+	     })
+
+	 }
+	 
 	 $( function() {
 	     
-	     $(".caccordion").accordion({
-		 collapsible: true,
-		 heightSyle: "fill",
-		 active : false,
-		 activate: function(event, ui){
-		     console.log(this);
-		     var obj = $(this).find('.ui-state-active');
-		     var id = obj.attr('id');
-		     var class_name = obj.attr('class').split(' ');
-		     console.log(id);
-		     console.log(class_name);
-		     var match = /(source|filter|sink|timer)/.exec(class_name);
-		     console.log(match);
-		     if (match == null) {
-			 console.log('ERROR');
-			 return
-		     } else {
-			 match = match[1];
-		     }
-		     // populate block
-		     var div = obj.next("div");
-		     console.log(div);
-		     populate_block(div, match, id);
-		 }
-	     });
-	     $(".caccordion").accordion("option", "heightStyle", "fill");
-     
 	     $("#add_logger").click(function(e){
 		 
 		 // retrieve marked signals
@@ -145,8 +201,7 @@
 			      .done(function() {
 				  console.log("Logger succesfully installed.");
 				  // add element
-				  add_logger("#loggers",
-					     "loggers",
+				  add_logger("#sinks",
 					     "_logger" + logger_count);
 				  // flash
 				  flash(["Logger '_logger" + logger_count + "' succesfully installed."]);
@@ -157,53 +212,34 @@
 			      });
 		 
 	     });
-	     
-	     $("#remove_logger").click(function(e){
+
+	     // remove elements
+	     // remove elements
+	     $("#remove_sources").click(
+		 function(e) { remove_elements("source"); }
+	     );
+	     $("#remove_filters").click(
+		 function(e) { remove_elements("filter"); }
+	     );
+	     $("#remove_sinks").click(
+		 function(e) { remove_elements("sink"); }
+	     );
+	     $("#remove_timers").click(
+		 function(e) { remove_elements("timer"); }
+	     );
 		 
-		 // retrieve marked loggers
-		 var loggers = []
-		 $("#loggers input:checkbox:checked").each(function(e){
-		     loggers.push($(this)[0].value);
-		 });
-		 
-		 // return if empty
-		 if (loggers.length == 0) {
-		     return;
-		 }
-		 
-		 // uncheck marked signals
-		 $("#loggers input:checkbox").prop('checked', false);
-		 
-		 // remove logger
-		 loggers.forEach(function(e) {
-		     
-		     var jqxhr = $.get("{{ baseurl }}/remove/sink/" + e,
-				       function(data) {
-					   if (data.status != "success") {
-					       alert("Could not remove logger. Message = " + data.message);
-					       return
-					   }
-				       })
-				  .done(function() {
-				      console.log("Logger succesfully removed.");
-				      // remove element
-				      $("#" + e + ".logger").remove();
-				      
-				      // flash
-				      flash(["Logger '" + e + "' succesfully removed."]);
-				  })
-				  .fail(function() {
-				      alert("Could not remove logger!");
-				  });
-		     
-		 })
-		 
-	     });
-	     
-	     // hover over signals
+	     // tooltip for signals
 	     $("#signals li").tooltip({
-		 open: get_signal
+		 disabled: true,
+		 position: { my: "right", at: "right" },
+		 open: get_signal,
+		 close: function( event, ui ) { $(this).tooltip('disable'); }
 	     });
+	     
+	     $("#signals li").on('click',
+				 function () {
+				     $(this).tooltip('enable').tooltip('open');
+				 });
 	     
 	 });
 	 
@@ -269,10 +305,10 @@
 	<form action="">
 	    <ul id="signals" class="signals">
 		{% for s in signals %}
-		<li class="tooltip" title="Loading..." id="{{ s }}">
+		<li class="tooltip" title="Loading..." id="{{ s }}" >
 		    <input type="checkbox"
 			   name="signals"
-			   value="{{ s }}">&nbsp;{{ s }}
+			   value="{{ s }}">&nbsp;<a href="javascript:;">{{ s }}</a>
 		</li>
 		{% endfor %}
 	    </ul>
@@ -282,27 +318,6 @@
 			   class="button"
 			   type="button"
 			   value="Add Logger">
-		</li>
-	    </ul>
-	</form>
-	<h2>Loggers:</h2>
-	<form action="">
-	    <ul id="loggers" class="blocks loggers">
-		{% for s in loggers %}
-		<li class="logger" id="{{ s }}">
-		    <input type="checkbox"
-			   name="loggers"
-			   value="{{ s }}">&nbsp;
-		    <a href="{{ baseurl }}/scope/{{ s }}" target="_">{{ s }}</a>
-		</li>
-		{% endfor %}
-	    </ul>
-	    <ul class="actions">
-		<li>
-		    <input id="remove_logger",
-			   class="button"
-			   type="button"
-			   value="Delete">
 		</li>
 	    </ul>
 	</form>
@@ -316,6 +331,16 @@
 	    </li>
 	    {% endfor %}
 	</ul>
+	{% if sources %}
+	<ul class="actions" id="sources_actions">
+	    <li>
+		<input id="remove_sources",
+		       class="button"
+		       type="button"
+		       value="Delete">
+	    </li>
+	</ul>
+	{% endif %}
 	<h2>Filters:</h2>
 	<ul class="blocks filters" id="filters">
 	    {% for s in filters %}
@@ -326,16 +351,41 @@
 	    </li>
 	    {% endfor %}
 	</ul>
+	{% if filter %}
+	<ul class="actions" id="filters_actions">
+	    <li>
+		<input id="remove_filters",
+		       class="button"
+		       type="button"
+		       value="Delete">
+	    </li>
+	</ul>
+	{% endif %}
 	<h2>Sinks:</h2>
 	<ul class="blocks sinks" id="sinks">
 	    {% for s in sinks %}
-	    <li class="sink" id="{{ s }}">
+	    <li class="sink" id="{{ s['label'] }}">
 		<input type="checkbox"
 		       name="sinks"
-		       value="{{ s }}">&nbsp;{{ s }}
+		       value="{{ s['label'] }}">&nbsp;{{ s['label'] }}
+		{% if s['is_logger'] %}
+		<a href="{{ baseurl }}/scope/{{ s['label'] }}" target="_">
+		    <img src="{{ url_for('static', filename='images/graph.svg') }}" alt="scope" width="24" height="24">
+		</a>
+		{% endif %}
 	    </li>
 	    {% endfor %}
 	</ul>
+	{% if sinks %}
+	<ul class="actions" id="sinks_actions">
+	    <li>
+		<input id="remove_sinks",
+		       class="button"
+		       type="button"
+		       value="Delete">
+	    </li>
+	</ul>
+	{% endif %}
 	<h2>Timers:</h2>
 	<ul class="blocks timers" id="timers">
 	    {% for s in timers %}
@@ -346,5 +396,15 @@
 	    </li>
 	    {% endfor %}
 	</ul>
+	{% if timers %}
+	<ul class="actions" id="timers_actions">
+	    <li>
+		<input id="remove_timers",
+		       class="button"
+		       type="button"
+		       value="Delete">
+	    </li>
+	</ul>
+	{% endif %}
     </body>
 </html>
