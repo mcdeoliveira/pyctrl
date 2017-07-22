@@ -89,7 +89,7 @@ def main():
     from rcpy.led import red
 
     # export json?
-    export_json = true
+    export_json = True
     
     # create mip
     mip = Controller()

@@ -89,7 +89,7 @@ def main():
     from rcpy.led import red
 
     # export json?
-    export_json = true
+    export_json = True
 
     # create mip
     mip = Controller()
@@ -128,6 +128,16 @@ def main():
     # print controller
     print(mip.info('all'))
 
+    # export json?
+    if export_json:
+        
+        from pyctrl.flask import JSONEncoder
+
+        # export controller as json
+        json = JSONEncoder(sort_keys = True, indent = 4).encode(mip)
+        with open('rc_mip_drive.json', 'w') as f:
+            f.write(json)
+            
     fd = sys.stdin.fileno()
     old_settings = termios.tcgetattr(fd)
     try:
