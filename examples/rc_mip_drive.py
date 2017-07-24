@@ -23,6 +23,7 @@ ARROW_DOWN  = "\033[B"
 ARROW_RIGHT = "\033[C"
 ARROW_LEFT  = "\033[D"
 DEL         = "."
+
 END         = "/"
 SPACE       = " "
 

@@ -35,7 +35,7 @@ def main():
                         type=str, default='Controller',
                         help='controller class')
     parser.add_argument('-H', '--host',
-                        type=str, default='localhost',
+                        type=str, default='0.0.0.0',
                         help='host name or IP address')
     parser.add_argument('-p', '--port',
                         type=int, default=9999,
