@@ -36,6 +36,9 @@ class Controller(pyctrl.Controller):
       
         # print("pyctrl.rc.__reset: PERIOD = {}".format(self.period))
         
+        # add signal clock
+        self.add_signal('clock')
+        
         # add device clock
         self.add_source('clock',
                         ('pyctrl.rc.mpu9250', 'MPU9250'),
