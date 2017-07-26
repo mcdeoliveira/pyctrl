@@ -151,12 +151,12 @@ class Raw(block.Source, block.BufferBlock):
         
     def __init__(self, **kwargs):
 
-        # set MPU9250 block
-        self.mpu9250 = MPU9250(**kwargs) # singleton
-        
         # call super
         super().__init__(**kwargs)
 
+        # set MPU9250 block
+        self.mpu9250 = MPU9250() # singleton
+        
     def get(self, *keys, exclude = ()):
 
         # call super excluding time and last
@@ -260,15 +260,15 @@ class TaitBryanAngles(Raw):
         
     def __init__(self, **kwargs):
 
-        # kwargs
-        enable_magnetometer = kwargs.pop('enable_magnetometer', True)
-        
         # call super
-        super().__init__(enable_magnetometer = True, **kwargs)
+        super().__init__(**kwargs)
 
         # setup MPU9250
         self.mpu9250 = MPU9250() # singleton
 
+        # enable magnetometer
+        self.mpu9250.set('enable_magnetometer', True)
+        
     def read(self):
 
         #print('> read')
