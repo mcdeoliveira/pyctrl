@@ -753,13 +753,9 @@ removes the *sink* :py:data:`printer` from the controller loop.
 Finally, one can also read and write to blocks using
 :py:meth:`pyctrl.Controller.read_source`,
 :py:meth:`pyctrl.Controller.read_filter`,
-:py:meth:`pyctrl.Controller.read_sink`,
-:py:meth:`pyctrl.Controller.read_timer`,
-:py:meth:`pyctrl.Controller.write_source`,
-:py:meth:`pyctrl.Controller.write_filter`,
-:py:meth:`pyctrl.Controller.write_sink`, and
-:py:meth:`pyctrl.Controller.write_timer`. These will be used in the next
-section to read values from a block that logs running data.
+:py:meth:`pyctrl.Controller.write_filter`, and
+:py:meth:`pyctrl.Controller.write_sink`. These will be used in the
+next section to read values from a block that logs running data.
     
 -----------------
 Working with data
