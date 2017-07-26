@@ -81,27 +81,30 @@ class Compare(block.Filter, block.BufferBlock):
         self.buffer = tuple(int(v1 - v2 >= self.threshold) for (v1,v2) in zip(self.buffer[self.m:], self.buffer[:self.m]))
 
 class CompareWithHysterisis(Compare):
-    """
+    r"""
     :py:class:`pyctrl.block.logic.CompareWithHysterisis` compares inputs with histerisis. 
 
     Produces an output with the result of the test
     
     .. math::
+       :nowrap:
 
-       y[:m] = \begin{cases}
+       \begin{align*}
+       y[:m] = \left\{ \begin{array}{ll}
                   (u[m:] >= u[:m] + \gamma + \mu), & \text{if } \text{state}[:m] \\
                   (u[m:] >= u[:m] + \gamma - \mu), & \text{if } ! \text{state}[:m]
-                \end{cases}
+                \end{array} \right .
+       \end{align*}
 
     and update the state as follows:
 
     .. math::
 
        \text{state}[:m] = \begin{cases}
-                  1, & \text{if } \text{state} \& (u[m:] < u[:m] + \gamma + \mu) \\
-                  0, & \text{if } \text{state} \& (u[m:] >= u[:m] + \gamma + \mu) \\
-                  0, & \text{if } ! \text{state} \& (u[m:] >= u[:m] + \gamma - \mu) \\
-                  1, & \text{if } ! \text{state} \& (u[m:] < u[:m] + \gamma - \mu)
+                  1, & \text{if } \text{state} \, \& \, (u[m:] < u[:m] + \gamma + \mu) \\
+                  0, & \text{if } \text{state} \, \& \, (u[m:] >= u[:m] + \gamma + \mu) \\
+                  0, & \text{if } ! \text{state} \, \& \, (u[m:] >= u[:m] + \gamma - \mu) \\
+                  1, & \text{if } ! \text{state} \, \& \, (u[m:] < u[:m] + \gamma - \mu)
                 \end{cases}
 
 
@@ -232,18 +235,16 @@ class CompareAbs(block.Filter, block.BufferBlock):
             self.buffer = tuple(int(numpy.fabs(v) <= self.threshold) for v in self.buffer)
 
 class CompareAbsWithHysterisis(CompareAbs):
-    """
+    r"""
     :py:class:`pyctrl.block.logic.CompareAbsWithHysterisis` compares the absolute value of its inputs with Hysterisis. 
     
-    Produces an output with the result of the test
+    Produces an output with the result of the test:
     
-    :math:`y[:] = (|u[:]| <= \gamma)`
-
     .. math::
 
        y[:m] = \begin{cases}
-                  (|u[:] <= \gamma - \mu), & \text{if } \text{state}[:] \\
-                  (|u[:] <= \gamma + \mu), & \text{if } ! \text{state}[:]
+                  (|u[:] - \alpha| <= \gamma - \mu), & \text{if } \text{state}[:] \\
+                  (|u[:] - \alpha| <= \gamma + \mu), & \text{if } ! \text{state}[:]
                 \end{cases}
 
     and update the state as follows:
@@ -251,10 +252,10 @@ class CompareAbsWithHysterisis(CompareAbs):
     .. math::
 
        \text{state}[:m] = \begin{cases}
-                  1, & \text{if } \text{state} \& (u[:] < \gamma + \mu) \\
-                  0, & \text{if } \text{state} \& (u[:] >= \gamma + \mu) \\
-                  0, & \text{if } ! \text{state} \& (u[:] >= \gamma - \mu) \\
-                  1, & \text{if } ! \text{state} \& (u[:] < \gamma - \mu)
+                  1, & \text{if } \text{state} \, \& \, (u[:] < \gamma + \mu) \\
+                  0, & \text{if } \text{state} \, \& \, (u[:] >= \gamma + \mu) \\
+                  0, & \text{if } ! \text{state} \, \& \, (u[:] >= \gamma - \mu) \\
+                  1, & \text{if } ! \text{state} \, \& \, (u[:] < \gamma - \mu)
                 \end{cases}
 
     Output is :py:data:`1` if test return True and :py:data:`0` otherwise.
@@ -264,6 +265,7 @@ class CompareAbsWithHysterisis(CompareAbs):
     :math:`y[:] = (|u[:]| >= \gamma)`
 
     :param float threshold: the threshold :math:`\gamma` (default `0.5`)
+    :param float offset: the offset :math:`\alpha` (default `0.0`)
     :param float hysterisis: the hysterisis :math:`\mu` (default `0.1`)
     :param bool invert: whether to invert the sign of the test
     """
