@@ -1,6 +1,6 @@
 # pyctrl: a Python Suite for Systems and Control
 
-**Release 0.3**
+**Release 0.4**
 
 This is a Python library for system and control.
 
