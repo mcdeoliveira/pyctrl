@@ -256,3 +256,30 @@ class InclinometerContinuous(Raw):
         # call super
         return super(Raw, self).read()
                         
+class TaitBryanAngles(Raw):
+        
+    def __init__(self, **kwargs):
+
+        # kwargs
+        enable_magnetometer = kwargs.pop('enable_magnetometer', True)
+        
+        # call super
+        super().__init__(**kwargs,
+                         enable_magnetometer = True)
+
+        # setup MPU9250
+        self.mpu9250 = MPU9250() # singleton
+
+    def read(self):
+
+        #print('> read')
+        if self.enabled:
+
+            # read imu
+            data = self.mpu9250.get_data()
+
+            # units (m/s^2) and (rad/s)
+            self.buffer = (data['tb'])
+        
+        # call super
+        return super().read()
