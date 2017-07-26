@@ -264,8 +264,7 @@ class TaitBryanAngles(Raw):
         enable_magnetometer = kwargs.pop('enable_magnetometer', True)
         
         # call super
-        super().__init__(**kwargs,
-                         enable_magnetometer = True)
+        super().__init__(enable_magnetometer = True, **kwargs)
 
         # setup MPU9250
         self.mpu9250 = MPU9250() # singleton
