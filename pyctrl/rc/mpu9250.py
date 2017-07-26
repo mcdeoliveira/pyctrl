@@ -279,6 +279,7 @@ class TaitBryanAngles(Raw):
 
             # units (m/s^2) and (rad/s)
             self.buffer = (data['tb'])
+            print('buffer = {}'.format(self.buffer))
         
         # call super
         return super().read()
