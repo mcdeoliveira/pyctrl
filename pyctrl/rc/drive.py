@@ -10,7 +10,7 @@ class Controller(pyctrl.rc.Controller):
         # call super
         super()._reset()
 
-        self.add_signals('theta','theta_dot',
+        self.add_signals('pitch','roll','yaw',
                          'encoder1','encoder2',
                          'pwm1','pwm2')
         
