@@ -267,7 +267,7 @@ class TaitBryanAngles(Raw):
         self.mpu9250 = MPU9250() # singleton
 
         # enable magnetometer
-        self.mpu9250.set('enable_magnetometer', True)
+        self.mpu9250.set(enable_magnetometer = True)
         
     def read(self):
 
