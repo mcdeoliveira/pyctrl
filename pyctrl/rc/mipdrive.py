@@ -17,7 +17,7 @@ class Controller(pyctrl.rc.Controller):
         # add source: imu
         self.add_source('orientation',
                         ('pyctrl.rc.mpu9250', 'TaitBryanAngles'),
-                        ['theta','theta_dot'],
+                        ['pitch','roll','yaw'],
                         kwargs = {'demux': True})
 
         # add source: encoder1
