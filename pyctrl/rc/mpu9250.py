@@ -282,4 +282,7 @@ class TaitBryanAngles(Raw):
             print('buffer = {}'.format(self.buffer))
         
         # call super
-        return super().read()
+        retval = super().read()
+        print('retval = {}'.format(retval))
+        return retval
+        #return super().read()
