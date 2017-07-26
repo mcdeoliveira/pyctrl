@@ -151,11 +151,11 @@ class Raw(block.Source, block.BufferBlock):
         
     def __init__(self, **kwargs):
 
+        # set MPU9250 block
+        self.mpu9250 = MPU9250(**kwargs) # singleton
+        
         # call super
         super().__init__(**kwargs)
-
-        # set MPU9250 block
-        self.mpu9250 = MPU9250() # singleton
 
     def get(self, *keys, exclude = ()):
 
