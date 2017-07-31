@@ -1071,3 +1071,49 @@ class Logger(Sink, Block):
             self.current = 0
             self.page += 1
         
+class Wrap(Filter, BufferBlock):
+
+    def __init__(self, **kwargs):
+
+        # turns initialization
+        self.turns = kwargs.pop('turns', 0)
+        self.threshold = kwargs.pop('threshold', 0.25*2*numpy.pi)
+        self.theta = kwargs.pop('theta', 0)
+
+        # call super
+        super().__init__(**kwargs)
+
+        self.first = True
+
+    def reset(self):
+
+        self.turns = 0
+        self.first = True
+        
+    def read(self):
+
+        #print('> read')
+        if self.enabled:
+
+            # get theta
+            theta = self.buffer[0]
+
+            if self.first:
+                self.first = False
+                
+            else:
+
+                # jump?
+                if (numpy.fabs(theta - self.theta) > self.threshold):
+                    if theta > self.theta:
+                        self.turns -= 1
+                    else: 
+                        self.turns += 1
+                        
+            self.theta = theta
+
+            # units (turns) and (1/s)
+            self.buffer = (2 * numpy.pi * self.turns + theta, )
+        
+        # call super
+        return super().read()

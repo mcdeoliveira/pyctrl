@@ -15,12 +15,21 @@ based OS (including the Beaglebone Black and Blue) type:
 
 ::
 
-    sudo apt install python3 python3-pip python3-numpy
+    sudo apt install python3 python3-pip python3-numpy python3-scipy
 
-If you want to use it with the Robotics Cape or on the Beaglebone Blue
-you will also need to install the rcpy package
-(`github <https://github.com/mcdeoliveira/rcpy>`__,
-`PyPI <https://pypi.python.org/pypi?:action=display&name=rcpy>`__).
+Starting with version 0.4 there is a web server based on the flask
+microframework. Install flask:
+
+::
+
+    sudo pip3 install flask
+	
+if you would like to use this feature.
+
+In order to use this package with the Robotics Cape or the Beaglebone
+Blue you will also need to install the rcpy package (`github
+<https://github.com/mcdeoliveira/rcpy>`__, `PyPI
+<https://pypi.python.org/pypi?:action=display&name=rcpy>`__).
 
 Installation
 ------------

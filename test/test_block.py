@@ -554,7 +554,65 @@ def test_html():
     obj = block.ShortCircuit()
 
     print(obj.html())
+
+
+def test_wrap():
+
+    import numpy as np
+
+    obj = block.Wrap()
+
+    for x in np.arange(0, 4*np.pi, 0.01):
+        theta = np.mod(x, 2*np.pi)
+        turns = np.floor_divide(x, 2*np.pi)
+        #print('theta = {}, turns = {}'.format(theta, turns))
+        obj.write(theta)
+        (y,) = obj.read()
+        assert obj.theta == theta
+        assert obj.turns == turns
+        assert y == x
+
+    obj = block.Wrap()
     
+    for x in np.arange(0, 4*np.pi, 0.01):
+        theta = np.mod(x + np.pi, 2*np.pi) - np.pi
+        turns = np.floor_divide(x + np.pi, 2*np.pi)
+        #print('x = {}, theta = {}, turns = {}'.format(x, theta, turns))
+        obj.write(theta)
+        (y,) = obj.read()
+        assert obj.theta == theta
+        assert obj.turns == turns
+        assert numpy.fabs(y - x) < 1e-4
+
+    obj = block.Wrap()
+    
+    for x in np.arange(-np.pi, 3*np.pi, 0.01):
+        theta = np.mod(x + np.pi, 2*np.pi) - np.pi
+        turns = np.floor_divide(x + np.pi, 2*np.pi)
+        obj.write(theta)
+        (y,) = obj.read()
+        assert obj.theta == theta
+        assert obj.turns == turns
+        assert numpy.fabs(y - x) < 1e-4
+        
+    obj = block.Wrap()
+    
+    for x in np.arange(4*np.pi, 0, -0.01):
+        theta = np.mod(x, 2*np.pi)
+        obj.write(theta)
+        (y,) = obj.read()
+        assert obj.theta == theta
+        assert numpy.fabs(y - x + 4*np.pi) < 1e-4
+        
+    obj.reset()
+    
+    for x in np.arange(4*np.pi, 0, -0.01):
+        theta = np.mod(x + np.pi, 2*np.pi) - np.pi
+        obj.write(theta)
+        (y,) = obj.read()
+        assert obj.theta == theta
+        assert numpy.fabs(y - x + 4*np.pi) < 1e-4
+        
 if __name__ == "__main__":
 
     testPrinter()
