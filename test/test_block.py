@@ -612,6 +612,32 @@ def test_wrap():
         (y,) = obj.read()
         assert obj.theta == theta
         assert numpy.fabs(y - x + 4*np.pi) < 1e-4
+
+    # degrees
+    obj = block.Wrap(scaling = 360)
+
+    for x in np.arange(0, 4*360, 10):
+        theta = np.mod(x, 360)
+        turns = np.floor_divide(x, 360)
+        #print('theta = {}, turns = {}'.format(theta, turns))
+        obj.write(theta)
+        (y,) = obj.read()
+        assert obj.theta == theta
+        assert obj.turns == turns
+        assert y == x
+
+    # cycles
+    obj = block.Wrap(scaling = 1)
+
+    for x in np.arange(0, 4, 10):
+        theta = np.mod(x, 1)
+        turns = np.floor_divide(x, 1)
+        #print('theta = {}, turns = {}'.format(theta, turns))
+        obj.write(theta)
+        (y,) = obj.read()
+        assert obj.theta == theta
+        assert obj.turns == turns
+        assert y == x
         
 if __name__ == "__main__":
 

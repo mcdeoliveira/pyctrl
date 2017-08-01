@@ -4,7 +4,7 @@ This module provides the basic building blocks for implementing controllers.
 
 import warnings
 import contextlib
-import numpy
+import numpy, math
 import sys
 import json
 import itertools
@@ -1072,12 +1072,24 @@ class Logger(Sink, Block):
             self.page += 1
         
 class Wrap(Filter, BufferBlock):
+    """
+    :py:class:`pyctrl.block.Wrap` attempt to make a possible
+    discontinuous angular signal into a continuous one.
+
+    Use the attribute `scaling` to change units. Default is radians.
+
+    :param int turns: the current number of turns
+    :param float theta: current unwraped value of the signal
+    :param int threshold: the threshold to use when deciding whether a discontinuity has been reached (Default 0.25 * scaling) 
+    :param float scaling: scaling factor (default 2*pi)
+    """
 
     def __init__(self, **kwargs):
 
         # turns initialization
         self.turns = kwargs.pop('turns', 0)
-        self.threshold = kwargs.pop('threshold', 0.25*2*numpy.pi)
+        self.scaling = kwargs.pop('scaling', 2*math.pi)
+        self.threshold = kwargs.pop('threshold', 0.25*self.scaling)
         self.theta = kwargs.pop('theta', 0)
 
         # call super
@@ -1113,7 +1125,7 @@ class Wrap(Filter, BufferBlock):
             self.theta = theta
 
             # units (turns) and (1/s)
-            self.buffer = (2 * numpy.pi * self.turns + theta, )
+            self.buffer = (self.scaling * self.turns + theta, )
         
         # call super
         return super().read()

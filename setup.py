@@ -7,7 +7,7 @@ def readme():
 setup(
     
     name="pyctrl",
-    version="0.4.2",
+    version="0.4.3",
     packages=find_packages(),
     python_requires='>=3.4',    
     scripts=['scripts/pyctrl_start_server',
