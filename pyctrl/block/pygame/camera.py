@@ -109,6 +109,6 @@ if __name__ == "__main__":
     camera = Camera()
     screen = Screen()
 
-    values = camera.read()
+    (values,) = camera.read()
     screen.write(values)
     
