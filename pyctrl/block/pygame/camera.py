@@ -2,6 +2,7 @@ import pyctrl.block as block
 
 import pygame
 import pygame.camera
+import numpy as np
 
 # initialize pygame
 pygame.init()
@@ -73,6 +74,7 @@ class Screen(block.Sink, block.Block):
             self.screen.blit(image, (0,0))
             pygame.display.update()
 
+# This class takes an image and saves it in a file
 class SaveFrame(block.Sink, block.Block):
 
     def __init__(self, **kwargs):
@@ -93,7 +95,19 @@ class SaveFrame(block.Sink, block.Block):
             image = values[0]
             pygame.image.save(image, self.filename.format(self.counter))
             self.counter += 1
-                    
+
+# This class takes an image and outputs a numpy array
+class ImageToArray(block.Filter, block.BufferBlock):
+
+    def read(self):
+
+        # print('> read')
+        if self.enabled:
+
+            self.buffer = (np.asarray(pygame.surfarray.array3d(self.buffer[0])), )
+        
+        return self.buffer
+            
 # TODO: atexit
 # Shutdown the WebCam
 def shutdown(self):
