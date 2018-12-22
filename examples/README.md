@@ -39,8 +39,8 @@ Black/Black Wirelless with the Robotics Cape and the
 2. `rc_mip_drive.py` 
 
    Run `rc_mip_drive.py` and follow the instructions on the
-   screen. You will need a wheel attached to the eduMIP, for instance,
-   [this ball caster](https://www.pololu.com/product/2692) to drive
+   screen. You will need a wheel attached to the eduMIP, for example
+   [this ball caster](https://www.pololu.com/product/2692), to drive
    your eduMIP around.
 
 ## Documentation:
