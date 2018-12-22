@@ -32,15 +32,15 @@ Black/Black Wirelless with the Robotics Cape and the
 
 1. `rc_mip_balance.py`
 
-Run `rc_mip_balance.py` and follow the instructions on the
-screen. Raise your eduMIP to start balancing.
+   Run `rc_mip_balance.py` and follow the instructions on the
+   screen. Raise your eduMIP to start balancing.
 
-2. `rc_mip_drive.py`
+2. `rc_mip_drive.py` 
 
-Run `rc_mip_drive.py` and follow the instructions on the screen. You
-will need a wheel attached to the eduMIP, for instance, [this ball
-caster](https://www.pololu.com/product/2692) to drive your eduMIP
-around.
+   Run `rc_mip_drive.py` and follow the instructions on the
+   screen. You will need a wheel attached to the eduMIP, for instance,
+   [this ball caster](https://www.pololu.com/product/2692) to drive
+   your eduMIP around.
 
 ## Documentation:
 
