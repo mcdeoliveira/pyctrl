@@ -33,7 +33,8 @@ Black/Black Wirelless with the Robotics Cape and the
 1. `rc_mip_balance.py`
 
    Run `rc_mip_balance.py` and follow the instructions on the
-   screen. Raise your eduMIP to start balancing.
+   screen. Simple raise your eduMIP to start balancing and drive the
+   eduMIP around.
 
 2. `rc_mip_drive.py` 
 
