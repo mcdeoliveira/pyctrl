@@ -1,0 +1,34 @@
+# pyctrl: a Python Suite for Systems and Control
+
+## Examples
+
+### User Guide Examples
+
+These examples can be run in any platform. See [User
+Guide](http://guitar.ucsd.edu/pyctrl/html/user_guide.html) for
+details.
+
+1. hello_world.py
+5. hello_timer_1.py
+6. hello_timer_2.py
+2. hello_client.py
+3. hello_filter_1.py
+4. hello_filter_2.py
+5. simulated_motor_1.py
+6. simulated_motor_2.py
+
+### Beaglebone Examples
+
+These examples will only run at a Beaglebone Blue, or Beaglebone Black/Black Wirelless with the Robotics Cape. See [Robot Control Library](http://www.strawsondesign.com/docs/librobotcontrol/index.html) and [rcpy](https://github.com/mcdeoliveira/rcpy) for details.
+
+1. rc_motor.py
+2. rc_motor_control.py
+
+### EDUMip Examples
+
+These examples will only run at a Beaglebone Blue, or Beaglebone
+Black/Black Wirelless with the Robotics Cape and the
+[eduMIP](https://www.ucsdrobotics.org/edumip) kit.
+
+1. rc_mip_balance.py
+2. rc_mip_drive.py
