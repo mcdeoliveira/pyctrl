@@ -8,12 +8,7 @@ def main():
     # initialize controller
     Ts = 1/20
     hello = Controller(period = Ts)
-
-    hello.add_signal('keras')
-
-    hello.add_filter('input',
-                        )
-
+    
     try:
 
         print(hello.info('all'))
