@@ -2,11 +2,7 @@ import pyctrl.block as block
 import cv2
 import numpy as np
 
-# These imports are for Raspberry Pi
-#from picamera.array import PiRGBArray
-#from picamera import PiCamera
-
-# This class is for Camera class for all (Pi, Ubuntu, Windows...etc)
+# This class is for Camera class for all (Ubuntu, Windows...etc)
 class ComputerCamera(block.Source, block.BufferBlock):
     
     def __init__(self, **kwargs):
@@ -61,6 +57,15 @@ class ComputerCamera(block.Source, block.BufferBlock):
         self.cap.release()
         cv2.destroyAllWindows()
         
+# This class is for Camera class for RaspberryPi (Ubuntu, Windows...etc)
+class ComputerCamera(block.Source, block.BufferBlock):
+    from picamera.array import PiRGBArray
+    from picamera import PiCamera
+
+    def __init__(self, **kwargs):
+        
+        # call super
+        super().__init__(**kwargs)
 
 if __name__ == "__main__":
     
