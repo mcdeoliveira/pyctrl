@@ -14,7 +14,7 @@ def main():
 
     # add a Printer as a sink
     hello.add_sink('message',
-		   Printer(message = 'Hello World @ {:3.1f} s'),
+		   Printer(message = 'Hello World @ {:3.1f} s'), # Format the time
 		   ['clock'],
                    enable = True)
 

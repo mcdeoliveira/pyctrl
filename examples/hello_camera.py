@@ -58,7 +58,7 @@ def main():
                      ['image'],
                      ['array'])
 
-    # add a ImageToNumpy as a filter
+    # add a AverageArray as a filter
     hello.add_filter('average1',
                      AverageArray(),
                      ['array'],

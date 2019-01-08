@@ -2,6 +2,11 @@ import pyctrl.block as block
 
 import keras
 
+# Just disables the warning, doesn't enable AVX/FMA
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+####################################################
+
 # This class is for keras
 class Keras(block.Filter, block.BufferBlock):
 

@@ -21,7 +21,7 @@ def main():
     hello.add_filter('input',
 		     Interp(xp = us, fp = ts),
 		     ['clock'],
-                     ['pwm'])
+             ['pwm'])
 
     # add logger
     hello.add_sink('printer',
