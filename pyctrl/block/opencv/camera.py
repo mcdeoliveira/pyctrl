@@ -1,5 +1,5 @@
 import pyctrl.block as block
-
+import time
 import cv2
 import numpy as np
 
@@ -17,8 +17,18 @@ class ComputerCamera(block.Source, block.BufferBlock):
         print("Initatied the camera")
 
 
+    def read(self):
+        print('> read')
+
+        if self.enabled:
+            self.ret, self.frame = self.cap.read()
+            self.buffer = (self.frame, )
+        return self.buffer
+
+
     def run(self, saveFile):
         print("Running the Camera")
+
         img_counter = 0
         while (self.cap.isOpened()):
             ret, frame = self.cap.read()
@@ -57,7 +67,22 @@ class ComputerCamera(block.Source, block.BufferBlock):
     def __del__(self, **kwargs):
         self.cap.release()
         cv2.destroyAllWindows()
+
+
+# This class is for show frame
+class Screen(block.Sink, block.Block):
+    
+    def __init__(self, **kwargs):
+        # call super
+        super().__init__(**kwargs)
         
+    def write(self, *values):
+
+        if self.enabled:
+            frame = values[0]
+            frame = cv2.flip(frame, 1)
+            cv2.imshow('frame', frame)
+
 
 # This class is for Camera class for RaspberryPi (Ubuntu, Windows...etc)
 class PiCamera(block.Source, block.BufferBlock):
@@ -102,4 +127,13 @@ if __name__ == "__main__":
     print("> Testing Camera")
 
     camera = ComputerCamera()
+    #screen = Screen()
+
     camera.run(False)
+
+    #print(camera.read())
+    #(values,) = camera.read()
+    #print(values)
+    #time.sleep(2)
+    #screen.write(values)
+    #time.sleep(2)
