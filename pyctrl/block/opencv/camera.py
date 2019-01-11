@@ -58,6 +58,7 @@ class ComputerCamera(block.Source, block.BufferBlock):
     def show(self, frame):
         # Showing the Frame to the user
         cv2.imshow('frame', frame)
+        cv2.waitkey(0)
 
 
     def saveImageToArray(self, frame):
@@ -82,6 +83,7 @@ class Screen(block.Sink, block.Block):
             frame = values[0]
             frame = cv2.flip(frame, 1)
             cv2.imshow('frame', frame)
+            cv2.waitKey(1000)
 
 
 # This class is for Camera class for RaspberryPi (Ubuntu, Windows...etc)
@@ -127,13 +129,13 @@ if __name__ == "__main__":
     print("> Testing Camera")
 
     camera = ComputerCamera()
-    #screen = Screen()
+    screen = Screen()
 
-    camera.run(False)
+    #camera.run(False)
 
-    #print(camera.read())
-    #(values,) = camera.read()
-    #print(values)
-    #time.sleep(2)
-    #screen.write(values)
-    #time.sleep(2)
+    print(camera.read())
+    (values,) = camera.read()
+    print(values)
+    time.sleep(2)
+    screen.write(values)
+    time.sleep(2)
