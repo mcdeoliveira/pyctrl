@@ -35,7 +35,7 @@ class Camera(block.Source, block.BufferBlock):
 
         if 'resolution' in kwargs:
             # make sure ratio is a float
-            self.resolution = float(kwargs.pop('resolution'))
+            self.resolution = kwargs.pop('resolution')
 
         # TODO: If changed, reinitialize camera
         
