@@ -104,7 +104,6 @@ def main():
                    ['angles'])
 
     try:
-
         print(hello.info('all'))
         
         # run the controller
