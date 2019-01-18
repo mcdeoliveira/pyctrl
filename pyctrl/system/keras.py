@@ -25,9 +25,7 @@ class Keras(system.System):
 
         :param numpy.array uk: input at time k
         """
-        print('uk.shape = ', uk.shape)
         uk = uk.reshape((1,) + uk.shape)
-        print('uk.shape = ', uk.shape)
         yk = self.model.predict(uk)
 
         return yk

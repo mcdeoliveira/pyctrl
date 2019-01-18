@@ -42,7 +42,7 @@ def main():
 
     # add a Camera as a source
     hello.add_source('camera',
-                     Camera(resolution=(160,120)),
+                     Camera(resolution=(160,120), flip=1, transpose=False),
                      ['image'],
                      enable = True)
 

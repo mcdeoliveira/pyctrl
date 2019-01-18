@@ -1,4 +1,6 @@
 import pyctrl.block as block
+import sys
+import contextlib
 import time
 import cv2
 import numpy as np
@@ -10,6 +12,9 @@ class Camera(block.Source, block.BufferBlock):
 
         # process parameters
         self.resolution = kwargs.pop('resolution', None)
+        self.flip = kwargs.pop('flip', 0)
+        self.transpose = kwargs.pop('transpose', True)
+        self.reverse = kwargs.pop('reverse', False)
         
         # call super
         super().__init__(**kwargs)
@@ -24,6 +29,15 @@ class Camera(block.Source, block.BufferBlock):
         if 'resolution' in kwargs:
             self.resolution = kwargs.pop('resolution')
 
+        if 'flip' in kwargs:
+            self.flip = kwargs.pop('flip')
+            
+        if 'transpose' in kwargs:
+            self.transpose = kwargs.pop('transpose')
+            
+        if 'reverse' in kwargs:
+            self.reverse = kwargs.pop('reverse')
+            
         # call super
         super().set(**kwargs)
 
@@ -33,6 +47,16 @@ class Camera(block.Source, block.BufferBlock):
             ret, frame = self.cap.read()
             if self.resolution:
                 frame = cv2.resize(frame, self.resolution)
+            if self.reverse:
+                if self.transpose:
+                    frame = cv2.transpose(frame)
+                if self.flip:
+                    frame = cv2.flip(frame, self.flip)
+            else:
+                if self.flip:
+                    frame = cv2.flip(frame, self.flip)
+                if self.transpose:
+                    frame = cv2.transpose(frame)
             self.buffer = (frame, )
         return self.buffer
 
@@ -44,32 +68,97 @@ class Camera(block.Source, block.BufferBlock):
 # This class is for show frame
 class Screen(block.Sink, block.Block):
     
+    def write(self, *values):
+
+        if self.enabled:
+            cv2.imshow('image', values[0])
+            cv2.waitKey(1)
+
+
+# This class takes an image and saves it in a file
+class SaveFrame(block.Sink, block.Block):
+
     def __init__(self, **kwargs):
 
         # process parameters
-        self.flip = kwargs.pop('flip', 1)
+        self.number_of_digits = int(kwargs.pop('number_of_digits', 4))
+        self.filename = kwargs.pop('filename', 'frame') + '{:0' + str(self.number_of_digits) + 'd}.png'
+        self.counter = int(kwargs.pop('counter', 0))
         
         # call super
         super().__init__(**kwargs)
-        
-    def set(self, **kwargs):
-
-        if 'flip' in kwargs:
-            self.resolution = kwargs.pop('flip')
-
-        # call super
-        super().set(**kwargs)
 
     def write(self, *values):
 
         if self.enabled:
-            frame = values[0]
-            if self.flip:
-                frame = cv2.flip(frame, self.flip)
-            cv2.imshow('image', frame)
-            cv2.waitKey(1)
 
+            assert len(values) == 1
+            image = values[0]
+            cv2.imwrite(self.filename.format(self.counter), image)
+            self.counter += 1
 
+# This class takes an image and values and saves them in files
+class SaveFrameValues(block.Sink, block.Block):
+
+    def __init__(self, **kwargs):
+
+        # process parameters
+        self.endln = kwargs.pop('endln', '\n')
+        self.frmt = kwargs.pop('frmt', '{: 12.4f}')
+        self.sep = kwargs.pop('sep', ' ')
+        self.message = kwargs.pop('message', None)
+        self.index = kwargs.pop('index', None)
+        
+        self.number_of_digits = int(kwargs.pop('number_of_digits', 4))
+        self.filename = kwargs.pop('filename', 'frame') + '{:0' + str(self.number_of_digits) + 'd}.png'
+        
+        self.counter = int(kwargs.pop('counter', 0))
+
+        if self.index is sys.stdout:
+            self.index = None
+
+        # call super
+        super().__init__(**kwargs)
+
+    def write(self, *values):
+
+        if self.enabled:
+
+            # initialize index
+            index = self.index
+            if index is None:
+                index = sys.stdout
+            
+            # save input[0] as image
+            image = values[0]
+            image_filename = self.filename.format(self.counter)
+            cv2.imwrite(image_filename, image)
+
+            # print filename
+            print(image_filename, file=index, end=' ')
+            
+            # print remaining values
+            if self.message is not None:
+                print(self.message.format(*values[1:]),
+                      file=index,
+                      end=self.endln)
+                
+            else:
+                @contextlib.contextmanager
+                def printoptions(*args, **kwargs):
+                    original = np.get_printoptions()
+                    np.set_printoptions(*args, **kwargs)
+                    yield 
+                    np.set_printoptions(**original)
+
+                row = np.hstack(values[1:])
+                print(self.sep.join(self.frmt.format(val) for val in row),
+                      file=index, end=self.endln)
+
+            self.counter += 1
+
+            
+            
 if __name__ == "__main__":
     
     print("> Testing Camera")
