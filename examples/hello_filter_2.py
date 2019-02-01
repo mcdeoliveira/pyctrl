@@ -84,9 +84,11 @@ def main():
         print('! Could not plot graphics')
         print('> Make sure you have a connection to a windows manager')
         sys.exit(0)
-        
+    
+    clock = data['clock']
+    motor = data['pwm']
     # plot input 
-    plt.plot(data['clock'], data['motor'], 'b')
+    plt.plot(clock, motor, 'b')
     plt.ylabel('pwm (%)')
     plt.xlabel('time (s)')
     plt.ylim((-120,120))
