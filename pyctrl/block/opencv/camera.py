@@ -157,17 +157,30 @@ class SaveFrameValues(block.Sink, block.Block):
 
             self.counter += 1
 
-            
+
+class SharpenFrame(block.Filter, block.BufferBlock):
+
+    def read(self):
+
+        if self.enabled:
+            # print(' > read in SharpenFrames')
+            kernel_sharpen = np.array([[-1, -1, -1],
+                                       [-1, 9, -1],
+                                       [-1, -1, -1]])
+            frame= cv2.filter2D(self.buffer[0], -1, kernel_sharpen)
+            self.buffer = (frame, )
+
+        return self.buffer
             
 if __name__ == "__main__":
-    
+     
     print("> Testing Camera")
 
     camera = Camera()
     screen = Screen()
 
-    (values,) = camera.read()
-    print(values)
-    time.sleep(2)
+    (values, ) = camera.read()
+    #print(values)
+    #time.sleep(2)
     screen.write(values)
-    time.sleep(2)
+    #ime.sleep(2)
