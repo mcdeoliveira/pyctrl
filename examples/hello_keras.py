@@ -6,7 +6,6 @@ import threading
 import pyctrl
 
 # read key stuff
-
 ARROW_UP    = "\033[A"
 ARROW_DOWN  = "\033[B"
 ARROW_RIGHT = "\033[C"
@@ -141,7 +140,7 @@ def main():
     shape = (160, 120, 3)
     keras_model = build_model(shape)
 
-    # add the signal myclock
+    # add the signal the hello controller
     hello.add_signal('image')
 
     # add a Camera as a source
@@ -163,8 +162,8 @@ def main():
     #                 ['angles'])
 
     hello.add_signals('throttle', 'steering')
-    hello.set_signal('throttle', 0);
-    hello.set_signal('steering', 0);
+    hello.set_signal('throttle', 0)
+    hello.set_signal('steering', 0)
     
     # add printer
     hello.add_sink('imgwrtr',

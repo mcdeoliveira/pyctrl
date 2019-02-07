@@ -164,13 +164,44 @@ class SharpenFrame(block.Filter, block.BufferBlock):
 
         if self.enabled:
             # print(' > read in SharpenFrames')
-            kernel_sharpen = np.array([[-1, -1, -1],
-                                       [-1, 9, -1],
-                                       [-1, -1, -1]])
+            kernel_sharpen = np.array([[0, -1, 0],
+                                       [-1, 5, -1],
+                                       [0, -1, 0]])
             frame= cv2.filter2D(self.buffer[0], -1, kernel_sharpen)
+
             self.buffer = (frame, )
 
         return self.buffer
+
+
+class BlurFrame(block.Filter, block.BufferBlock):
+
+    def read(self):
+
+        if self.enabled:
+            # print(' > read in SharpenFrames')
+            kernel_blur = np.ones((5,5), np.float32) / 25
+            frame= cv2.filter2D(self.buffer[0], -1, kernel_blur)
+
+            self.buffer = (frame, )
+
+        return self.buffer
+
+
+class denoiseFrame(block.Filter, block.BufferBlock):
+
+    def read(self):
+        pass
+        #if self.enabled:
+            # print(' > read in SharpenFrames')
+        #    kernel_sharpen = np.array([[0, -1, 0],
+        #                               [-1, 5, -1],
+        #                               [0, -1, 0]])
+        #    frame= cv2.filter2D(self.buffer[0], -1, kernel_sharpen)
+
+        #    self.buffer = (frame, )
+
+        # return self.buffer
             
 if __name__ == "__main__":
      

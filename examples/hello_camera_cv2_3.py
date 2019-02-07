@@ -2,26 +2,8 @@
 
 import pyctrl.system as system
 import pyctrl.block as block
-import pyctrl.block.system as blksys
+#import pyctrl.block.system as blksys
 import numpy as np
-
-class AverageArray(block.Filter, block.BufferBlock):
-
-    def read(self):
-
-        # print('> read')
-        if self.enabled:
-
-            self.buffer = (np.average(self.buffer[0]), )
-        
-        return self.buffer
-
-class Model(system.System):
-
-    def update(self, uk):
-
-        return np.average(uk)
-
     
 def main():
 
@@ -30,8 +12,8 @@ def main():
 
     # import Controller and other blocks from modules
     from pyctrl.timer import Controller
-    from pyctrl.block.opencv.camera import Camera, Screen
-    from pyctrl.block import Printer
+    from pyctrl.block.opencv.camera import Camera, Screen, SaveFrame, BlurFrame
+    #from pyctrl.block import Printer
 
     # initialize controller
     Ts = 1/20
@@ -46,30 +28,29 @@ def main():
                      Camera(resolution=resolution, flip=1, transpose=False),
                      ['image'],
                      enable = True)
-
-    # add a Screen as a sink
-    hello.add_sink('screen',
-                   Screen(),
-                   ['image'],
-                   enable = True)
-
-    # add a AverageArray as a filter
-    hello.add_filter('average1',
-                     AverageArray(),
-                     ['image'],
-                     ['avg1'])
-
-    # add a ImageToNumpy as a filter
-    hello.add_filter('average2',
-                     blksys.System(model = Model()),
-                     ['image'],
-                     ['avg2'])
     
+    # add a SharpenFrame as a Filter
+    hello.add_filter('blur_screen',
+                     BlurFrame(),
+                     ['image'],
+                     ['blurImage'])
+    
+    # add a Screen as a sink
+    hello.add_sink('BlurredScreen',
+                   Screen(),
+                   ['blurImage'],
+                   enable = True)
+                   
+    # Save frames
+    hello.add_sink('frames',
+                    SaveFrame(filename='tmp/frame'),
+                    ['blurImage'],
+                    enable = True)
     # add printer
-    hello.add_sink('printer',
-                   Printer(message = 'avg1 = {:3.1f}, avg2 = {:3.1f}',
-                           endln = '\r'),
-                   ['avg1', 'avg2'])
+    #hello.add_sink('printer',
+    #               Printer(message = 'avg1 = {:3.1f}, avg2 = {:3.1f}',
+    #                       endln = '\r'),
+    #               ['avg1', 'avg2'])
     
     try:
 
