@@ -1,28 +1,6 @@
 #!/usr/bin/env python3
 
-import pyctrl.system as system
-import pyctrl.block as block
-import pyctrl.block.system as blksys
-import numpy as np
 
-class AverageArray(block.Filter, block.BufferBlock):
-
-    def read(self):
-
-        # print('> read')
-        if self.enabled:
-
-            self.buffer = (np.average(self.buffer[0]), )
-        
-        return self.buffer
-
-class Model(system.System):
-
-    def update(self, uk):
-
-        return np.average(uk)
-
-    
 def main():
 
     # import python's standard time module
@@ -30,56 +8,35 @@ def main():
 
     # import Controller and other blocks from modules
     from pyctrl.timer import Controller
-    from pyctrl.block.pygame.camera import Camera, Screen, ImageToArray
-    from pyctrl.block import Printer
+    from pyctrl.block.pygame.camera import Camera, Screen, SaveFrame
 
     # initialize controller
     Ts = 1/20
-    hello = Controller(period = Ts)
+    hello = Controller(period=Ts)
 
-    # add the signal myclock
+    # add the signal image
     hello.add_signal('image')
 
     # add a Camera as a source
+    resolution = (640, 480)
     hello.add_source('camera',
-                     Camera(),
+                     Camera(resolution=resolution),
                      ['image'],
-                     enable = True)
+                     enable=True)
 
     # add a Screen as a sink
     hello.add_sink('screen',
                    Screen(),
                    ['image'],
-                   enable = True)
+                   enable=True)
 
-    # add a ImageToNumpy as a filter
-    hello.add_filter('im2np',
-                     ImageToArray(),
-                     ['image'],
-                     ['array'])
-
-    # add a AverageArray as a filter
-    hello.add_filter('average1',
-                     AverageArray(),
-                     ['array'],
-                     ['avg1'])
-
-    # add a ImageToNumpy as a filter
-    hello.add_filter('average2',
-                     blksys.System(model = Model()),
-                     ['array'],
-                     ['avg2'])
-    
-    # add printer
-    hello.add_sink('printer',
-                   Printer(message = 'avg1 = {:3.1f}, avg2 = {:3.1f}',
-                           endln = '\r'),
-                   ['avg1', 'avg2'])
+    # add a SaveFrame as a sink
+    hello.add_sink('save',
+                   SaveFrame(filename='dan', number_of_digits=2),
+                   ['image'],
+                   enable=True)
     
     try:
-
-        print(hello.info('all'))
-        
         # run the controller
         with hello:
             # do nothing for 5 seconds
@@ -90,7 +47,8 @@ def main():
 
     finally:
         print('Done')
-    
+
+
 if __name__ == "__main__":
     
     main()

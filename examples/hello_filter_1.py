@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+
 def main():
 
     # import Controller and other blocks from modules
@@ -19,21 +20,21 @@ def main():
     
     # add filter to interpolate data
     hello.add_filter('input',
-		     Interp(xp = us, fp = ts),
-		     ['clock'],
-             ['pwm'])
+                     Interp(xp = us, fp = ts),
+                     ['clock'],
+                     ['pwm'])
 
     # add logger
     hello.add_sink('printer',
-                   Printer(message = 'time = {:3.1f} s, motor = {:+6.1f} %',
-                           endln = '\r'),
-                   ['clock','pwm'])
+                   Printer(message='time = {:3.1f} s, motor = {:+6.1f} %',
+                           endln='\r'),
+                   ['clock', 'pwm'])
 
     # Add a timer to stop the controller
     hello.add_timer('stop',
-		    Constant(value = 0),
-		    None, ['is_running'],
-                    period = 6, repeat = False)
+                    Constant(value=0),
+                    None, ['is_running'],
+                    period=6, repeat=False)
     
     # print controller info
     print(hello.info('all'))
@@ -51,6 +52,7 @@ def main():
         
     except KeyboardInterrupt:
         pass
+
 
 if __name__ == "__main__":
     

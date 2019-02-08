@@ -8,7 +8,7 @@ def main():
 
     # import Controller and other blocks from modules
     from pyctrl.timer import Controller
-    from pyctrl.block.cv2.camera import Camera, Screen, SaveFrame
+    from pyctrl.block.cv2.camera import Camera, Screen, SaveFrame, SharpenFrame
 
     # initialize controller
     Ts = 1/20
@@ -24,16 +24,22 @@ def main():
                      ['image'],
                      enable=True)
 
+    # add a SharpenFrame as a Filter
+    hello.add_filter('sharpen',
+                     SharpenFrame(),
+                     ['image'],
+                     ['sharp_image'])
+
     # add a Screen as a sink
     hello.add_sink('screen',
                    Screen(),
-                   ['image'],
+                   ['sharp_image'],
                    enable=True)
 
     # Save frames
     hello.add_sink('frames',
                    SaveFrame(filename='tmp/frame'),
-                   ['image'],
+                   ['sharp_image'],
                    enable=True)
 
     try:

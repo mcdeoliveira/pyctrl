@@ -1,9 +1,9 @@
 import pyctrl.block as block
 import sys
 import contextlib
-import time
 import cv2
 import numpy as np
+
 
 # This class is for Camera class for all (Ubuntu, Windows...etc)
 class Camera(block.Source, block.BufferBlock):
@@ -22,7 +22,7 @@ class Camera(block.Source, block.BufferBlock):
         # openCV Camera start
         self.cap = cv2.VideoCapture(0)
 
-        print("Initatied the camera")
+        print("Initialized the camera")
 
     def set(self, **kwargs):
 
@@ -96,6 +96,7 @@ class SaveFrame(block.Sink, block.Block):
             image = values[0]
             cv2.imwrite(self.filename.format(self.counter), image)
             self.counter += 1
+
 
 # This class takes an image and values and saves them in files
 class SaveFrameValues(block.Sink, block.Block):
@@ -188,21 +189,6 @@ class BlurFrame(block.Filter, block.BufferBlock):
         return self.buffer
 
 
-class denoiseFrame(block.Filter, block.BufferBlock):
-
-    def read(self):
-        pass
-        #if self.enabled:
-            # print(' > read in SharpenFrames')
-        #    kernel_sharpen = np.array([[0, -1, 0],
-        #                               [-1, 5, -1],
-        #                               [0, -1, 0]])
-        #    frame= cv2.filter2D(self.buffer[0], -1, kernel_sharpen)
-
-        #    self.buffer = (frame, )
-
-        # return self.buffer
-            
 if __name__ == "__main__":
      
     print("> Testing Camera")
@@ -211,7 +197,4 @@ if __name__ == "__main__":
     screen = Screen()
 
     (values, ) = camera.read()
-    #print(values)
-    #time.sleep(2)
     screen.write(values)
-    #ime.sleep(2)

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+
 def main():
 
     # import python's standard time module
@@ -14,9 +15,9 @@ def main():
 
     # add a Printer as a sink
     hello.add_sink('message',
-		   Printer(message = 'Hello World @ {:3.1f} s'), # Format the time
-		   ['clock'],
-                   enable = True)
+                   Printer(message = 'Hello World @ {:3.1f} s'),
+                   ['clock'],
+                   enable=True)
 
     # print controller info
     print(hello.info('all'))
@@ -27,7 +28,7 @@ def main():
 
         print('> Do nothing for 5 s with the controller on...')
         with hello:
-	    # do nothing for 5 seconds
+            # do nothing for 5 seconds
             time.sleep(5)
 
         print('> Do nothing for 2 s with the controller off...')
@@ -35,13 +36,14 @@ def main():
         
         print('> Do nothing for 5 s with the controller on...')
         with hello:
-	    # do nothing for 5 seconds
+            # do nothing for 5 seconds
             time.sleep(5)
             
         print('> Done with the controller.')
 
     except KeyboardInterrupt:
         pass
+
 
 if __name__ == "__main__":
     

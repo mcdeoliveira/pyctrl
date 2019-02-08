@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+
 def main():
 
     # import python's standard time module
@@ -18,15 +19,15 @@ def main():
 
     # add a TimerClock as a source
     hello.add_source('myclock',
-                     TimerClock(period = 1),
+                     TimerClock(period=1),
                      ['myclock'],
-                     enable = True)
+                     enable=True)
 
     # add a Printer as a sink
     hello.add_sink('message',
-                   Printer(message = 'Hello World!'),
+                   Printer(message='Hello World!'),
                    ['myclock'],
-                   enable = True)
+                   enable=True)
 
     try:
         # run the controller
@@ -40,38 +41,7 @@ def main():
     finally:
         print('Done')
     
-    print(hello)
-    print(hello.info('all'))
-
-def device():
-    import time
-
-    from pyctrl import Controller
-
-    hello = Controller()
-    hello.add_device('clock', 
-                        'pyctrl.block.clock', 'TimerClock',
-                        outputs = ['clock'],
-                        enable = True,
-                        kwargs = {'period' : 1})
-
-    try:
-        # run the controller
-        with hello:
-            # do nothing for 5 seconds
-            time.sleep(5)
-
-    except KeyboardInterrupt:
-        pass
-
-    finally:
-        print('Done')
-    
-    print(hello)
-    print(hello.info('all'))
-    hello.reset()
 
 if __name__ == "__main__":
     
     main()
-    #device()

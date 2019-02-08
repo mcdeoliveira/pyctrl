@@ -1,7 +1,8 @@
-import numpy
 import keras
+from pyctrl.system import SystemException
 
 from .. import system
+
 
 class Keras(system.System):
     r"""
@@ -15,7 +16,7 @@ class Keras(system.System):
 
         # TODO: make sure it is keras model
         if not isinstance(model, keras.models.Model):
-            raise block.BlockException('model must be keras.models.Model')
+            raise SystemException('model must be keras.models.Model')
 
         self.model = model
     
