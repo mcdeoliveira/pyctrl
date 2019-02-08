@@ -2,6 +2,7 @@
 This module provides objects that can be used to represent time-invariant and time-varying dynamic systems.
 """
 
+
 class System:
     """
     Base class for dynamic time-invariant systems.
@@ -33,6 +34,7 @@ class System:
         :return: the output of the model
         """
         pass
+
 
 class TVSystem(System):
     """
@@ -66,6 +68,7 @@ class TVSystem(System):
         :return: the output of the model
         """
         pass
+
 
 class SystemException(Exception):
     """

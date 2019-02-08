@@ -8,7 +8,7 @@ def main():
 
     # import Controller and other blocks from modules
     from pyctrl.timer import Controller
-    from pyctrl.block.opencv.camera import Camera, Screen, SaveFrame, SharpenFrame
+    from pyctrl.block.cv2.camera import Camera, Screen, SaveFrame, SharpenFrame
 
     # initialize controller
     Ts = 1/20

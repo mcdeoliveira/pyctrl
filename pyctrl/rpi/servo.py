@@ -5,6 +5,7 @@ from pyctrl.rpi.PCA9685 import PCA9685
 # initialize PCA9685
 pwm = PCA9685(60)
 
+
 class Servo(block.Sink, block.Block):
     
     def __init__(self, **kwargs):

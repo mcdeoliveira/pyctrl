@@ -123,7 +123,7 @@ def main():
 
     # import Controller and other blocks from modules
     from pyctrl.timer import Controller
-    from pyctrl.block.opencv.camera import Camera, Screen, SaveFrameValues
+    from pyctrl.block.cv2.camera import Camera, Screen, SaveFrameValues
     from pyctrl.block import Printer
     from pyctrl.block.system import System
     from pyctrl.system.keras import Keras
