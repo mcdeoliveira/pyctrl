@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 
-import pyctrl.system as system
-import pyctrl.block as block
-#import pyctrl.block.system as blksys
-import numpy as np
-    
+
 def main():
 
     # import python's standard time module
@@ -13,49 +9,40 @@ def main():
     # import Controller and other blocks from modules
     from pyctrl.timer import Controller
     from pyctrl.block.opencv.camera import Camera, Screen, SaveFrame, SharpenFrame
-    #from pyctrl.block import Printer
 
     # initialize controller
     Ts = 1/20
-    hello = Controller(period = Ts)
+    hello = Controller(period=Ts)
 
     # add the signal myclock
     hello.add_signal('image')
 
-    resolution = (640, 480)
     # add a Camera as a source
+    resolution = (640, 480)
     hello.add_source('camera',
                      Camera(resolution=resolution, flip=1, transpose=False),
                      ['image'],
-                     enable = True)
-    
+                     enable=True)
+
     # add a SharpenFrame as a Filter
-    hello.add_filter('sharpen_screen',
+    hello.add_filter('sharpen',
                      SharpenFrame(),
                      ['image'],
-                     ['sharpenImage'])
-    
+                     ['sharp_image'])
+
     # add a Screen as a sink
-    hello.add_sink('sharpenScreen',
+    hello.add_sink('screen',
                    Screen(),
-                   ['sharpenImage'],
-                   enable = True)
-                   
+                   ['sharp_image'],
+                   enable=True)
+
     # Save frames
     hello.add_sink('frames',
-                    SaveFrame(filename='tmp/frame'),
-                    ['sharpenImage'],
-                    enable = True)
-    # add printer
-    #hello.add_sink('printer',
-    #               Printer(message = 'avg1 = {:3.1f}, avg2 = {:3.1f}',
-    #                       endln = '\r'),
-    #               ['avg1', 'avg2'])
-    
-    try:
+                   SaveFrame(filename='tmp/frame'),
+                   ['sharp_image'],
+                   enable=True)
 
-        print(hello.info('all'))
-        
+    try:
         # run the controller
         with hello:
             # do nothing for 5 seconds
@@ -66,7 +53,8 @@ def main():
 
     finally:
         print('Done')
-    
+
+
 if __name__ == "__main__":
     
     main()

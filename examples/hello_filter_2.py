@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+
 def main():
 
     import sys
@@ -21,26 +22,26 @@ def main():
     
     # add filter to interpolate data
     hello.add_filter('input',
-		     Interp(xp = us, fp = ts),
-		     ['clock'],
+                     Interp(xp = us, fp = ts),
+                     ['clock'],
                      ['pwm'])
 
     # add logger
     hello.add_sink('printer',
                    Printer(message = 'time = {:3.1f} s, motor = {:+6.1f} %',
                            endln = '\r'),
-                   ['clock','pwm'])
+                   ['clock', 'pwm'])
     
     # add logger
     hello.add_sink('logger',
                    Logger(),
-                   ['clock','pwm'])
+                   ['clock', 'pwm'])
 
     # Add a timer to stop the controller
     hello.add_timer('stop',
-		    Constant(value = 0),
-		    None, ['is_running'],
-                    period = 6, repeat = False)
+                    Constant(value = 0),
+                    None, ['is_running'],
+                    period=6, repeat=False)
     
     # print controller info
     print(hello.info('all'))
@@ -85,18 +86,17 @@ def main():
         print('> Make sure you have a connection to a windows manager')
         sys.exit(0)
     
-    clock = data['clock']
-    motor = data['pwm']
-    # plot input 
-    plt.plot(clock, motor, 'b')
+    # plot input
+    plt.plot(data['clock'], data['pwm'], 'b')
     plt.ylabel('pwm (%)')
     plt.xlabel('time (s)')
-    plt.ylim((-120,120))
-    plt.xlim(0,6)
+    plt.ylim((-120, 120))
+    plt.xlim(0, 6)
     plt.grid()
     
     # show plots
     plt.show()
+
 
 if __name__ == "__main__":
     
