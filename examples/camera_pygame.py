@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+
 def main():
 
     # import python's standard time module
@@ -19,19 +20,19 @@ def main():
     pygame.add_source('camera',
                       Camera(),
                       ['image'],
-                      enable = True)
+                      enable=True)
 
     # add a Screen as a sink
     pygame.add_sink('screen',
                     Screen(),
                     ['image'],
-                    enable = True)
+                    enable=True)
 
     # add a SaveFrame as a sink
     pygame.add_sink('save',
                     SaveFrame(filename='dan', number_of_digits=2),
                     ['image'],
-                    enable = True)
+                    enable=True)
     
     try:
         # run the controller
@@ -44,7 +45,8 @@ def main():
 
     finally:
         print('Done')
-    
+
+
 if __name__ == "__main__":
     
     main()
