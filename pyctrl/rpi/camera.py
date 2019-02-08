@@ -1,7 +1,7 @@
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 
-# This class is for Camera class for RaspberryPi (Ubuntu, Windows...etc)
+# This class is for Camera class for RaspberryPi
 class PiCamera(block.Source, block.BufferBlock):
     
     def __init__(self, **kwargs):
@@ -41,5 +41,6 @@ if __name__=="__main__":
     print("> Testing Camera")
 
     camera = PiCamera()
+    camera.run()
     time.sleep(.5)
     
