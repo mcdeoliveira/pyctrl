@@ -137,6 +137,10 @@ class Block:
         if len(kwargs) > 0:
             raise BlockException("Unknown parameter(s) '{}'".format(', '.join(str(k) for k in kwargs.keys())))
 
+        # call set_enabled
+        if hasattr(self, 'set_enabled'):
+            self.set_enabled(self.enabled)
+        
     def is_enabled(self):
         """
         Return :py:attr:`enabled` state.

@@ -70,9 +70,14 @@ def main():
 
     # import Controller and other blocks from modules
     from pyctrl.timer import Controller
+<<<<<<< HEAD
     from pyctrl.block.cv2.camera import Camera, Screen, SaveFrameValues
     from pyctrl.rpi.servo import Servo
     from pyctrl.rpi.throttle import Throttle
+=======
+    # from pyctrl.block.cv2.camera import Camera, Screen, SaveFrameValues
+    from pyctrl.rpi.camera import Camera, SaveFrameValues
+>>>>>>> devel
 
     # open file index
     index = open('tmp/index.txt', 'w')
@@ -90,12 +95,6 @@ def main():
                       Camera(resolution=resolution),
                       ['image'],
                       enable=True)
-
-    # add a Screen as a sink
-    donkey.add_sink('screen',
-                    Screen(),
-                    ['image'],
-                    enable=True)
 
     donkey.add_signals('throttle', 'steering')
     donkey.set_signal('throttle', 0)
@@ -132,15 +131,15 @@ def main():
 
     finally:
 
-        # close index file
-        index.close()
-
         # make sure it exits
         donkey.set_state(pyctrl.EXITING)
 
         print("Press any key to exit")
 
         thread.join()
+
+        # close index file
+        index.close()
 
         termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
