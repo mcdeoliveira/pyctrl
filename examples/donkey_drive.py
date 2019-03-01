@@ -71,6 +71,8 @@ def main():
     # import Controller and other blocks from modules
     from pyctrl.timer import Controller
     from pyctrl.block.cv2.camera import Camera, Screen, SaveFrameValues
+    from pyctrl.rpi.servo import Servo
+    from pyctrl.rpi.throttle import Throttle
 
     # open file index
     index = open('tmp/index.txt', 'w')
@@ -105,7 +107,7 @@ def main():
                     ['image', 'throttle', 'steering'])
 
     # TODO: add the pwm modules for throttle and steering
-
+    
     fd = sys.stdin.fileno()
     old_settings = termios.tcgetattr(fd)
     try:

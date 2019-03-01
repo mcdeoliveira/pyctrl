@@ -4,7 +4,7 @@ from pyctrl.rpi.PCA9685 import PCA9685
 # initialize PCA9685
 pwm = PCA9685(60)
 
-class Servo(block.Sink, block.Block):
+class Throttle(block.Sink, block.Block):
     
     def __init__(self, **kwargs):
 
@@ -18,7 +18,7 @@ class Servo(block.Sink, block.Block):
                                                     
     def write(self, *values):
 
-        #print('> write to motor')
+        #print('> write Throttle')
         if self.enabled:
 
             assert len(values) == 1
@@ -29,19 +29,4 @@ if __name__ == "__main__":
 
     import time, math
                 
-    print("> Testing Servo")
-                
-    servo1 = Servo(channel = 1)
-    servo1.set_enabled(True)
-
-    # run servo
-    servo1.write(150)
-    time.sleep(1)
-
-    # run servo
-    servo1.write(600)
-    time.sleep(1)
-
-    # stop motor
-    servo1.write(0)
-
+    print("> Testing Throttle")
