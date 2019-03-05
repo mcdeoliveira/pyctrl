@@ -1,6 +1,6 @@
-import numpy.random
+import pyctrl.block as block
 
-from .. import block
+import numpy.random
 
 class Uniform(block.Source, block.BufferBlock):
     """
