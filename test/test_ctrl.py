@@ -1,26 +1,26 @@
-import pytest
+import unittest
 import time
 
 HOST, PORT = "localhost", 9998
 start_server = True
 #start_server = False
 
-from pyctrl import BlockType
-import pyctrl.client as clnt
+# MODULAR TESTS, TESTS START BELOW
 
-def _test_basic(controller):
+
+def _test_basic(self, controller):
 
     import pyctrl
     import numpy
     import pyctrl.block as block
     import pyctrl.block.system as system
-    import pyctrl.block.random as blkrnd
+    # import pyctrl.block.random as blkrnd
 
     print('\n> * * * TEST BASIC {} * * *'.format(controller.__class__))
-    
+
     # reset controller
     controller.reset()
-    
+
     # initial signals
     _signals = controller.list_signals()
     _sinks = controller.list_sinks()
@@ -65,7 +65,7 @@ def _test_basic(controller):
     assert isinstance(controller.info(), str)
     assert isinstance(controller.info('summary'), str)
     assert isinstance(controller.info('sources','sinks'), str)
-    
+
     # test sink
 
     controller.add_signal('clock')
@@ -78,20 +78,20 @@ def _test_basic(controller):
     assert controller.get_sink('_logger_') == {'current': 0, 'auto_reset': False, 'page': 0, 'enabled': True, 'labels': ['_test_'], 'index': None}
 
     assert controller.get_sink('_logger_', 'current', 'auto_reset') == {'current': 0, 'auto_reset': False}
-    
+
     assert controller.get_sink('_logger_','current') == 0
-    
+
     controller.set_sink('_logger_',current = 1)
 
     assert controller.get_sink('_logger_','current') == 1
-    
+
     # try to remove signal _test_
     controller.remove_signal('_test_')
     assert '_test_' in controller.list_signals()
 
     controller.add_sink('_logger_', block.Logger(), ['clock'])
     assert '_logger_' in controller.list_sinks()
-    
+
     # TODO: test for changed signals
 
     controller.set_sink('_logger_', reset = True)
@@ -99,7 +99,7 @@ def _test_basic(controller):
     log = controller.get_sink('_logger_', 'log')
 
     assert not hasattr(logger, 'log')
-    
+
     assert isinstance(log['clock'], numpy.ndarray)
     assert log['clock'].shape == (0, 1)
 
@@ -118,7 +118,7 @@ def _test_basic(controller):
     controller.set_sink('_logger_', reset = True)
 
     log = controller.get_sink('_logger_', 'log')
-    
+
     assert isinstance(log['clock'], numpy.ndarray)
     assert log['clock'].shape == (0, 1)
 
@@ -134,7 +134,7 @@ def _test_basic(controller):
         time.sleep(.2)
 
     log = controller.get_sink('_logger_', 'log')
-    
+
     assert isinstance(log['clock'], numpy.ndarray)
     assert isinstance(log['_test_'], numpy.ndarray)
     assert log['clock'].shape[1] == 1
@@ -145,7 +145,7 @@ def _test_basic(controller):
     controller.set_sink('_logger_', reset = True)
 
     log = controller.get_sink('_logger_', 'log')
-    
+
     assert isinstance(log['clock'], numpy.ndarray)
     assert isinstance(log['_test_'], numpy.ndarray)
     assert log['clock'].shape == (0, 1)
@@ -156,22 +156,24 @@ def _test_basic(controller):
 
     # test source
 
-    controller.add_source('_rand_', blkrnd.Uniform(), ['clock'])
+    #controller.add_source('_rand_', blkrnd.Uniform(), ['clock'])
+    controller.add_source('_rand_', block.Constant(), ['clock'])
     assert '_rand_' in controller.list_sources()
 
-    controller.add_source('_rand_', blkrnd.Uniform(), ['_test_'])
+    #controller.add_source('_rand_', blkrnd.Uniform(), ['_test_'])
+    controller.add_source('_rand_', block.Constant(value=2), ['_test_'])
     assert '_rand_' in controller.list_sources()
 
-    assert controller.get_source('_rand_') == {'demux': False, 'mux': False, 'low': 0, 'high': 1, 'enabled': True, 'seed': None, 'm': 1}
+    assert controller.get_source('_rand_') == {'demux': False, 'mux': False, 'value': 2, 'high': 1, 'enabled': True, 'seed': None, 'm': 1}
 
     assert controller.get_source('_rand_', 'low', 'high') == {'low': 0, 'high': 1}
-    
+
     assert controller.get_source('_rand_','low') == 0
 
     controller.set_source('_rand_', low = 1)
 
     assert controller.get_source('_rand_','low') == 1
-    
+
     # TODO: test for changed signals
 
     controller.set_source('_rand_', reset = True)
@@ -193,24 +195,24 @@ def _test_basic(controller):
     controller.add_source('_rand_', blkrnd.Uniform(), ['_test_'])
     assert '_rand_' in controller.list_sources()
 
-    controller.add_filter('_gain_', block.ShortCircuit(), 
-                          ['_test_'], 
+    controller.add_filter('_gain_', block.ShortCircuit(),
+                          ['_test_'],
                           ['_output_'])
     assert '_gain_' in controller.list_filters()
-    
+
     # TODO: test for changed block
 
-    controller.add_filter('_gain_', system.Gain(gain = 2), 
-                          ['_test_'], 
+    controller.add_filter('_gain_', system.Gain(gain = 2),
+                          ['_test_'],
                           ['_output_'])
     assert '_gain_' in controller.list_filters()
-        
+
     assert controller.get_filter('_gain_') == {'demux': False, 'enabled': True, 'gain': 2, 'mux': False}
 
     assert controller.get_filter('_gain_', 'demux', 'gain') == {'demux': False, 'gain': 2}
-    
+
     assert controller.get_filter('_gain_','gain') == 2
-    
+
     with controller:
         time.sleep(.2)
 
@@ -219,9 +221,9 @@ def _test_basic(controller):
 
     with controller:
         time.sleep(.2)
-        
+
     log = controller.get_sink('_logger_', 'log')
-    
+
     assert isinstance(log['_test_'], numpy.ndarray)
     assert isinstance(log['_output_'], numpy.ndarray)
     assert log['_test_'].shape[1] == 1
@@ -230,7 +232,7 @@ def _test_basic(controller):
     assert log['_test_'].shape[0] > 1
 
     assert numpy.all(numpy.fabs(log['_output_']- 2 * log['_test_']) < 1e-6)
-    
+
     # test reset
     signals = controller.list_signals()
     sinks = controller.list_sinks()
@@ -258,16 +260,17 @@ def _test_basic(controller):
     controller.stop()
     assert controller.get_signal('is_running') == False
 
-def _test_timer(controller):
-    
+
+def _test_timer(self, controller):
+
     import pyctrl
     import numpy
     import pyctrl.block as block
     import pyctrl.block.system as system
     import pyctrl.block.random as blkrnd
-    
+
     print('> * * * TEST TIMER {} * * *'.format(controller.__class__))
-    
+
     # test timer
     controller.reset()
 
@@ -281,9 +284,9 @@ def _test_timer(controller):
     assert controller.get_timer('timer') == {'enabled': True, 'demux': False, 'mux': False, 'value': 1}
 
     assert controller.get_timer('timer', 'enabled', 'demux') == {'enabled': True, 'demux': False}
-    
+
     assert controller.get_timer('timer','enabled') == True
-    
+
     with controller:
         time.sleep(2)
 
@@ -303,29 +306,30 @@ def _test_timer(controller):
     controller.add_timer('stop',
                          block.Constant(value = 0),
                          None, ['is_running'], 2, False)
-    
+
     with controller:
         controller.join()
 
-def _test_set(controller):
-    
+
+def _test_set(self, controller):
+
     import pyctrl
     import numpy
     import pyctrl.block as block
     import pyctrl.block.system as system
     import pyctrl.block.random as blkrnd
     import pyctrl.block.logic as logic
-    
+
     print('> * * * TEST SET {} * * *'.format(controller.__class__))
 
     controller.reset()
 
     controller.add_signals('s1', 's2')
-    
+
     controller.add_source('const',
                           block.Constant(value = 1),
                           ['s1'])
-    
+
     controller.add_sink('set1',
                         logic.SetSource(label = 'const',
                                         on_rise = {'value': 0.6},
@@ -344,7 +348,7 @@ def _test_set(controller):
 
     assert controller.get_signal('s2') == 1
     assert controller.get_source('const', 'value') == 0.6
-    
+
     with controller:
         controller.set_signal('s2', 0)
         time.sleep(.5)
@@ -352,73 +356,74 @@ def _test_set(controller):
     assert controller.get_signal('s2') == 0
     assert controller.get_source('const', 'value') == 0.4
 
-def _test_sub_container(controller):
-    
+
+def _test_sub_container(self, controller):
+
     import pyctrl
     import numpy
     import pyctrl.block as block
     import pyctrl.block.system as system
     import pyctrl.block.random as blkrnd
     import pyctrl.block.container as container
-    
+
     print('> * * * TEST SUB CONTAINER {} * * *'.format(controller.__class__))
 
     controller.reset()
 
     # add subcontainer
-    
+
     controller.add_signals('s1', 's2', 's3')
-    
+
     controller.add_filter('container1',
                           container.Container(),
                           ['s1'], ['s2','s3'])
 
-    
+
     controller.add_signals('container1/s1', 'container1/s2', 'container1/s3')
-    
+
     controller.add_source('container1/input1',
                           container.Input(),
                           ['s1'])
-    
+
     controller.add_filter('container1/gain1',
                           system.Gain(gain = 3),
                           ['s1'],['s2'])
-    
+
     controller.add_sink('container1/output1',
                         container.Output(),
                         ['s2'])
-    
+
     controller.set_signal('s2', 0)
     with controller:
         controller.set_signal('s1', 1)
         time.sleep(.2)
-        
+
     assert controller.get_signal('s2') == 3
-        
+
     # add subsubcontainer
 
     controller.add_filter('container1/container2',
                           container.Container(),
                           ['s1'], ['s3'])
-    
+
     controller.add_signals('container1/container2/s1', 'container1/container2/s2')
-    
+
     controller.add_sink('container1/output2',
                         container.Output(),
                         ['s3'])
-    
+
     controller.add_source('container1/container2/input1',
                           container.Input(),
                           ['s1'])
-    
+
     controller.add_filter('container1/container2/gain1',
                           system.Gain(gain = 5),
                           ['s1'],['s2'])
-    
+
     controller.add_sink('container1/container2/output1',
                         container.Output(),
                         ['s2'])
-    
+
     controller.set_signal('s2', 0)
     controller.set_signal('s3', 0)
     with controller:
@@ -427,59 +432,60 @@ def _test_sub_container(controller):
 
     assert controller.get_signal('s2') == 3
     assert controller.get_signal('s3') == 5
-    
-def _test_sub_container_timer(controller):
-    
+
+
+def _test_sub_container_timer(self, controller):
+
     import pyctrl
     import numpy
     import pyctrl.block as block
     import pyctrl.block.system as system
     import pyctrl.block.random as blkrnd
     import pyctrl.block.container as container
-    
+
     print('> * * * TEST SUB CONTAINER TIMER {} * * *'.format(controller.__class__))
 
     controller.reset()
 
     controller.add_signals('s1', 's2', 's3')
-    
+
     # add subcontainer
-    
+
     controller.add_filter('container1',
                           container.Container(),
                           ['s1'], ['s2','s3'])
-    
+
     controller.add_signals('container1/s1', 'container1/s2', 'container1/s3')
-    
+
     controller.add_source('container1/input1',
                           container.Input(),
                           ['s1'])
-    
+
     controller.add_filter('container1/gain1',
                           system.Gain(gain = 3),
                           ['s1'],['s2'])
-    
+
     controller.add_timer('container1/constant1',
                          block.Constant(value = 5),
                          None,['s3'],
                          period = 1, repeat = False)
-    
+
     controller.add_sink('container1/output1',
                         container.Output(),
                         ['s2'])
-    
+
     controller.add_sink('container1/output2',
                         container.Output(),
                         ['s3'])
-    
+
     with controller:
         controller.set_signal('s1', 1)
         time.sleep(.1)
 
     assert controller.get_signal('s2') == 3
     assert controller.get_signal('s3') == 0
-    
-    
+
+
     with controller:
         controller.set_signal('s1', 1)
         time.sleep(1.5)
@@ -487,62 +493,63 @@ def _test_sub_container_timer(controller):
     assert controller.get_signal('s2') == 3
     assert controller.get_signal('s3') == 5
 
-def _test_timer_sub_container(controller):
-    
+
+def _test_timer_sub_container(self, controller):
+
     import pyctrl
     import numpy
     import pyctrl.block as block
     import pyctrl.block.system as system
     import pyctrl.block.random as blkrnd
     import pyctrl.block.container as container
-    
+
     print('> * * * TEST TIMER SUB CONTAINER {} * * *'.format(controller.__class__))
 
     controller.reset()
 
     controller.add_signals('s1', 's2', 's3')
-    
+
     # add subcontainer
-    
+
     controller.add_timer('container1',
                          container.Container(),
                          ['s1'], ['s2','s3'],
                          period = 1, repeat = False)
-    
+
     controller.add_signals('timer/container1/s1',
                            'timer/container1/s2',
                            'timer/container1/s3')
-    
+
     controller.add_source('timer/container1/input1',
                           container.Input(),
                           ['s1'])
-    
+
     controller.add_filter('timer/container1/gain1',
                           system.Gain(gain = 3),
                           ['s1'],['s2'])
-    
+
     controller.add_filter('timer/container1/gain2',
                           system.Gain(gain = 5),
                           ['s1'],['s3'])
-    
+
     controller.add_sink('timer/container1/output1',
                         container.Output(),
                         ['s2'])
-    
+
     controller.add_sink('timer/container1/output2',
                         container.Output(),
                         ['s3'])
-    
+
     assert controller.get_signal('s2') == 0
     assert controller.get_signal('s3') == 0
-    
+
     with controller:
         controller.set_signal('s1', 1)
         time.sleep(.1)
 
     assert controller.get_signal('s2') == 0
     assert controller.get_signal('s3') == 0
-        
+
     with controller:
         controller.set_signal('s1', 1)
         time.sleep(1.5)
@@ -550,61 +557,62 @@ def _test_timer_sub_container(controller):
     assert controller.get_signal('s2') == 3
     assert controller.get_signal('s3') == 5
 
-def _test_add_device(controller):
-    
+
+def _test_add_device(self, controller):
+
     import pyctrl
     import numpy
     import pyctrl.block as block
     import pyctrl.block.system as system
     import pyctrl.block.random as blkrnd
     import pyctrl.block.container as container
-    
+
     print('> * * * TEST ADD DEVICE {} * * *'.format(controller.__class__))
 
     controller.reset()
 
     controller.add_signals('s1', 's2', 's3')
-    
+
     # add subcontainer
-    
+
     controller.add_timer('container1',
                          ('pyctrl.block.container', 'Container'),
                          ['s1'], ['s2','s3'],
                          period = 1, repeat = False)
 
     controller.add_signals('timer/container1/s1',
-                          'timer/container1/s2',
-                          'timer/container1/s3')
-    
+                           'timer/container1/s2',
+                           'timer/container1/s3')
+
     controller.add_source('timer/container1/input1',
                           ('pyctrl.block.container', 'Input'),
                           ['s1'])
-    
+
     controller.add_filter('timer/container1/gain1',
                           ('pyctrl.block.system', 'Gain'),
                           ['s1'], ['s2'],
                           kwargs = {'gain': 3})
-    
+
     controller.add_filter('timer/container1/gain2',
                           ('pyctrl.block.system', 'Gain'),
                           ['s1'], ['s3'],
                           kwargs = {'gain': 5})
-    
+
     controller.add_sink('timer/container1/output1',
                         ('pyctrl.block.container', 'Output'),
                         ['s2'])
-    
+
     controller.add_sink('timer/container1/output2',
                         ('pyctrl.block.container', 'Output'),
                         ['s3'])
-    
+
     with controller:
         controller.set_signal('s1', 1)
         time.sleep(.1)
-    
+
     assert controller.get_signal('s2') == 0
     assert controller.get_signal('s3') == 0
-    
+
     with controller:
         controller.set_signal('s1', 1)
         time.sleep(1.5)
@@ -612,102 +620,105 @@ def _test_add_device(controller):
     assert controller.get_signal('s2') == 3
     assert controller.get_signal('s3') == 5
 
+
 # TESTS START HERE
+
+class TestUnittestAssertions(unittest.TestCase):
+
+    def test_clock(self):
+
+        from pyctrl import Controller
+        from pyctrl.block.clock import Clock, TimerClock
+
+        controller = Controller()
+
+        period = 0.01
+        controller.add_signal('clock')
+        clock = Clock()
+        controller.add_source('clock', clock, ['clock'])
+        K = 10
+        k = 0
+        while k < K:
+            (t,) = controller.read_source('clock')
+            k += 1
+
+        self.assertTrue( clock.get('count') == 10 )
+
+        controller.set_source('clock', reset = True)
+
+        (t,) = controller.read_source('clock')
+        self.assertTrue( t < 0.01 )
+
+        controller.remove_source('clock')
+
+        clock = TimerClock(period = period)
+        controller.add_source('clock', clock, ['clock'])
+
+        K = 10
+        k = 0
+        while k < K:
+            (t,) = controller.read_source('clock')
+            k += 1
+
+        self.assertTrue( t > 0.9 * K * period )
+
+        controller.set_source('clock', reset = True)
+
+        (t,) = controller.read_source('clock')
+        self.assertTrue( t < 0.9 * 2 * period )
+
+        clock.set_enabled(False)
+
+    def test_run(self):
     
-def test_clock():
-
-    from pyctrl import Controller
-    from pyctrl.block.clock import Clock, TimerClock
-
-    controller = Controller()
-
-    period = 0.01
-    controller.add_signal('clock')
-    clock = Clock()
-    controller.add_source('clock', clock, ['clock'])
-    K = 10
-    k = 0
-    while k < K:
-        (t,) = controller.read_source('clock')
-        k += 1
-
-    assert clock.get('count') == 10
-
-    controller.set_source('clock', reset = True)
-
-    (t,) = controller.read_source('clock')
-    assert t < 0.01
-
-    controller.remove_source('clock')
-
-    clock = TimerClock(period = period)
-    controller.add_source('clock', clock, ['clock'])
-
-    K = 10
-    k = 0
-    while k < K:
-        (t,) = controller.read_source('clock')
-        k += 1
-
-    assert t > 0.9 * K * period
-
-    controller.set_source('clock', reset = True)
-
-    (t,) = controller.read_source('clock')
-    assert t < 0.9 * 2 * period
-
-    clock.set_enabled(False)
-
-def test_run():
-
-    from pyctrl import Controller
-    from pyctrl.block.clock import Clock, TimerClock
-    from pyctrl.block import Map
-
-    controller = Controller()
-
-    clock = Clock()
-    controller.add_source('clock', clock, ['clock'])
-
-    # start/stop with condition
-
-    controller.add_filter('condition', 
-                          Map(function = lambda x: x < 1), 
-                          ['clock'], ['is_running'])
-
-    controller.set_source('clock', reset=True)
-    controller.start()
-    is_running = controller.get_signal('is_running')
-    while is_running:
+        from pyctrl import Controller
+        from pyctrl.block.clock import Clock, TimerClock
+        from pyctrl.block import Map
+    
+        controller = Controller()
+    
+        clock = Clock()
+        controller.add_source('clock', clock, ['clock'])
+    
+        # start/stop with condition
+    
+        controller.add_filter('condition', 
+                              Map(function = lambda x: x < 1), 
+                              ['clock'], ['is_running'])
+    
+        controller.set_source('clock', reset=True)
+        controller.start()
         is_running = controller.get_signal('is_running')
-    controller.stop()
+        while is_running:
+            is_running = controller.get_signal('is_running')
+        controller.stop()
+    
+        tk = controller.get_signal('clock')
+        self.assertTrue( tk > 1 and tk < 1.01 )
+    
+        # run with condition
+    
+        controller.set_source('clock', reset=True)
+        controller.run()
+        controller.stop()
+    
+        tk = controller.get_signal('clock')
+        self.assertTrue( tk > 1 and tk < 1.01 )
+    
+        controller.remove_source('clock')
 
-    tk = controller.get_signal('clock')
-    assert tk > 1 and tk < 1.01
+    def test_local(self):
 
-    # run with condition
+        from pyctrl import Controller
+        controller = Controller()
 
-    controller.set_source('clock', reset=True)
-    controller.run()
-    controller.stop()
-
-    tk = controller.get_signal('clock')
-    assert tk > 1 and tk < 1.01
-
-    controller.remove_source('clock')
-
-def test_local():
-
-    from pyctrl import Controller
-    controller = Controller()
-
-    _test_basic(controller)
-    _test_timer(controller)
-    _test_set(controller)
-    _test_sub_container(controller)
-    _test_sub_container_timer(controller)
-    _test_timer_sub_container(controller)
-    _test_add_device(controller)
+        _test_basic(self, controller)
+        #_test_timer(controller)
+        #_test_set(controller)
+        #_test_sub_container(controller)
+        #_test_sub_container_timer(controller)
+        #_test_timer_sub_container(controller)
+        #_test_add_device(controller)
 
 def test_local_timer():
 
@@ -752,45 +763,45 @@ def test_client_server():
         _test_timer_sub_container(client)
         _test_add_device(client)
 
-        assert client.info('class') == "<class 'pyctrl.Controller'>"
+        self.assertTrue( client.info('class') == "<class 'pyctrl.Controller'>" )
         
         # other tests
         client.reset(module = 'pyctrl.timer', pyctrl_class = 'Controller')
 
-        assert client.info('class') == "<class 'pyctrl.timer.Controller'>"
+        self.assertTrue( client.info('class') == "<class 'pyctrl.timer.Controller'>" )
 
         with pytest.raises(Exception):
             client.reset(module = 'pyctrl.timer', pyctrl_class = 'wrong')
 
-        assert client.info('class') == "<class 'pyctrl.timer.Controller'>"
+        self.assertTrue( client.info('class') == "<class 'pyctrl.timer.Controller'>" )
 
         client.reset(module = 'pyctrl.timer')
 
-        assert client.info('class') == "<class 'pyctrl.timer.Controller'>"
+        self.assertTrue( client.info('class') == "<class 'pyctrl.timer.Controller'>" )
         
         client.reset()
         
-        assert client.info('class') == "<class 'pyctrl.timer.Controller'>"
+        self.assertTrue( client.info('class') == "<class 'pyctrl.timer.Controller'>" )
 
         client.reset(pyctrl_class = 'Controller')
 
-        assert client.info('class') == "<class 'pyctrl.Controller'>"
+        self.assertTrue( client.info('class') == "<class 'pyctrl.Controller'>" )
         
         client.reset(pyctrl_class = 'Controller', module = 'pyctrl.timer')
 
-        assert client.info('class') == "<class 'pyctrl.timer.Controller'>"
+        self.assertTrue( client.info('class') == "<class 'pyctrl.timer.Controller'>" )
 
         client.reset(module = 'pyctrl.timer', kwargs = {'period': 2})
         
-        assert client.info('class') == "<class 'pyctrl.timer.Controller'>"
-        assert client.get_source('clock','period') == 2
+        self.assertTrue( client.info('class') == "<class 'pyctrl.timer.Controller'>" )
+        self.assertTrue( client.get_source('clock','period') == 2 )
 
         client = pyctrl.client.Controller(host = HOST, port = PORT,
                                           module = 'pyctrl.timer',
                                           kwargs = {'period': 1})
 
-        assert client.info('class') == "<class 'pyctrl.timer.Controller'>"
-        assert client.get_source('clock','period') == 1
+        self.assertTrue( client.info('class') == "<class 'pyctrl.timer.Controller'>" )
+        self.assertTrue( client.get_source('clock','period') == 1 )
         
     except Exception as e:
         
@@ -806,13 +817,4 @@ def test_client_server():
 
             
 if __name__ == "__main__":
-
-    print('> Local')
-    test_local()
-
-    print('> Client-Server')
-    test_client_server()
-
-    print('> Clock')
-    test_clock()
-
+    unittest.main()

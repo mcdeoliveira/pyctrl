@@ -3,12 +3,10 @@ This module provides blocks for dynamic systems.
 """
 
 import numpy
-import itertools
 
 from .. import block
 from .. import system
-from pyctrl.system.tf import DTTF
-from pyctrl.system.ss import DTSS
+from ..system.tf import DTTF
 
 # Blocks
 

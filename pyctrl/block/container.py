@@ -3,22 +3,39 @@ This module provides the basic building blocks for implementing Containers.
 """
 
 import warnings
-import sys
-import numpy
-import math
-import importlib
+
+try:
+
+    from importlib import import_module
+
+    def import_from(module, name):
+        return getattr(import_module(module), name)
+
+except ImportError:
+
+    def import_from(module, name):
+        return getattr(__import__(module, None, None, [name]), name)
+
 from threading import Thread, Timer, Condition
-from time import perf_counter, sleep
+from time import sleep
 import re
+
+try:
+    from time import perf_counter
+except ImportError:
+    from utime import ticks_us as perf_counter
 
 from .. import block
 from .. import BlockType
 
+
 class ContainerWarning(block.BlockWarning):
     pass
 
+
 class ContainerException(block.BlockException):
     pass
+
 
 class Input(block.Source, block.BufferBlock):
     """
@@ -27,7 +44,8 @@ class Input(block.Source, block.BufferBlock):
 
     def write(self, *values):
         block.BufferBlock.write(self, *values)
-    
+
+
 class Output(block.Sink, block.BufferBlock):
     """
     :py:class:`pyctrl.block.container.Output` provides a block that connects local container signals to a container output signals.
@@ -35,7 +53,8 @@ class Output(block.Sink, block.BufferBlock):
     
     def read(self):
         return block.BufferBlock.read(self)
-    
+
+
 class Container(block.Filter, block.Block):
     """
     :py:class:`pyctrl.block.container.Container` provides a block that can contain other blocks.
@@ -365,7 +384,8 @@ class Container(block.Filter, block.Block):
     def resolve_label(self, label):
         
         # parse label
-        split_label = label.split(sep='/',maxsplit = 1)
+        #split_label = label.split(sep='/',maxsplit = 1)
+        split_label = label.split('/', 1)
 
         # global name starting with '/'
         if split_label[0] == '':
@@ -387,7 +407,8 @@ class Container(block.Filter, block.Block):
         # local name starting with '.'
         if split_label[0] == '.':
             # split again
-            split_label = split_label[1].split(sep='/',maxsplit = 1)
+            #split_label = split_label[1].split(sep='/',maxsplit = 1)
+            split_label = split_label[1].split('/', 1)
 
         if len(split_label) > 1:
             # inside container?
@@ -397,7 +418,8 @@ class Container(block.Filter, block.Block):
                 if split_label[0] == 'timer':
 
                     # split again
-                    split_label = split_label[1].split(sep='/',maxsplit = 1)
+                    #split_label = split_label[1].split(sep='/',maxsplit = 1)
+                    split_label = split_label[1].split('/', 1)
 
                     # retrieve container from timers
                     container = self.timers[split_label[0]]['block']
@@ -575,8 +597,7 @@ class Container(block.Filter, block.Block):
 
             # create device
             device_module, device_class = source
-            source = getattr(importlib.import_module(device_module), 
-                             device_class)(**dkwargs)
+            source = import_from(device_module, device_class)(**dkwargs)
             
         assert isinstance(source, block.Block)
         assert isinstance(source, block.Source)
@@ -762,8 +783,7 @@ class Container(block.Filter, block.Block):
 
             # create device
             device_module, device_class = sink
-            sink = getattr(importlib.import_module(device_module), 
-                              device_class)(**dkwargs)
+            sink = import_from(device_module, device_class)(**dkwargs)
             
         assert isinstance(sink, block.Block)
         assert isinstance(sink, block.Sink)
@@ -995,8 +1015,7 @@ class Container(block.Filter, block.Block):
 
             # create device
             device_module, device_class = filter_
-            filter_ = getattr(importlib.import_module(device_module), 
-                              device_class)(**dkwargs)
+            filter_ = import_from(device_module, device_class)(**dkwargs)
             
         assert isinstance(filter_, block.Block)
         assert isinstance(filter_, block.Filter)
@@ -1228,9 +1247,7 @@ class Container(block.Filter, block.Block):
         try:
 
             # create device
-            obj_class = getattr(importlib.import_module(device_module), 
-                                device_class)
-            instance = obj_class(**dkwargs)
+            instance = import_from(device_module, device_class)(**dkwargs)
 
         except Exception as e:
 
@@ -1327,8 +1344,7 @@ class Container(block.Filter, block.Block):
 
             # create device
             device_module, device_class = blk
-            blk = getattr(importlib.import_module(device_module), 
-                          device_class)(**dkwargs)
+            blk = import_from(device_module, device_class)(**dkwargs)
             
         assert isinstance(blk, block.Block)
         if inputs:
@@ -1514,11 +1530,15 @@ class Container(block.Filter, block.Block):
             raise ContainerException('Number of inputs exceeds Input sources')
 
         # warn if there are inputs left without an Input source
-        if next(value, None) is not None:
-            
+        #if next(value, None) is not None:
+        try:
+            next(value)
             warnings.warn('Number of Input sources is smaller than the number of inputs',
                           ContainerWarning)
-            
+        except StopIteration:
+            # this is what should happen
+            pass
+
     def read(self):
         """
         Read from :py:class:`pyctrl.block.container.Container`.
@@ -1685,8 +1705,6 @@ class Container(block.Filter, block.Block):
         # disable
         else:
 
-            # print('< container:: DISABLE')
-            
             # stops timer threads
             for (label,timer) in self.running_timers.items():
                 
@@ -1700,11 +1718,11 @@ class Container(block.Filter, block.Block):
                 device['condition'].release()
 
             # wait for timers to terminate
-            for (label,timer) in self.running_timers.items():
+            for (label, timer) in self.running_timers.items():
 
                 # join threads
                 timer.join()
-                
+
             self.running_timers = { }
 
             # disable sources
@@ -1726,4 +1744,3 @@ class Container(block.Filter, block.Block):
             for label, device in self.timers.items():
                 if device['enable']:
                     device['block'].set_enabled(False)
-                

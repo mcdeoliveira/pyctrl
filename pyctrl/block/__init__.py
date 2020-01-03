@@ -2,11 +2,14 @@
 This module provides the basic building blocks for implementing controllers.
 """
 
-import warnings
+try:
+    Warning()
+except NameError:
+    from warnings import Warning
+
 import contextlib
 import numpy, math
 import sys
-import json
 import itertools
 
 from enum import Enum
@@ -27,17 +30,20 @@ else:
         else:
             return numpy.interp(x, xp, fp, left, right)
 
+
 class BlockType(Enum):
     source = 0
     filter = 1
     sink = 2
     timer = 3
-        
+
+
 class BlockException(Exception):
     """
     Exception class for blocks
     """
     pass
+
 
 class BlockWarning(Warning):
     """
@@ -45,15 +51,12 @@ class BlockWarning(Warning):
     """
     pass
 
+
 class Source:
 
     """
     Base class for all source blocks.
     """
-    
-    def __init__(self, **kwargs):
-
-        super().__init__(**kwargs)
     
     def get_type(self):
         """
@@ -72,15 +75,12 @@ class Source:
         """
         raise BlockException('This block does not support write')
 
+
 class Sink:
 
     """
     Base class for all sink blocks.
     """
-    
-    def __init__(self, **kwargs):
-
-        super().__init__(**kwargs)
     
     def get_type(self):
         """
@@ -99,16 +99,13 @@ class Sink:
         :raise: :py:class:`pyctrl.block.BlockException` if block does not support read
         """
         raise BlockException('This block does not support read')
-    
+
+
 class Filter:
 
     """
     Base class for all filter blocks.
     """
-    
-    def __init__(self, **kwargs):
-
-        super().__init__(**kwargs)
     
     def get_type(self):
         """
@@ -117,7 +114,8 @@ class Filter:
         :return: :py:attr:`type`
         """
         return BlockType.filter
-    
+
+
 class Block:
     """
     :py:class:`pyctrl.block.Block` provides the basic functionality for all types of blocks.
@@ -292,6 +290,7 @@ class Block:
         """
         raise BlockException('This block does not support write')
 
+
 class BufferBlock(Block):
     """
     :py:class:`pyctrl.block.BufferBlock` provides the basic functionality for blocks that
@@ -388,13 +387,15 @@ class BufferBlock(Block):
 
             # return buffer
             if self.buffer and self.demux:
-                self.buffer = tuple(numpy.hstack(self.buffer).tolist())
-                
+                # self.buffer = tuple(numpy.hstack(self.buffer).tolist())
+                self.buffer = tuple(numpy.hstack(self.buffer))
+
             return self.buffer
 
         # else
 
         return (None, )
+
 
 class ShortCircuit(Filter, BufferBlock):
     """
@@ -402,6 +403,7 @@ class ShortCircuit(Filter, BufferBlock):
 
     :math:`y = u`
     """
+
 
 class Printer(Sink, Block):
     """
@@ -465,16 +467,17 @@ class Printer(Sink, Block):
                       end=self.endln)
                 
             else:
-                @contextlib.contextmanager
-                def printoptions(*args, **kwargs):
-                    original = numpy.get_printoptions()
-                    numpy.set_printoptions(*args, **kwargs)
-                    yield 
-                    numpy.set_printoptions(**original)
+                #@contextlib.contextmanager
+                #def printoptions(*args, **kwargs):
+                #    original = numpy.get_printoptions()
+                #    numpy.set_printoptions(*args, **kwargs)
+                #    yield
+                #    numpy.set_printoptions(**original)
 
                 row = numpy.hstack(values)
                 print(self.sep.join(self.frmt.format(val) for val in row),
                       file=file, end=self.endln)
+
 
 class Constant(Source, BufferBlock):
     """
@@ -504,7 +507,7 @@ class Constant(Source, BufferBlock):
         """
 
         if 'value' in kwargs:
-            self.value = numpy.array(kwargs.pop('value'))
+            self.value = kwargs.pop('value')
             if isinstance(self.value, (tuple, list)):
                 self.buffer = self.value
             else:
@@ -512,7 +515,8 @@ class Constant(Source, BufferBlock):
             
         # call super
         super().set(exclude, **kwargs)
-    
+
+
 class Signal(Source, BufferBlock):
     """
     :py:class:`pyctrl.block.Signal` outputs values corresponding to its attribute :py:attr:`signal` sequentially each time :py:meth:`pyctrl.block.BufferBlock.read` is called.
@@ -602,6 +606,7 @@ class Signal(Source, BufferBlock):
 
         # call super
         return super().read()
+
 
 class Interp(Filter, BufferBlock):
     """
@@ -713,6 +718,7 @@ class Interp(Filter, BufferBlock):
 
         # call super
         return super().read()
+
 
 class Fade(Filter, BufferBlock):
     """
@@ -982,7 +988,7 @@ class Logger(Sink, Block):
     
     def reshape(self, number_of_rows, number_of_columns):
 
-        self.data = numpy.zeros((number_of_rows, number_of_columns), float)
+        self.data = numpy.zeros((number_of_rows, number_of_columns), dtype=numpy.float)
         self.reset()
 
     def reset(self):
@@ -1010,10 +1016,10 @@ class Logger(Sink, Block):
 
         :return: dictionary or numpy array with current entries.
         """
-        
+
         # set return value
         if self.page == 0:
-            retval = self.data[:self.current,:]
+            retval = self.data[:self.current,:] if self.current > 0 else self.data
 
         else:
             retval =  numpy.vstack((self.data[self.current:,:],
@@ -1032,7 +1038,7 @@ class Logger(Sink, Block):
             else:
                 retval = {l: numpy.empty((0,1))
                           for (i,l) in enumerate(self.labels)}
-            
+
         # return values
         return retval
     
@@ -1050,12 +1056,15 @@ class Logger(Sink, Block):
         stack_values = numpy.hstack(values)
 
         # reshape?
-        if self.data.shape[1] != len(stack_values):
+        _shape = self.data.shape
+        if not isinstance(_shape, tuple):
+            _shape = _shape()
+        if _shape[1] != len(stack_values):
             # reshape log
-            self.reshape(self.data.shape[0], len(stack_values))
+            self.reshape(_shape[0], len(stack_values))
 
         # recalculate index?
-        if self.index is None and self.labels is not None :
+        if self.index is None and self.labels is not None:
             assert len(self.labels) == len(values)
             dims = tuple(Logger.len(x) for x in values)
             self.index = (0,) + tuple(itertools.accumulate(dims))
@@ -1063,7 +1072,7 @@ class Logger(Sink, Block):
         # Log data
         self.data[self.current, :] = stack_values
 
-        if self.current < self.data.shape[0] - 1:
+        if self.current < _shape[0] - 1:
             # increment current pointer
             self.current += 1
         else:

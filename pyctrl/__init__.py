@@ -1,28 +1,30 @@
 import warnings
-from threading import Thread, Timer, Condition
-import numpy
-import importlib
-from enum import Enum
+
+try:
+    Warning()
+except NameError:
+    from warnings import Warning
+
+from threading import Thread
 
 from .block import Block, BlockType
+from .block.container import Container
 
-# alternative perf_counter
-import sys
-from time import perf_counter
 
 class ControllerWarning(Warning):
     pass
 
+
 class ControllerException(Exception):
     pass
+
 
 # state
 IDLE = 0
 RUNNING = 1
 EXITING = 2
 
-from .block.container import Container
-            
+
 class Controller(Container):
     """
     :py:class:`pyctrl.Controller` provides functionality for running
@@ -45,7 +47,7 @@ class Controller(Container):
 
         # noclock
         self.noclock = kwargs.pop('noclock', False)
-        
+
         # call super
         super().__init__(**kwargs)
 

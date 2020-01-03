@@ -19,9 +19,11 @@ class DTSS(system.System):
     """
     
     def __init__(self,
-                 A = numpy.array([[]]),
+                 #A = numpy.array([[]]),
+                 A = numpy.zeros((0,0)),
                  B = numpy.array([[0]]),
-                 C = numpy.array([[]]),
+                 #C = numpy.array([[]]),
+                 C = numpy.zeros((0,0)),
                  D = numpy.array([[1]]),
                  state = None):
 

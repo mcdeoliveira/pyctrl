@@ -1,11 +1,17 @@
 import warnings
-import time
+from threading import Thread, Timer, Condition
 
 from .. import block
 
 # alternative perf_counter
-import sys
-from time import perf_counter
+try:
+    from time import perf_counter
+except ImportError:
+    from utime import ticks_us
+
+    def perf_counter():
+        return 1.e-6 * ticks_us()
+
 
 class Clock(block.Source, block.Block):
     """
@@ -13,9 +19,6 @@ class Clock(block.Source, block.Block):
     """
     def __init__(self, **kwargs):
 
-        #print("Clock.__init__: pars {}".format(pars))
-        #print("Clock.__init__: kwargs {}".format(kwargs))
-        
         super().__init__(**kwargs)
 
         self.time_origin = perf_counter()
@@ -72,9 +75,8 @@ class Clock(block.Source, block.Block):
             self.time = perf_counter()
             self.count += 1
 
-        return (self.time - self.time_origin, )
+        return self.time - self.time_origin,
 
-    
     def calculate_average_period(self):
         """
         Calculate the average period since
@@ -146,9 +148,8 @@ class Clock(block.Source, block.Block):
             warnings.warn('Disabling clock.')
             self.set_enabled(False)
 
-        return (success, period)
+        return success, period
 
-from threading import Thread, Timer, Condition
 
 class TimerClock(Clock):
     """
@@ -161,7 +162,7 @@ class TimerClock(Clock):
     def __init__(self, **kwargs):
 
         self.period = kwargs.pop('period', 0.01)
-        
+
         super().__init__(**kwargs)
 
         self.condition = Condition()
@@ -220,7 +221,7 @@ class TimerClock(Clock):
         #print('> TICK: {}, {}'.format(time, self))
 
         dwell = time - self.time
-        if (dwell < 0.9 * self.period):
+        if dwell < 0.9 * self.period:
 
             # need more time
             #print('> MORE TIME')
