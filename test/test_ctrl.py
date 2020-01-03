@@ -7,258 +7,278 @@ start_server = True
 
 # MODULAR TESTS, TESTS START BELOW
 
+class BaseTest(unittest.TestCase):
 
-def _test_basic(self, controller):
+    def assertShape(self, _shape, shape, dim=None):
+        if not isinstance(_shape, tuple):
+            _shape = _shape()
+        if dim is None:
+            return self.assertEqual(_shape, shape)
+        elif dim == 0:
+            return self.assertEqual(_shape[0], shape)
+        else: # dim == 1:
+            return self.assertEqual(_shape[1], shape)
 
-    import pyctrl
-    import numpy
-    import pyctrl.block as block
-    import pyctrl.block.system as system
-    # import pyctrl.block.random as blkrnd
+    def assertShapeGreater(self, _shape, shape, dim=0):
+        if not isinstance(_shape, tuple):
+            _shape = _shape()
+        if dim == 0:
+            return self.assertTrue(_shape[0] > shape)
+        else: # dim == 1:
+            return self.assertTrue(_shape[1] > shape)
 
-    print('\n> * * * TEST BASIC {} * * *'.format(controller.__class__))
+    def _test_basic(self, controller):
 
-    # reset controller
-    controller.reset()
+        import pyctrl
+        import numpy
+        import pyctrl.block as block
+        import pyctrl.block.system as system
+        # import pyctrl.block.random as blkrnd
 
-    # initial signals
-    _signals = controller.list_signals()
-    _sinks = controller.list_sinks()
-    _sources = controller.list_sources()
-    _filters = controller.list_filters()
+        print('\n> * * * TEST BASIC {} * * *'.format(controller.__class__))
 
-    # period
-    #assert controller.get_period() == 0.01 # default
-    #controller.set_period(0.1)
-    #assert controller.get_period() == 0.1
+        # reset controller
+        controller.reset()
 
-    # test signals
-    #assert 'clock' in controller.list_signals() # clock is default
+        # initial signals
+        _signals = controller.list_signals()
+        _sinks = controller.list_sinks()
+        _sources = controller.list_sources()
+        _filters = controller.list_filters()
 
-    controller.add_signal('_test_')
-    assert '_test_' in controller.list_signals()
+        # period
+        #self.assertTrue( controller.get_period() == 0.01 # default
+        #controller.set_period(0.1)
+        #self.assertTrue( controller.get_period() == 0.1
 
-    #with pytest.raises(pyctrl.ControllerException):
-    controller.add_signal('_test_')
+        # test signals
+        #self.assertTrue( 'clock' in controller.list_signals() # clock is default
 
-    assert controller.get_signal('_test_') == 0
+        controller.add_signal('_test_')
+        self.assertTrue( '_test_' in controller.list_signals() )
 
-    controller.set_signal('_test_', 1.2)
-    assert controller.get_signal('_test_') == 1.2
+        #with self.assertRaises(pyctrl.ControllerException):
+        controller.add_signal('_test_')
 
-    controller.remove_signal('_test_')
-    assert '_test_' not in controller.list_signals()
+        self.assertTrue( controller.get_signal('_test_') == 0 )
 
-    with pytest.raises(Exception):
         controller.set_signal('_test_', 1.2)
+        self.assertTrue( controller.get_signal('_test_') == 1.2 )
 
-    controller.add_signals('_test1_', '_test2_')
-    assert '_test1_' in controller.list_signals()
-    assert '_test2_' in controller.list_signals()
+        controller.remove_signal('_test_')
+        self.assertTrue( '_test_' not in controller.list_signals() )
 
-    controller.remove_signal('_test1_')
-    controller.remove_signal('_test2_')
-    assert '_test1_' not in controller.list_signals()
-    assert '_test2_' not in controller.list_signals()
+        with self.assertRaises(Exception):
+            controller.set_signal('_test_', 1.2)
 
-    # test info
-    assert isinstance(controller.info(), str)
-    assert isinstance(controller.info('summary'), str)
-    assert isinstance(controller.info('sources','sinks'), str)
+        controller.add_signals('_test1_', '_test2_')
+        self.assertTrue( '_test1_' in controller.list_signals() )
+        self.assertTrue( '_test2_' in controller.list_signals() )
 
-    # test sink
+        controller.remove_signal('_test1_')
+        controller.remove_signal('_test2_')
+        self.assertTrue( '_test1_' not in controller.list_signals() )
+        self.assertTrue( '_test2_' not in controller.list_signals() )
 
-    controller.add_signal('clock')
+        # test info
+        self.assertTrue( isinstance(controller.info(), str) )
+        self.assertTrue( isinstance(controller.info('summary'), str) )
+        self.assertTrue( isinstance(controller.info('sources','sinks'), str) )
 
-    logger = block.Logger()
-    controller.add_sink('_logger_', logger , ['_test_'])
-    assert '_logger_' in controller.list_sinks()
-    assert '_test_' in controller.list_signals()
+        # test sink
 
-    assert controller.get_sink('_logger_') == {'current': 0, 'auto_reset': False, 'page': 0, 'enabled': True, 'labels': ['_test_'], 'index': None}
+        controller.add_signal('clock')
 
-    assert controller.get_sink('_logger_', 'current', 'auto_reset') == {'current': 0, 'auto_reset': False}
+        logger = block.Logger()
+        controller.add_sink('_logger_', logger , ['_test_'])
+        self.assertTrue( '_logger_' in controller.list_sinks() )
+        self.assertTrue( '_test_' in controller.list_signals() )
 
-    assert controller.get_sink('_logger_','current') == 0
+        self.assertTrue( controller.get_sink('_logger_') == {'current': 0, 'auto_reset': False, 'page': 0, 'enabled': True, 'labels': ['_test_'], 'index': None} )
 
-    controller.set_sink('_logger_',current = 1)
+        self.assertTrue( controller.get_sink('_logger_', 'current', 'auto_reset') == {'current': 0, 'auto_reset': False} )
 
-    assert controller.get_sink('_logger_','current') == 1
+        self.assertTrue( controller.get_sink('_logger_','current') == 0 )
 
-    # try to remove signal _test_
-    controller.remove_signal('_test_')
-    assert '_test_' in controller.list_signals()
+        controller.set_sink('_logger_',current = 1)
 
-    controller.add_sink('_logger_', block.Logger(), ['clock'])
-    assert '_logger_' in controller.list_sinks()
+        self.assertTrue( controller.get_sink('_logger_','current') == 1 )
 
-    # TODO: test for changed signals
+        # try to remove signal _test_
+        controller.remove_signal('_test_')
+        self.assertTrue( '_test_' in controller.list_signals() )
 
-    controller.set_sink('_logger_', reset = True)
+        controller.add_sink('_logger_', block.Logger(), ['clock'])
+        self.assertTrue( '_logger_' in controller.list_sinks() )
 
-    log = controller.get_sink('_logger_', 'log')
+        # TODO: test for changed signals
 
-    assert not hasattr(logger, 'log')
+        controller.set_sink('_logger_', reset = True)
 
-    assert isinstance(log['clock'], numpy.ndarray)
-    assert log['clock'].shape == (0, 1)
+        log = controller.get_sink('_logger_', 'log')
 
-    with pytest.raises(block.BlockException):
-        controller.set_sink('_logger_', _reset = True)
+        self.assertTrue( not hasattr(logger, 'log') )
 
-    with controller:
-        time.sleep(.2)
+        self.assertTrue( isinstance(log['clock'], numpy.ndarray) )
+        self.assertShape( log['clock'].shape, (0, 1) )
 
-    log = controller.get_sink('_logger_', 'log')
+        with self.assertRaises(block.BlockException):
+            controller.set_sink('_logger_', _reset = True)
 
-    assert isinstance(log['clock'], numpy.ndarray)
-    assert log['clock'].shape[1] == 1
-    assert log['clock'].shape[0] > 1
+        with controller:
+            time.sleep(.2)
 
-    controller.set_sink('_logger_', reset = True)
+        log = controller.get_sink('_logger_', 'log')
 
-    log = controller.get_sink('_logger_', 'log')
+        self.assertTrue( isinstance(log['clock'], numpy.ndarray) )
+        self.assertShape( log['clock'].shape, 1, 1 )
+        self.assertShapeGreater( log['clock'].shape, 1, 0 )
 
-    assert isinstance(log['clock'], numpy.ndarray)
-    assert log['clock'].shape == (0, 1)
+        controller.set_sink('_logger_', reset = True)
 
-    controller.remove_sink('_logger_')
-    assert '_logger_' not in controller.list_sinks()
+        log = controller.get_sink('_logger_', 'log')
 
-    controller.add_signal('_test_')
+        self.assertTrue( isinstance(log['clock'], numpy.ndarray) )
+        self.assertShape( log['clock'].shape, (0, 1) )
 
-    controller.add_sink('_logger_', block.Logger(), ['clock', '_test_'])
-    assert '_logger_' in controller.list_sinks()
+        controller.remove_sink('_logger_')
+        self.assertTrue( '_logger_' not in controller.list_sinks() )
 
-    with controller:
-        time.sleep(.2)
+        controller.add_signal('_test_')
 
-    log = controller.get_sink('_logger_', 'log')
+        controller.add_sink('_logger_', block.Logger(), ['clock', '_test_'])
+        self.assertTrue( '_logger_' in controller.list_sinks() )
 
-    assert isinstance(log['clock'], numpy.ndarray)
-    assert isinstance(log['_test_'], numpy.ndarray)
-    assert log['clock'].shape[1] == 1
-    assert log['clock'].shape[0] > 1
-    assert log['_test_'].shape[1] == 1
-    assert log['_test_'].shape[0] > 1
+        with controller:
+            time.sleep(.2)
 
-    controller.set_sink('_logger_', reset = True)
+        log = controller.get_sink('_logger_', 'log')
 
-    log = controller.get_sink('_logger_', 'log')
+        self.assertTrue( isinstance(log['clock'], numpy.ndarray) )
+        self.assertTrue( isinstance(log['_test_'], numpy.ndarray) )
+        self.assertShape( log['clock'].shape, 1, 1 )
+        self.assertShapeGreater( log['clock'].shape, 1, 0 )
+        self.assertShape( log['_test_'].shape, 1, 1 )
+        self.assertShapeGreater( log['_test_'].shape, 1, 0 )
 
-    assert isinstance(log['clock'], numpy.ndarray)
-    assert isinstance(log['_test_'], numpy.ndarray)
-    assert log['clock'].shape == (0, 1)
-    assert log['_test_'].shape == (0, 1)
+        controller.set_sink('_logger_', reset = True)
 
-    controller.remove_sink('_logger_')
-    assert '_logger_' not in controller.list_sinks()
+        log = controller.get_sink('_logger_', 'log')
 
-    # test source
+        self.assertTrue( isinstance(log['clock'], numpy.ndarray) )
+        self.assertTrue( isinstance(log['_test_'], numpy.ndarray) )
+        self.assertShape( log['clock'].shape, (0, 1) )
+        self.assertShape( log['_test_'].shape, (0, 1) )
 
-    #controller.add_source('_rand_', blkrnd.Uniform(), ['clock'])
-    controller.add_source('_rand_', block.Constant(), ['clock'])
-    assert '_rand_' in controller.list_sources()
+        controller.remove_sink('_logger_')
+        self.assertTrue( '_logger_' not in controller.list_sinks() )
 
-    #controller.add_source('_rand_', blkrnd.Uniform(), ['_test_'])
-    controller.add_source('_rand_', block.Constant(value=2), ['_test_'])
-    assert '_rand_' in controller.list_sources()
+        # test source
 
-    assert controller.get_source('_rand_') == {'demux': False, 'mux': False, 'value': 2, 'high': 1, 'enabled': True, 'seed': None, 'm': 1}
+        #controller.add_source('_rand_', blkrnd.Uniform(), ['clock'])
+        controller.add_source('_rand_', block.Constant(), ['clock'])
+        self.assertTrue( '_rand_' in controller.list_sources() )
 
-    assert controller.get_source('_rand_', 'low', 'high') == {'low': 0, 'high': 1}
+        #controller.add_source('_rand_', blkrnd.Uniform(), ['_test_'])
+        controller.add_source('_rand_', block.Constant(value=2), ['_test_'])
+        self.assertTrue( '_rand_' in controller.list_sources() )
 
-    assert controller.get_source('_rand_','low') == 0
+        self.assertTrue( controller.get_source('_rand_') == {'demux': False, 'mux': False, 'value': 2, 'enabled': True } )
 
-    controller.set_source('_rand_', low = 1)
+        self.assertTrue( controller.get_source('_rand_', 'value', 'demux') == {'value': 2, 'demux': False} )
 
-    assert controller.get_source('_rand_','low') == 1
+        self.assertTrue( controller.get_source('_rand_','value') == 2 )
 
-    # TODO: test for changed signals
+        controller.set_source('_rand_', value = 1)
 
-    controller.set_source('_rand_', reset = True)
+        self.assertTrue( controller.get_source('_rand_','value') == 1 )
 
-    a = controller.read_source('_rand_')
-    assert isinstance(a[0], float)
-    assert 0 <= a[0] <= 1
+        # TODO: test for changed signals
 
-    with pytest.raises(block.BlockException):
-        controller.set_source('_rand_', _reset = True)
+        controller.set_source('_rand_', reset = True)
 
-    controller.remove_source('_rand_')
-    assert '_rand_' not in controller.list_sources()
+        a, = controller.read_source('_rand_')
+        self.assertTrue( a == 1 )
 
-    # test filter
+        with self.assertRaises(block.BlockException):
+            controller.set_source('_rand_', _reset = True)
 
-    controller.add_signal('_output_')
+        controller.remove_source('_rand_')
+        self.assertTrue( '_rand_' not in controller.list_sources() )
 
-    controller.add_source('_rand_', blkrnd.Uniform(), ['_test_'])
-    assert '_rand_' in controller.list_sources()
+        # test filter
 
-    controller.add_filter('_gain_', block.ShortCircuit(),
-                          ['_test_'],
-                          ['_output_'])
-    assert '_gain_' in controller.list_filters()
+        controller.add_signal('_output_')
 
-    # TODO: test for changed block
+        controller.add_source('_rand_', block.Constant(), ['_test_'])
+        self.assertTrue( '_rand_' in controller.list_sources() )
 
-    controller.add_filter('_gain_', system.Gain(gain = 2),
-                          ['_test_'],
-                          ['_output_'])
-    assert '_gain_' in controller.list_filters()
+        controller.add_filter('_gain_', block.ShortCircuit(),
+                              ['_test_'],
+                              ['_output_'])
+        self.assertTrue( '_gain_' in controller.list_filters() )
 
-    assert controller.get_filter('_gain_') == {'demux': False, 'enabled': True, 'gain': 2, 'mux': False}
+        # TODO: test for changed block
 
-    assert controller.get_filter('_gain_', 'demux', 'gain') == {'demux': False, 'gain': 2}
+        controller.add_filter('_gain_', system.Gain(gain = 2),
+                              ['_test_'],
+                              ['_output_'])
+        self.assertTrue( '_gain_' in controller.list_filters() )
 
-    assert controller.get_filter('_gain_','gain') == 2
+        self.assertTrue( controller.get_filter('_gain_') == {'demux': False, 'enabled': True, 'gain': 2, 'mux': False} )
 
-    with controller:
-        time.sleep(.2)
+        self.assertTrue( controller.get_filter('_gain_', 'demux', 'gain') == {'demux': False, 'gain': 2} )
 
-    controller.add_sink('_logger_', block.Logger(), ['_test_', '_output_'])
-    assert '_logger_' in controller.list_sinks()
+        self.assertTrue( controller.get_filter('_gain_','gain') == 2 )
 
-    with controller:
-        time.sleep(.2)
+        with controller:
+            time.sleep(.2)
 
-    log = controller.get_sink('_logger_', 'log')
+        controller.add_sink('_logger_', block.Logger(), ['_test_', '_output_'])
+        self.assertTrue( '_logger_' in controller.list_sinks() )
 
-    assert isinstance(log['_test_'], numpy.ndarray)
-    assert isinstance(log['_output_'], numpy.ndarray)
-    assert log['_test_'].shape[1] == 1
-    assert log['_test_'].shape[0] > 1
-    assert log['_test_'].shape[1] == 1
-    assert log['_test_'].shape[0] > 1
+        with controller:
+            time.sleep(.2)
 
-    assert numpy.all(numpy.fabs(log['_output_']- 2 * log['_test_']) < 1e-6)
+        log = controller.get_sink('_logger_', 'log')
 
-    # test reset
-    signals = controller.list_signals()
-    sinks = controller.list_sinks()
-    sources = controller.list_sources()
-    filters = controller.list_filters()
+        self.assertTrue( isinstance(log['_test_'], numpy.ndarray) )
+        self.assertTrue( isinstance(log['_output_'], numpy.ndarray) )
+        self.assertShape( log['_test_'].shape, 1, 1 )
+        self.assertShapeGreater( log['_test_'].shape, 1, 0 )
+        self.assertShape( log['_test_'].shape, 1, 1 )
+        self.assertShapeGreater( log['_test_'].shape, 1, 0 )
 
-    controller.reset()
+        self.assertTrue( numpy.array_equal(log['_output_'], log['_test_'] * 2) )
 
-    signals = controller.list_signals()
-    sinks = controller.list_sinks()
-    sources = controller.list_sources()
-    filters = controller.list_filters()
+        # test reset
+        signals = controller.list_signals()
+        sinks = controller.list_sinks()
+        sources = controller.list_sources()
+        filters = controller.list_filters()
 
-    assert signals == _signals
-    assert sources == _sources
-    assert filters == _filters
-    assert sinks == _sinks
+        controller.reset()
 
-    # test is_running
-    assert controller.get_signal('is_running') == False
+        signals = controller.list_signals()
+        sinks = controller.list_sinks()
+        sources = controller.list_sources()
+        filters = controller.list_filters()
 
-    controller.start()
-    assert controller.get_signal('is_running') == True
+        self.assertTrue(signals == _signals)
+        self.assertTrue(sources == _sources)
+        self.assertTrue(filters == _filters)
+        self.assertTrue(sinks == _sinks)
 
-    controller.stop()
-    assert controller.get_signal('is_running') == False
+        # test is_running
+        self.assertTrue( controller.get_signal('is_running') == False )
+
+        controller.start()
+        time.sleep(1)
+        self.assertTrue( controller.get_signal('is_running') == True )
+
+        controller.stop()
+        time.sleep(1)
+        self.assertTrue( controller.get_signal('is_running') == False )
 
 
 def _test_timer(self, controller):
@@ -623,7 +643,7 @@ def _test_add_device(self, controller):
 
 # TESTS START HERE
 
-class TestUnittestAssertions(unittest.TestCase):
+class TestUnittestAssertions(BaseTest):
 
     def test_clock(self):
 
@@ -712,7 +732,7 @@ class TestUnittestAssertions(unittest.TestCase):
         from pyctrl import Controller
         controller = Controller()
 
-        _test_basic(self, controller)
+        self._test_basic(controller)
         #_test_timer(controller)
         #_test_set(controller)
         #_test_sub_container(controller)
@@ -770,7 +790,7 @@ def test_client_server():
 
         self.assertTrue( client.info('class') == "<class 'pyctrl.timer.Controller'>" )
 
-        with pytest.raises(Exception):
+        with self.assertRaises(Exception):
             client.reset(module = 'pyctrl.timer', pyctrl_class = 'wrong')
 
         self.assertTrue( client.info('class') == "<class 'pyctrl.timer.Controller'>" )
