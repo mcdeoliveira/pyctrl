@@ -1,13 +1,20 @@
 import warnings
 from threading import Thread, Timer, Condition
+import pyctrl.util.clock as util
+import time
 
 from .. import block
+
+import logging
+logger = logging.getLogger(__name__)
+# logging.basicConfig(level=logging.DEBUG)
 
 # alternative perf_counter
 try:
     from time import perf_counter
 except ImportError:
     from utime import ticks_us
+
 
     def perf_counter():
         return 1.e-6 * ticks_us()
@@ -17,6 +24,7 @@ class Clock(block.Source, block.Block):
     """
     :py:class:`pyctrl.block.clock.Clock` provides a basic clock that writes the current time to its output.
     """
+
     def __init__(self, **kwargs):
 
         super().__init__(**kwargs)
@@ -25,7 +33,7 @@ class Clock(block.Source, block.Block):
         self.time = self.time_origin
         self.count = 0
         self.average_period = 0
-        
+
     def reset(self):
         """
         Reset :py:class:`pyctrl.block.clock.Clock` by setting the origin of
@@ -40,7 +48,7 @@ class Clock(block.Source, block.Block):
         self.time_origin = self.time
         self.count = 0
 
-    def get(self, *keys, exclude = ()):
+    def get(self, *keys, exclude=()):
         """
         Get properties of :py:class:`pyctrl.block.clock.Clock`. 
 
@@ -61,8 +69,8 @@ class Clock(block.Source, block.Block):
             self.calculate_average_period()
 
         # call super excluding time and last
-        return super().get(*keys, exclude = exclude)
-        
+        return super().get(*keys, exclude=exclude)
+
     def read(self):
         """
         Read from :py:class:`pyctrl.block.clock.Clock`.
@@ -71,7 +79,6 @@ class Clock(block.Source, block.Block):
         """
 
         if self.enabled:
-
             self.time = perf_counter()
             self.count += 1
 
@@ -90,10 +97,10 @@ class Clock(block.Source, block.Block):
             self.average_period = (self.time - self.time_origin) / self.count
         else:
             self.average_period = 0
-            
+
         return self.average_period
 
-    def calibrate(self, eps = 1/100, N = 100, K = 20):
+    def calibrate(self, eps=1 / 100, N=100, K=20):
         """
         Calibration routine that attempts to callibrate clock
         by fine tuning the clock's period.
@@ -119,7 +126,7 @@ class Clock(block.Source, block.Block):
             for n in range(N):
                 self.read()
             period = self.calculate_average_period()
-            
+
             # estimate actual period
             error = abs(period - target) / target
             print('  {:4}  {:6.5f}  {:6.5f}   {:5.2f}%'
@@ -140,7 +147,7 @@ class Clock(block.Source, block.Block):
                 break
 
             # compensate error
-            self.set(period = self.get('period') + target - period)
+            self.set(period=self.get('period') + target - period)
 
         print('< Done!')
 
@@ -151,7 +158,7 @@ class Clock(block.Source, block.Block):
         return success, period
 
 
-class TimerClock(Clock):
+class AltTimerClock(Clock):
     """
     :py:class:`pyctrl.block.clock.TimerClock` provides a clock that
     reads the current time periodically.
@@ -159,21 +166,23 @@ class TimerClock(Clock):
     :param float period: period in seconds
 
     """
+
     def __init__(self, **kwargs):
 
         self.period = kwargs.pop('period', 0.01)
 
         super().__init__(**kwargs)
 
+        # initialize condition
         self.condition = Condition()
-        self.timer = None
-        self.running = False
+        self.clock = None
 
+        # enable clock
         if self.enabled:
             self.enabled = False
             self.set_enabled(True)
-    
-    def set(self, exclude = (), **kwargs):
+
+    def set(self, exclude=(), **kwargs):
         """
         Set properties of :py:class:`pyctrl.block.clock.TimerClock`. 
 
@@ -184,12 +193,23 @@ class TimerClock(Clock):
         """
 
         if 'period' in kwargs:
+
+            enabled = self.enabled
+            if enabled:
+                # must stop clock first
+                self.set_enabled(False)
+
+            # set period
             self.period = kwargs.pop('period')
+
+            if enabled:
+                # then re enable
+                self.set_enabled(True)
 
         # call super
         return super().set(exclude, **kwargs)
-    
-    def get(self, *keys, exclude = ()):
+
+    def get(self, *keys, exclude=()):
         """
         Get properties of :py:class:`pyctrl.block.clock.TimerClock`. 
 
@@ -203,28 +223,184 @@ class TimerClock(Clock):
         :param keys: string or tuple of strings with property names
         :param tuple exclude: keys never to be returned (Default ())
         """
-        
+
         # call super excluding time and last
-        return super().get(*keys, exclude = exclude + ('condition',
-                                                       'timer',
-                                                       'running',
-                                                       'thread') )
-    
+        return super().get(*keys, exclude=exclude + ('condition',
+                                                     'clock'))
+
     def tick(self):
 
         # Acquire lock
         self.condition.acquire()
-        
+
+        # Got a tick
+        self.time = perf_counter()
+
+        # Add to count
+        self.count += 1
+
+        logger.debug('CLOCK TICK')
+
+        # Notify lock
+        self.condition.notify_all()
+
+        # Release lock
+        self.condition.release()
+
+    def set_enabled(self, enabled=True):
+        """
+        Set :py:class:`pyctrl.block.clock.TimerClock` :py:attr:`enabled` state.
+
+        :param bool enabled: True or False (default True)
+        """
+
+        logger.debug('SET ENABLED: {} == {}'.format(self.enabled, enabled))
+
+        # quick return
+        if enabled == self.enabled:
+            return
+
+        # enable
+        if enabled:
+
+            logger.debug('WILL ENABLE')
+
+            # Acquire lock
+            if self.condition.acquire(True, self.period):
+
+                # set enabled
+                super().set_enabled(enabled)
+
+                # Start thread
+                self.clock = util.Clock(interval=self.period, function=self.tick)
+                self.clock.start()
+
+                # and release
+                self.condition.release()
+
+                logger.debug('CLOCK STARTED')
+
+            else:
+                logger.warning('Could not start clock')
+
+        # disable
+        else:
+
+            logger.debug('WILL DISABLE')
+
+            # Acquire lock
+            self.condition.acquire()
+
+            # disable clock
+            self.clock.cancel()
+
+            # wait for clock to terminate
+            self.clock.join()
+
+            # notify all and go
+            self.condition.notify_all()
+
+            # set enabled
+            super().set_enabled(enabled)
+
+            # and release
+            self.condition.release()
+
+            logger.debug('CLOCK DISABLED')
+
+    def read(self):
+        """
+        Read from :py:class:`pyctrl.block.clock.TimerClock`.
+
+        :return: tuple with elapsed time since initialization or last reset
+        """
+
+        # print('> read')
+        if self.enabled:
+            # Acquire condition
+            self.condition.acquire()
+            # wait 
+            self.condition.wait()
+            # and release
+            self.condition.release()
+
+        return self.time - self.time_origin,
+
+
+class TimerClock(Clock):
+    """
+    :py:class:`pyctrl.block.clock.TimerClock` provides a clock that
+    reads the current time periodically.
+
+    :param float period: period in seconds
+
+    """
+
+    def __init__(self, **kwargs):
+
+        self.period = kwargs.pop('period', 0.01)
+
+        super().__init__(**kwargs)
+
+        self.condition = Condition()
+        self.timer = None
+        self.running = False
+
+        if self.enabled:
+            self.enabled = False
+            self.set_enabled(True)
+
+    def set(self, exclude=(), **kwargs):
+        """
+        Set properties of :py:class:`pyctrl.block.clock.TimerClock`.
+
+        :param tuple exclude: attributes to exclude
+        :param float period: clock period
+        :param kwargs kwargs: other keyword arguments
+        :raise: :py:class:`pyctrl.block.BlockException` if any of the :py:attr:`kwargs` is left unprocessed
+        """
+
+        if 'period' in kwargs:
+            self.period = kwargs.pop('period')
+
+        # call super
+        return super().set(exclude, **kwargs)
+
+    def get(self, *keys, exclude=()):
+        """
+        Get properties of :py:class:`pyctrl.block.clock.TimerClock`.
+
+        Available attributes are those from :py:meth:`pyctrl.block.clock.Clock.get` and:
+
+        1. :py:attr:`period`
+
+        The elapsed time since initialization or last reset can be
+        obtained using the method :py:meth:`pyctrl.block.clock.TimerClock.read`.
+
+        :param keys: string or tuple of strings with property names
+        :param tuple exclude: keys never to be returned (Default ())
+        """
+
+        # call super excluding time and last
+        return super().get(*keys, exclude=exclude + ('condition',
+                                                     'timer',
+                                                     'running',
+                                                     'thread'))
+
+    def tick(self):
+
+        # Acquire lock
+        self.condition.acquire()
+
         # Got a tick
         time = perf_counter()
 
-        #print('> TICK: {}, {}'.format(time, self))
+        # print('> TICK: {}, {}'.format(time, self))
 
         dwell = time - self.time
         if dwell < 0.9 * self.period:
-
             # need more time
-            #print('> MORE TIME')
+            # print('> MORE TIME')
 
             # Setup new timer
             self.timer = Timer(self.period - dwell, self.tick)
@@ -232,16 +408,16 @@ class TimerClock(Clock):
 
             # Release lock
             self.condition.release()
-            
+
             # and return
             return
-        
+
         # Close to period
         self.time = time
 
         # Add to count
         self.count += 1
-        
+
         # Notify lock
         self.condition.notify_all()
 
@@ -250,32 +426,48 @@ class TimerClock(Clock):
 
     def run(self):
 
-        #print('> run')
+        # print('> run')
         self.running = True
         while self.enabled and self.running:
 
             # Acquire condition
             self.condition.acquire()
 
-            #print('> WILL TICK')
-            
+            # print('> WILL TICK')
+
             # Setup timer
             self.timer = Timer(self.period, self.tick)
             self.timer.start()
 
-            #print('> WAITING')
-            
-            # Wait 
+            # print('> WAITING')
+
+            # Wait
             self.condition.wait()
 
             # and release
             self.condition.release()
 
+        if self.timer:
+
+            # print('> WILL CANCEL TIMES')
+
+            # Acquire lock
+            self.condition.acquire()
+
+            # cancel timer
+            self.timer.cancel()
+
+            # notify all
+            self.condition.notify_all()
+
+            # and release
+            self.condition.release()
+
         self.running = False
-        
+
         # print('> END OF RUN!')
 
-    def set_enabled(self, enabled = True):
+    def set_enabled(self, enabled=True):
         """
         Set :py:class:`pyctrl.block.clock.TimerClock` :py:attr:`enabled` state.
 
@@ -288,19 +480,19 @@ class TimerClock(Clock):
 
         # enable
         if enabled:
-            
+
             # print('> Enabling TimerClock')
-            
+
             # set enabled
             super().set_enabled(enabled)
 
             # Start thread
-            self.thread = Thread(target = self.run)
+            self.thread = Thread(target=self.run)
             self.thread.start()
 
         # disable
         else:
-        
+
             # Acquire condition
             self.condition.acquire()
 
@@ -308,9 +500,9 @@ class TimerClock(Clock):
 
             # Prepare to stop
             self.running = False
-            
-            # Notify lock
-            self.condition.notify_all()
+
+            # wait
+            self.condition.wait()
 
             # set enabled
             super().set_enabled(enabled)
@@ -325,14 +517,13 @@ class TimerClock(Clock):
         :return: tuple with elapsed time since initialization or last reset
         """
 
-        #print('> read')
+        # print('> read')
         if self.enabled:
-
             # Acquire condition
             self.condition.acquire()
-            # wait 
+            # wait
             self.condition.wait()
             # and release
             self.condition.release()
-        
-        return (self.time - self.time_origin, )
+
+        return self.time - self.time_origin,

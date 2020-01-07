@@ -1,177 +1,205 @@
+import unittest
+
 import struct
 import numpy
 import io
 import pickle
-
 import pyctrl.packet as packet
 
-def testA():
 
-    # test A
-    assert packet.pack('A','C') == b'AC'
-    assert packet.pack('A','B') == b'AB'
-    assert packet.pack('A','C') != b'AB'
+class TestUnittestAssertions(unittest.TestCase):
 
-    assert packet.unpack_stream(io.BytesIO(b'AC')) == ('A', 'C')
-    assert packet.unpack_stream(io.BytesIO(b'AB')) == ('A', 'B')
-    assert packet.unpack_stream(io.BytesIO(b'AB')) != ('A', 'C')
+    def testA(self):
+        # test A
+        self.assertEqual(packet.pack('A', 'C'), b'AC')
+        self.assertEqual(packet.pack('A', 'B'), b'AB')
+        self.assertNotEqual(packet.pack('A', 'C'), b'AB')
 
-def testC():
+        self.assertEqual(packet.unpack_stream(io.BytesIO(b'AC')), ('A', 'C'))
+        self.assertEqual(packet.unpack_stream(io.BytesIO(b'AB')), ('A', 'B'))
+        self.assertNotEqual(packet.unpack_stream(io.BytesIO(b'AB')), ('A', 'C'))
 
-    # test C
-    assert packet.pack('C','C') == b'CC'
-    assert packet.pack('C','B') == b'CB'
-    assert packet.pack('C','C') != b'CB'
+    def testC(self):
+        # test C
+        self.assertEqual(packet.pack('C', 'C'), b'CC')
+        self.assertEqual(packet.pack('C', 'B'), b'CB')
+        self.assertNotEqual(packet.pack('C', 'C'), b'CB')
 
-    assert packet.unpack_stream(io.BytesIO(b'CC')) == ('C', 'C')
-    assert packet.unpack_stream(io.BytesIO(b'CB')) == ('C', 'B')
-    assert packet.unpack_stream(io.BytesIO(b'CB')) != ('C', 'C')
+        self.assertEqual(packet.unpack_stream(io.BytesIO(b'CC')), ('C', 'C'))
+        self.assertEqual(packet.unpack_stream(io.BytesIO(b'CB')), ('C', 'B'))
+        self.assertNotEqual(packet.unpack_stream(io.BytesIO(b'CB')), ('C', 'C'))
 
-def testS():
+    def testS(self):
+        # test S
+        self.assertEqual(packet.pack('S', 'abc'), struct.pack('<1sI3s', b'S', 3, b'abc'))
+        self.assertNotEqual(packet.pack('S', 'abcd'), struct.pack('<1sI3s', b'S', 3, b'abc'))
 
-    # test S
-    assert packet.pack('S','abc') == struct.pack('<cI3s', b'S', 3, b'abc')
-    assert packet.pack('S','abcd') != struct.pack('<cI3s', b'S', 3, b'abc')
+        self.assertEqual(packet.unpack_stream(io.BytesIO(struct.pack('<1sI3s', b'S', 3, b'abc'))), ('S', 'abc'))
+        self.assertNotEqual(packet.unpack_stream(io.BytesIO(struct.pack('<1sI3s', b'S', 3, b'abc'))), ('S', 'abcd'))
 
-    assert packet.unpack_stream(
-        io.BytesIO(struct.pack('<cI3s', b'S', 3, b'abc'))) == ('S', 'abc')
+    def testIFD(self):
+        # test I
+        self.assertEqual(packet.pack('I', 3), struct.pack('<1si', b'I', 3))
+        self.assertNotEqual(packet.pack('I', 3), struct.pack('<1si', b'I', 4))
 
-    assert packet.unpack_stream(
-        io.BytesIO(struct.pack('<cI3s', b'S', 3, b'abc'))) != ('S', 'abcd')
+        self.assertEqual(packet.unpack_stream(io.BytesIO(struct.pack('<1si', b'I', 3))), ('I', 3))
+        self.assertNotEqual(packet.unpack_stream(io.BytesIO(struct.pack('<1si', b'I', 4))), ('I', 3))
 
-def testIFD():
+        # test F
+        self.assertEqual(packet.pack('F', 3.3), struct.pack('<1sf', b'F', 3.3))
+        self.assertNotEqual(packet.pack('F', 3.3), struct.pack('<1sf', b'F', 4.3))
 
-    # test I
-    assert packet.pack('I',3) == struct.pack('<ci', b'I', 3)
-    assert packet.pack('I',3) != struct.pack('<ci', b'I', 4)
+        ff, = struct.unpack('f', struct.pack('f', 3.3))
+        self.assertEqual(packet.unpack_stream(io.BytesIO(struct.pack('<1sf', b'F', ff))), ('F', ff))
+        self.assertNotEqual(packet.unpack_stream(io.BytesIO(struct.pack('<1sf', b'F', ff + 1))), ('F', ff))
 
-    assert packet.unpack_stream(
-        io.BytesIO(struct.pack('<ci', b'I', 3))) == ('I', 3)
-    assert packet.unpack_stream(
-        io.BytesIO(struct.pack('<ci', b'I', 4))) != ('I', 3)
+        # test D
+        self.assertEqual(packet.pack('D', 3.3), struct.pack('<1sd', b'D', 3.3))
+        self.assertNotEqual(packet.pack('D', 3.3), struct.pack('<1sd', b'D', 4.3))
 
-    # test F
-    assert packet.pack('F',3.3) == struct.pack('<cf', b'F', 3.3)
-    assert packet.pack('F',3.3) != struct.pack('<cf', b'F', 4.3)
+        dd, = struct.unpack('d', struct.pack('d', 3.3))
+        self.assertEqual(packet.unpack_stream(io.BytesIO(struct.pack('<1sd', b'D', 3.3))), ('D', dd))
+        self.assertNotEqual(packet.unpack_stream(io.BytesIO(struct.pack('<1sd', b'D', 4.3))), ('D', dd))
 
-    assert packet.unpack_stream(
-        io.BytesIO(struct.pack('<cf', b'F', numpy.float32(3.3)))) == ('F', numpy.float32(3.3))
-    assert packet.unpack_stream(
-        io.BytesIO(struct.pack('<cf', b'F', 4.3))) != ('F', 3.3)
+    def testV(self):
+        # test VH
+        vector = numpy.array((1, 2, 3), dtype=numpy.int16)
+        self.assertTrue(packet.pack('V', vector) == struct.pack('<2sI3h', b'VH', 3, 1, 2, 3))
 
-    # test D
-    assert packet.pack('D',3.3) == struct.pack('<cd', b'D', 3.3)
-    assert packet.pack('D',3.3) != struct.pack('<cd', b'D', 4.3)
+        (type, rvector) = packet.unpack_stream(io.BytesIO(struct.pack('<2sI3h', b'VH', 3, 1, 2, 3)))
+        self.assertTrue(type == 'V')
+        self.assertTrue(numpy.array_equal(rvector, vector))
 
-    assert packet.unpack_stream(
-        io.BytesIO(struct.pack('<cd', b'D', 3.3))) == ('D', 3.3)
-    assert packet.unpack_stream(
-        io.BytesIO(struct.pack('<cd', b'D', 4.3))) != ('D', 3.3)
+        vector = numpy.array((1, -2, 3), dtype=numpy.int16)
+        self.assertTrue(packet.pack('V', vector) == struct.pack('<2sI3h', b'VH', 3, 1, -2, 3))
 
-def testV():
+        (type, rvector) = packet.unpack_stream(io.BytesIO(struct.pack('<2sI3h', b'VH', 3, 1, -2, 3)))
+        self.assertTrue(type == 'V')
+        self.assertTrue(numpy.array_equal(rvector, vector))
 
-    # test VI
-    vector = numpy.array((1,2,3), int)
-    assert packet.pack('V',vector) == struct.pack('<ccIiii', b'V', b'I', 3, 1, 2, 3)
+        # test VI
+        try:
+            vector = numpy.array((1, 2, 3), dtype=numpy.int32)
+            self.assertTrue(packet.pack('V', vector) == struct.pack('<2sI3i', b'VI', 3, 1, 2, 3))
 
-    (type, rvector) = packet.unpack_stream(
-        io.BytesIO(struct.pack('<ccIiii', b'V', b'I', 3, 1, 2, 3)))
-    assert type == 'V'
-    assert numpy.all(rvector == vector)
+            (type, rvector) = packet.unpack_stream(io.BytesIO(struct.pack('<2sI3i', b'VI', 3, 1, 2, 3)))
+            self.assertTrue(type == 'V')
+            self.assertTrue(numpy.array_equal(rvector, vector))
 
-    vector = numpy.array((1,-2,3), int)
-    assert packet.pack('V',vector) == struct.pack('<ccIiii', b'V', b'I', 3, 1, -2, 3)
+            vector = numpy.array((1, -2, 3), dtype=numpy.int32)
+            self.assertTrue(packet.pack('V', vector) == struct.pack('<2sI3i', b'VI', 3, 1, -2, 3))
 
-    (type, rvector) = packet.unpack_stream(
-        io.BytesIO(struct.pack('<ccIiii', b'V', b'I', 3, 1, -2, 3)))
-    assert type == 'V'
-    assert numpy.all(rvector == vector)
+            (type, rvector) = packet.unpack_stream(io.BytesIO(struct.pack('<2sI3i', b'VI', 3, 1, -2, 3)))
+            self.assertTrue(type == 'V')
+            self.assertTrue(numpy.array_equal(rvector, vector))
+        except TypeError:
+            print('** INT32 is not supported **')
 
-    # test VF
-    vector = numpy.array((1.3,-2,3), numpy.float32)
-    assert packet.pack('V',vector) == struct.pack('<ccIfff', b'V', b'F', 3, 1.3, -2, 3)
+        # test VF
+        try:
+            vector = numpy.array((1.3, -2, 3), dtype=numpy.float32)
+            self.assertTrue(packet.pack('V', vector) == struct.pack('<2sI3f', b'VF', 3, 1.3, -2, 3))
 
-    (type, rvector) = packet.unpack_stream(
-        io.BytesIO(struct.pack('<ccIfff', b'V', b'F', 3, 1.3, -2, 3)))
-    assert type == 'V'
-    assert numpy.all(rvector == vector)
+            (type, rvector) = packet.unpack_stream(io.BytesIO(struct.pack('<2sI3f', b'VF', 3, 1.3, -2, 3)))
+            self.assertTrue(type == 'V')
+            self.assertTrue(numpy.array_equal(rvector, vector))
 
-    # test VD
-    vector = numpy.array((1.3,-2,3), float)
-    assert packet.pack('V',vector) == struct.pack('<ccIddd', b'V', b'D', 3, 1.3, -2, 3)
+        except TypeError:
+            print('** FLOAT32 is not supported **')
 
-    (type, rvector) = packet.unpack_stream(
-        io.BytesIO(struct.pack('<ccIddd', b'V', b'D', 3, 1.3, -2, 3)))
-    assert type == 'V'
-    assert numpy.all(rvector == vector)
+        # test VD
+        try:
+            vector = numpy.array((1.3, -2, 3), dtype=numpy.float64)
+            self.assertTrue(packet.pack('V', vector) == struct.pack('<2sI3d', b'VD', 3, 1.3, -2, 3))
 
-def testM():
+            (type, rvector) = packet.unpack_stream(io.BytesIO(struct.pack('<2sI3d', b'VD', 3, 1.3, -2, 3)))
+            self.assertTrue(type == 'V')
+            self.assertTrue(numpy.array_equal(rvector, vector))
+        except TypeError:
+            print('** FLOAT64 is not supported **')
 
-    # test MI
-    vector = numpy.array(((1,2,3), (3,4,5)), int)
-    assert packet.pack('M',vector) == struct.pack('<cIccIiiiiii', b'M', 2, b'V', b'I', 6, 1, 2, 3, 3, 4, 5)
+    def testM(self):
 
-    (type, rvector) = packet.unpack_stream(
-        io.BytesIO(struct.pack('<cIccIiiiiii', b'M', 2, b'V', b'I', 6, 1, 2, 3, 3, 4, 5)))
-    assert type == 'M'
-    assert numpy.all(rvector == vector)
+        # test MH
+        vector = numpy.array(((1, 2, 3), (3, 4, 5)), dtype=numpy.int16)
+        self.assertTrue(packet.pack('M', vector) == struct.pack('<1sI2sI6h', b'M', 2, b'VH', 6, 1, 2, 3, 3, 4, 5))
 
-    vector = numpy.array(((1,-2,3), (3,4,-5)), int)
-    assert packet.pack('M',vector) == struct.pack('<cIccIiiiiii', b'M', 2, b'V', b'I', 6, 1, -2, 3, 3, 4, -5)
+        (type, rvector) = packet.unpack_stream(io.BytesIO(struct.pack('<1sI2sI6h', b'M', 2, b'VH', 6, 1, 2, 3, 3, 4, 5)))
+        self.assertTrue(type == 'M')
+        self.assertTrue(numpy.array_equal(rvector, vector))
 
-    (type, rvector) = packet.unpack_stream(
-        io.BytesIO(struct.pack('<cIccIiiiiii', b'M', 2, b'V', b'I', 6, 1, -2, 3, 3, 4, -5)))
-    assert type == 'M'
-    assert numpy.all(rvector == vector)
+        vector = numpy.array(((1, -2, 3), (3, 4, -5)), dtype=numpy.int16)
+        self.assertTrue(packet.pack('M', vector) == struct.pack('<1sI2sI6h', b'M', 2, b'VH', 6, 1, -2, 3, 3, 4, -5))
 
-    # test MF
-    vector = numpy.array(((1.3,-2,3), (0,-1,2.5)), numpy.float32)
-    assert packet.pack('M',vector) == struct.pack('<cIccIffffff', b'M', 2, b'V', b'F', 6, 1.3, -2, 3, 0, -1, 2.5)
+        (type, rvector) = packet.unpack_stream(
+            io.BytesIO(struct.pack('<1sI2sI6h', b'M', 2, b'VH', 6, 1, -2, 3, 3, 4, -5)))
+        self.assertTrue(type == 'M')
+        self.assertTrue(numpy.array_equal(rvector, vector))
 
-    (type, rvector) = packet.unpack_stream(
-        io.BytesIO(struct.pack('<cIccIffffff', b'M', 2, b'V', b'F', 6, 1.3, -2, 3, 0, -1, 2.5)))
-    assert type == 'M'
-    assert numpy.all(rvector == vector)
+        # test MI
+        try:
+            vector = numpy.array(((1, 2, 3), (3, 4, 5)), dtype=numpy.int32)
+            self.assertTrue(packet.pack('M', vector) == struct.pack('<1sI2sI6i', b'M', 2, b'VI', 6, 1, 2, 3, 3, 4, 5))
 
-    # test MD
-    vector = numpy.array(((1.3,-2,3), (0,-1,2.5)), numpy.float)
-    assert packet.pack('M',vector) == struct.pack('<cIccIdddddd', b'M', 2, b'V', b'D', 6, 1.3, -2, 3, 0, -1, 2.5)
+            (type, rvector) = packet.unpack_stream(
+                io.BytesIO(struct.pack('<1sI2sI6i', b'M', 2, b'VI', 6, 1, 2, 3, 3, 4, 5)))
+            self.assertTrue(type == 'M')
+            self.assertTrue(numpy.array_equal(rvector, vector))
 
-    (type, rvector) = packet.unpack_stream(
-        io.BytesIO(struct.pack('<cIccIdddddd', b'M', 2, b'V', b'D', 6, 1.3, -2, 3, 0, -1, 2.5)))
-    assert type == 'M'
-    assert numpy.all(rvector == vector)
+            vector = numpy.array(((1, -2, 3), (3, 4, -5)), dtype=numpy.int32)
+            self.assertTrue(packet.pack('M', vector) == struct.pack('<1sI2sI6i', b'M', 2, b'VI', 6, 1, -2, 3, 3, 4, -5))
 
-def testP():
+            (type, rvector) = packet.unpack_stream(
+                io.BytesIO(struct.pack('<1sI2sI6i', b'M', 2, b'VI', 6, 1, -2, 3, 3, 4, -5)))
+            self.assertTrue(type == 'M')
+            self.assertTrue(numpy.array_equal(rvector, vector))
+        except TypeError:
+            print('** INT32 is not supported **')
 
-    vector = numpy.array(((1.3,-2,3), (0,-1,2.5)), numpy.float)
-    string = packet.pack('P', vector)
-    (type, rvector) = packet.unpack_stream(io.BytesIO(string))
-    assert type == 'P'
-    assert numpy.all(rvector == vector)
+        # test MF
+        try:
+            vector = numpy.array(((1.3, -2, 3), (0, -1, 2.5)), dtype=numpy.float32)
+            self.assertTrue(packet.pack('M', vector) == struct.pack('<1sI2sI6f', b'M', 2, b'VF', 6, 1.3, -2, 3, 0, -1, 2.5))
 
-def testKR():
+            (type, rvector) = packet.unpack_stream(
+                io.BytesIO(struct.pack('<1sI2sI6f', b'M', 2, b'VF', 6, 1.3, -2, 3, 0, -1, 2.5)))
+            self.assertTrue(type == 'M')
+            self.assertTrue(numpy.array_equal(rvector, vector))
+        except TypeError:
+            print('** FLOAT32 is not supported **')
 
-    args = { 'a': 1, 'b': 2 }
-    string = packet.pack('K', args)
-    (type, rargs) = packet.unpack_stream(io.BytesIO(string))
-    assert type == 'K'
-    assert (args == rargs)
+        # test MD
+        try:
+            vector = numpy.array(((1.3, -2, 3), (0, -1, 2.5)), dtype=numpy.float64)
+            self.assertTrue(packet.pack('M', vector) == struct.pack('<1sI2sI6d', b'M', 2, b'VD', 6, 1.3, -2, 3, 0, -1, 2.5))
 
-    args = ('a', 1, 'b', 2)
-    string = packet.pack('R', args)
-    (type, rargs) = packet.unpack_stream(io.BytesIO(string))
-    assert type == 'R'
-    assert (args == rargs)
+            (type, rvector) = packet.unpack_stream(
+                io.BytesIO(struct.pack('<1sI2sI6d', b'M', 2, b'VD', 6, 1.3, -2, 3, 0, -1, 2.5)))
+            self.assertTrue(type == 'M')
+            self.assertTrue(numpy.array_equal(rvector, vector))
+        except TypeError:
+            print('** FLOAT64 is not supported **')
+
+    def testP(self):
+        vector = numpy.array(((1.3, -2, 3), (0, -1, 2.5)), numpy.float64)
+        string = packet.pack('P', vector)
+        (type, rvector) = packet.unpack_stream(io.BytesIO(string))
+        self.assertTrue(type == 'P')
+        self.assertTrue(numpy.array_equal(rvector, vector))
+
+    def testKR(self):
+        args = {'a': 1, 'b': 2}
+        string = packet.pack('K', args)
+        (type, rargs) = packet.unpack_stream(io.BytesIO(string))
+        self.assertTrue(type == 'K')
+        self.assertTrue(args == rargs)
+
+        args = ('a', 1, 'b', 2)
+        string = packet.pack('R', args)
+        (type, rargs) = packet.unpack_stream(io.BytesIO(string))
+        self.assertTrue(type == 'R')
+        self.assertTrue(args == rargs)
+
 
 if __name__ == "__main__":
-
-    testA()
-    testC()
-    testS()
-    testIFD()
-    testV()
-    testM()
-    testP()
-    testKR()
-
+    unittest.main()

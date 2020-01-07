@@ -4,6 +4,7 @@ import socket
 from . import packet
 import pyctrl
 
+
 class WrapSocket:
 
     def __init__(self, socket):
@@ -16,6 +17,7 @@ class WrapSocket:
             bufsize -= len(temp)
             buffer += temp
         return buffer
+
 
 class Controller(pyctrl.Controller):
     """

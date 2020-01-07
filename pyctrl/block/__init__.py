@@ -7,7 +7,6 @@ try:
 except NameError:
     from warnings import Warning
 
-import contextlib
 import numpy, math
 import sys
 import itertools

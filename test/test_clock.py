@@ -1,19 +1,17 @@
 import unittest
 import pyctrl.block.clock as clk
+import time
 
 
 class TestUnittestAssertions(unittest.TestCase):
 
-    def test_clock(self):
+    def _test_clock(self, clock, Ts):
+
+        clock.set_enabled(True)
 
         N = 100
-        Ts = 0.01
-
-        clock = clk.TimerClock(period = Ts)
-        k = 0
-        while k < N:
-            (t,) = clock.read()
-            k += 1
+        for k in range(N):
+            clock.read()
 
         average = clock.calculate_average_period()
         print('*** {}'.format(clock.get()))
@@ -21,74 +19,109 @@ class TestUnittestAssertions(unittest.TestCase):
         clock.set_enabled(False)
         clock.set_enabled(True)
 
-        k = 0
-        while k < N:
-            (t,) = clock.read()
-            k += 1
+        for k in range(N):
+            clock.read()
 
         average = clock.calculate_average_period()
         print('*** {}'.format(clock.get()))
-        self.assertTrue( abs(average - Ts)/Ts < 7e-1 )
+        self.assertTrue(abs(average - Ts) / Ts < 7e-1)
 
         clock.set_enabled(False)
         clock.set_enabled(True)
 
-        k = 0
-        while k < N:
-            (t,) = clock.read()
-            k += 1
+        for k in range(N):
+            clock.read()
 
         average = clock.calculate_average_period()
-        self.assertTrue( abs(average - Ts)/Ts < 7e-1 )
+        self.assertTrue(abs(average - Ts) / Ts < 7e-1)
 
         clock.set_enabled(False)
 
-    def test_calibrate(self):
+    def _test_calibrate(self, clock, Ts, eps):
 
-        Ts = 0.01
-        eps = 1/10
+        clock.set_enabled(True)
 
-        clock = clk.TimerClock(period = Ts)
-
+        # calibrate
         (success, period) = clock.calibrate(eps)
-        self.assertTrue( success )
-        self.assertTrue( abs(period - Ts) / Ts < eps )
+
+        self.assertTrue(success)
+        self.assertTrue(abs(period - Ts) / Ts < eps)
 
         clock.set_enabled(False)
 
-    def test_reset(self):
+    def _test_reset(self, clock, Ts):
 
-        N = 10
+        clock.set_enabled(True)
+
+        N = 100
+        for k in range(N):
+            t, = clock.read()
+
+        self.assertTrue(t > 0.9 * N * Ts)
+
+        clock.reset()
+        (t,) = clock.read()
+
+        self.assertTrue(t < 2 * Ts)
+        self.assertTrue(clock.time - clock.time_origin < 2 * Ts)
+
+        for k in range(N):
+            t, = clock.read()
+
+        self.assertTrue(t > 0.9 * N * Ts)
+
+        clock.reset()
+        (t,) = clock.read()
+
+        self.assertTrue(t < 2 * Ts)
+        self.assertTrue(clock.time - clock.time_origin < 2 * Ts)
+
+        clock.set_enabled(False)
+
+    def test_basic_alt_timer_clock(self):
+
         Ts = 0.01
+        clock = clk.AltTimerClock(period=Ts, enabled=False)
 
-        clock = clk.TimerClock(period = Ts)
-        k = 0
-        while k < N:
-            (t,) = clock.read()
-            k += 1
+        self.assertEqual(clock.count, 0)
 
-        self.assertTrue( t > 0.9 * N * Ts )
-
-        clock.reset()
-        (t,) = clock.read()
-
-        self.assertTrue( t < 2*Ts )
-        self.assertTrue( clock.time - clock.time_origin < 2*Ts )
-
-        k = 0
-        while k < N:
-            (t,) = clock.read()
-            k += 1
-
-        self.assertTrue( t > 0.9 * N * Ts )
-
-        clock.reset()
-        (t,) = clock.read()
-
-        self.assertTrue( t < 2*Ts )
-        self.assertTrue( clock.time - clock.time_origin < 2*Ts )
-
+        clock.set_enabled(True)
+        time.sleep(1.1*Ts)
         clock.set_enabled(False)
+        self.assertEqual(clock.count, 1)
+
+        clock.set_enabled(True)
+        time.sleep(10.1*Ts)
+        clock.set_enabled(False)
+        print(clock.count)
+        self.assertEqual(clock.count, 10)
+
+        clock.set_enabled(True)
+        clock.reset()
+        self.assertEqual(clock.count, 0)
+        t, = clock.read()
+        self.assertEqual(clock.count, 1)
+        t, = clock.read()
+        self.assertEqual(clock.count, 2)
+        clock.set_enabled(False)
+
+    def test_timer_clock(self):
+
+        Ts = 0.01
+        clock = clk.TimerClock(period=Ts)
+
+        self._test_clock(clock, Ts)
+        self._test_reset(clock, Ts)
+        self._test_calibrate(clock, Ts, 0.01)
+
+    def test_alt_timer_clock(self):
+
+        Ts = 0.01
+        clock = clk.AltTimerClock(period=Ts)
+
+        self._test_clock(clock, Ts)
+        self._test_reset(clock, Ts)
+        self._test_calibrate(clock, Ts, 0.01)
 
 
 if __name__ == '__main__':

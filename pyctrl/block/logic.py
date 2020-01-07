@@ -9,11 +9,13 @@ from enum import IntEnum
 from .. import block
 from pyctrl import BlockType
 
+
 # State
 
 class State(IntEnum):
     HIGH = 1
     LOW = 0
+
 
 # Blocks
 
@@ -30,22 +32,22 @@ class Compare(block.Filter, block.BufferBlock):
     :param float threshold: the threshold :math:`\gamma` (default `0`)
     :param int m: number of inputs to test (default `1`)
     """
-    
+
     def __init__(self, **kwargs):
-        
+
         threshold = kwargs.pop('threshold', 0)
         if not isinstance(threshold, (int, float)):
             raise block.BlockException('threshold must be int or float')
         self.threshold = threshold
-        
+
         m = kwargs.pop('m', 1)
         if not isinstance(m, int):
             raise block.BlockException('m must be int')
         self.m = m
-        
+
         super().__init__(**kwargs)
 
-    def set(self, exclude = (), **kwargs):
+    def set(self, exclude=(), **kwargs):
         """
         Set properties of :py:class:`pyctrl.block.logic.Compare`.
 
@@ -59,7 +61,7 @@ class Compare(block.Filter, block.BufferBlock):
             if not isinstance(threshold, (int, float)):
                 raise block.BlockException('threshold must be int or float')
             self.threshold = threshold
-        
+
         if 'm' in kwargs:
             m = kwargs.pop('m', 1)
             if not isinstance(m, int):
@@ -67,7 +69,7 @@ class Compare(block.Filter, block.BufferBlock):
             self.m = m
 
         super().set(**kwargs)
-        
+
     def write(self, *values):
         """
         Writes result of comparison to the private :py:attr:`buffer`.
@@ -78,7 +80,9 @@ class Compare(block.Filter, block.BufferBlock):
         # call super
         super().write(*values)
 
-        self.buffer = tuple(int(v1 - v2 >= self.threshold) for (v1,v2) in zip(self.buffer[self.m:], self.buffer[:self.m]))
+        self.buffer = tuple(
+            int(v1 - v2 >= self.threshold) for (v1, v2) in zip(self.buffer[self.m:], self.buffer[:self.m]))
+
 
 class CompareWithHysterisis(Compare):
     r"""
@@ -114,22 +118,22 @@ class CompareWithHysterisis(Compare):
     :param float hysterisis: the hysterisis :math:`\mu` (default `0.1`)
     :param int m: number of inputs to test (default `1`)
     """
-    
+
     def __init__(self, **kwargs):
-        
+
         hysterisis = kwargs.pop('hysterisis', 0.1)
         if not isinstance(hysterisis, (int, float)):
             raise block.BlockException('hysterisis must be int or float')
         if hysterisis < 0:
             raise block.BlockException('hysterisis must be nonnegative')
         self.hysterisis = hysterisis
-        
+
         super().__init__(**kwargs)
 
         # initialize state
-        self.state = tuple(self.m*[State.HIGH])
-        
-    def set(self, exclude = (), **kwargs):
+        self.state = tuple(self.m * [State.HIGH])
+
+    def set(self, exclude=(), **kwargs):
         """
         Set properties of :py:class:`pyctrl.block.logic.CompareWithHysterisis`.
 
@@ -146,20 +150,20 @@ class CompareWithHysterisis(Compare):
             if hysterisis < 0:
                 raise block.BlockException('hysterisis must be nonnegative')
             self.hysterisis = hysterisis
-        
+
         super().set(**kwargs)
-        
-    def __test(self,v1,v2,s):
+
+    def __test(self, v1, v2, s):
         if s:
             if v1 - v2 >= self.threshold + self.hysterisis:
-                return (1, State.LOW)
+                return 1, State.LOW
             else:
-                return (0, State.HIGH)
+                return 0, State.HIGH
         else:
             if v1 - v2 >= self.threshold - self.hysterisis:
-                return (1, State.LOW)
+                return 1, State.LOW
             else:
-                return (0, State.HIGH)
+                return 0, State.HIGH
 
     def write(self, *values):
         """
@@ -171,8 +175,10 @@ class CompareWithHysterisis(Compare):
         # call super
         super(Compare, self).write(*values)
 
-        self.buffer, self.state = zip(*list(self.__test(v1,v2,s) for (v1,v2,s) in zip(self.buffer[self.m:], self.buffer[:self.m], self.state)))
-        
+        self.buffer, self.state = zip(*list(
+            self.__test(v1, v2, s) for (v1, v2, s) in zip(self.buffer[self.m:], self.buffer[:self.m], self.state)))
+
+
 class CompareAbs(block.Filter, block.BufferBlock):
     """
     :py:class:`pyctrl.block.logic.CompareAbs` compares the absolute value of its inputs. 
@@ -197,12 +203,12 @@ class CompareAbs(block.Filter, block.BufferBlock):
         if not isinstance(threshold, (int, float)):
             raise block.BlockException('threshold must be int or float')
         self.threshold = threshold
-        
+
         self.invert = kwargs.pop('invert', False)
 
         super().__init__(**kwargs)
 
-    def set(self, exclude = (), **kwargs):
+    def set(self, exclude=(), **kwargs):
         """
         Set properties of :py:class:`pyctrl.block.logic.CompareAbs`.
  
@@ -216,9 +222,9 @@ class CompareAbs(block.Filter, block.BufferBlock):
             if not isinstance(threshold, (int, float)):
                 raise block.BlockException('threshold must be int or float')
             self.threshold = threshold
-        
+
         super().set(**kwargs)
-        
+
     def write(self, *values):
         """
         Writes result of comparison to the private :py:attr:`buffer`.
@@ -233,6 +239,7 @@ class CompareAbs(block.Filter, block.BufferBlock):
             self.buffer = tuple(int(numpy.fabs(v) >= self.threshold) for v in self.buffer)
         else:
             self.buffer = tuple(int(numpy.fabs(v) <= self.threshold) for v in self.buffer)
+
 
 class CompareAbsWithHysterisis(CompareAbs):
     r"""
@@ -276,7 +283,7 @@ class CompareAbsWithHysterisis(CompareAbs):
         if not isinstance(offset, (int, float)):
             raise block.BlockException('offset must be int or float')
         self.offset = offset
-        
+
         hysterisis = kwargs.pop('hysterisis', 0.1)
         if not isinstance(hysterisis, (int, float)):
             raise block.BlockException('hysterisis must be int or float')
@@ -286,10 +293,10 @@ class CompareAbsWithHysterisis(CompareAbs):
 
         # initialize state
         self.state = kwargs.pop('state', None)
-        
+
         super().__init__(**kwargs)
 
-    def set(self, exclude = (), **kwargs):
+    def set(self, exclude=(), **kwargs):
         """
         Set properties of :py:class:`pyctrl.block.logic.CompareAbsWithHisterisis`.
  
@@ -306,16 +313,16 @@ class CompareAbsWithHysterisis(CompareAbs):
             if hysterisis < 0:
                 raise block.BlockException('hysterisis must be nonnegative')
             self.hysterisis = hysterisis
-        
+
         if 'offset' in kwargs:
             offset = kwargs.pop('offset', 0)
             if not isinstance(offset, (int, float)):
                 raise block.BlockException('offset must be int or float')
             self.offset = offset
-        
+
         super().set(**kwargs)
 
-    def __test(self,v,s):
+    def __test(self, v, s):
         if s:
             if numpy.fabs(v - self.offset) <= self.threshold + self.hysterisis:
                 return (1, State.HIGH)
@@ -327,7 +334,7 @@ class CompareAbsWithHysterisis(CompareAbs):
             else:
                 return (0, State.LOW)
 
-    def __test_invert(self,v,s):
+    def __test_invert(self, v, s):
         if s:
             if numpy.fabs(v - self.offset) >= self.threshold - self.hysterisis:
                 return (1, State.HIGH)
@@ -338,7 +345,7 @@ class CompareAbsWithHysterisis(CompareAbs):
                 return (1, State.HIGH)
             else:
                 return (0, State.LOW)
-            
+
     def write(self, *values):
         """
         Writes result of comparison to the private :py:attr:`buffer`.
@@ -351,13 +358,14 @@ class CompareAbsWithHysterisis(CompareAbs):
 
         # initialize state?
         if self.state is None:
-            self.state = tuple(len(self.buffer)*[State.HIGH])
+            self.state = tuple(len(self.buffer) * [State.HIGH])
 
         # perform test
         if self.invert:
-            self.buffer, self.state = zip(*list(self.__test_invert(v,s) for (v,s) in zip(self.buffer, self.state)))
+            self.buffer, self.state = zip(*list(self.__test_invert(v, s) for (v, s) in zip(self.buffer, self.state)))
         else:
-            self.buffer, self.state = zip(*list(self.__test(v,s) for (v,s) in zip(self.buffer, self.state)))
+            self.buffer, self.state = zip(*list(self.__test(v, s) for (v, s) in zip(self.buffer, self.state)))
+
 
 class Trigger(block.Filter, block.BufferBlock):
     r"""
@@ -385,7 +393,7 @@ class Trigger(block.Filter, block.BufferBlock):
     :param function: test function (default identity)
     :param bool state: initial state (default State.LOW)
     """
-    
+
     def __init__(self, **kwargs):
 
         self.function = kwargs.pop('function', (lambda x: x))
@@ -399,7 +407,7 @@ class Trigger(block.Filter, block.BufferBlock):
         """
 
         self.state = State.LOW
-    
+
     def write(self, *values):
         """
         Writes result of trigger to the private :py:attr:`buffer`.
@@ -409,14 +417,15 @@ class Trigger(block.Filter, block.BufferBlock):
 
         # call super
         super().write(*values)
-        
+
         if self.state:
             self.buffer = values[1:]
         elif self.function(values[0]):
             self.state = State.HIGH
             self.buffer = values[1:]
         else:
-            self.buffer = tuple((len(values)-1)*[0])
+            self.buffer = tuple((len(values) - 1) * [0])
+
 
 class Event(block.Sink, block.BufferBlock):
     """
@@ -436,22 +445,22 @@ class Event(block.Sink, block.BufferBlock):
     """
 
     def __init__(self, **kwargs):
-        
+
         low = kwargs.pop('low', 0.2)
         if not isinstance(low, (int, float)):
             raise block.BlockException('low must be int or float')
         self.low = low
-        
+
         high = kwargs.pop('high', 0.8)
         if not isinstance(high, (int, float)):
             raise block.BlockException('high must be int or float')
         self.high = high
 
         self.state = kwargs.pop('state', State.LOW)
-        
+
         super().__init__(**kwargs)
 
-    def set(self, exclude = (), **kwargs):
+    def set(self, exclude=(), **kwargs):
         """
         Set properties of :py:class:`pyctrl.block.logic.Event`.
 
@@ -466,7 +475,7 @@ class Event(block.Sink, block.BufferBlock):
             if not isinstance(low, (int, float)):
                 raise block.BlockException('low must be int or float')
             self.low = low
-        
+
         if 'high' in kwargs:
             high = kwargs.pop('high')
             if not isinstance(high, (int, float)):
@@ -475,15 +484,15 @@ class Event(block.Sink, block.BufferBlock):
 
         if 'state' in kwargs:
             self.state = kwargs.pop('state')
-            
+
         super().set(**kwargs)
 
     def rise_event(self):
         raise block.BlockException('Method rise_event has not been implemented')
-        
+
     def fall_event(self):
         raise block.BlockException('Method fall_event has not been implemented')
-    
+
     def write(self, *values):
         """
         Writes result of comparison to the private :py:attr:`buffer`.
@@ -503,14 +512,15 @@ class Event(block.Sink, block.BufferBlock):
             # gone low
             self.state = State.LOW
             self.fall_event()
-        
+
+
 class SetBlock(Event):
     """
     :py:class:`pyctrl.block.logic.SetBlock` set block based on event. 
     """
 
     def __init__(self, **kwargs):
-        
+
         self.label = kwargs.pop('label')
         if not isinstance(self.label, (tuple, list)):
             self.label = (self.label,)
@@ -521,10 +531,10 @@ class SetBlock(Event):
         else:
             self.on_rise = kwargs.pop('on_rise', {})
             self.on_fall = kwargs.pop('on_fall', {})
-        
+
         super().__init__(**kwargs)
 
-    def set(self, exclude = (), **kwargs):
+    def set(self, exclude=(), **kwargs):
         """
         Set properties of :py:class:`pyctrl.block.logic.Event`.
 
@@ -536,7 +546,7 @@ class SetBlock(Event):
             self.label = kwargs.pop('label')
             if not isinstance(self.label, (tuple, list)):
                 self.label = (self.label,)
-        
+
         if 'on_rise_and_fall' in kwargs:
             self.on_rise = kwargs.pop('on_rise_and_fall', {})
             self.on_fall = self.on_rise
@@ -545,20 +555,20 @@ class SetBlock(Event):
                 self.on_rise = kwargs.pop('on_rise', {})
             if 'on_fall' in kwargs:
                 self.on_fall = kwargs.pop('on_fall', {})
-            
+
         super().set(**kwargs)
 
     def call(self, label, **kwargs):
         raise block.BlockException('Method call has not been implemented')
-        
+
     def rise_event(self):
 
         if self.on_rise:
-        
+
             # call set
             for l in self.label:
                 self.call(l, **self.on_rise)
-        
+
     def fall_event(self):
 
         if self.on_fall:
@@ -567,27 +577,26 @@ class SetBlock(Event):
             for l in self.label:
                 self.call(l, **self.on_fall)
 
+
 class SetFilter(SetBlock):
 
     def call(self, label, **kwargs):
-
         self.parent.set_filter(label, **kwargs)
-    
+
+
 class SetSource(SetBlock):
 
     def call(self, label, **kwargs):
-
         self.parent.set_source(label, **kwargs)
+
 
 class SetSink(SetBlock):
 
     def call(self, label, **kwargs):
-
         self.parent.set_sink(label, **kwargs)
+
 
 class SetTimer(SetBlock):
 
     def call(self, label, **kwargs):
-
         self.parent.set_timer(label, **kwargs)
-        

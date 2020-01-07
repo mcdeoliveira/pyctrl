@@ -33,7 +33,7 @@ class Controller(pyctrl.Controller):
         
         # add device clock
         self.add_source('clock',
-                        ('pyctrl.block.clock', 'TimerClock'),
+                        ('pyctrl.block.clock', 'AltTimerClock'),
                         ['clock'],
                         enable = True,
                         kwargs = {'period': self.period})
