@@ -69,7 +69,8 @@ class System(block.Filter, block.BufferBlock):
         super().write(*values)
         
         self.buffer = (self.model.update(self.buffer[0]), )
-        
+
+
 class TimeVaryingSystem(block.Filter, block.BufferBlock):
     """
     :py:class:`pyctrl.block.system.TimeVarying` is a wrapper for a time-varying dynamic system model.
