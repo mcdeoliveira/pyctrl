@@ -42,7 +42,6 @@ class TestUnittestAssertions(unittest.TestCase):
         self.assertTrue(numpy.array_equal(obj.read()[0], numpy.array([1])))
 
         obj.write(1, 2)
-
         self.assertTrue(len(obj.read()) == 1)
         self.assertTrue(numpy.array_equal(obj.read()[0], numpy.array([1, 2])))
 

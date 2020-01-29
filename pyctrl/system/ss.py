@@ -103,7 +103,7 @@ class DTSS(system.System):
         self.state = xk
 
     def shape(self):
-        return self.B.shape[1], self.C.shape[0], self.A.shape[0]
+        return numpy.shape(self.B)[1], numpy.shape(self.C)[0], numpy.shape(self.A)[0]
 
     def update(self, uk):
         r"""
@@ -125,7 +125,6 @@ class DTSS(system.System):
         if not isinstance(uk, numpy.ndarray):
             # make sure uk is an numpy array
             uk = numpy.array((uk,), dtype=numpy.float_)
-            print('> uk = {}'.format(uk))
 
         # yk = C xk + D uk
         # xk+1 = A xk + B uk
@@ -134,7 +133,7 @@ class DTSS(system.System):
             print(self.state)
             print(self.C)
             print(self.D)
-            print(uk)
+            print('> uk = {}'.format(uk))
             yk = numpy.dot(self.C, self.state) + numpy.dot(self.D, uk)
             print('> yk = {}'.format(yk))
             print('> A.x = {}'.format(self.A.dot(self.state)))

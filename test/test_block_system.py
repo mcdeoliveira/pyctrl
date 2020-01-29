@@ -42,7 +42,6 @@ class TestUnittestAssertions(unittest.TestCase):
             blk = system.System(model=sys, mux=False)
 
         blk.write([1])
-    def _asdasd(self):
         (yk,) = blk.read()
         state = np.array([1, 0])
         self.assertTrue(np.array_equal(sys.state, state))
@@ -100,25 +99,25 @@ class TestUnittestAssertions(unittest.TestCase):
             blk = system.System(modelo=sys)
 
         blk.write([1])
-        yk = blk.read()
+        yk, = blk.read()
         state = np.array([0, 1])
         self.assertTrue(np.array_equal(sys.state, state))
         self.assertTrue(np.array_equal(yk, np.array([1, 0])))
 
         blk.write([-1])
-        yk = blk.read()
+        yk, = blk.read()
         state = np.array([1, -3])
         self.assertTrue(np.array_equal(sys.state, state))
         self.assertTrue(np.array_equal(yk, np.array([-3, 1])))
 
         blk.write([3])
-        yk = blk.read()
+        yk, = blk.read()
         state = np.array([-3, 10])
         self.assertTrue(np.array_equal(sys.state, state))
         self.assertTrue(np.array_equal(yk, np.array([10, -3])))
 
         blk.write([0])
-        yk = blk.read()
+        yk, = blk.read()
         state = np.array([10, -23])
         self.assertTrue(np.array_equal(sys.state, state))
         self.assertTrue(np.array_equal(yk, np.array([-23, 10])))
@@ -146,26 +145,26 @@ class TestUnittestAssertions(unittest.TestCase):
             blk = system.System(modelo=sys)
 
         blk.write(1)
-        yk = blk.read()
+        yk, = blk.read()
         state = np.array([0, 1])
         # print(sys.state)
         self.assertTrue(np.array_equal(sys.state, state))
         self.assertTrue(np.array_equal(yk, np.array([1, 0])))
 
         blk.write([-1])
-        yk = blk.read()
+        yk, = blk.read()
         state = np.array([1, -3])
         self.assertTrue(np.array_equal(sys.state, state))
         self.assertTrue(np.array_equal(yk, np.array([-3, 1])))
 
         blk.write(3)
-        yk = blk.read()
+        yk, = blk.read()
         state = np.array([-3, 10])
         self.assertTrue(np.array_equal(sys.state, state))
         self.assertTrue(np.array_equal(yk, np.array([10, -3])))
 
         blk.write([0])
-        yk = blk.read()
+        yk, = blk.read()
         state = np.array([10, -23])
         self.assertTrue(np.array_equal(sys.state, state))
         self.assertTrue(np.array_equal(yk, np.array([-23, 10])))
@@ -191,28 +190,28 @@ class TestUnittestAssertions(unittest.TestCase):
         # u1 = 1   =>  y1 = 1
 
         blk.write([1, 1])
-        y2 = blk.read()
+        y2, = blk.read()
         self.assertTrue(np.array_equal(sys.state, np.array([0, 1])))
         self.assertTrue(np.array_equal(y2, np.array([1, 0])))
 
         # u2 = -1  =>  y2 = -2 y1 + u2 = -2 - 1 = -3
 
         blk.write([-1, 0])
-        y2 = blk.read()
+        y2, = blk.read()
         self.assertTrue(np.array_equal(sys.state, np.array([0, -3])))
         self.assertTrue(np.array_equal(y2, np.array([-3, 2])))
 
         # u3 = 3   =>  y3 = -2 y2 + y1 + u3 = 6 + 1 + 3 = 10
 
         blk.write([3, -1])
-        y2 = blk.read()
+        y2, = blk.read()
         self.assertTrue(np.array_equal(sys.state, np.array([1, 9])))
         self.assertTrue(np.array_equal(y2, np.array([9, -7])))
 
         # u4 = 0   =>  y4 = -2 y3 + y2 + u4 = - 20 - 3 + 0 = -23
 
         blk.write([2, 1])
-        y2 = blk.read()
+        y2, = blk.read()
         self.assertTrue(np.array_equal(sys.state, np.array([10, -15])))
         self.assertTrue(np.array_equal(y2, np.array([-15, 8])))
 
@@ -224,32 +223,32 @@ class TestUnittestAssertions(unittest.TestCase):
         # u1 = 1   =>  y1 = 1
 
         blk.write(1, 1)
-        y2 = blk.read()
+        y2, = blk.read()
         self.assertTrue(np.array_equal(sys.state, np.array([0, 1])))
         self.assertTrue(np.array_equal(y2, np.array([1, 0])))
 
         # u2 = -1  =>  y2 = -2 y1 + u2 = -2 - 1 = -3
 
         blk.write(-1, 0)
-        y2 = blk.read()
+        y2, = blk.read()
         self.assertTrue(np.array_equal(sys.state, np.array([0, -3])))
         self.assertTrue(np.array_equal(y2, np.array([-3, 2])))
 
         # u3 = 3   =>  y3 = -2 y2 + y1 + u3 = 6 + 1 + 3 = 10
 
         blk.write(3, -1)
-        y2 = blk.read()
+        y2, = blk.read()
         self.assertTrue(np.array_equal(sys.state, np.array([1, 9])))
         self.assertTrue(np.array_equal(y2, np.array([9, -7])))
 
         # u4 = 0   =>  y4 = -2 y3 + y2 + u4 = - 20 - 3 + 0 = -23
 
         blk.write(2, 1)
-        y2 = blk.read()
+        y2, = blk.read()
         self.assertTrue(np.array_equal(sys.state, np.array([10, -15])))
         self.assertTrue(np.array_equal(y2, np.array([-15, 8])))
 
-    def test_Gain():
+    def test_Gain(self):
         # Gain
 
         blk = system.Gain()
@@ -270,16 +269,16 @@ class TestUnittestAssertions(unittest.TestCase):
         blk = system.Gain(gain=-5.2)
         blk.write(np.array([2]))
         (yk,) = blk.read()
-        assert yk == -10.4
+        self.assertEqual(yk[0], -10.4)
 
         blk = system.Gain(gain=3)
         blk.write(2, 4)
         yk = blk.read()
-        assert yk == (6, 12)
+        self.assertEqual(yk, (6, 12))
 
         blk.write(np.array([2, 4]))
         (yk,) = blk.read()
-        assert np.all(yk == [6, 12])
+        assert np.all(yk == np.array([6, 12]))
 
         blk.write(2, np.array([4, 2]))
         yk = blk.read()
@@ -290,19 +289,22 @@ class TestUnittestAssertions(unittest.TestCase):
 
         blk = system.Gain(gain=(-1, 2), demux=True)
         blk.write(1)
-        yk = blk.read()
+        yk, = blk.read()
+    def _asdasd(self):
+        print(yk)
         assert yk == (-1, 2)
 
         blk = system.Gain(gain=np.array([-1, 2]), demux=True)
         blk.write(1)
         yk = blk.read()
+        print(yk)
         assert yk == (-1, 2)
 
         with self.assertRaises(block.BlockException):
             blk = system.Gain(gain=np.array([[-1, 2], [3, 1]]),
                               mux=True, demux=True)
 
-    def test_Affine():
+    def test_Affine(self):
         # Affine
 
         blk = system.Affine()
@@ -376,7 +378,7 @@ class TestUnittestAssertions(unittest.TestCase):
             blk = system.Affine(offset=np.array([[-1, 2], [3, 1]]),
                                 mux=True, demux=True)
 
-    def test_ShortCircuit():
+    def test_ShortCircuit(self):
         # Short-Circuit
 
         blk = block.ShortCircuit()
@@ -397,7 +399,7 @@ class TestUnittestAssertions(unittest.TestCase):
         yk = blk.read()
         assert np.all(yk[0] == [2, 4]) and yk[1] == -1
 
-    def test_Differentiator():
+    def test_Differentiator(self):
         # Differentiator
 
         signals = {'clock': 1, 'encoder1': 5, 'test': 0}
@@ -466,7 +468,7 @@ class TestUnittestAssertions(unittest.TestCase):
         with self.assertRaises(block.BlockException):
             diff.set(last=8)
 
-    def test_Feedback():
+    def test_Feedback(self):
         # Feedback
 
         blk1 = system.Gain(gain=2)
@@ -543,7 +545,7 @@ class TestUnittestAssertions(unittest.TestCase):
         blktf.reset()
         assert blktf.block.model.state == (0,)
 
-    def test_Sum():
+    def test_Sum(self):
         # Sum
         blk = system.Sum()
 
@@ -571,7 +573,7 @@ class TestUnittestAssertions(unittest.TestCase):
         (yk,) = blk.read()
         assert np.all(yk == [3, 3.4])
 
-    def test_Average():
+    def test_Average(self):
         # Average
         blk = system.Average()
 
@@ -632,7 +634,7 @@ class TestUnittestAssertions(unittest.TestCase):
         (yk,) = blk.read()
         assert np.all(yk == [(1 + 2 * 2) / 3, (.4 + 2 * 3) / 3])
 
-    def test_Subtract():
+    def test_Subtract(self):
         # Subtract
         blk = system.Subtract()
 
@@ -660,7 +662,7 @@ class TestUnittestAssertions(unittest.TestCase):
         (yk,) = blk.read()
         assert yk == 0
 
-    def test_TimeVaryingSystem():
+    def test_TimeVaryingSystem(self):
         with self.assertRaises(block.BlockException):
             blk = system.TimeVaryingSystem(modelo=1)
 

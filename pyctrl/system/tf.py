@@ -145,9 +145,13 @@ class DTTF(system.System):
 
         :param numpy.array uk: input at time k
         """
-        # print('uk = {}, state = {}'.format(uk, self.state))
+        #print('uk = {}, state = {}'.format(uk, self.state))
+        if isinstance(uk, numpy.ndarray):
+            uk = uk[0]
         zk = uk - numpy.dot(self.state, self.den[1:])
+        #print('zk = {}'.format(zk))
         yk = self.num[0] * zk + numpy.dot(self.state, self.num[1:])
+        #print('yk = {}'.format(zk))
         n = numpy.size(self.state)
         if n > 0:
             if n > 1:

@@ -13,21 +13,26 @@ import itertools
 
 from enum import Enum
 
-np_major, np_minor, np_release = numpy.version.version.split('.')
-if int(np_major) == 1 and int(np_minor) >= 10:
+try:
+    np_major, np_minor, np_release = numpy.version.version.split('.')
+    if int(np_major) == 1 and int(np_minor) >= 10:
 
-    # can handle period
-    #print('CAN HANDLE PERIOD')
-    interp = numpy.interp
+        # can handle period
+        #print('CAN HANDLE PERIOD')
+        interp = numpy.interp
 
-else:
+    else:
 
-    # handle period
-    def interp(x,xp,fp,left,right,period):
-        if period:
-            return numpy.interp(numpy.mod(x,period), xp, fp, left, right)
-        else:
-            return numpy.interp(x, xp, fp, left, right)
+        # handle period
+        def interp(x,xp,fp,left,right,period):
+            if period:
+                return numpy.interp(numpy.mod(x,period), xp, fp, left, right)
+            else:
+                return numpy.interp(x, xp, fp, left, right)
+
+except AttributeError:
+    # micropython does not have version.version
+    pass
 
 
 class BlockType(Enum):
@@ -987,7 +992,7 @@ class Logger(Sink, Block):
     
     def reshape(self, number_of_rows, number_of_columns):
 
-        self.data = numpy.zeros((number_of_rows, number_of_columns), dtype=numpy.float)
+        self.data = numpy.zeros((number_of_rows, number_of_columns), dtype=numpy.float_)
         self.reset()
 
     def reset(self):

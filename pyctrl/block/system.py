@@ -67,7 +67,7 @@ class System(block.Filter, block.BufferBlock):
 
         # call super
         super().write(*values)
-        
+
         self.buffer = (self.model.update(self.buffer[0]), )
 
 
@@ -152,7 +152,7 @@ class Gain(block.Filter, block.BufferBlock):
             gain = numpy.array(gain)
         if not isinstance(gain, (int, float, numpy.ndarray)):
             raise block.BlockException('gain must be int, float or numpy array')
-        if isinstance(gain, numpy.ndarray) and gain.ndim > 1:
+        if isinstance(gain, numpy.ndarray) and numpy.ndim(gain) > 1:
             raise block.BlockException('gain must be 1D numpy array; use pyctrl.block.Dot for matrix gains')
         self.gain = gain
 
