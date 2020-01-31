@@ -2,6 +2,10 @@ import numpy
 
 from .. import system
 
+try:
+    from numpy.linalg import lstsq
+except:
+    from numpy import lstsq
 
 class DTSS(system.System):
     r"""
@@ -92,7 +96,7 @@ class DTSS(system.System):
         # y = C x
         assert isinstance(yk, numpy.ndarray)
         assert numpy.shape(yk)[0] == numpy.shape(self.C)[0]
-        xk = numpy.linalg.lstsq(self.C, yk)[0]
+        xk = lstsq(self.C, yk)[0]
         self.set_state(xk)
 
     def get_state(self):
@@ -129,17 +133,17 @@ class DTSS(system.System):
         # yk = C xk + D uk
         # xk+1 = A xk + B uk
         if numpy.size(self.state) > 0:
-            print('> x = {}'.format(self.state))
-            print(self.state)
-            print(self.C)
-            print(self.D)
-            print('> uk = {}'.format(uk))
+            # print('> x = {}'.format(self.state))
+            # print(self.state)
+            # print(self.C)
+            # print(self.D)
+            # print('> uk = {}'.format(uk))
             yk = numpy.dot(self.C, self.state) + numpy.dot(self.D, uk)
-            print('> yk = {}'.format(yk))
-            print('> A.x = {}'.format(self.A.dot(self.state)))
-            print('> B.u = {}'.format(self.B.dot(uk)))
+            # print('> yk = {}'.format(yk))
+            # print('> A.x = {}'.format(self.A.dot(self.state)))
+            # print('> B.u = {}'.format(self.B.dot(uk)))
             self.state = numpy.dot(self.A, self.state) + numpy.dot(self.B, uk)
-            print('< x = {}'.format(self.state))
+            # print('< x = {}'.format(self.state))
         else:
             yk = numpy.dot(self.D, uk)
 

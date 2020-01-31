@@ -178,6 +178,7 @@ class DTTF(system.System):
         if n > 0:
             if n > 1:
                 A[:-1, 1:] = numpy.eye(n - 1)
+
             A[-1, :] = -numpy.flipud(self.den[1:])
             C[0, :] = numpy.flipud(self.num[1:]) - numpy.flipud(self.den[1:]) * self.num[0]
         B[-1, 0] = 1

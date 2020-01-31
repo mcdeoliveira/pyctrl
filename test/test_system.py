@@ -195,25 +195,23 @@ class TestUnittestAssertions(unittest.TestCase):
 
         y1 = sys.update(1)
         y2 = sysss.update(1)
-    def _dasdas(self):
-        self.assertEqual(y1, y2)
-        # print(y1, y2)
-
+        self.assertEqual(y1, y2[0])
 
         y1 = sys.update(-1)
         y2 = sysss.update(-1)
-        self.assertEqual(y1, y2)
+        self.assertEqual(y1, y2[0])
         # print(y1, y2)
 
         y1 = sys.update(3)
         y2 = sysss.update(3)
-        self.assertEqual(y1, y2)
+        self.assertEqual(y1, y2[0])
         # print(y1, y2)
 
         y1 = sys.update(0)
         y2 = sysss.update(0)
-        self.assertEqual(y1, y2)
+        self.assertEqual(y1, y2[0])
         # print(y1, y2)
+
 
         # G(z) = z/(z - 1) = 1 / (1 - q)
         num1 = np.array([0, 1])
@@ -237,22 +235,22 @@ class TestUnittestAssertions(unittest.TestCase):
 
         y1 = sys.update(1)
         y2 = sysss.update(1)
-        self.assertEqual(y1, y2)
-        # print(y1, y2)
+        self.assertEqual(y1, y2[0])
+        # print(y1, y2[0])
 
         y1 = sys.update(-1)
         y2 = sysss.update(-1)
-        self.assertEqual(y1, y2)
-        # print(y1, y2)
+        self.assertEqual(y1, y2[0])
+        # print(y1, y2[0])
 
         y1 = sys.update(3)
         y2 = sysss.update(3)
-        self.assertEqual(y1, y2)
-        # print(y1, y2)
+        self.assertEqual(y1, y2[0])
+        # print(y1, y2[0])
 
         y1 = sys.update(0)
         y2 = sysss.update(0)
-        self.assertEqual(y1, y2)
+        self.assertEqual(y1, y2[0])
         # print(y1, y2)
 
         # G(z) = 2/(z - 1)
@@ -277,23 +275,23 @@ class TestUnittestAssertions(unittest.TestCase):
 
         y1 = sys.update(1)
         y2 = sysss.update(1)
-        self.assertEqual(y1, y2)
-        # print(y1, y2)
+        self.assertEqual(y1, y2[0])
+        # print(y1, y2[0])
 
         y1 = sys.update(-1)
         y2 = sysss.update(-1)
-        self.assertEqual(y1, y2)
-        # print(y1, y2)
+        self.assertEqual(y1, y2[0])
+        # print(y1, y2[0])
 
         y1 = sys.update(3)
         y2 = sysss.update(3)
-        self.assertEqual(y1, y2)
-        # print(y1, y2)
+        self.assertEqual(y1, y2[0])
+        # print(y1, y2[0])
 
         y1 = sys.update(0)
         y2 = sysss.update(0)
-        self.assertEqual(y1, y2)
-        # print(y1, y2)
+        self.assertEqual(y1, y2[0])
+        # print(y1, y2[0])
 
         # G(z) = z^2/(z - 1) = 1 / (1 - q)
         num1 = np.array([1, 0, 0])
@@ -328,10 +326,9 @@ class TestUnittestAssertions(unittest.TestCase):
 
         y1 = sys.update(1)
         y2 = sysss.update(np.array([1]))
-        # print(y1, y2)
         self.assertEqual(y1, 0)
         self.assertTrue(np.array_equal(sysss.state, np.array([0, 1])))
-        self.assertEqual(y1, y2)
+        self.assertEqual(y1, y2[0])
 
         # u2 = -1  =>  y2 = -2 y1 + u1 = 1
         # u2 = -1  =>  y2 = [3 1] [0; 1] = 1
@@ -343,7 +340,7 @@ class TestUnittestAssertions(unittest.TestCase):
         # print(y1, y2)
         self.assertEqual(y1, 1)
         self.assertTrue(np.array_equal(sysss.state, np.array([1, -3])))
-        self.assertEqual(y1, y2)
+        self.assertEqual(y1, y2[0])
 
         # u3 = 3   =>  y3 = -2 y2 + y1 + u2 + 3 u1 = -2 + 0 + -1 + 3 = 0
         # u3 = 3   =>  y3 = [3 1] [1; -3] = 0
@@ -355,7 +352,7 @@ class TestUnittestAssertions(unittest.TestCase):
         # print(y1, y2)
         self.assertEqual(y1, 0)
         self.assertTrue(np.array_equal(sysss.state, np.array([-3, 10])))
-        self.assertEqual(y1, y2)
+        self.assertEqual(y1, y2[0])
 
         # u4 = 0   =>  y4 = -2 y3 + y2 + u3 + 3 u2 = 0 + 1 + 3 - 3 = 1
         # u4 = 0   =>  y4 = [3 1] [-3; 10] = 1
@@ -367,7 +364,7 @@ class TestUnittestAssertions(unittest.TestCase):
         # print(y1, y2)
         self.assertEqual(y1, 1)
         self.assertTrue(np.array_equal(sysss.state, np.array([10, -23])))
-        self.assertEqual(y1, y2)
+        self.assertEqual(y1, y2[0])
 
         # G(z) = z^2/(z^2 + 2 z - 1) = 1 + (1 - 2 z)/(z^2 + 2 z - 1)
         num1 = np.array([0, 0, 1])
@@ -399,7 +396,7 @@ class TestUnittestAssertions(unittest.TestCase):
         # print(y1, y2)
         self.assertEqual(y1, 1)
         self.assertTrue(np.array_equal(sysss.state, np.array([0, 1])))
-        self.assertEqual(y1, y2)
+        self.assertEqual(y1, y2[0])
 
         # u2 = -1  =>  y2 = -2 y1 + u2 = -2 - 1 = -3
         # u2 = -1  =>  y2 = [1 -2] [0; 1] + [1] -1 = -2 -1 = -3
@@ -411,7 +408,7 @@ class TestUnittestAssertions(unittest.TestCase):
         # print(y1, y2)
         self.assertEqual(y1, -3)
         self.assertTrue(np.array_equal(sysss.state, np.array([1, -3])))
-        self.assertEqual(y1, y2)
+        self.assertEqual(y1, y2[0])
 
         # u3 = 3   =>  y3 = -2 y2 + y1 + u3 = 6 + 1 + 3 = 10
         # u3 = 3   =>  y3 = [1 -2] [1; -3] + [1] 3 = 1 + 6 + 3 = 10
@@ -419,11 +416,11 @@ class TestUnittestAssertions(unittest.TestCase):
         #                 = [-3; 7] + [0; 3] = [-3; 10]
 
         y1 = sys.update(3)
-        y2 = sysss.update([3])
+        y2 = sysss.update(np.array([3]))
         # print(y1, y2)
         self.assertEqual(y1, 10)
         self.assertTrue(np.array_equal(sysss.state, np.array([-3, 10])))
-        self.assertEqual(y1, y2)
+        self.assertEqual(y1, y2[0])
 
         # u4 = 0   =>  y4 = -2 y3 + y2 + u4 = - 20 - 3 + 0 = -23
         # u4 = 0   =>  y4 = [1 -2] [-3; 10] + [1] 0 = -3 -20 = -23
@@ -431,11 +428,11 @@ class TestUnittestAssertions(unittest.TestCase):
         #                 = [10; -23]
 
         y1 = sys.update(0)
-        y2 = sysss.update([0])
+        y2 = sysss.update(np.array([0]))
         # print(y1, y2)
         self.assertEqual(y1, -23)
         self.assertTrue(np.array_equal(sysss.state, np.array([10, -23])))
-        self.assertEqual(y1, y2)
+        self.assertEqual(y1, y2[0])
 
         # vector input/output
 
@@ -453,22 +450,21 @@ class TestUnittestAssertions(unittest.TestCase):
         # u1 = 1   =>  y1 = 1
 
         y2 = sysss.update(np.array([1]))
-        self.assertEqual(isinstance(y2, np.ndarray) and y2, 1)
-
+        self.assertTrue(isinstance(y2, np.ndarray) and y2[0] == 1)
         # u2 = -1  =>  y2 = -2 y1 + u2 = -2 - 1 = -3
 
-        y2 = sysss.update([-1])
-        self.assertEqual(isinstance(y2, np.ndarray) and y2, -3)
+        y2 = sysss.update(np.array([-1]))
+        self.assertTrue(isinstance(y2, np.ndarray) and y2[0] == -3)
 
         # u3 = 3   =>  y3 = -2 y2 + y1 + u3 = 6 + 1 + 3 = 10
 
         y2 = sysss.update(np.array([3]))
-        self.assertEqual(isinstance(y2, np.ndarray) and y2, 10)
+        self.assertTrue(isinstance(y2, np.ndarray) and y2[0] == 10)
 
         # u4 = 0   =>  y4 = -2 y3 + y2 + u4 = - 20 - 3 + 0 = -23
 
-        y2 = sysss.update([0])
-        self.assertEqual(isinstance(y2, np.ndarray) and y2, -23)
+        y2 = sysss.update(np.array([0]))
+        self.assertTrue(isinstance(y2, np.ndarray) and y2[0] == -23)
 
         # SIMO
         A = np.array([[0, 1], [1, -2]])
@@ -485,22 +481,22 @@ class TestUnittestAssertions(unittest.TestCase):
         # u1 = 1   =>  y1 = 1
 
         y2 = sys.update(np.array([1]))
-        assert isinstance(y2, np.ndarray) and np.array_equal(y2, np.array([1, 0]))
+        self.assertTrue(isinstance(y2, np.ndarray) and np.array_equal(y2, np.array([1, 0])))
 
         # u2 = -1  =>  y2 = -2 y1 + u2 = -2 - 1 = -3
 
-        y2 = sys.update([-1])
-        assert isinstance(y2, np.ndarray) and np.array_equal(y2, np.array([-3, 1]))
+        y2 = sys.update(np.array([-1]))
+        self.assertTrue(isinstance(y2, np.ndarray) and np.array_equal(y2, np.array([-3, 1])))
 
         # u3 = 3   =>  y3 = -2 y2 + y1 + u3 = 6 + 1 + 3 = 10
 
         y2 = sys.update(np.array([3]))
-        assert isinstance(y2, np.ndarray) and np.array_equal(y2, np.array([10, -3]))
+        self.assertTrue(isinstance(y2, np.ndarray) and np.array_equal(y2, np.array([10, -3])))
 
         # u4 = 0   =>  y4 = -2 y3 + y2 + u4 = - 20 - 3 + 0 = -23
 
-        y2 = sys.update([0])
-        assert isinstance(y2, np.ndarray) and np.array_equal(y2, np.array([-23, 10]))
+        y2 = sys.update(np.array([0]))
+        self.assertTrue(isinstance(y2, np.ndarray) and np.array_equal(y2, np.array([-23, 10])))
 
         # MIMO
         A = np.array([[0, 1], [1, -2]])
@@ -518,25 +514,25 @@ class TestUnittestAssertions(unittest.TestCase):
 
         y2 = sys.update(np.array([1, 1]))
         self.assertTrue(np.array_equal(sys.state, np.array([0, 1])))
-        assert isinstance(y2, np.ndarray) and np.array_equal(y2, np.array([1, 0]))
+        self.assertTrue(isinstance(y2, np.ndarray) and np.array_equal(y2, np.array([1, 0])))
 
         # u2 = -1  =>  y2 = -2 y1 + u2 = -2 - 1 = -3
 
         y2 = sys.update(np.array([-1, 0]))
         self.assertTrue(np.array_equal(sys.state, np.array([0, -3])))
-        assert isinstance(y2, np.ndarray) and np.array_equal(y2, np.array([-3, 2]))
+        self.assertTrue(isinstance(y2, np.ndarray) and np.array_equal(y2, np.array([-3, 2])))
 
         # u3 = 3   =>  y3 = -2 y2 + y1 + u3 = 6 + 1 + 3 = 10
 
         y2 = sys.update(np.array([3, -1]))
         self.assertTrue(np.array_equal(sys.state, np.array([1, 9])))
-        assert isinstance(y2, np.ndarray) and np.array_equal(y2, np.array([9, -7]))
+        self.assertTrue(isinstance(y2, np.ndarray) and np.array_equal(y2, np.array([9, -7])))
 
         # u4 = 0   =>  y4 = -2 y3 + y2 + u4 = - 20 - 3 + 0 = -23
 
         y2 = sys.update(np.array([2, 1]))
         self.assertTrue(np.array_equal(sys.state, np.array([10, -15])))
-        assert isinstance(y2, np.ndarray) and np.array_equal(y2, np.array([-15, 8]))
+        self.assertTrue(isinstance(y2, np.ndarray) and np.array_equal(y2, np.array([-15, 8])))
 
 
 def dotest4(oode):

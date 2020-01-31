@@ -172,7 +172,7 @@ class Gain(block.Filter, block.BufferBlock):
                 gain = numpy.array(gain)
             if not isinstance(gain, (int, float, numpy.ndarray)):
                 raise block.BlockException('gain must be int, float or numpy array')
-            if isinstance(gain, numpy.ndarray) and gain.ndim > 1:
+            if isinstance(gain, numpy.ndarray) and numpy.ndim(gain) > 1:
                 raise block.BlockException('gain must be 1D numpy array; use pyctrl.block.Dot for matrix gains')
             self.gain = gain
 
@@ -210,7 +210,7 @@ class Affine(Gain):
             offset = numpy.array(offset)
         if not isinstance(offset, (int, float, numpy.ndarray)):
             raise block.BlockException('offset must be int, float or numpy array')
-        if isinstance(offset, numpy.ndarray) and offset.ndim > 1:
+        if isinstance(offset, numpy.ndarray) and numpy.ndim(offset) > 1:
             raise block.BlockException('offset must be 1D numpy array')
         self.offset = offset
 
@@ -231,7 +231,7 @@ class Affine(Gain):
                 offset = numpy.array(offset)
             if not isinstance(offset, (int, float, numpy.ndarray)):
                 raise block.BlockException('offset must be int, float or numpy array')
-            if isinstance(offset, numpy.ndarray) and offset.ndim > 1:
+            if isinstance(offset, numpy.ndarray) and numpy.ndim(offset) > 1:
                 raise block.BlockException('offset must be 1D numpy array')
             self.offset = offset
 
@@ -435,8 +435,8 @@ class Sum(Gain):
         """
         # call super
         super(Gain, self).write(*values)
-        
-        self.buffer = (self.gain * numpy.sum(self.buffer, axis=0), )
+
+        self.buffer = (self.gain * numpy.array(self.buffer).sum(axis=0), )
         
 
 class Subtract(Gain):
@@ -460,10 +460,10 @@ class Subtract(Gain):
 
         # call super
         super(Gain, self).write(*values)
-        
+
         if self.buffer:
             # flip first entry
-            self.buffer = (-self.buffer[0],) + self.buffer[1:]
+            self.buffer = numpy.array((-self.buffer[0],) + self.buffer[1:])
 
         # calculate sum
-        self.buffer = (self.gain * numpy.sum(self.buffer, axis=0), )
+        self.buffer = (self.gain * self.buffer.sum(axis=0), )

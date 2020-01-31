@@ -392,7 +392,7 @@ class BufferBlock(Block):
             # return buffer
             if self.buffer and self.demux:
                 # self.buffer = tuple(numpy.hstack(self.buffer).tolist())
-                self.buffer = tuple(numpy.hstack(self.buffer))
+                self.buffer = tuple(i for i in numpy.hstack(self.buffer))
 
             return self.buffer
 
