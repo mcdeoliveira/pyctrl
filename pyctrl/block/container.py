@@ -623,6 +623,12 @@ class Container(block.Filter, block.Block):
         if any(s.count('/') for s in outputs):
             raise ContainerException("Qualified names are not allowed in 'outputs'")
 
+        # check number of outputs
+        if source.min_outputs > 0 and len(outputs) < source.min_outputs:
+            raise ContainerException("Source '{}' cannot have less than '{}' outputs".format(label, source.min_outputs))
+        if 0 < source.max_outputs < len(outputs):
+            raise ContainerException("Source '{}' cannot have more than '{}' outputs".format(label, source.max_outputs))
+
         # enable
         if enable:
             source.set_enabled(False)
@@ -807,6 +813,12 @@ class Container(block.Filter, block.Block):
         # local names only in inputs
         if any(s.count('/') for s in inputs):
             raise ContainerException("Qualified names are not allowed in 'inputs'")
+
+        # check number of inputs
+        if sink.min_inputs > 0 and len(inputs) < sink.min_inputs:
+            raise ContainerException("sink '{}' cannot have less than '{}' inputs".format(label, sink.min_inputs))
+        if 0 < sink.max_inputs < len(inputs):
+            raise ContainerException("sink '{}' cannot have more than '{}' inputs".format(label, sink.max_inputs))
 
         # enable
         if enable:
@@ -1043,6 +1055,18 @@ class Container(block.Filter, block.Block):
         # local names only in outputs
         if any(s.count('/') for s in outputs):
             raise ContainerException("Qualified names are not allowed in 'outputs'")
+
+        # check number of inputs
+        if filter_.min_inputs > 0 and len(inputs) < filter_.min_inputs:
+            raise ContainerException("filter_.'{}' cannot have less than '{}' inputs".format(label, filter_.min_inputs))
+        if 0 < filter_.max_inputs < len(inputs):
+            raise ContainerException("filter_.'{}' cannot have more than '{}' inputs".format(label, filter_.max_inputs))
+
+        # check number of outputs
+        if filter_.min_outputs > 0 and len(outputs) < filter_.min_outputs:
+            raise ContainerException("filter_.'{}' cannot have less than '{}' outputs".format(label, filter_.min_outputs))
+        if 0 < filter_.max_outputs < len(outputs):
+            raise ContainerException("filter_.'{}' cannot have more than '{}' outputs".format(label, filter_.max_outputs))
 
         # enable
         if enable:
@@ -1633,23 +1657,25 @@ class Container(block.Filter, block.Block):
 
         while self.enabled:
 
-            # Acquire condition
-            device['condition'].acquire()
+            # this is to prevent a wierd 'cannot release
+            # un-acquired lock' condition
 
-            # Setup timer
-            self.running_timers[label] = Timer(device['period'],
-                                               self.tick,
-                                               args=(label, device))
-            self.running_timers[label].start()
-
-            # Wait 
-            device['condition'].wait()
-
-            # and release
             try:
-                # this is to prevent a wierd 'cannot release
-                # un-acquired lock' condition
+                # Acquire condition
+                device['condition'].acquire()
+
+                # Setup timer
+                self.running_timers[label] = Timer(device['period'],
+                                                   self.tick,
+                                                   args=(label, device))
+                self.running_timers[label].start()
+
+                # Wait
+                device['condition'].wait()
+
+                # and release
                 device['condition'].release()
+
             except RuntimeError as e:
                 warnings.warn("Missed release '{}'.".format(repr(e)))
 

@@ -190,6 +190,8 @@ class TestUnittestAssertions(unittest.TestCase):
         (answer,) = blk.read()
         self.assertEqual(answer, 0)
 
+    def _dasdas(self):
+
         blk.write(3)
         (answer,) = blk.read()
         self.assertEqual(answer, 0)

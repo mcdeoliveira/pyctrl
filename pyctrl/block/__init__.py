@@ -130,7 +130,14 @@ class Block:
     :param kwargs kwargs: additional keyword arguments
     :raise: :py:class:`pyctrl.block.BlockException` if any of the :py:data:`kwargs` is left unprocessed
     """
-    
+
+    # min and max inputs
+    min_inputs = -1
+    max_inputs = -1
+
+    min_outputs = -1
+    max_outputs = -1
+
     def __init__(self, **kwargs):
         
         self.enabled = kwargs.pop('enabled', True)
@@ -320,6 +327,7 @@ class BufferBlock(Block):
     :param bool mux: mux flag (default False)
     :param bool demux: demux flag (default False)
     """
+
     def __init__(self, **kwargs):
         
         self.buffer = ()
@@ -398,7 +406,7 @@ class BufferBlock(Block):
 
         # else
 
-        return (None, )
+        return None,
 
 
 class ShortCircuit(Filter, BufferBlock):
@@ -569,7 +577,7 @@ class Signal(Source, BufferBlock):
             index = kwargs.pop('index')
             assert isinstance(index, int)
             if not self.repeat:
-                assert index >= 0 and index < len(self.signal)
+                assert 0 <= index < len(self.signal)
             else:
                 index = index % len(self.signal)
             self.index = index 
@@ -1129,7 +1137,7 @@ class Wrap(Filter, BufferBlock):
             else:
 
                 # jump?
-                if (numpy.fabs(theta - self.theta) > self.threshold):
+                if numpy.fabs(theta - self.theta) > self.threshold:
                     if theta > self.theta:
                         self.turns -= 1
                     else: 

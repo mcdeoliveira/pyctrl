@@ -5,7 +5,7 @@ import time
 
 class TestUnittestAssertions(unittest.TestCase):
 
-    def _test_clock(self, clock, Ts):
+    def run_test_clock(self, clock, Ts):
 
         clock.set_enabled(True)
 
@@ -37,7 +37,7 @@ class TestUnittestAssertions(unittest.TestCase):
 
         clock.set_enabled(False)
 
-    def _test_calibrate(self, clock, Ts, eps):
+    def run_test_calibrate(self, clock, Ts, eps):
 
         clock.set_enabled(True)
 
@@ -49,7 +49,7 @@ class TestUnittestAssertions(unittest.TestCase):
 
         clock.set_enabled(False)
 
-    def _test_reset(self, clock, Ts):
+    def run_test_reset(self, clock, Ts):
 
         clock.set_enabled(True)
 
@@ -110,18 +110,18 @@ class TestUnittestAssertions(unittest.TestCase):
         Ts = 0.01
         clock = clk.TimerClock(period=Ts)
 
-        self._test_clock(clock, Ts)
-        self._test_reset(clock, Ts)
-        self._test_calibrate(clock, Ts, 0.01)
+        self.run_test_clock(clock, Ts)
+        self.run_test_reset(clock, Ts)
+        self.run_test_calibrate(clock, Ts, 0.01)
 
     def test_alt_timer_clock(self):
 
         Ts = 0.01
         clock = clk.AltTimerClock(period=Ts)
 
-        self._test_clock(clock, Ts)
-        self._test_reset(clock, Ts)
-        self._test_calibrate(clock, Ts, 0.01)
+        self.run_test_clock(clock, Ts)
+        self.run_test_reset(clock, Ts)
+        self.run_test_calibrate(clock, Ts, 0.01)
 
 
 if __name__ == '__main__':

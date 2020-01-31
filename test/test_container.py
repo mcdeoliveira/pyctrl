@@ -87,7 +87,7 @@ class TestUnittestAssertions(unittest.TestCase):
 
         container.add_sink('_logger_', block.Logger(), ['clock'])
         self.assertTrue( '_logger_' in container.list_sinks() )
-        
+
         # TODO: test for changed signals
 
         container.set_sink('_logger_', reset = True)
@@ -874,8 +874,6 @@ class TestUnittestAssertions(unittest.TestCase):
         container.add_source('timer/container1/input1',
                              ('pyctrl.block.container', 'Input'),
                              ['s1'])
-
-    def _tradsa(self):
 
         container.add_filter('timer/container1/gain1',
                              ('pyctrl.block.system', 'Gain'),

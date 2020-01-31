@@ -72,6 +72,7 @@ class TestUnittestAssertions(unittest.TestCase):
                 self.count = 0
 
             def increment(self, inc=1):
+                print('count = {}'.format(self.count))
                 self.count += inc
 
         Ts = 0.1
@@ -85,6 +86,8 @@ class TestUnittestAssertions(unittest.TestCase):
         thread.start()
 
         time.sleep(Ts)
+
+        print('waiting to join...')
 
         clk.join()
 

@@ -30,7 +30,7 @@ class BaseTest(unittest.TestCase):
         else:  # dim == 1:
             return self.assertTrue(_shape[1] > shape)
 
-    def _test_basic(self, controller):
+    def run_test_basic(self, controller):
 
         import numpy
         import pyctrl.block as block
@@ -286,7 +286,7 @@ class BaseTest(unittest.TestCase):
         time.sleep(1)
         self.assertTrue(controller.get_signal('is_running') == False)
 
-    def _test_timer(self, controller):
+    def run_test_timer(self, controller):
 
         import pyctrl.block as block
 
@@ -331,7 +331,7 @@ class BaseTest(unittest.TestCase):
         with controller:
             controller.join()
 
-    def _test_set(self, controller):
+    def run_test_set(self, controller):
 
         import pyctrl.block as block
         import pyctrl.block.logic as logic
@@ -372,7 +372,7 @@ class BaseTest(unittest.TestCase):
         self.assertTrue(controller.get_signal('s2') == 0)
         self.assertTrue(controller.get_source('const', 'value') == 0.4)
 
-    def _test_sub_container(self, controller):
+    def run_test_sub_container(self, controller):
 
         import pyctrl.block.system as system
         import pyctrl.block.container as container
@@ -443,7 +443,7 @@ class BaseTest(unittest.TestCase):
         self.assertTrue(controller.get_signal('s2') == 3)
         self.assertTrue(controller.get_signal('s3') == 5)
 
-    def _test_sub_container_timer(self, controller):
+    def run_test_sub_container_timer(self, controller):
 
         import pyctrl.block as block
         import pyctrl.block.system as system
@@ -498,7 +498,7 @@ class BaseTest(unittest.TestCase):
         self.assertTrue(controller.get_signal('s2') == 3)
         self.assertTrue(controller.get_signal('s3') == 5)
 
-    def _test_timer_sub_container(self, controller):
+    def run_test_timer_sub_container(self, controller):
 
         import pyctrl.block.system as system
         import pyctrl.block.container as container
@@ -557,7 +557,7 @@ class BaseTest(unittest.TestCase):
         self.assertTrue(controller.get_signal('s2') == 3)
         self.assertTrue(controller.get_signal('s3') == 5)
 
-    def _test_add_device(self, controller):
+    def run_test_add_device(self, controller):
 
         print('> * * * TEST ADD DEVICE {} * * *'.format(controller.__class__))
 
@@ -617,7 +617,7 @@ class BaseTest(unittest.TestCase):
 
 class TestUnittestAssertions(BaseTest):
 
-    def _test_clock(self):
+    def run_test_clock(self):
 
         from pyctrl import Controller
         from pyctrl.block.clock import Clock, TimerClock
@@ -661,7 +661,7 @@ class TestUnittestAssertions(BaseTest):
 
         clock.set_enabled(False)
 
-    def _test_run(self):
+    def run_test_run(self):
 
         from pyctrl import Controller
         from pyctrl.block.clock import Clock
@@ -699,31 +699,31 @@ class TestUnittestAssertions(BaseTest):
 
         controller.remove_source('clock')
 
-    def _test_local(self):
+    def run_test_local(self):
 
         from pyctrl import Controller
         controller = Controller()
 
-        self._test_basic(controller)
-        self._test_timer(controller)
-        self._test_set(controller)
-        self._test_sub_container(controller)
-        self._test_sub_container_timer(controller)
-        self._test_timer_sub_container(controller)
-        self._test_add_device(controller)
+        self.run_test_basic(controller)
+        self.run_test_timer(controller)
+        self.run_test_set(controller)
+        self.run_test_sub_container(controller)
+        self.run_test_sub_container_timer(controller)
+        self.run_test_timer_sub_container(controller)
+        self.run_test_add_device(controller)
 
     def test_local_timer(self):
 
         from pyctrl.timer import Controller
         controller = Controller(period=0.01)
 
-        self._test_basic(controller)
-        self._test_timer(controller)
-        self._test_set(controller)
-        self._test_sub_container(controller)
-        self._test_sub_container_timer(controller)
-        self._test_timer_sub_container(controller)
-        self._test_add_device(controller)
+        self.run_test_basic(controller)
+        self.run_test_timer(controller)
+        self.run_test_set(controller)
+        self.run_test_sub_container(controller)
+        self.run_test_sub_container_timer(controller)
+        self.run_test_timer_sub_container(controller)
+        self.run_test_add_device(controller)
 
 
 def test_client_server():

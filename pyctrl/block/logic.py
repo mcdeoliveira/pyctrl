@@ -236,9 +236,9 @@ class CompareAbs(block.Filter, block.BufferBlock):
         super().write(*values)
 
         if self.invert:
-            self.buffer = tuple(int(numpy.fabs(v) >= self.threshold) for v in self.buffer)
+            self.buffer = tuple(int(abs(v) >= self.threshold) for v in self.buffer)
         else:
-            self.buffer = tuple(int(numpy.fabs(v) <= self.threshold) for v in self.buffer)
+            self.buffer = tuple(int(abs(v) <= self.threshold) for v in self.buffer)
 
 
 class CompareAbsWithHysterisis(CompareAbs):
@@ -324,27 +324,27 @@ class CompareAbsWithHysterisis(CompareAbs):
 
     def __test(self, v, s):
         if s:
-            if numpy.fabs(v - self.offset) <= self.threshold + self.hysterisis:
-                return (1, State.HIGH)
+            if abs(v - self.offset) <= self.threshold + self.hysterisis:
+                return 1, State.HIGH
             else:
-                return (0, State.LOW)
+                return 0, State.LOW
         else:
-            if numpy.fabs(v - self.offset) <= self.threshold - self.hysterisis:
-                return (1, State.HIGH)
+            if abs(v - self.offset) <= self.threshold - self.hysterisis:
+                return 1, State.HIGH
             else:
-                return (0, State.LOW)
+                return 0, State.LOW
 
     def __test_invert(self, v, s):
         if s:
-            if numpy.fabs(v - self.offset) >= self.threshold - self.hysterisis:
-                return (1, State.HIGH)
+            if abs(v - self.offset) >= self.threshold - self.hysterisis:
+                return 1, State.HIGH
             else:
-                return (0, State.LOW)
+                return 0, State.LOW
         else:
-            if numpy.fabs(v - self.offset) >= self.threshold + self.hysterisis:
-                return (1, State.HIGH)
+            if abs(v - self.offset) >= self.threshold + self.hysterisis:
+                return 1, State.HIGH
             else:
-                return (0, State.LOW)
+                return 0, State.LOW
 
     def write(self, *values):
         """

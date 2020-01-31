@@ -170,7 +170,7 @@ class DeadZone(block.Filter, block.BufferBlock):
         elif self.X == self.Y:
             c = 1
         else:
-            c = numpy.nan
+            c = 0 #numpy.nan
         self._pars = (a,b,c)
 
     def get(self, *keys, exclude = ()):
